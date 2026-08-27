@@ -1,0 +1,156 @@
+{
+  "rows": [
+    {
+      "decision": "adopt",
+      "destination": "docs/product/design-partner-console-requirements.md",
+      "id": "SRC-001",
+      "source": "accepted requirements note"
+    },
+    {
+      "decision": "adopt",
+      "destination": "docs/architecture/design-partner-console.md",
+      "id": "SRC-002",
+      "source": "accepted architecture note"
+    },
+    {
+      "decision": "adopt",
+      "destination": "docs/plans/design-partner-console-implementation.md",
+      "id": "SRC-003",
+      "source": "accepted implementation-plan note"
+    },
+    {
+      "decision": "adopt",
+      "destination": "docs/plans/active/eem-9-design-partner-console-dashboard-and-certification.md",
+      "id": "SRC-004",
+      "source": "backend EEM-9 active plan"
+    },
+    {
+      "decision": "adopt",
+      "destination": "docs/architecture/design-partner-console-program-design.md",
+      "id": "SRC-005",
+      "source": "portable accepted Console program design"
+    },
+    {
+      "decision": "retain-by-uri-and-vault-relative-fallback",
+      "destination": "mandatory EEM-9/07-/10 reading map",
+      "id": "SRC-006",
+      "source": "EEM - OWASP-аудит и модель угроз"
+    },
+    {
+      "decision": "retain-by-uri-and-vault-relative-fallback",
+      "destination": "mandatory EEM-9/07-/10 reading map",
+      "id": "SRC-007",
+      "source": "EEM - Полный runbook запуска и эксплуатации"
+    },
+    {
+      "decision": "retain-as-immutable-backend-links",
+      "destination": "EEM-4, EEM-6, EEM-7, and EEM-8 source ownership",
+      "id": "SRC-008",
+      "source": "backend contributing plans"
+    },
+    {
+      "decision": "modify",
+      "destination": "scope table and component-source map",
+      "id": "SRC-009",
+      "source": "initial product table",
+      "why": "mark unclear items and split Dashboard/backend ownership"
+    },
+    {
+      "decision": "modify",
+      "destination": "requirements and architecture",
+      "id": "SRC-010",
+      "source": "initial authentication section",
+      "why": "freeze invite-only OTP, TOTP MFA, recovery, and application-session semantics"
+    },
+    {
+      "decision": "modify",
+      "destination": "requirements, architecture, and acceptance map",
+      "id": "SRC-011",
+      "source": "initial RLS and capability notes",
+      "why": "require live membership, explicit organization scope, backend authorization, and negative tenant evidence"
+    },
+    {
+      "decision": "adopt",
+      "destination": "requirements and architecture",
+      "id": "SRC-012",
+      "source": "GitHub integration, provider identifier, watcher, backfill, trial, and credential-handling decisions"
+    },
+    {
+      "decision": "modify",
+      "destination": "requirements and acceptance map",
+      "id": "SRC-013",
+      "source": "initial Knowledge list",
+      "why": "add evidence, provenance, lifecycle, review, correction, and safe REJECTED/QUARANTINED semantics"
+    },
+    {
+      "decision": "modify",
+      "destination": "requirements, ASVS matrix, and implementation plan",
+      "id": "SRC-014",
+      "source": "initial testing section",
+      "why": "add free regression, OWASP ASVS, accessibility, tenant, recovery, supply-chain, and certification evidence"
+    },
+    {
+      "decision": "modify",
+      "destination": "portable architecture and two-repository ADR",
+      "id": "SRC-015",
+      "source": "initial component diagram",
+      "why": "make the Browser-BFF-customer-safe-API boundary and immutable contract lock explicit"
+    },
+    {
+      "decision": "reject-as-current-authority",
+      "destination": "historical source record only",
+      "id": "SRC-016",
+      "source": "downloaded pre-acceptance implementation plan",
+      "why": "it predates the accepted 2026-08-25 package"
+    },
+    {
+      "decision": "adopt",
+      "destination": "README.md and docs/README.md",
+      "id": "SRC-017",
+      "source": "repository entry-point requirement"
+    },
+    {
+      "decision": "modify",
+      "destination": "docs/plans/design-partner-console-implementation.md",
+      "id": "SRC-018",
+      "source": "Product/design-partner-console-plan.md concept",
+      "why": "the accepted implementation plan is the canonical detailed plan"
+    },
+    {
+      "decision": "reject",
+      "destination": "none",
+      "id": "SRC-019",
+      "source": "second or legacy README",
+      "why": "one canonical root entry point avoids conflicting instructions"
+    },
+    {
+      "decision": "resolve-for-P01",
+      "destination": "docs/security/artifact-attestation-policy.json",
+      "id": "P01-D001",
+      "source": "artifact trust-service question",
+      "why": "use public Fulcio and Rekor with payload-free signature metadata"
+    },
+    {
+      "decision": "resolve-for-P01-with-open-finding",
+      "destination": "SECURITY.md",
+      "id": "P01-D002",
+      "source": "private GitHub Free governance enforcement",
+      "why": "the user approved a temporary bootstrap waiver; SEC-2026-012 remains readiness-blocking"
+    },
+    {
+      "decision": "resolve-for-P01",
+      "destination": "docs/architecture/design-partner-console.md",
+      "id": "P01-D003",
+      "source": "Auth and application-session thresholds",
+      "why": "freeze JWT 15m, human idle 30m, warning 5m, touch 1m, absolute 8h, maximum three sessions, reauth 10m, OTP 10m, and resend 60s"
+    },
+    {
+      "decision": "resolve-by-current-evidence",
+      "destination": "migrated architecture and implementation plan",
+      "id": "P01-D004",
+      "source": "pre-merge EEM-3/13 status text",
+      "why": "backend PR #24 is merged and its exact merged lock attestation passes"
+    }
+  ],
+  "schemaVersion": "1.0"
+}

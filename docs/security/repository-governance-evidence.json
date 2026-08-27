@@ -1,0 +1,49 @@
+{
+  "finding": {
+    "compensatingControls": [
+      "CODEOWNERS",
+      "full-SHA GitHub Action references",
+      "deterministic authority manifest and archive",
+      "public Sigstore identity and Rekor inclusion",
+      "exact release asset and digest verification",
+      "paired backend immutable pointer",
+      "local and CI bootstrap contract checks"
+    ],
+    "enforcementWaiverApproved": true,
+    "id": "SEC-2026-012",
+    "readinessBlocking": true,
+    "status": "open"
+  },
+  "observedAt": "2026-08-27T17:17:33Z",
+  "observations": {
+    "actionsDefaultWorkflowPermissions": {
+      "httpStatus": 404,
+      "result": "not-visible"
+    },
+    "branchProtection": {
+      "httpStatus": 404,
+      "result": "not-configured-or-unavailable"
+    },
+    "environments": [],
+    "immutableReleases": {
+      "httpStatus": 404,
+      "result": "not-enabled"
+    },
+    "repository": {
+      "defaultBranch": "main",
+      "private": true,
+      "visibility": "private"
+    },
+    "rulesets": {
+      "httpStatus": 403,
+      "message": "Upgrade to GitHub Pro or make this repository public to enable this feature.",
+      "result": "unavailable-on-current-plan"
+    }
+  },
+  "preservedRepositoryBaseline": {
+    "initialMainCommit": "85c851202dd978af50dbdac1a599c74f3994c5ad",
+    "licenseSha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+  },
+  "repository": "Evirion/evirion-engineering-memory-dashboard",
+  "schemaVersion": "1.0"
+}

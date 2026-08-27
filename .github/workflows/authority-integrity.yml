@@ -1,0 +1,56 @@
+name: Authority integrity
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: authority-integrity-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify frozen authority
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out exact source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Run standard-library bootstrap tests
+        run: python3 -m unittest discover -s tests -p 'test_*.py'
+
+      - name: Verify documentation and generated authorities
+        run: |
+          python3 scripts/check_docs.py
+          python3 scripts/generate_acceptance_map.py
+          python3 scripts/generate_asvs_matrix.py
+          python3 scripts/generate_security_controls.py
+          python3 scripts/check_authority.py
+          python3 scripts/scan_tracked_secrets.py
+
+      - name: Validate machine-readable JSON-compatible YAML
+        run: |
+          python3 -m json.tool docs/architecture/toolchain-baseline.json >/dev/null
+          python3 -m json.tool docs/requirements/acceptance-map.yaml >/dev/null
+          python3 -m json.tool docs/requirements/source-disposition.yaml >/dev/null
+          python3 -m json.tool docs/security/asvs-v5.0.0-l2-console-evidence.yaml >/dev/null
+          python3 -m json.tool docs/security/console-security-controls.yaml >/dev/null
+
+      - name: Reproduce exact authority package
+        run: |
+          python3 -m scripts.build_authority_package \
+            --output "$RUNNER_TEMP/authority.first.tar.gz"
+          python3 -m scripts.build_authority_package \
+            --output "$RUNNER_TEMP/authority.second.tar.gz"
+          cmp \
+            "$RUNNER_TEMP/authority.first.tar.gz" \
+            "$RUNNER_TEMP/authority.second.tar.gz"

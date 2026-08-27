@@ -1,0 +1,3148 @@
+{
+  "bootstrapRowCount": 13,
+  "bootstrapSource": "docs/plans/eem-9-01-bootstrap-contract.md",
+  "bootstrapSourceSha256": "efc733ab2f63f2983086bdc47ee45aceb31b4450b4f07bae80e2d697f5f268c7",
+  "productRowCount": 379,
+  "rowCount": 392,
+  "rows": [
+    {
+      "case": "G-001.A1",
+      "id": "G-001.A1",
+      "primaryEvidence": "tests/e2e/free-integration.spec.ts::goal_safe_onboarding_without_ingestion",
+      "primaryOwner": "I01-C",
+      "requirementId": "G-001",
+      "text": "Design partner может войти, подключить существующий GitHub App и увидеть доступные repositories без автоматического ingestion."
+    },
+    {
+      "case": "G-002.A1",
+      "id": "G-002.A1",
+      "primaryEvidence": "test_console_entitlement_enforcement_live.py::test_only_active_entitlement_creates_processing_work",
+      "primaryOwner": "B05",
+      "requirementId": "G-002",
+      "text": "Только repository с `ACTIVE` product entitlement может создавать новую processing work."
+    },
+    {
+      "case": "G-003.A1",
+      "id": "G-003.A1",
+      "primaryEvidence": "test_console_free_integration_live.py::test_live_and_historical_paths_reuse_existing_guards",
+      "primaryOwner": "I01-B",
+      "requirementId": "G-003",
+      "text": "Historical import и live merged-PR ingestion используют существующие backend state machines, idempotency, checkpoint, policy и budget guards."
+    },
+    {
+      "case": "G-004.A1",
+      "id": "G-004.A1",
+      "primaryEvidence": "tests/e2e/memory-review.spec.ts::goal_human_validation_preserves_machine_provenance",
+      "primaryOwner": "C05",
+      "requirementId": "G-004",
+      "text": "Reviewer может проверить exact evidence и записать immutable approve/edit/reject decision без изменения machine provenance."
+    },
+    {
+      "case": "G-005.A1",
+      "id": "G-005.A1",
+      "primaryEvidence": "tests/e2e/memory-review.spec.ts::goal_lifecycle_is_independent",
+      "primaryOwner": "C05",
+      "requirementId": "G-005",
+      "text": "Reviewer может независимо от admission и review определить, является ли knowledge unresolved, active или superseded."
+    },
+    {
+      "case": "G-006.A1",
+      "id": "G-006.A1",
+      "primaryEvidence": "tests/e2e/processing-settings.spec.ts::goal_operational_transparency_uses_safe_projections",
+      "primaryOwner": "C06",
+      "requirementId": "G-006",
+      "text": "Admin видит jobs, runs, admission outcomes, validation failures, usage, cost и latency через безопасные projections, не получая raw secrets или unrestricted provenance access."
+    },
+    {
+      "case": "G-007.A1",
+      "id": "G-007.A1",
+      "primaryEvidence": "test_console_read_api_live.py::test_first_partner_metrics_are_reproducible",
+      "primaryOwner": "B09",
+      "requirementId": "G-007",
+      "text": "Система автоматически рассчитывает product и operational metrics первого design partner."
+    },
+    {
+      "case": "BR-001.A1",
+      "id": "BR-001.A1",
+      "primaryEvidence": "test_console_entitlement_enforcement_live.py::test_access_without_entitlement_has_zero_pipeline_side_effects",
+      "primaryOwner": "B05",
+      "requirementId": "BR-001",
+      "text": "GitHub App access никогда автоматически не активирует Evirion processing."
+    },
+    {
+      "case": "BR-002.A1",
+      "id": "BR-002.A1",
+      "primaryEvidence": "test_console_model_call_authorization_live.py::test_all_paid_gates_compose_fail_closed",
+      "primaryOwner": "B06",
+      "requirementId": "BR-002",
+      "text": "`ACTIVE` entitlement необходим, но недостаточен. Policy, budget, approval, semantic readiness и job eligibility продолжают применяться."
+    },
+    {
+      "case": "BR-003.A1",
+      "id": "BR-003.A1",
+      "primaryEvidence": "test_console_entitlement_enforcement_live.py::test_locked_delivery_has_exact_zero_counts",
+      "primaryOwner": "B05",
+      "requirementId": "BR-003",
+      "text": "Unentitled merged-PR webhook может создать только bounded payload-free audit receipt. Он не создаёт ExtractionJob, SourceEnvelope, queue work или provider usage."
+    },
+    {
+      "case": "BR-004.A1",
+      "id": "BR-004.A1",
+      "primaryEvidence": "test_console_entitlement_enforcement_live.py::test_ignored_delivery_is_not_replayed_after_activation",
+      "primaryOwner": "B05",
+      "requirementId": "BR-004",
+      "text": "Webhook, проигнорированный до activation, не переигрывается автоматически. После activation обрабатываются будущие merges; history импортируется через backfill."
+    },
+    {
+      "case": "BR-005.A1",
+      "id": "BR-005.A1",
+      "primaryEvidence": "test_operator_paid_authorization_live.py::test_customer_consent_and_chat_cannot_authorize_paid_work",
+      "primaryOwner": "B06B",
+      "requirementId": "BR-005",
+      "text": "Historical import проходит free discovery/source stages и останавливается в `awaiting_approval`. Customer consent сохраняется как tenant-bound approval конкретного BackfillRun с workload, budget ceiling, actor, timestamp и idempotency key. Paid stage начинается только при наличии отдельной Evirion operational authorization для целевого environment.  Для live merged PR:  - `OFF` не создаёт live processing work; - `SOURCE_ONLY` разрешает только Source Envelope и оставляет paid gate closed; - `AUTO_EXTRACT` является persisted customer consent, но каждый реальный Alpha call всё равно требует operational authorization."
+    },
+    {
+      "case": "BR-006.A1",
+      "id": "BR-006.A1",
+      "primaryEvidence": "test_console_model_call_authorization_live.py::test_logical_authorization_and_bounded_dispatch_matrix",
+      "primaryOwner": "B06",
+      "requirementId": "BR-006",
+      "text": "Каждая logical provider operation — initial или validation repair — получает ровно одну durable authorization. Каждый HTTP dispatch этой operation, включая bounded transport retry, должен быть покрыт её неизменным dispatch allowance:  ```text RepositoryEntitlement == ACTIVE AND RepositoryPolicy allows AND Budget allows AND Required approval satisfied AND Runtime/readiness guards pass AND Paid operational authorization covers phase, attempt, model and budget ```  Техническая linearization point — committed durable authorization для exact:  ```text organization repository job execution phase: initial | validation_repair attempt ordinal canonical request digest provider and provider-account scope server-derived provider idempotency key where supported maximum transport dispatches entitlement/policy versions budget reservation customer consent operational authorization ```  Она сериализуется с entitlement disable. Authorization, committed до disable, может завершить только эту logical operation в пределах expiry и captured dispatch allowance; transport retry переиспользует ту же authorization и не создаёт новую. После commit disable новая logical authorization невозможна. Explicit operational-authorization revoke сильнее: он блокирует любой ещё не начатый dispatch/retry. Database transaction не удерживается во время provider HTTP request."
+    },
+    {
+      "case": "BR-007.A1",
+      "id": "BR-007.A1",
+      "primaryEvidence": "test_console_model_call_authorization_live.py::test_checkpoint_disable_initial_and_repair_matrix",
+      "primaryOwner": "B06",
+      "requirementId": "BR-007",
+      "text": "Если successful provider response уже checkpointed, последующее entitlement disable не может удалить или оставить orphan response. Validation, admission и persistence завершаются без повторения этого provider phase.  Checkpoint одного phase не разрешает другой phase:  - initial checkpoint валидируется; - если он требует repair и repair checkpoint отсутствует, repair получает отдельную authorization; - если entitlement уже disabled, новый repair call запрещён, а initial invalid response детерминированно завершается как `QUARANTINED` с соответствующими validation issues; - existing repair checkpoint может быть валидирован/persisted без нового call.  Authorized but not dispatched work:  - истёкшая authorization не dispatch-ится; - каждый dispatch имеет append-only ordinal/status; allowance consumption атомарно сериализуется с operational revoke; - committed append со status `started`, непосредственно перед HTTP, является единственной dispatch-start linearization point; отдельного reserved state нет; - dispatched request с неизвестным outcome повторяется автоматически только с той же logical authorization, тем же server-derived provider/account-scoped idempotency key, неизменным request/model digest и подтверждённой provider semantics, если dispatch allowance не исчерпан и operational authorization не revoked/expired; - без такой semantics outcome переводится в operator incident, а не в blind paid retry."
+    },
+    {
+      "case": "BR-008.A1",
+      "id": "BR-008.A1",
+      "primaryEvidence": "test_knowledge_human_review_live.py::test_review_preserves_original_provenance_bytes_and_hashes",
+      "primaryOwner": "B07",
+      "requirementId": "BR-008",
+      "text": "Human review, edit и lifecycle actions не изменяют:  - raw response; - ModelAttempt; - ExtractionRun; - AdmissionRecord; - original Knowledge Object; - Evidence."
+    },
+    {
+      "case": "BR-009.A1",
+      "id": "BR-009.A1",
+      "primaryEvidence": "test_console_read_api_live.py::test_admission_review_and_lifecycle_are_independent",
+      "primaryOwner": "B09",
+      "requirementId": "BR-009",
+      "text": "Ни одно состояние не используется как synonym другого."
+    },
+    {
+      "case": "BR-010.A1",
+      "id": "BR-010.A1",
+      "primaryEvidence": "test_console_read_api_live.py::test_rejected_and_quarantined_runs_create_zero_knowledge",
+      "primaryOwner": "B09",
+      "requirementId": "BR-010",
+      "text": "Они отображаются в Processing Activity и никогда не создают fake Knowledge Object cards."
+    },
+    {
+      "case": "BR-011.A1",
+      "id": "BR-011.A1",
+      "primaryEvidence": "test_console_read_api_live.py::test_absent_review_derives_pending",
+      "primaryOwner": "B09",
+      "requirementId": "BR-011",
+      "text": "`PENDING` означает отсутствие effective human review decision."
+    },
+    {
+      "case": "BR-012.A1",
+      "id": "BR-012.A1",
+      "primaryEvidence": "test_console_read_api_live.py::test_absent_or_retracted_lifecycle_derives_unresolved",
+      "primaryOwner": "B09",
+      "requirementId": "BR-012",
+      "text": "`UNRESOLVED` означает отсутствие effective lifecycle event."
+    },
+    {
+      "case": "BR-013.A1",
+      "id": "BR-013.A1",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_supersession_direction_is_new_to_old",
+      "primaryOwner": "B08",
+      "requirementId": "BR-013",
+      "text": "Canonical direction:  ```text NEW Knowledge Object SUPERSEDES OLD Knowledge Object ```"
+    },
+    {
+      "case": "BR-014.A1",
+      "id": "BR-014.A1",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_injected_relation_event_failure_rolls_back_atomically",
+      "primaryOwner": "B08",
+      "requirementId": "BR-014",
+      "text": "Relation и `SUPERSEDED` lifecycle event старого объекта записываются в одной transaction."
+    },
+    {
+      "case": "BR-015.A1",
+      "id": "BR-015.A1",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_superseding_object_remains_unresolved",
+      "primaryOwner": "B08",
+      "requirementId": "BR-015",
+      "text": "Объект, superseding старый объект, остаётся `UNRESOLVED`, пока reviewer явно не выберет `ACTIVE`."
+    },
+    {
+      "case": "BR-016.A1",
+      "id": "BR-016.A1",
+      "primaryEvidence": "test_console_release_security_live.py::test_every_tenant_path_is_constrained_rls_and_api_guarded",
+      "primaryOwner": "I01-B",
+      "requirementId": "BR-016",
+      "text": "Каждый entitlement, review, lifecycle event, relation, query и audit record tenant-scoped. Cross-tenant reference невозможен на constraint layer."
+    },
+    {
+      "case": "BR-017.A1",
+      "id": "BR-017.A1",
+      "primaryEvidence": "test_operator_organization_control_live.py::test_rotation_requires_atomic_operator_replacement",
+      "primaryOwner": "B03A",
+      "requirementId": "BR-017",
+      "text": "Для repository-limited Alpha direct replacement выполняется Evirion operator. Owner/Admin отправляет request, но не освобождает и не переназначает slot самостоятельно. Self-service replacement может появиться только как отдельно утверждённая organization policy. Deactivation не обнуляет historical usage."
+    },
+    {
+      "case": "BR-018.A1",
+      "id": "BR-018.A1",
+      "primaryEvidence": "test_console_entitlement_enforcement_live.py::test_disable_preserves_history_usage_and_provenance",
+      "primaryOwner": "B05",
+      "requirementId": "BR-018",
+      "text": "Entitlement disable блокирует новую processing work, но не удаляет ранее созданную provenance или customer-visible history."
+    },
+    {
+      "case": "BR-019.A1",
+      "id": "BR-019.A1",
+      "primaryEvidence": "test_console_customer_operations_live.py::test_backend_alone_owns_state_and_retry_capability",
+      "primaryOwner": "B06A",
+      "requirementId": "BR-019",
+      "text": "Console не создаёт собственную paid/backfill/retry state machine."
+    },
+    {
+      "case": "BR-020.A1",
+      "id": "BR-020.A1",
+      "primaryEvidence": "test_console_read_api_live.py::test_exact_evidence_precedes_review_action_capability",
+      "primaryOwner": "B09",
+      "requirementId": "BR-020",
+      "text": "Human review не может быть завершён как informed action, если reviewer не может открыть exact evidence и source attribution."
+    },
+    {
+      "case": "BR-021.A1",
+      "id": "BR-021.A1",
+      "primaryEvidence": "test_console_control_foundation_live.py::test_command_receipt_lost_response_and_request_hash_matrix",
+      "primaryOwner": "B01A",
+      "requirementId": "BR-021",
+      "text": "Каждая customer/operator mutation имеет durable receipt, связывающий organization, trusted actor, operation, target, idempotency key, canonical request hash и bounded result. Same key/different request всегда conflict. External side effects дополнительно имеют domain workflow state и reconciliation."
+    },
+    {
+      "case": "BR-022.A1",
+      "id": "BR-022.A1",
+      "primaryEvidence": "test_console_model_call_authorization_live.py::test_crash_lease_reactivation_cannot_revive_stale_generation",
+      "primaryOwner": "B06",
+      "requirementId": "BR-022",
+      "text": "Каждая admitted source/backfill/paid work item сохраняет entitlement generation или version, при которой она была разрешена. Disable увеличивает generation. Claim/authorization stale generation не возобновляется автоматически после reactivation."
+    },
+    {
+      "case": "BR-023.A1",
+      "id": "BR-023.A1",
+      "primaryEvidence": "test_console_read_api_live.py::test_organization_visibility_has_no_repository_acl",
+      "primaryOwner": "B09",
+      "requirementId": "BR-023",
+      "text": "Membership даёт read access ко всем customer-safe repositories организации. Repository-scoped ACL отсутствует. Это explicit Alpha assumption, который design partner подтверждает до onboarding; требование per-repository RBAC блокирует onboarding этой organization до отдельного design."
+    },
+    {
+      "case": "BR-024.A1",
+      "id": "BR-024.A1",
+      "primaryEvidence": "test_console_read_api_live.py::test_unresolved_cost_is_never_zero",
+      "primaryOwner": "B09",
+      "requirementId": "BR-024",
+      "text": "Cost всегда имеет status:  - `RESERVED`; - `MEASURED`; - `UNRESOLVED`; - `NOT_APPLICABLE`.  Console никогда не отображает reserved/unresolved cost как фактический zero."
+    },
+    {
+      "case": "AUTH-001.A1",
+      "id": "AUTH-001.A1",
+      "primaryEvidence": "test_console_membership_live.py::test_unknown_user_cannot_signup_without_invitation",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-001",
+      "text": "неизвестный email не может самостоятельно создать customer organization;"
+    },
+    {
+      "case": "AUTH-001.A2",
+      "id": "AUTH-001.A2",
+      "primaryEvidence": "test_console_membership_live.py::test_unknown_user_cannot_signup_without_invitation",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-001",
+      "text": "public signup disabled in local and hosted Supabase Auth configuration;"
+    },
+    {
+      "case": "AUTH-001.A3",
+      "id": "AUTH-001.A3",
+      "primaryEvidence": "test_console_membership_live.py::test_unknown_user_cannot_signup_without_invitation",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-001",
+      "text": "passwordless sign-in uses `shouldCreateUser = false`;"
+    },
+    {
+      "case": "AUTH-001.A4",
+      "id": "AUTH-001.A4",
+      "primaryEvidence": "test_console_membership_live.py::test_unknown_user_cannot_signup_without_invitation",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-001",
+      "text": "source-controlled local and expected-hosted email templates contain `{{ .Token }}` and no `ConfirmationURL`, `TokenHash` or sign-in URL. Their canonical subject/body digests, OTP expiry, resend period and redirect allowlist are frozen; a synthetic mailbox test proves the delivered message contains a bounded code but no Auth/invitation credential-bearing link;"
+    },
+    {
+      "case": "AUTH-001.A5",
+      "id": "AUTH-001.A5",
+      "primaryEvidence": "test_console_membership_live.py::test_unknown_user_cannot_signup_without_invitation",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-001",
+      "text": "direct Auth signup/OTP attempts for unknown users fail;"
+    },
+    {
+      "case": "AUTH-001.A6",
+      "id": "AUTH-001.A6",
+      "primaryEvidence": "test_console_membership_live.py::test_unknown_user_cannot_signup_without_invitation",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-001",
+      "text": "backend may pre-provision an Auth user only without a password, with `email_confirm = false` and no authorization metadata; it grants no membership access and does not prove email ownership until server-side OTP verification succeeds;"
+    },
+    {
+      "case": "AUTH-001.A7",
+      "id": "AUTH-001.A7",
+      "primaryEvidence": "test_console_membership_live.py::test_unknown_user_cannot_signup_without_invitation",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-001",
+      "text": "an existing Auth user is reusable only when its exact email identity matches the P01-frozen Alpha provider/identity contract; unsupported or linked identities fail final without relinking, OTP send or membership mutation;"
+    },
+    {
+      "case": "AUTH-001.A8",
+      "id": "AUTH-001.A8",
+      "primaryEvidence": "test_console_membership_live.py::test_unknown_user_cannot_signup_without_invitation",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-001",
+      "text": "invite одноразовый, истекающий и tenant-bound;"
+    },
+    {
+      "case": "AUTH-001.A9",
+      "id": "AUTH-001.A9",
+      "primaryEvidence": "test_console_membership_live.py::test_unknown_user_cannot_signup_without_invitation",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-001",
+      "text": "повторное использование invite не создаёт вторую membership;"
+    },
+    {
+      "case": "AUTH-001.A10",
+      "id": "AUTH-001.A10",
+      "primaryEvidence": "test_console_membership_live.py::test_unknown_user_cannot_signup_without_invitation",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-001",
+      "text": "disabled membership теряет доступ без ожидания JWT role refresh;"
+    },
+    {
+      "case": "AUTH-001.A11",
+      "id": "AUTH-001.A11",
+      "primaryEvidence": "test_console_membership_live.py::test_unknown_user_cannot_signup_without_invitation",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-001",
+      "text": "auth error не раскрывает существование чужой organization."
+    },
+    {
+      "case": "AUTH-002.A1",
+      "id": "AUTH-002.A1",
+      "primaryEvidence": "test_console_membership_live.py::test_disabled_membership_denies_stale_jwt",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-002",
+      "text": "disabled member получает `403`;"
+    },
+    {
+      "case": "AUTH-002.A2",
+      "id": "AUTH-002.A2",
+      "primaryEvidence": "test_console_membership_live.py::test_disabled_membership_denies_stale_jwt",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-002",
+      "text": "stale JWT не сохраняет доступ;"
+    },
+    {
+      "case": "AUTH-002.A3",
+      "id": "AUTH-002.A3",
+      "primaryEvidence": "test_console_membership_live.py::test_disabled_membership_denies_stale_jwt",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-002",
+      "text": "`raw_user_meta_data` не используется для authorization;"
+    },
+    {
+      "case": "AUTH-002.A4",
+      "id": "AUTH-002.A4",
+      "primaryEvidence": "test_console_membership_live.py::test_disabled_membership_denies_stale_jwt",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-002",
+      "text": "caller-supplied `organization_id` не может заменить organization из membership context."
+    },
+    {
+      "case": "AUTH-003.A1",
+      "id": "AUTH-003.A1",
+      "primaryEvidence": "test_console_membership_live.py::test_role_capability_matrix_blocks_direct_rpc",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-003",
+      "text": "Reviewer не активирует repository;"
+    },
+    {
+      "case": "AUTH-003.A2",
+      "id": "AUTH-003.A2",
+      "primaryEvidence": "test_console_membership_live.py::test_role_capability_matrix_blocks_direct_rpc",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-003",
+      "text": "Viewer не создаёт review;"
+    },
+    {
+      "case": "AUTH-003.A3",
+      "id": "AUTH-003.A3",
+      "primaryEvidence": "test_console_membership_live.py::test_role_capability_matrix_blocks_direct_rpc",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-003",
+      "text": "Admin не передаёт ownership;"
+    },
+    {
+      "case": "AUTH-003.A4",
+      "id": "AUTH-003.A4",
+      "primaryEvidence": "test_console_membership_live.py::test_role_capability_matrix_blocks_direct_rpc",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-003",
+      "text": "direct RPC invocation даёт тот же deny, что и Console action."
+    },
+    {
+      "case": "AUTH-004.A1",
+      "id": "AUTH-004.A1",
+      "primaryEvidence": "test_console_membership_live.py::test_explicit_organization_scope_cannot_be_forged",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-004",
+      "text": "active organization хранится как UI preference, не authorization fact;"
+    },
+    {
+      "case": "AUTH-004.A2",
+      "id": "AUTH-004.A2",
+      "primaryEvidence": "test_console_membership_live.py::test_explicit_organization_scope_cannot_be_forged",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-004",
+      "text": "каждый API request независимо tenant-scoped;"
+    },
+    {
+      "case": "AUTH-004.A3",
+      "id": "AUTH-004.A3",
+      "primaryEvidence": "test_console_membership_live.py::test_explicit_organization_scope_cannot_be_forged",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-004",
+      "text": "изменение URL или local storage не открывает другой tenant."
+    },
+    {
+      "case": "AUTH-005.A1",
+      "id": "AUTH-005.A1",
+      "primaryEvidence": "test_console_membership_live.py::test_invitation_state_reconciles_partial_external_failure",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-005",
+      "text": "raw token не сохраняется;"
+    },
+    {
+      "case": "AUTH-005.A2",
+      "id": "AUTH-005.A2",
+      "primaryEvidence": "test_console_membership_live.py::test_invitation_state_reconciles_partial_external_failure",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-005",
+      "text": "resend сохраняет history и не создаёт duplicate membership;"
+    },
+    {
+      "case": "AUTH-005.A3",
+      "id": "AUTH-005.A3",
+      "primaryEvidence": "test_console_membership_live.py::test_invitation_state_reconciles_partial_external_failure",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-005",
+      "text": "provider has no application idempotency key, so each generation has at most one automatic send attempt. Response loss after request dispatch records `OUTCOME_UNKNOWN` and never auto-resends; after cooldown an explicit owner/invitee resend creates the next generation and may supersede an earlier delivered code;"
+    },
+    {
+      "case": "AUTH-005.A4",
+      "id": "AUTH-005.A4",
+      "primaryEvidence": "test_console_membership_live.py::test_invitation_state_reconciles_partial_external_failure",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-005",
+      "text": "claim/lease and generation prevent competing reconcilers from sending the same generation; revoke/expire during an unknown send still prevents bootstrap/acceptance even if the email arrives;"
+    },
+    {
+      "case": "AUTH-005.A5",
+      "id": "AUTH-005.A5",
+      "primaryEvidence": "test_console_membership_live.py::test_invitation_state_reconciles_partial_external_failure",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-005",
+      "text": "successful verification may reconcile only the same still-current unknown send generation to `DELIVERED_BY_VERIFICATION` in the acceptance transaction. Resend/revoke/expire fences old codes even if provider verification succeeds;"
+    },
+    {
+      "case": "AUTH-005.A6",
+      "id": "AUTH-005.A6",
+      "primaryEvidence": "test_console_membership_live.py::test_invitation_state_reconciles_partial_external_failure",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-005",
+      "text": "lost `verifyOtp` response records `VERIFY_OUTCOME_UNKNOWN`, performs no automatic verify retry and cannot register membership/session; any provider session created by that response is application-unregistered and denied while an explicit cooldown-bound resend starts a new generation;"
+    },
+    {
+      "case": "AUTH-005.A7",
+      "id": "AUTH-005.A7",
+      "primaryEvidence": "test_console_membership_live.py::test_invitation_state_reconciles_partial_external_failure",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-005",
+      "text": "Auth success + DB failure и DB success + email failure имеют idempotent reconciliation;"
+    },
+    {
+      "case": "AUTH-005.A8",
+      "id": "AUTH-005.A8",
+      "primaryEvidence": "test_console_membership_live.py::test_invitation_state_reconciles_partial_external_failure",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-005",
+      "text": "revoke/expire блокируют acceptance;"
+    },
+    {
+      "case": "AUTH-005.A9",
+      "id": "AUTH-005.A9",
+      "primaryEvidence": "test_console_membership_live.py::test_invitation_state_reconciles_partial_external_failure",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-005",
+      "text": "invitation actor, role, email target, expiry и bounded failure code audit-logged;"
+    },
+    {
+      "case": "AUTH-005.A10",
+      "id": "AUTH-005.A10",
+      "primaryEvidence": "test_console_membership_live.py::test_invitation_state_reconciles_partial_external_failure",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-005",
+      "text": "concurrent final-owner/role transitions serialize at organization boundary."
+    },
+    {
+      "case": "AUTH-006.A1",
+      "id": "AUTH-006.A1",
+      "primaryEvidence": "test_operator_organization_control_live.py::test_bootstrap_is_atomic_idempotent_and_operator_derived",
+      "primaryOwner": "B03A",
+      "requirementId": "AUTH-006",
+      "text": "operator principal derived from trusted platform identity, not request text;"
+    },
+    {
+      "case": "AUTH-006.A2",
+      "id": "AUTH-006.A2",
+      "primaryEvidence": "test_operator_organization_control_live.py::test_bootstrap_is_atomic_idempotent_and_operator_derived",
+      "primaryOwner": "B03A",
+      "requirementId": "AUTH-006",
+      "text": "bootstrap idempotent;"
+    },
+    {
+      "case": "AUTH-006.A3",
+      "id": "AUTH-006.A3",
+      "primaryEvidence": "test_operator_organization_control_live.py::test_bootstrap_is_atomic_idempotent_and_operator_derived",
+      "primaryOwner": "B03A",
+      "requirementId": "AUTH-006",
+      "text": "no public/customer bootstrap endpoint;"
+    },
+    {
+      "case": "AUTH-006.A4",
+      "id": "AUTH-006.A4",
+      "primaryEvidence": "test_operator_organization_control_live.py::test_bootstrap_is_atomic_idempotent_and_operator_derived",
+      "primaryOwner": "B03A",
+      "requirementId": "AUTH-006",
+      "text": "Organization и first Owner commit atomically or reconcile through durable workflow state;"
+    },
+    {
+      "case": "AUTH-006.A5",
+      "id": "AUTH-006.A5",
+      "primaryEvidence": "test_operator_organization_control_live.py::test_bootstrap_is_atomic_idempotent_and_operator_derived",
+      "primaryOwner": "B03A",
+      "requirementId": "AUTH-006",
+      "text": "missing repository limit remains fail-closed;"
+    },
+    {
+      "case": "AUTH-006.A6",
+      "id": "AUTH-006.A6",
+      "primaryEvidence": "test_operator_organization_control_live.py::test_bootstrap_is_atomic_idempotent_and_operator_derived",
+      "primaryOwner": "B03A",
+      "requirementId": "AUTH-006",
+      "text": "every bootstrap/retry/failure audit-logged."
+    },
+    {
+      "case": "AUTH-007.A1",
+      "id": "AUTH-007.A1",
+      "primaryEvidence": "test_console_membership_live.py::test_online_token_mfa_session_recovery_matrix",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-007",
+      "text": "BFF and directly callable backend requests independently validate the exact access token online with `getUser(accessToken)`;"
+    },
+    {
+      "case": "AUTH-007.A2",
+      "id": "AUTH-007.A2",
+      "primaryEvidence": "test_console_membership_live.py::test_online_token_mfa_session_recovery_matrix",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-007",
+      "text": "backend allowlists JWT algorithm, issuer and audience, validates expiry and `session_id`, handles key rotation, and fails closed without domain mutation on Auth unavailability;"
+    },
+    {
+      "case": "AUTH-007.A3",
+      "id": "AUTH-007.A3",
+      "primaryEvidence": "test_console_membership_live.py::test_online_token_mfa_session_recovery_matrix",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-007",
+      "text": "bootstrap and protected requests require `is_anonymous = false`, a verified email identity and only the P01-frozen email-OTP/TOTP `amr`/identity/provider combinations from fresh Auth evidence. Existing anonymous/password/OAuth/ phone/recovery/linked identities and configuration drift deny; `amr` does not replace the code-only email-template check;"
+    },
+    {
+      "case": "AUTH-007.A4",
+      "id": "AUTH-007.A4",
+      "primaryEvidence": "test_console_membership_live.py::test_online_token_mfa_session_recovery_matrix",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-007",
+      "text": "`session.user`, user/app metadata and navigation state are never trusted;"
+    },
+    {
+      "case": "AUTH-007.A5",
+      "id": "AUTH-007.A5",
+      "primaryEvidence": "test_console_membership_live.py::test_online_token_mfa_session_recovery_matrix",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-007",
+      "text": "JWT lifetime, inactivity/absolute lifetime, concurrent-device and recent- reauthentication thresholds are frozen before implementation; refresh-token reuse detection remains enabled;"
+    },
+    {
+      "case": "AUTH-007.A6",
+      "id": "AUTH-007.A6",
+      "primaryEvidence": "test_console_membership_live.py::test_online_token_mfa_session_recovery_matrix",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-007",
+      "text": "backend maintains a private principal-scoped application-session registry keyed by verified `auth_user_id + session_id`; BFF login registers it, no raw token/OTP is stored, and an unknown, revoked or expired `session_id` is denied on every customer API/RPC even while a provider JWT has not yet expired;"
+    },
+    {
+      "case": "AUTH-007.A7",
+      "id": "AUTH-007.A7",
+      "primaryEvidence": "test_console_membership_live.py::test_online_token_mfa_session_recovery_matrix",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-007",
+      "text": "application state is `UNREGISTERED → BOOTSTRAP_PENDING → ACTIVE → REAUTH_REQUIRED | REVOKED | EXPIRED`; only fresh reauthentication returns `REAUTH_REQUIRED → ACTIVE`. Provider-session loss/reuse detection maps to terminal deny. A revoked/ expired provider `session_id` can never bootstrap/reactivate; only a newly issued provider session may create a new row;"
+    },
+    {
+      "case": "AUTH-007.A8",
+      "id": "AUTH-007.A8",
+      "primaryEvidence": "test_console_membership_live.py::test_online_token_mfa_session_recovery_matrix",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-007",
+      "text": "database time owns inactivity/absolute expiry. Only an allowlisted versioned API/RPC transaction that completes both session and domain authorization may touch activity, after those checks and before commit. Assets, prefetch, polling configured as non-activity, denied/Auth-outage requests and the interim compatibility-view RLS guard do not touch `last_seen_at`. Touches are transactionally checked-before-update and coalesced at the P01-frozen interval so an expired session cannot be revived;"
+    },
+    {
+      "case": "AUTH-007.A9",
+      "id": "AUTH-007.A9",
+      "primaryEvidence": "test_console_membership_live.py::test_online_token_mfa_session_recovery_matrix",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-007",
+      "text": "customer session bootstrap is a private BFF→backend operation, absent from the customer OpenAPI/Data API. In addition to the exact bearer token it requires a short-lived one-time HMAC/JWS proof from the BFF, bound to issuer, audience, method/path, token digest, verified `sub`/`session_id`, pre-auth transaction, optional invitation selection, nonce, issued/expiry time, idempotency key and canonical request digest. `service_role`, Origin, CORS or an unsigned header is never accepted as that proof;"
+    },
+    {
+      "case": "AUTH-007.A10",
+      "id": "AUTH-007.A10",
+      "primaryEvidence": "test_console_membership_live.py::test_online_token_mfa_session_recovery_matrix",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-007",
+      "text": "proof consumption and the bootstrap receipt commit atomically. Same key/ digest replays the receipt; replay with another key/digest, expired/unknown signing key, or an exact provider bearer without BFF proof performs zero invitation/membership/session mutation; only a bounded payload-free rejection security event is permitted;"
+    },
+    {
+      "case": "AUTH-007.A11",
+      "id": "AUTH-007.A11",
+      "primaryEvidence": "test_console_membership_live.py::test_online_token_mfa_session_recovery_matrix",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-007",
+      "text": "self-service active-session inventory exposes only bounded device/time labels. Revoking one/current/other/all marks the selected application sessions denied first; supported Supabase `local`/`others`/`global` sign-out follows through a durable reconciled effect. A provider-side access JWT remaining valid until `exp` never restores application authorization;"
+    },
+    {
+      "case": "AUTH-007.A12",
+      "id": "AUTH-007.A12",
+      "primaryEvidence": "test_console_membership_live.py::test_online_token_mfa_session_recovery_matrix",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-007",
+      "text": "mapping is fixed: `current → local`, `others → others`, `all → global`. Revoking one selected non-current session is application-only because the standard provider API has no arbitrary session-ID revocation; its provider effect is terminal `NOT_APPLICABLE`, not retryable. UI/audit distinguishes application revocation from provider reconciliation;"
+    },
+    {
+      "case": "AUTH-007.A13",
+      "id": "AUTH-007.A13",
+      "primaryEvidence": "test_console_membership_live.py::test_online_token_mfa_session_recovery_matrix",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-007",
+      "text": "provider sign-out response loss records `OUTCOME_UNKNOWN` after application denial commits. Reconciliation observes provider state before any bounded retry; without a provider-supported safe idempotency contract it escalates as a manual incident and never restores access;"
+    },
+    {
+      "case": "AUTH-007.A14",
+      "id": "AUTH-007.A14",
+      "primaryEvidence": "test_console_membership_live.py::test_online_token_mfa_session_recovery_matrix",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-007",
+      "text": "inventory hides expired tombstones after the retention window but preserves payload-free audit; cleanup cannot delete an active row or erase a pending provider-sign-out effect;"
+    },
+    {
+      "case": "AUTH-007.A15",
+      "id": "AUTH-007.A15",
+      "primaryEvidence": "test_console_membership_live.py::test_online_token_mfa_session_recovery_matrix",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-007",
+      "text": "membership disable, offboarding and factor revocation have executable immediate deny/recovery tests across BFF, API and direct-call paths;"
+    },
+    {
+      "case": "AUTH-007.A16",
+      "id": "AUTH-007.A16",
+      "primaryEvidence": "test_console_membership_live.py::test_online_token_mfa_session_recovery_matrix",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-007",
+      "text": "until EEM-8 replaces `api.trusted_knowledge`, its real REST/GraphQL customer path also requires an active application `session_id`; a direct provider-valid but unregistered/revoked token returns no rows, while explicitly separate machine/service access is preserved;"
+    },
+    {
+      "case": "AUTH-007.A17",
+      "id": "AUTH-007.A17",
+      "primaryEvidence": "test_console_membership_live.py::test_online_token_mfa_session_recovery_matrix",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-007",
+      "text": "first TOTP enrollment is the sole exception to prior full reauthentication: it begins from the freshly email-OTP-verified AAL1 session, grants no privileged capability until challenge/verify plus refreshed current/next AAL proves `aal2`, and abandoned/invalid enrollment stores no trusted factor. Later factor add/replace/unenroll and email changes require full recent reauthentication; successful change offers/forces termination of other sessions;"
+    },
+    {
+      "case": "AUTH-007.A18",
+      "id": "AUTH-007.A18",
+      "primaryEvidence": "test_console_membership_live.py::test_online_token_mfa_session_recovery_matrix",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-007",
+      "text": "“recent” is application-owned evidence, not a reusable claim inferred from `reauthenticate()`: a one-time challenge is bound to application session, exact action class, required fresh email-OTP plus TOTP methods, nonce, issued/expiry time and consumed version. Replay, different session/action, expiry or factor change invalidates `reauthenticated_at`;"
+    },
+    {
+      "case": "AUTH-007.A19",
+      "id": "AUTH-007.A19",
+      "primaryEvidence": "test_console_membership_live.py::test_online_token_mfa_session_recovery_matrix",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-007",
+      "text": "after factor enroll/unenroll/recovery, force token refresh and compare provider current/next AAL. A stale JWT that still says `aal2` cannot authorize: application session moves to `REAUTH_REQUIRED` until fresh permitted AAL evidence. Admin factor deletion first revokes all affected application sessions, then performs the global provider-session effect. Response loss is `RESET_OUTCOME_UNKNOWN`; reconciliation observes factor/session state before a bounded provider-supported idempotent retry and otherwise escalates without restoring access;"
+    },
+    {
+      "case": "AUTH-007.A20",
+      "id": "AUTH-007.A20",
+      "primaryEvidence": "test_console_membership_live.py::test_online_token_mfa_session_recovery_matrix",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-007",
+      "text": "no password reset exists in Alpha; claimant proof, separately authenticated AAL2 operator capability, approval/cooldown/notification, final-owner guard, session/factor revocation and payload-free audit are mandatory for compromised-email or lost-factor recovery."
+    },
+    {
+      "case": "AUTH-007.A21",
+      "id": "AUTH-007.A21",
+      "primaryEvidence": "test_console_membership_live.py::test_online_token_mfa_session_recovery_matrix",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-007",
+      "text": "Evirion operator authentication has an executable headless Alpha path: B01A pre-provisions/bootstrap-controls the operator identity; B02 performs email-OTP, TOTP/AAL2, online token plus live platform-operator membership validation and dedicated operator-session bootstrap. OTP/TOTP input uses protected TTY/stdin, tokens remain process-memory only for one bounded command, and no token appears in argv, shell history, environment, repository file or logs. Lost-factor recovery requires another authorized AAL2 operator; EEM-7/02 consumes this path rather than inventing synthetic JWTs."
+    },
+    {
+      "case": "AUTH-007.A22",
+      "id": "AUTH-007.A22",
+      "primaryEvidence": "test_console_membership_live.py::test_online_token_mfa_session_recovery_matrix",
+      "primaryOwner": "B02",
+      "requirementId": "AUTH-007",
+      "text": "the initial platform-operator roster comes only from an exact security- approved, two-person-approved, non-public deployment-owner bootstrap. It is idempotent/audited, creates passwordless unconfirmed identities without authorization metadata and is disabled after use. Later roster changes use a distinct approved deployment-owner command with final-active-operator guard; operator disable denies application sessions before provider reconciliation. Technical Design Partner Ready requires at least two distinct active operator identities."
+    },
+    {
+      "case": "AUTH-008.A1",
+      "id": "AUTH-008.A1",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::server_only_cookie_otp_mfa_session_recovery_matrix",
+      "primaryOwner": "C02",
+      "requirementId": "AUTH-008",
+      "text": "invitation OTP is verified server-side, then the BFF clean-redirects with `303`; OTP/access/refresh/invite credentials never enter application URLs, local/session storage, client state, logs, analytics or third-party requests;"
+    },
+    {
+      "case": "AUTH-008.A2",
+      "id": "AUTH-008.A2",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::server_only_cookie_otp_mfa_session_recovery_matrix",
+      "primaryOwner": "C02",
+      "requirementId": "AUTH-008",
+      "text": "after `verifyOtp`, the BFF calls an idempotent backend session bootstrap with the exact token and its one-time signed BFF proof. Existing active membership may register the session; exactly one matching live invitation may be selected automatically, while multiple eligible invitations require a post-auth explicit opaque selection. The selected invitation atomically registers the session and activates membership; mismatched/disabled/no-access state registers nothing. If bootstrap transiently fails after OTP consumption, tokens remain only in the host-only cookies and the BFF retries bootstrap without repeating OTP; all other API paths deny the still-unregistered `session_id`;"
+    },
+    {
+      "case": "AUTH-008.A3",
+      "id": "AUTH-008.A3",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::server_only_cookie_otp_mfa_session_recovery_matrix",
+      "primaryOwner": "C02",
+      "requirementId": "AUTH-008",
+      "text": "the BFF refreshes and rotates session cookies server-side and performs online `getUser(accessToken)` before every protected backend call;"
+    },
+    {
+      "case": "AUTH-008.A4",
+      "id": "AUTH-008.A4",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::server_only_cookie_otp_mfa_session_recovery_matrix",
+      "primaryOwner": "C02",
+      "requirementId": "AUTH-008",
+      "text": "concurrent refresh/lost-response tests prove one user/session cannot receive another session and refresh-token reuse recovery remains bounded;"
+    },
+    {
+      "case": "AUTH-008.A5",
+      "id": "AUTH-008.A5",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::server_only_cookie_otp_mfa_session_recovery_matrix",
+      "primaryOwner": "C02",
+      "requirementId": "AUTH-008",
+      "text": "cookie serialization/chunking is deterministic; every chunk preserves the `__Host-` attributes, rotation/logout clears every old chunk, and session or response-header size above the frozen browser/proxy budget fails closed;"
+    },
+    {
+      "case": "AUTH-008.A6",
+      "id": "AUTH-008.A6",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::server_only_cookie_otp_mfa_session_recovery_matrix",
+      "primaryOwner": "C02",
+      "requirementId": "AUTH-008",
+      "text": "unchunked+chunked collision, missing/gapped/duplicate/reordered/corrupt/ mixed-generation/excess chunks, stale higher chunks and aggregate inbound `Cookie`/outbound deletion `Set-Cookie` overflow clear every bounded slot, deny, and perform no refresh/bootstrap/invitation/domain mutation;"
+    },
+    {
+      "case": "AUTH-008.A7",
+      "id": "AUTH-008.A7",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::server_only_cookie_otp_mfa_session_recovery_matrix",
+      "primaryOwner": "C02",
+      "requirementId": "AUTH-008",
+      "text": "TOTP enrollment/challenge, AAL2 step-up, active-session inventory, one/other/all-session logout and recovery states have accessible positive, negative, expiry, replay and cross-user tests;"
+    },
+    {
+      "case": "AUTH-008.A8",
+      "id": "AUTH-008.A8",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::server_only_cookie_otp_mfa_session_recovery_matrix",
+      "primaryOwner": "C02",
+      "requirementId": "AUTH-008",
+      "text": "first TOTP enrollment from fresh email-OTP AAL1 is tested separately from later add/replace/unenroll reauthentication, with no privileged action before refreshed current/next AAL proves `aal2`;"
+    },
+    {
+      "case": "AUTH-008.A9",
+      "id": "AUTH-008.A9",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::server_only_cookie_otp_mfa_session_recovery_matrix",
+      "primaryOwner": "C02",
+      "requirementId": "AUTH-008",
+      "text": "TOTP enrollment QR/raw seed is explicitly one-time browser-visible privileged material. It is rendered only on a dynamic `private, no-store` response and never enters RSC/router cache, prefetch, analytics, logs, error capture, audit metadata or later navigation state;"
+    },
+    {
+      "case": "AUTH-008.A10",
+      "id": "AUTH-008.A10",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::server_only_cookie_otp_mfa_session_recovery_matrix",
+      "primaryOwner": "C02",
+      "requirementId": "AUTH-008",
+      "text": "before a provider session exists, OTP request/verify/bootstrap-selection use a distinct short-lived pre-auth transaction in a host-only secure cookie and a signed double-submit proof bound to canonical host/origin, HMAC email identity, nonce, attempt generation and expiry. State is `ISSUED → OTP_REQUEST_STARTED → OTP_REQUESTED → OTP_VERIFY_STARTED → OTP_VERIFIED → BOOTSTRAP_PENDING → CONSUMED`, with request `OUTCOME_UNKNOWN`, verify `VERIFY_OUTCOME_UNKNOWN` and terminal `REVOKED | EXPIRED | FAILED` branches; login rotates it into the provider `session_id`-bound CSRF proof and clears all pre-auth state;"
+    },
+    {
+      "case": "AUTH-008.A11",
+      "id": "AUTH-008.A11",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::server_only_cookie_otp_mfa_session_recovery_matrix",
+      "primaryOwner": "C02",
+      "requirementId": "AUTH-008",
+      "text": "a 256-bit HMAC-signed double-submit CSRF token is bound to live `session_id`; exact Origin/canonical Host, Fetch Metadata, content type and trusted-proxy rules cover Route Handlers and Server Actions;"
+    },
+    {
+      "case": "AUTH-008.A12",
+      "id": "AUTH-008.A12",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::server_only_cookie_otp_mfa_session_recovery_matrix",
+      "primaryOwner": "C02",
+      "requirementId": "AUTH-008",
+      "text": "login-CSRF, session swapping, replay, parallel tabs, stale OTP generation, cross-site form, null/malformed Origin and direct form-post tests fail before Auth/bootstrap/domain effects;"
+    },
+    {
+      "case": "AUTH-008.A13",
+      "id": "AUTH-008.A13",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::server_only_cookie_otp_mfa_session_recovery_matrix",
+      "primaryOwner": "C02",
+      "requirementId": "AUTH-008",
+      "text": "per-response CSPRNG CSP nonce is unique and header-bound; production CSP has no `unsafe-inline` or `unsafe-eval`;"
+    },
+    {
+      "case": "AUTH-008.A14",
+      "id": "AUTH-008.A14",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::server_only_cookie_otp_mfa_session_recovery_matrix",
+      "primaryOwner": "C02",
+      "requirementId": "AUTH-008",
+      "text": "force-dynamic/no-store, zero authenticated hosting TTL and no module-scope client/user/tenant state prevent warm-instance and cross-tenant session leaks."
+    },
+    {
+      "case": "AUTH-009.A1",
+      "id": "AUTH-009.A1",
+      "primaryEvidence": "tests/security/auth-hosted-parity-abuse.spec.ts::hosted_provider_limits_and_release_evidence",
+      "primaryOwner": "I01-C",
+      "requirementId": "AUTH-009",
+      "text": "local and hosted Auth settings are parity-tested, including disabled providers, signup and anonymous sign-in;"
+    },
+    {
+      "case": "AUTH-009.A2",
+      "id": "AUTH-009.A2",
+      "primaryEvidence": "tests/security/auth-hosted-parity-abuse.spec.ts::hosted_provider_limits_and_release_evidence",
+      "primaryOwner": "I01-C",
+      "requirementId": "AUTH-009",
+      "text": "OTP expiry/resend cooldown, per-IP/per-email quotas, generic anti-enumeration responses, CAPTCHA/risk equivalent, lockout recovery and alert thresholds are frozen and direct-Auth-endpoint tested;"
+    },
+    {
+      "case": "AUTH-009.A3",
+      "id": "AUTH-009.A3",
+      "primaryEvidence": "tests/security/auth-hosted-parity-abuse.spec.ts::hosted_provider_limits_and_release_evidence",
+      "primaryOwner": "I01-C",
+      "requirementId": "AUTH-009",
+      "text": "the Console-specific ASVS v5 Level 2 matrix assigns each applicable V1, V3, V4, V6–V10 and V12–V16 row to an owner/evidence/environment/verifier;"
+    },
+    {
+      "case": "AUTH-009.A4",
+      "id": "AUTH-009.A4",
+      "primaryEvidence": "tests/security/auth-hosted-parity-abuse.spec.ts::hosted_provider_limits_and_release_evidence",
+      "primaryOwner": "I01-C",
+      "requirementId": "AUTH-009",
+      "text": "V10.1.1 is satisfied by the server-only `HttpOnly` BFF token boundary;"
+    },
+    {
+      "case": "AUTH-009.A5",
+      "id": "AUTH-009.A5",
+      "primaryEvidence": "tests/security/auth-hosted-parity-abuse.spec.ts::hosted_provider_limits_and_release_evidence",
+      "primaryOwner": "I01-C",
+      "requirementId": "AUTH-009",
+      "text": "baseline plus separately authorized authenticated DAST, manual security charter and independent full-platform pentest/retest evidence including Console/BFF/Auth gate Technical Design Partner Ready."
+    },
+    {
+      "case": "GH-001.A1",
+      "id": "GH-001.A1",
+      "primaryEvidence": "github-installation-control/index_test.ts::start_and_callback_consume_one_time_intent",
+      "primaryOwner": "B04",
+      "requirementId": "GH-001",
+      "text": "signed state связывает user, organization, nonce и expiry;"
+    },
+    {
+      "case": "GH-001.A2",
+      "id": "GH-001.A2",
+      "primaryEvidence": "github-installation-control/index_test.ts::start_and_callback_consume_one_time_intent",
+      "primaryOwner": "B04",
+      "requirementId": "GH-001",
+      "text": "callback отклоняет missing, expired, reused или mismatched state;"
+    },
+    {
+      "case": "GH-001.A3",
+      "id": "GH-001.A3",
+      "primaryEvidence": "github-installation-control/index_test.ts::start_and_callback_consume_one_time_intent",
+      "primaryOwner": "B04",
+      "requirementId": "GH-001",
+      "text": "installation ID повторно разрешается server-side;"
+    },
+    {
+      "case": "GH-001.A4",
+      "id": "GH-001.A4",
+      "primaryEvidence": "github-installation-control/index_test.ts::start_and_callback_consume_one_time_intent",
+      "primaryOwner": "B04",
+      "requirementId": "GH-001",
+      "text": "browser не получает App private key или installation token;"
+    },
+    {
+      "case": "GH-001.A5",
+      "id": "GH-001.A5",
+      "primaryEvidence": "github-installation-control/index_test.ts::start_and_callback_consume_one_time_intent",
+      "primaryOwner": "B04",
+      "requirementId": "GH-001",
+      "text": "successful binding audit-logged."
+    },
+    {
+      "case": "GH-002.A1",
+      "id": "GH-002.A1",
+      "primaryEvidence": "test_github_control_live.py::test_exactly_one_effective_installation",
+      "primaryOwner": "B04",
+      "requirementId": "GH-002",
+      "text": "повторный onboarding не создаёт duplicate installation;"
+    },
+    {
+      "case": "GH-002.A2",
+      "id": "GH-002.A2",
+      "primaryEvidence": "test_github_control_live.py::test_exactly_one_effective_installation",
+      "primaryOwner": "B04",
+      "requirementId": "GH-002",
+      "text": "installation другого tenant нельзя привязать подменой ID;"
+    },
+    {
+      "case": "GH-002.A3",
+      "id": "GH-002.A3",
+      "primaryEvidence": "test_github_control_live.py::test_exactly_one_effective_installation",
+      "primaryOwner": "B04",
+      "requirementId": "GH-002",
+      "text": "suspended/removed installation отображается и блокирует новые source work."
+    },
+    {
+      "case": "GH-002.A4",
+      "id": "GH-002.A4",
+      "primaryEvidence": "test_github_control_live.py::test_exactly_one_effective_installation",
+      "primaryOwner": "B04",
+      "requirementId": "GH-002",
+      "text": "reconnect не оставляет две effective active installations."
+    },
+    {
+      "case": "GH-003.A1",
+      "id": "GH-003.A1",
+      "primaryEvidence": "test_github_control_live.py::test_sync_generation_tombstones_only_after_complete_traversal",
+      "primaryOwner": "B04",
+      "requirementId": "GH-003",
+      "text": "start endpoint возвращает sync receipt, а status endpoint — progress/result;"
+    },
+    {
+      "case": "GH-003.A2",
+      "id": "GH-003.A2",
+      "primaryEvidence": "test_github_control_live.py::test_sync_generation_tombstones_only_after_complete_traversal",
+      "primaryOwner": "B04",
+      "requirementId": "GH-003",
+      "text": "GitHub traversal cursor-paginated и имеет bounded page/total watchdog;"
+    },
+    {
+      "case": "GH-003.A3",
+      "id": "GH-003.A3",
+      "primaryEvidence": "test_github_control_live.py::test_sync_generation_tombstones_only_after_complete_traversal",
+      "primaryOwner": "B04",
+      "requirementId": "GH-003",
+      "text": "unseen repositories помечаются inaccessible только после complete successful traversal;"
+    },
+    {
+      "case": "GH-003.A4",
+      "id": "GH-003.A4",
+      "primaryEvidence": "test_github_control_live.py::test_sync_generation_tombstones_only_after_complete_traversal",
+      "primaryOwner": "B04",
+      "requirementId": "GH-003",
+      "text": "failed/partial sync не изменяет access status unseen repositories;"
+    },
+    {
+      "case": "GH-003.A5",
+      "id": "GH-003.A5",
+      "primaryEvidence": "test_github_control_live.py::test_sync_generation_tombstones_only_after_complete_traversal",
+      "primaryOwner": "B04",
+      "requirementId": "GH-003",
+      "text": "repository хранит access status, last seen generation и last successful sync timestamp;"
+    },
+    {
+      "case": "GH-003.A6",
+      "id": "GH-003.A6",
+      "primaryEvidence": "test_github_control_live.py::test_sync_generation_tombstones_only_after_complete_traversal",
+      "primaryOwner": "B04",
+      "requirementId": "GH-003",
+      "text": "all-repositories installation не запускает processing;"
+    },
+    {
+      "case": "GH-003.A7",
+      "id": "GH-003.A7",
+      "primaryEvidence": "test_github_control_live.py::test_sync_generation_tombstones_only_after_complete_traversal",
+      "primaryOwner": "B04",
+      "requirementId": "GH-003",
+      "text": "repository metadata не считается entitlement;"
+    },
+    {
+      "case": "GH-003.A8",
+      "id": "GH-003.A8",
+      "primaryEvidence": "test_github_control_live.py::test_sync_generation_tombstones_only_after_complete_traversal",
+      "primaryOwner": "B04",
+      "requirementId": "GH-003",
+      "text": "inaccessible/removed repository корректно помечается;"
+    },
+    {
+      "case": "GH-003.A9",
+      "id": "GH-003.A9",
+      "primaryEvidence": "test_github_control_live.py::test_sync_generation_tombstones_only_after_complete_traversal",
+      "primaryOwner": "B04",
+      "requirementId": "GH-003",
+      "text": "токены и private GitHub payload не сохраняются в Console."
+    },
+    {
+      "case": "GH-004.A1",
+      "id": "GH-004.A1",
+      "primaryEvidence": "github-webhook/index_test.ts::installation_lifecycle_updates_access_without_extraction",
+      "primaryOwner": "B04",
+      "requirementId": "GH-004",
+      "text": "suspended/removed immediately blocks new token/source authorization;"
+    },
+    {
+      "case": "GH-004.A2",
+      "id": "GH-004.A2",
+      "primaryEvidence": "github-webhook/index_test.ts::installation_lifecycle_updates_access_without_extraction",
+      "primaryOwner": "B04",
+      "requirementId": "GH-004",
+      "text": "source claim additionally performs current access verification within documented freshness window;"
+    },
+    {
+      "case": "GH-004.A3",
+      "id": "GH-004.A3",
+      "primaryEvidence": "github-webhook/index_test.ts::installation_lifecycle_updates_access_without_extraction",
+      "primaryOwner": "B04",
+      "requirementId": "GH-004",
+      "text": "stored Source Envelope may finish already-authorized deterministic processing only under entitlement/paid rules;"
+    },
+    {
+      "case": "GH-004.A4",
+      "id": "GH-004.A4",
+      "primaryEvidence": "github-webhook/index_test.ts::installation_lifecycle_updates_access_without_extraction",
+      "primaryOwner": "B04",
+      "requirementId": "GH-004",
+      "text": "stale access state fails closed;"
+    },
+    {
+      "case": "GH-004.A5",
+      "id": "GH-004.A5",
+      "primaryEvidence": "github-webhook/index_test.ts::installation_lifecycle_updates_access_without_extraction",
+      "primaryOwner": "B04",
+      "requirementId": "GH-004",
+      "text": "lifecycle event idempotent and payload-minimized."
+    },
+    {
+      "case": "ENT-001.A1",
+      "id": "ENT-001.A1",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_entitlement_is_distinct_tenant_safe_and_guarded",
+      "primaryOwner": "B03",
+      "requirementId": "ENT-001",
+      "text": "GitHub-accessible repository может оставаться locked;"
+    },
+    {
+      "case": "ENT-001.A2",
+      "id": "ENT-001.A2",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_entitlement_is_distinct_tenant_safe_and_guarded",
+      "primaryOwner": "B03",
+      "requirementId": "ENT-001",
+      "text": "policy не заменяет entitlement;"
+    },
+    {
+      "case": "ENT-001.A3",
+      "id": "ENT-001.A3",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_entitlement_is_distinct_tenant_safe_and_guarded",
+      "primaryOwner": "B03",
+      "requirementId": "ENT-001",
+      "text": "one effective entitlement per organization/repository;"
+    },
+    {
+      "case": "ENT-001.A4",
+      "id": "ENT-001.A4",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_entitlement_is_distinct_tenant_safe_and_guarded",
+      "primaryOwner": "B03",
+      "requirementId": "ENT-001",
+      "text": "RLS forced;"
+    },
+    {
+      "case": "ENT-001.A5",
+      "id": "ENT-001.A5",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_entitlement_is_distinct_tenant_safe_and_guarded",
+      "primaryOwner": "B03",
+      "requirementId": "ENT-001",
+      "text": "tenant-aware FK;"
+    },
+    {
+      "case": "ENT-001.A6",
+      "id": "ENT-001.A6",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_entitlement_is_distinct_tenant_safe_and_guarded",
+      "primaryOwner": "B03",
+      "requirementId": "ENT-001",
+      "text": "customer actor references active membership in the same organization;"
+    },
+    {
+      "case": "ENT-001.A7",
+      "id": "ENT-001.A7",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_entitlement_is_distinct_tenant_safe_and_guarded",
+      "primaryOwner": "B03",
+      "requirementId": "ENT-001",
+      "text": "operator actor references trusted platform principal;"
+    },
+    {
+      "case": "ENT-001.A8",
+      "id": "ENT-001.A8",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_entitlement_is_distinct_tenant_safe_and_guarded",
+      "primaryOwner": "B03",
+      "requirementId": "ENT-001",
+      "text": "actor kind and actor ID are mutually consistent;"
+    },
+    {
+      "case": "ENT-001.A9",
+      "id": "ENT-001.A9",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_entitlement_is_distinct_tenant_safe_and_guarded",
+      "primaryOwner": "B03",
+      "requirementId": "ENT-001",
+      "text": "authenticated role не получает direct base-table write."
+    },
+    {
+      "case": "ENT-002.A1",
+      "id": "ENT-002.A1",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_limit_modes_slots_and_concurrent_capacity",
+      "primaryOwner": "B03",
+      "requirementId": "ENT-002",
+      "text": "missing limit row возвращает `ORGANIZATION_LIMIT_NOT_PROVISIONED`;"
+    },
+    {
+      "case": "ENT-002.A2",
+      "id": "ENT-002.A2",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_limit_modes_slots_and_concurrent_capacity",
+      "primaryOwner": "B03",
+      "requirementId": "ENT-002",
+      "text": "`limit_mode = FIXED` требует positive `max_active_repositories`;"
+    },
+    {
+      "case": "ENT-002.A3",
+      "id": "ENT-002.A3",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_limit_modes_slots_and_concurrent_capacity",
+      "primaryOwner": "B03",
+      "requirementId": "ENT-002",
+      "text": "`limit_mode = UNLIMITED` требует null capacity и может быть установлен только trusted operator;"
+    },
+    {
+      "case": "ENT-002.A4",
+      "id": "ENT-002.A4",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_limit_modes_slots_and_concurrent_capacity",
+      "primaryOwner": "B03",
+      "requirementId": "ENT-002",
+      "text": "`replacement_mode = OPERATOR_ONLY` является default для limited Alpha;"
+    },
+    {
+      "case": "ENT-002.A5",
+      "id": "ENT-002.A5",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_limit_modes_slots_and_concurrent_capacity",
+      "primaryOwner": "B03",
+      "requirementId": "ENT-002",
+      "text": "concurrent activation при одном slot активирует максимум один repository;"
+    },
+    {
+      "case": "ENT-002.A6",
+      "id": "ENT-002.A6",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_limit_modes_slots_and_concurrent_capacity",
+      "primaryOwner": "B03",
+      "requirementId": "ENT-002",
+      "text": "limit проверяется server-side;"
+    },
+    {
+      "case": "ENT-002.A7",
+      "id": "ENT-002.A7",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_limit_modes_slots_and_concurrent_capacity",
+      "primaryOwner": "B03",
+      "requirementId": "ENT-002",
+      "text": "limit change audit-logged;"
+    },
+    {
+      "case": "ENT-002.A8",
+      "id": "ENT-002.A8",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_limit_modes_slots_and_concurrent_capacity",
+      "primaryOwner": "B03",
+      "requirementId": "ENT-002",
+      "text": "counting использует только effective `ACTIVE` entitlements."
+    },
+    {
+      "case": "ENT-003.A1",
+      "id": "ENT-003.A1",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_activation_is_atomic_versioned_and_idempotent",
+      "primaryOwner": "B03",
+      "requirementId": "ENT-003",
+      "text": "проверены membership, capability, tenant, installation access и limit;"
+    },
+    {
+      "case": "ENT-003.A2",
+      "id": "ENT-003.A2",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_activation_is_atomic_versioned_and_idempotent",
+      "primaryOwner": "B03",
+      "requirementId": "ENT-003",
+      "text": "duplicate request возвращает existing active receipt;"
+    },
+    {
+      "case": "ENT-003.A3",
+      "id": "ENT-003.A3",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_activation_is_atomic_versioned_and_idempotent",
+      "primaryOwner": "B03",
+      "requirementId": "ENT-003",
+      "text": "no partial entitlement/audit state;"
+    },
+    {
+      "case": "ENT-003.A4",
+      "id": "ENT-003.A4",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_activation_is_atomic_versioned_and_idempotent",
+      "primaryOwner": "B03",
+      "requirementId": "ENT-003",
+      "text": "repository другого tenant возвращает tenant-obscured `404`;"
+    },
+    {
+      "case": "ENT-003.A5",
+      "id": "ENT-003.A5",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_activation_is_atomic_versioned_and_idempotent",
+      "primaryOwner": "B03",
+      "requirementId": "ENT-003",
+      "text": "stale UI state не обходит limit."
+    },
+    {
+      "case": "ENT-004.A1",
+      "id": "ENT-004.A1",
+      "primaryEvidence": "test_console_model_call_authorization_live.py::test_disable_state_matrix",
+      "primaryOwner": "B06",
+      "requirementId": "ENT-004",
+      "text": "новые webhook/backfill/source/provider actions блокируются;"
+    },
+    {
+      "case": "ENT-004.A2",
+      "id": "ENT-004.A2",
+      "primaryEvidence": "test_console_model_call_authorization_live.py::test_disable_state_matrix",
+      "primaryOwner": "B06",
+      "requirementId": "ENT-004",
+      "text": "historical provenance не удаляется;"
+    },
+    {
+      "case": "ENT-004.A3",
+      "id": "ENT-004.A3",
+      "primaryEvidence": "test_console_model_call_authorization_live.py::test_disable_state_matrix",
+      "primaryOwner": "B06",
+      "requirementId": "ENT-004",
+      "text": "pre-authorization work получает stale-generation non-retryable/paused outcome и не оживает после reactivation;"
+    },
+    {
+      "case": "ENT-004.A4",
+      "id": "ENT-004.A4",
+      "primaryEvidence": "test_console_model_call_authorization_live.py::test_disable_state_matrix",
+      "primaryOwner": "B06",
+      "requirementId": "ENT-004",
+      "text": "committed, unexpired per-call authorization может dispatch ровно свой logical request и только captured bounded transport retries;"
+    },
+    {
+      "case": "ENT-004.A5",
+      "id": "ENT-004.A5",
+      "primaryEvidence": "test_console_model_call_authorization_live.py::test_disable_state_matrix",
+      "primaryOwner": "B06",
+      "requirementId": "ENT-004",
+      "text": "authorized but expired/undispatched work не dispatch-ится;"
+    },
+    {
+      "case": "ENT-004.A6",
+      "id": "ENT-004.A6",
+      "primaryEvidence": "test_console_model_call_authorization_live.py::test_disable_state_matrix",
+      "primaryOwner": "B06",
+      "requirementId": "ENT-004",
+      "text": "entitlement disable не создаёт новую authorization; unknown-outcome retry переиспользует existing authorization по BR-006;"
+    },
+    {
+      "case": "ENT-004.A7",
+      "id": "ENT-004.A7",
+      "primaryEvidence": "test_console_model_call_authorization_live.py::test_disable_state_matrix",
+      "primaryOwner": "B06",
+      "requirementId": "ENT-004",
+      "text": "operational revoke blocks every not-yet-started dispatch/retry;"
+    },
+    {
+      "case": "ENT-004.A8",
+      "id": "ENT-004.A8",
+      "primaryEvidence": "test_console_model_call_authorization_live.py::test_disable_state_matrix",
+      "primaryOwner": "B06",
+      "requirementId": "ENT-004",
+      "text": "checkpointed response завершается без нового provider call;"
+    },
+    {
+      "case": "ENT-004.A9",
+      "id": "ENT-004.A9",
+      "primaryEvidence": "test_console_model_call_authorization_live.py::test_disable_state_matrix",
+      "primaryOwner": "B06",
+      "requirementId": "ENT-004",
+      "text": "reason и actor audit-logged;"
+    },
+    {
+      "case": "ENT-004.A10",
+      "id": "ENT-004.A10",
+      "primaryEvidence": "test_console_model_call_authorization_live.py::test_disable_state_matrix",
+      "primaryOwner": "B06",
+      "requirementId": "ENT-004",
+      "text": "repeated disable idempotent."
+    },
+    {
+      "case": "ENT-005.A1",
+      "id": "ENT-005.A1",
+      "primaryEvidence": "test_operator_organization_control_live.py::test_operator_only_replacement_prevents_rotation",
+      "primaryOwner": "B03A",
+      "requirementId": "ENT-005",
+      "text": "historical usage остаётся после disable;"
+    },
+    {
+      "case": "ENT-005.A2",
+      "id": "ENT-005.A2",
+      "primaryEvidence": "test_operator_organization_control_live.py::test_operator_only_replacement_prevents_rotation",
+      "primaryOwner": "B03A",
+      "requirementId": "ENT-005",
+      "text": "previously processed PR не становится unprocessed;"
+    },
+    {
+      "case": "ENT-005.A3",
+      "id": "ENT-005.A3",
+      "primaryEvidence": "test_operator_organization_control_live.py::test_operator_only_replacement_prevents_rotation",
+      "primaryOwner": "B03A",
+      "requirementId": "ENT-005",
+      "text": "Alpha UI не предлагает unrestricted immediate replacement;"
+    },
+    {
+      "case": "ENT-005.A4",
+      "id": "ENT-005.A4",
+      "primaryEvidence": "test_operator_organization_control_live.py::test_operator_only_replacement_prevents_rotation",
+      "primaryOwner": "B03A",
+      "requirementId": "ENT-005",
+      "text": "limited Alpha возвращает `REPOSITORY_REPLACEMENT_REQUIRES_OPERATOR`;"
+    },
+    {
+      "case": "ENT-005.A5",
+      "id": "ENT-005.A5",
+      "primaryEvidence": "test_operator_organization_control_live.py::test_operator_only_replacement_prevents_rotation",
+      "primaryOwner": "B03A",
+      "requirementId": "ENT-005",
+      "text": "operator replacement атомарно отключает old и активирует approved new repository;"
+    },
+    {
+      "case": "ENT-005.A6",
+      "id": "ENT-005.A6",
+      "primaryEvidence": "test_operator_organization_control_live.py::test_operator_only_replacement_prevents_rotation",
+      "primaryOwner": "B03A",
+      "requirementId": "ENT-005",
+      "text": "admin self-service replacement разрешается только explicit organization policy;"
+    },
+    {
+      "case": "ENT-005.A7",
+      "id": "ENT-005.A7",
+      "primaryEvidence": "test_operator_organization_control_live.py::test_operator_only_replacement_prevents_rotation",
+      "primaryOwner": "B03A",
+      "requirementId": "ENT-005",
+      "text": "pricing logic не встраивается в extraction provenance."
+    },
+    {
+      "case": "ENT-006.A1",
+      "id": "ENT-006.A1",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_entitlement_source_is_operator_owned",
+      "primaryOwner": "B03",
+      "requirementId": "ENT-006",
+      "text": "Owner/Admin cannot select or change source;"
+    },
+    {
+      "case": "ENT-006.A2",
+      "id": "ENT-006.A2",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_entitlement_source_is_operator_owned",
+      "primaryOwner": "B03",
+      "requirementId": "ENT-006",
+      "text": "Evirion Operator provisions organization program, limit and slots before first activation; it does not need to pre-approve one repository ID;"
+    },
+    {
+      "case": "ENT-006.A3",
+      "id": "ENT-006.A3",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_entitlement_source_is_operator_owned",
+      "primaryOwner": "B03",
+      "requirementId": "ENT-006",
+      "text": "first Owner/Admin activation may select any currently GitHub-accessible repository, and backend derives `DESIGN_PARTNER` from that program;"
+    },
+    {
+      "case": "ENT-006.A4",
+      "id": "ENT-006.A4",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_entitlement_source_is_operator_owned",
+      "primaryOwner": "B03",
+      "requirementId": "ENT-006",
+      "text": "source changes do not erase prior events;"
+    },
+    {
+      "case": "ENT-006.A5",
+      "id": "ENT-006.A5",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_entitlement_source_is_operator_owned",
+      "primaryOwner": "B03",
+      "requirementId": "ENT-006",
+      "text": "reserved `PLAN` cannot be used before billing authority exists;"
+    },
+    {
+      "case": "ENT-006.A6",
+      "id": "ENT-006.A6",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_entitlement_source_is_operator_owned",
+      "primaryOwner": "B03",
+      "requirementId": "ENT-006",
+      "text": "source never substitutes for ACTIVE status, capacity or processing policy."
+    },
+    {
+      "case": "REPO-001.A1",
+      "id": "REPO-001.A1",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_repository_product_state_projection",
+      "primaryOwner": "B03",
+      "requirementId": "REPO-001",
+      "text": "`Available` не выглядит как `Active`;"
+    },
+    {
+      "case": "REPO-001.A2",
+      "id": "REPO-001.A2",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_repository_product_state_projection",
+      "primaryOwner": "B03",
+      "requirementId": "REPO-001",
+      "text": "locked repository не имеет Import action;"
+    },
+    {
+      "case": "REPO-001.A3",
+      "id": "REPO-001.A3",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_repository_product_state_projection",
+      "primaryOwner": "B03",
+      "requirementId": "REPO-001",
+      "text": "counts GitHub-accessible и Evirion-active показываются отдельно;"
+    },
+    {
+      "case": "REPO-001.A4",
+      "id": "REPO-001.A4",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_repository_product_state_projection",
+      "primaryOwner": "B03",
+      "requirementId": "REPO-001",
+      "text": "refresh отражает committed backend state."
+    },
+    {
+      "case": "REPO-002.A1",
+      "id": "REPO-002.A1",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_activation_confirmation_contract_has_no_processing_side_effect",
+      "primaryOwner": "B03",
+      "requirementId": "REPO-002",
+      "text": "explicit confirmation required;"
+    },
+    {
+      "case": "REPO-002.A2",
+      "id": "REPO-002.A2",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_activation_confirmation_contract_has_no_processing_side_effect",
+      "primaryOwner": "B03",
+      "requirementId": "REPO-002",
+      "text": "button disabled during request, но backend idempotency остаётся authority;"
+    },
+    {
+      "case": "REPO-002.A3",
+      "id": "REPO-002.A3",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_activation_confirmation_contract_has_no_processing_side_effect",
+      "primaryOwner": "B03",
+      "requirementId": "REPO-002",
+      "text": "conflict показывает актуальный limit без optimistic false success;"
+    },
+    {
+      "case": "REPO-002.A4",
+      "id": "REPO-002.A4",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_activation_confirmation_contract_has_no_processing_side_effect",
+      "primaryOwner": "B03",
+      "requirementId": "REPO-002",
+      "text": "audit receipt доступен после success."
+    },
+    {
+      "case": "REPO-003.A1",
+      "id": "REPO-003.A1",
+      "primaryEvidence": "test_console_read_api_live.py::test_repository_overview_separates_processing_and_memory",
+      "primaryOwner": "B09",
+      "requirementId": "REPO-003",
+      "text": "counts tenant/repository-scoped;"
+    },
+    {
+      "case": "REPO-003.A2",
+      "id": "REPO-003.A2",
+      "primaryEvidence": "test_console_read_api_live.py::test_repository_overview_separates_processing_and_memory",
+      "primaryOwner": "B09",
+      "requirementId": "REPO-003",
+      "text": "REJECTED/QUARANTINED не входят в KO count;"
+    },
+    {
+      "case": "REPO-003.A3",
+      "id": "REPO-003.A3",
+      "primaryEvidence": "test_console_read_api_live.py::test_repository_overview_separates_processing_and_memory",
+      "primaryOwner": "B09",
+      "requirementId": "REPO-003",
+      "text": "query не использует per-row N+1;"
+    },
+    {
+      "case": "REPO-003.A4",
+      "id": "REPO-003.A4",
+      "primaryEvidence": "test_console_read_api_live.py::test_repository_overview_separates_processing_and_memory",
+      "primaryOwner": "B09",
+      "requirementId": "REPO-003",
+      "text": "pagination/aggregation имеют documented performance bound."
+    },
+    {
+      "case": "REPO-004.A1",
+      "id": "REPO-004.A1",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_policy_modes_are_versioned_allowlisted_and_entitlement_gated",
+      "primaryOwner": "B03",
+      "requirementId": "REPO-004",
+      "text": "policy mutation требует capability, expected version и idempotency key;"
+    },
+    {
+      "case": "REPO-004.A2",
+      "id": "REPO-004.A2",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_policy_modes_are_versioned_allowlisted_and_entitlement_gated",
+      "primaryOwner": "B03",
+      "requirementId": "REPO-004",
+      "text": "disabling live policy не освобождает entitlement slot;"
+    },
+    {
+      "case": "REPO-004.A3",
+      "id": "REPO-004.A3",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_policy_modes_are_versioned_allowlisted_and_entitlement_gated",
+      "primaryOwner": "B03",
+      "requirementId": "REPO-004",
+      "text": "policy не может разрешить processing без ACTIVE entitlement;"
+    },
+    {
+      "case": "REPO-004.A4",
+      "id": "REPO-004.A4",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_policy_modes_are_versioned_allowlisted_and_entitlement_gated",
+      "primaryOwner": "B03",
+      "requirementId": "REPO-004",
+      "text": "selecting `AUTO_EXTRACT` creates/replaces a durable customer consent scoped to repository, entitlement generation, policy version, model/profile allowlist, call/budget ceiling, retry policy and expiry;"
+    },
+    {
+      "case": "REPO-004.A5",
+      "id": "REPO-004.A5",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_policy_modes_are_versioned_allowlisted_and_entitlement_gated",
+      "primaryOwner": "B03",
+      "requirementId": "REPO-004",
+      "text": "`AUTO_EXTRACT` without complete consent remains fail-closed;"
+    },
+    {
+      "case": "REPO-004.A6",
+      "id": "REPO-004.A6",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_policy_modes_are_versioned_allowlisted_and_entitlement_gated",
+      "primaryOwner": "B03",
+      "requirementId": "REPO-004",
+      "text": "changing to `OFF`/`SOURCE_ONLY` revokes future dispatch under the prior consent without deleting its history;"
+    },
+    {
+      "case": "REPO-004.A7",
+      "id": "REPO-004.A7",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_policy_modes_are_versioned_allowlisted_and_entitlement_gated",
+      "primaryOwner": "B03",
+      "requirementId": "REPO-004",
+      "text": "customer consent never creates Evirion operational authorization;"
+    },
+    {
+      "case": "REPO-004.A8",
+      "id": "REPO-004.A8",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_policy_modes_are_versioned_allowlisted_and_entitlement_gated",
+      "primaryOwner": "B03",
+      "requirementId": "REPO-004",
+      "text": "Alpha has no “approve this live Source Envelope later” action; changing future behavior requires a versioned policy update, while historical work uses the guarded import workflow;"
+    },
+    {
+      "case": "REPO-004.A9",
+      "id": "REPO-004.A9",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_policy_modes_are_versioned_allowlisted_and_entitlement_gated",
+      "primaryOwner": "B03",
+      "requirementId": "REPO-004",
+      "text": "unknown/internal policy fields не принимаются и не возвращаются;"
+    },
+    {
+      "case": "REPO-004.A10",
+      "id": "REPO-004.A10",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_policy_modes_are_versioned_allowlisted_and_entitlement_gated",
+      "primaryOwner": "B03",
+      "requirementId": "REPO-004",
+      "text": "direct base-table write запрещён;"
+    },
+    {
+      "case": "REPO-004.A11",
+      "id": "REPO-004.A11",
+      "primaryEvidence": "test_repository_entitlements_live.py::test_policy_modes_are_versioned_allowlisted_and_entitlement_gated",
+      "primaryOwner": "B03",
+      "requirementId": "REPO-004",
+      "text": "audit содержит old/new bounded values без secrets."
+    },
+    {
+      "case": "BF-001.A1",
+      "id": "BF-001.A1",
+      "primaryEvidence": "test_console_customer_operations_live.py::test_customer_import_is_idempotent_missing_only",
+      "primaryOwner": "B06A",
+      "requirementId": "BF-001",
+      "text": "requires ACTIVE entitlement;"
+    },
+    {
+      "case": "BF-001.A2",
+      "id": "BF-001.A2",
+      "primaryEvidence": "test_console_customer_operations_live.py::test_customer_import_is_idempotent_missing_only",
+      "primaryOwner": "B06A",
+      "requirementId": "BF-001",
+      "text": "invokes existing backfill create/discover workflow;"
+    },
+    {
+      "case": "BF-001.A3",
+      "id": "BF-001.A3",
+      "primaryEvidence": "test_console_customer_operations_live.py::test_customer_import_is_idempotent_missing_only",
+      "primaryOwner": "B06A",
+      "requirementId": "BF-001",
+      "text": "duplicate click не создаёт second run;"
+    },
+    {
+      "case": "BF-001.A4",
+      "id": "BF-001.A4",
+      "primaryEvidence": "test_console_customer_operations_live.py::test_customer_import_is_idempotent_missing_only",
+      "primaryOwner": "B06A",
+      "requirementId": "BF-001",
+      "text": "free stages не требуют provider approval;"
+    },
+    {
+      "case": "BF-001.A5",
+      "id": "BF-001.A5",
+      "primaryEvidence": "test_console_customer_operations_live.py::test_customer_import_is_idempotent_missing_only",
+      "primaryOwner": "B06A",
+      "requirementId": "BF-001",
+      "text": "refresh/reopen восстанавливает current run."
+    },
+    {
+      "case": "BF-001.A6",
+      "id": "BF-001.A6",
+      "primaryEvidence": "test_console_customer_operations_live.py::test_customer_import_is_idempotent_missing_only",
+      "primaryOwner": "B06A",
+      "requirementId": "BF-001",
+      "text": "caller cannot inject `reextract` through direct request."
+    },
+    {
+      "case": "BF-002.A1",
+      "id": "BF-002.A1",
+      "primaryEvidence": "test_console_customer_operations_live.py::test_backfill_states_map_exhaustively",
+      "primaryOwner": "B06A",
+      "requirementId": "BF-002",
+      "text": "Console отображает existing states:  | Backend | User-facing label | |---|---| | `planning` | Preparing import | | `discovering` | Discovering PR history | | `paused` | Import paused | | `awaiting_approval` | Ready for extraction | | `processing` | Extracting Engineering Memory | | `completed` | Import complete | | `failed` | Import failed | | `cancelled` | Import cancelled |  Неизвестный backend state fail-closed и не отображается как success.  Backend additionally projects, without changing `BackfillRun.status`:  ```text paidAuthorizationStatus: NOT_REQUIRED AWAITING_CUSTOMER_CONSENT AWAITING_OPERATIONAL_AUTHORIZATION AUTHORIZED EXPIRED REVOKED ```  If customer consent exists but operational authorization is missing/expired/revoked, the primary UI label is `Waiting for Evirion authorization`, never `Extracting Engineering Memory`. Customer may view status/contact support but cannot self-authorize. A fresh operator authorization resumes the existing idempotent workload while consent, entitlement, policy and budget remain valid."
+    },
+    {
+      "case": "BF-003.A1",
+      "id": "BF-003.A1",
+      "primaryEvidence": "test_console_customer_operations_live.py::test_customer_consent_does_not_bypass_paid_authorization",
+      "primaryOwner": "B06A",
+      "requirementId": "BF-003",
+      "text": "approval требует active entitlement и capability;"
+    },
+    {
+      "case": "BF-003.A2",
+      "id": "BF-003.A2",
+      "primaryEvidence": "test_console_customer_operations_live.py::test_customer_consent_does_not_bypass_paid_authorization",
+      "primaryOwner": "B06A",
+      "requirementId": "BF-003",
+      "text": "uses existing backend transition;"
+    },
+    {
+      "case": "BF-003.A3",
+      "id": "BF-003.A3",
+      "primaryEvidence": "test_console_customer_operations_live.py::test_customer_consent_does_not_bypass_paid_authorization",
+      "primaryOwner": "B06A",
+      "requirementId": "BF-003",
+      "text": "no second model queue on retry;"
+    },
+    {
+      "case": "BF-003.A4",
+      "id": "BF-003.A4",
+      "primaryEvidence": "test_console_customer_operations_live.py::test_customer_consent_does_not_bypass_paid_authorization",
+      "primaryOwner": "B06A",
+      "requirementId": "BF-003",
+      "text": "direct RPC without confirmation/capability denied;"
+    },
+    {
+      "case": "BF-003.A5",
+      "id": "BF-003.A5",
+      "primaryEvidence": "test_console_customer_operations_live.py::test_customer_consent_does_not_bypass_paid_authorization",
+      "primaryOwner": "B06A",
+      "requirementId": "BF-003",
+      "text": "knowledge worker cannot claim paid work before approval."
+    },
+    {
+      "case": "BF-003.A6",
+      "id": "BF-003.A6",
+      "primaryEvidence": "test_console_customer_operations_live.py::test_customer_consent_does_not_bypass_paid_authorization",
+      "primaryOwner": "B06A",
+      "requirementId": "BF-003",
+      "text": "customer approval without active operational authorization derives `AWAITING_OPERATIONAL_AUTHORIZATION` and zero provider dispatch;"
+    },
+    {
+      "case": "BF-003.A7",
+      "id": "BF-003.A7",
+      "primaryEvidence": "test_console_customer_operations_live.py::test_customer_consent_does_not_bypass_paid_authorization",
+      "primaryOwner": "B06A",
+      "requirementId": "BF-003",
+      "text": "operational expiry/revoke never fabricates failure/completion and requires a fresh operator authorization before dispatch."
+    },
+    {
+      "case": "BF-004.A1",
+      "id": "BF-004.A1",
+      "primaryEvidence": "test_console_read_api_live.py::test_import_progress_and_cost_completeness",
+      "primaryOwner": "B09",
+      "requirementId": "BF-004",
+      "text": "counts derive from backend;"
+    },
+    {
+      "case": "BF-004.A2",
+      "id": "BF-004.A2",
+      "primaryEvidence": "test_console_read_api_live.py::test_import_progress_and_cost_completeness",
+      "primaryOwner": "B09",
+      "requirementId": "BF-004",
+      "text": "active canonical/deduplicated jobs не считаются terminal prematurely;"
+    },
+    {
+      "case": "BF-004.A3",
+      "id": "BF-004.A3",
+      "primaryEvidence": "test_console_read_api_live.py::test_import_progress_and_cost_completeness",
+      "primaryOwner": "B09",
+      "requirementId": "BF-004",
+      "text": "reload не теряет progress;"
+    },
+    {
+      "case": "BF-004.A4",
+      "id": "BF-004.A4",
+      "primaryEvidence": "test_console_read_api_live.py::test_import_progress_and_cost_completeness",
+      "primaryOwner": "B09",
+      "requirementId": "BF-004",
+      "text": "late failures корректируют aggregate;"
+    },
+    {
+      "case": "BF-004.A5",
+      "id": "BF-004.A5",
+      "primaryEvidence": "test_console_read_api_live.py::test_import_progress_and_cost_completeness",
+      "primaryOwner": "B09",
+      "requirementId": "BF-004",
+      "text": "no UI-only cancellation."
+    },
+    {
+      "case": "BF-004.A6",
+      "id": "BF-004.A6",
+      "primaryEvidence": "test_console_read_api_live.py::test_import_progress_and_cost_completeness",
+      "primaryOwner": "B09",
+      "requirementId": "BF-004",
+      "text": "unresolved/reserved cost never appears as measured zero."
+    },
+    {
+      "case": "MEM-001.A1",
+      "id": "MEM-001.A1",
+      "primaryEvidence": "test_console_read_api_live.py::test_memory_queue_contains_accepted_knowledge_only",
+      "primaryOwner": "B09",
+      "requirementId": "MEM-001",
+      "text": "only Knowledge Objects from valid `ACCEPTED` admission;"
+    },
+    {
+      "case": "MEM-001.A2",
+      "id": "MEM-001.A2",
+      "primaryEvidence": "test_console_read_api_live.py::test_memory_queue_contains_accepted_knowledge_only",
+      "primaryOwner": "B09",
+      "requirementId": "MEM-001",
+      "text": "machine REJECTED/QUARANTINED absent;"
+    },
+    {
+      "case": "MEM-001.A3",
+      "id": "MEM-001.A3",
+      "primaryEvidence": "test_console_read_api_live.py::test_memory_queue_contains_accepted_knowledge_only",
+      "primaryOwner": "B09",
+      "requirementId": "MEM-001",
+      "text": "default filter is human review `PENDING`;"
+    },
+    {
+      "case": "MEM-001.A4",
+      "id": "MEM-001.A4",
+      "primaryEvidence": "test_console_read_api_live.py::test_memory_queue_contains_accepted_knowledge_only",
+      "primaryOwner": "B09",
+      "requirementId": "MEM-001",
+      "text": "user-rejected objects remain available in dedicated tab/history;"
+    },
+    {
+      "case": "MEM-001.A5",
+      "id": "MEM-001.A5",
+      "primaryEvidence": "test_console_read_api_live.py::test_memory_queue_contains_accepted_knowledge_only",
+      "primaryOwner": "B09",
+      "requirementId": "MEM-001",
+      "text": "superseded objects are available through explicit filter/history."
+    },
+    {
+      "case": "MEM-002.A1",
+      "id": "MEM-002.A1",
+      "primaryEvidence": "test_console_read_api_live.py::test_memory_filters_cursor_and_stable_order",
+      "primaryOwner": "B09",
+      "requirementId": "MEM-002",
+      "text": "cursor pagination;"
+    },
+    {
+      "case": "MEM-002.A2",
+      "id": "MEM-002.A2",
+      "primaryEvidence": "test_console_read_api_live.py::test_memory_filters_cursor_and_stable_order",
+      "primaryOwner": "B09",
+      "requirementId": "MEM-002",
+      "text": "stable ordering;"
+    },
+    {
+      "case": "MEM-002.A3",
+      "id": "MEM-002.A3",
+      "primaryEvidence": "test_console_read_api_live.py::test_memory_filters_cursor_and_stable_order",
+      "primaryOwner": "B09",
+      "requirementId": "MEM-002",
+      "text": "filter state shareable without embedding secrets;"
+    },
+    {
+      "case": "MEM-002.A4",
+      "id": "MEM-002.A4",
+      "primaryEvidence": "test_console_read_api_live.py::test_memory_filters_cursor_and_stable_order",
+      "primaryOwner": "B09",
+      "requirementId": "MEM-002",
+      "text": "all predicates tenant-scoped;"
+    },
+    {
+      "case": "MEM-002.A5",
+      "id": "MEM-002.A5",
+      "primaryEvidence": "test_console_read_api_live.py::test_memory_filters_cursor_and_stable_order",
+      "primaryOwner": "B09",
+      "requirementId": "MEM-002",
+      "text": "large tenant query has measured plan before release."
+    },
+    {
+      "case": "MEM-003.A1",
+      "id": "MEM-003.A1",
+      "primaryEvidence": "test_console_read_api_live.py::test_memory_summary_uses_bounded_fields",
+      "primaryOwner": "B09",
+      "requirementId": "MEM-003",
+      "text": "Показывает:  - short claim; - knowledge type; - PR number/title; - merged date; - confidence; - review status; - lifecycle; - `Open`.  Полный provenance не загружается для каждого row."
+    },
+    {
+      "case": "KD-001.A1",
+      "id": "KD-001.A1",
+      "primaryEvidence": "test_console_read_api_live.py::test_original_and_effective_payload_are_distinct",
+      "primaryOwner": "B09",
+      "requirementId": "KD-001",
+      "text": "no invented empty sections;"
+    },
+    {
+      "case": "KD-001.A2",
+      "id": "KD-001.A2",
+      "primaryEvidence": "test_console_read_api_live.py::test_original_and_effective_payload_are_distinct",
+      "primaryOwner": "B09",
+      "requirementId": "KD-001",
+      "text": "original payload доступен независимо от human edit;"
+    },
+    {
+      "case": "KD-001.A3",
+      "id": "KD-001.A3",
+      "primaryEvidence": "test_console_read_api_live.py::test_original_and_effective_payload_are_distinct",
+      "primaryOwner": "B09",
+      "requirementId": "KD-001",
+      "text": "schema/version indicated in Technical Details;"
+    },
+    {
+      "case": "KD-001.A4",
+      "id": "KD-001.A4",
+      "primaryEvidence": "test_console_read_api_live.py::test_original_and_effective_payload_are_distinct",
+      "primaryOwner": "B09",
+      "requirementId": "KD-001",
+      "text": "effective edited view явно помечен как human-edited."
+    },
+    {
+      "case": "KD-002.A1",
+      "id": "KD-002.A1",
+      "primaryEvidence": "test_console_read_api_live.py::test_exact_evidence_and_safe_source_link",
+      "primaryOwner": "B09",
+      "requirementId": "KD-002",
+      "text": "quote byte/content matches persisted evidence;"
+    },
+    {
+      "case": "KD-002.A2",
+      "id": "KD-002.A2",
+      "primaryEvidence": "test_console_read_api_live.py::test_exact_evidence_and_safe_source_link",
+      "primaryOwner": "B09",
+      "requirementId": "KD-002",
+      "text": "source attribution видна до review action;"
+    },
+    {
+      "case": "KD-002.A3",
+      "id": "KD-002.A3",
+      "primaryEvidence": "test_console_read_api_live.py::test_exact_evidence_and_safe_source_link",
+      "primaryOwner": "B09",
+      "requirementId": "KD-002",
+      "text": "URL host/repository/path server-generated or allowlisted;"
+    },
+    {
+      "case": "KD-002.A4",
+      "id": "KD-002.A4",
+      "primaryEvidence": "test_console_read_api_live.py::test_exact_evidence_and_safe_source_link",
+      "primaryOwner": "B09",
+      "requirementId": "KD-002",
+      "text": "customer не получает raw Source Envelope целиком по умолчанию."
+    },
+    {
+      "case": "KD-003.A1",
+      "id": "KD-003.A1",
+      "primaryEvidence": "test_console_read_api_live.py::test_pr_context_is_tenant_scoped",
+      "primaryOwner": "B09",
+      "requirementId": "KD-003",
+      "text": "Показываются:  - PR number; - title; - author; - merged date; - GitHub link.  Cross-tenant or guessed ID не раскрывает существование объекта."
+    },
+    {
+      "case": "KD-004.A1",
+      "id": "KD-004.A1",
+      "primaryEvidence": "test_console_read_api_live.py::test_technical_details_follow_role_allowlist",
+      "primaryOwner": "B09",
+      "requirementId": "KD-004",
+      "text": "Collapsed section может показывать customer-safe:  - Extraction Run ID; - admission; - model ID; - semantic specification/pipeline version; - extracted timestamp; - aggregate token usage; - cost amount and completeness status; - latency.  Raw model response, credentials и internal stack traces не показываются."
+    },
+    {
+      "case": "REV-001.A1",
+      "id": "REV-001.A1",
+      "primaryEvidence": "test_knowledge_human_review_live.py::test_approve_original_is_immutable_and_hashed",
+      "primaryOwner": "B07",
+      "requirementId": "REV-001",
+      "text": "reviewer ID derived from auth context;"
+    },
+    {
+      "case": "REV-001.A2",
+      "id": "REV-001.A2",
+      "primaryEvidence": "test_knowledge_human_review_live.py::test_approve_original_is_immutable_and_hashed",
+      "primaryOwner": "B07",
+      "requirementId": "REV-001",
+      "text": "timestamp database-owned;"
+    },
+    {
+      "case": "REV-001.A3",
+      "id": "REV-001.A3",
+      "primaryEvidence": "test_knowledge_human_review_live.py::test_approve_original_is_immutable_and_hashed",
+      "primaryOwner": "B07",
+      "requirementId": "REV-001",
+      "text": "organization/knowledge tenant match enforced;"
+    },
+    {
+      "case": "REV-001.A4",
+      "id": "REV-001.A4",
+      "primaryEvidence": "test_knowledge_human_review_live.py::test_approve_original_is_immutable_and_hashed",
+      "primaryOwner": "B07",
+      "requirementId": "REV-001",
+      "text": "approved payload source/hash recorded;"
+    },
+    {
+      "case": "REV-001.A5",
+      "id": "REV-001.A5",
+      "primaryEvidence": "test_knowledge_human_review_live.py::test_approve_original_is_immutable_and_hashed",
+      "primaryOwner": "B07",
+      "requirementId": "REV-001",
+      "text": "duplicate idempotency key returns same receipt;"
+    },
+    {
+      "case": "REV-001.A6",
+      "id": "REV-001.A6",
+      "primaryEvidence": "test_knowledge_human_review_live.py::test_approve_original_is_immutable_and_hashed",
+      "primaryOwner": "B07",
+      "requirementId": "REV-001",
+      "text": "AdmissionRecord unchanged;"
+    },
+    {
+      "case": "REV-001.A7",
+      "id": "REV-001.A7",
+      "primaryEvidence": "test_knowledge_human_review_live.py::test_approve_original_is_immutable_and_hashed",
+      "primaryOwner": "B07",
+      "requirementId": "REV-001",
+      "text": "audit event emitted."
+    },
+    {
+      "case": "REV-002.A1",
+      "id": "REV-002.A1",
+      "primaryEvidence": "test_knowledge_human_review_live.py::test_edit_schema_allowlist_hash_and_original_preservation",
+      "primaryOwner": "B07",
+      "requirementId": "REV-002",
+      "text": "original Knowledge Object unchanged;"
+    },
+    {
+      "case": "REV-002.A2",
+      "id": "REV-002.A2",
+      "primaryEvidence": "test_knowledge_human_review_live.py::test_edit_schema_allowlist_hash_and_original_preservation",
+      "primaryOwner": "B07",
+      "requirementId": "REV-002",
+      "text": "edited payload проходит versioned dedicated schema validation with bounded strings/arrays;"
+    },
+    {
+      "case": "REV-002.A3",
+      "id": "REV-002.A3",
+      "primaryEvidence": "test_knowledge_human_review_live.py::test_edit_schema_allowlist_hash_and_original_preservation",
+      "primaryOwner": "B07",
+      "requirementId": "REV-002",
+      "text": "edit persists `editSchemaVersion`, schema SHA-256 and payload SHA-256;"
+    },
+    {
+      "case": "REV-002.A4",
+      "id": "REV-002.A4",
+      "primaryEvidence": "test_knowledge_human_review_live.py::test_edit_schema_allowlist_hash_and_original_preservation",
+      "primaryOwner": "B07",
+      "requirementId": "REV-002",
+      "text": "evidence remains original machine evidence and UI labels that human-edited claims were not re-extracted;"
+    },
+    {
+      "case": "REV-002.A5",
+      "id": "REV-002.A5",
+      "primaryEvidence": "test_knowledge_human_review_live.py::test_edit_schema_allowlist_hash_and_original_preservation",
+      "primaryOwner": "B07",
+      "requirementId": "REV-002",
+      "text": "previous review history remains queryable;"
+    },
+    {
+      "case": "REV-002.A6",
+      "id": "REV-002.A6",
+      "primaryEvidence": "test_knowledge_human_review_live.py::test_edit_schema_allowlist_hash_and_original_preservation",
+      "primaryOwner": "B07",
+      "requirementId": "REV-002",
+      "text": "effective view deterministically selects latest committed review sequence;"
+    },
+    {
+      "case": "REV-002.A7",
+      "id": "REV-002.A7",
+      "primaryEvidence": "test_knowledge_human_review_live.py::test_edit_schema_allowlist_hash_and_original_preservation",
+      "primaryOwner": "B07",
+      "requirementId": "REV-002",
+      "text": "stale expected revision returns `409`;"
+    },
+    {
+      "case": "REV-002.A8",
+      "id": "REV-002.A8",
+      "primaryEvidence": "test_knowledge_human_review_live.py::test_edit_schema_allowlist_hash_and_original_preservation",
+      "primaryOwner": "B07",
+      "requirementId": "REV-002",
+      "text": "credentials/secrets are rejected from note/payload fields where applicable."
+    },
+    {
+      "case": "REV-003.A1",
+      "id": "REV-003.A1",
+      "primaryEvidence": "test_knowledge_human_review_live.py::test_user_reject_reason_severity_and_projection",
+      "primaryOwner": "B07",
+      "requirementId": "REV-003",
+      "text": "`OTHER` requires bounded note;"
+    },
+    {
+      "case": "REV-003.A2",
+      "id": "REV-003.A2",
+      "primaryEvidence": "test_knowledge_human_review_live.py::test_user_reject_reason_severity_and_projection",
+      "primaryOwner": "B07",
+      "requirementId": "REV-003",
+      "text": "`NONE` допустим только для non-quality reasons such as duplicate/outdated;"
+    },
+    {
+      "case": "REV-003.A3",
+      "id": "REV-003.A3",
+      "primaryEvidence": "test_knowledge_human_review_live.py::test_user_reject_reason_severity_and_projection",
+      "primaryOwner": "B07",
+      "requirementId": "REV-003",
+      "text": "original knowledge/provenance remains;"
+    },
+    {
+      "case": "REV-003.A4",
+      "id": "REV-003.A4",
+      "primaryEvidence": "test_knowledge_human_review_live.py::test_user_reject_reason_severity_and_projection",
+      "primaryOwner": "B07",
+      "requirementId": "REV-003",
+      "text": "object removed from reviewed-active projection, но остаётся в history;"
+    },
+    {
+      "case": "REV-003.A5",
+      "id": "REV-003.A5",
+      "primaryEvidence": "test_knowledge_human_review_live.py::test_user_reject_reason_severity_and_projection",
+      "primaryOwner": "B07",
+      "requirementId": "REV-003",
+      "text": "reason metrics update without exposing note content;"
+    },
+    {
+      "case": "REV-003.A6",
+      "id": "REV-003.A6",
+      "primaryEvidence": "test_knowledge_human_review_live.py::test_user_reject_reason_severity_and_projection",
+      "primaryOwner": "B07",
+      "requirementId": "REV-003",
+      "text": "decision may be superseded only by another audited review action."
+    },
+    {
+      "case": "REV-005.A1",
+      "id": "REV-005.A1",
+      "primaryEvidence": "test_knowledge_human_review_live.py::test_review_lifecycle_combination_matrix",
+      "primaryOwner": "B07",
+      "requirementId": "REV-005",
+      "text": "Allowed current combinations:  | Human review | Lifecycle | |---|---| | `PENDING` | `UNRESOLVED` | | `APPROVED` | `UNRESOLVED`, `ACTIVE`, `SUPERSEDED` | | `EDITED` | `UNRESOLVED`, `ACTIVE`, `SUPERSEDED` | | `USER_REJECTED` | `UNRESOLVED` |  Rules:  - `EDITED` is already a completed human decision; no generic `edited → approved` action exists; - reverting an edit is an explicit `REVERT_TO_ORIGINAL_AND_APPROVE` action that records original payload hash and does not silently discard the edit; - every review mutation carries/rechecks expected review sequence and expected lifecycle version; - lifecycle mutation requires current `APPROVED` or `EDITED`; - rejecting ACTIVE/SUPERSEDED knowledge uses a separately designed correction/withdraw workflow, not normal Reject; - reviewed-active projection contains only `APPROVED|EDITED + ACTIVE`; - current `api.trusted_knowledge` machine-admission semantics remain unchanged."
+    },
+    {
+      "case": "REV-004.A1",
+      "id": "REV-004.A1",
+      "primaryEvidence": "test_knowledge_human_review_live.py::test_concurrent_review_sequence_conflict",
+      "primaryOwner": "B07",
+      "requirementId": "REV-004",
+      "text": "two reviewers cannot silently overwrite decisions;"
+    },
+    {
+      "case": "REV-004.A2",
+      "id": "REV-004.A2",
+      "primaryEvidence": "test_knowledge_human_review_live.py::test_concurrent_review_sequence_conflict",
+      "primaryOwner": "B07",
+      "requirementId": "REV-004",
+      "text": "one succeeds, stale request receives current state in bounded conflict response;"
+    },
+    {
+      "case": "REV-004.A3",
+      "id": "REV-004.A3",
+      "primaryEvidence": "test_knowledge_human_review_live.py::test_concurrent_review_sequence_conflict",
+      "primaryOwner": "B07",
+      "requirementId": "REV-004",
+      "text": "retry with same idempotency key is safe;"
+    },
+    {
+      "case": "REV-004.A4",
+      "id": "REV-004.A4",
+      "primaryEvidence": "test_knowledge_human_review_live.py::test_concurrent_review_sequence_conflict",
+      "primaryOwner": "B07",
+      "requirementId": "REV-004",
+      "text": "no partial review/audit row."
+    },
+    {
+      "case": "LIFE-001.A1",
+      "id": "LIFE-001.A1",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_no_event_is_unresolved",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-001",
+      "text": "historical backfill objects default unresolved;"
+    },
+    {
+      "case": "LIFE-001.A2",
+      "id": "LIFE-001.A2",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_no_event_is_unresolved",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-001",
+      "text": "no mass auto-activation;"
+    },
+    {
+      "case": "LIFE-001.A3",
+      "id": "LIFE-001.A3",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_no_event_is_unresolved",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-001",
+      "text": "projection remains deterministic;"
+    },
+    {
+      "case": "LIFE-001.A4",
+      "id": "LIFE-001.A4",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_no_event_is_unresolved",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-001",
+      "text": "no extra mutable current-state table required."
+    },
+    {
+      "case": "LIFE-002.A1",
+      "id": "LIFE-002.A1",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_mark_active_requires_review_and_reason",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-002",
+      "text": "tenant/capability checked;"
+    },
+    {
+      "case": "LIFE-002.A2",
+      "id": "LIFE-002.A2",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_mark_active_requires_review_and_reason",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-002",
+      "text": "expected review sequence and lifecycle version checked;"
+    },
+    {
+      "case": "LIFE-002.A3",
+      "id": "LIFE-002.A3",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_mark_active_requires_review_and_reason",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-002",
+      "text": "current review is APPROVED or EDITED;"
+    },
+    {
+      "case": "LIFE-002.A4",
+      "id": "LIFE-002.A4",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_mark_active_requires_review_and_reason",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-002",
+      "text": "database persists canonical reason code `REVIEWER_CONFIRMED_CURRENT` plus optional bounded note;"
+    },
+    {
+      "case": "LIFE-002.A5",
+      "id": "LIFE-002.A5",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_mark_active_requires_review_and_reason",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-002",
+      "text": "duplicate action idempotent;"
+    },
+    {
+      "case": "LIFE-002.A6",
+      "id": "LIFE-002.A6",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_mark_active_requires_review_and_reason",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-002",
+      "text": "review state unchanged;"
+    },
+    {
+      "case": "LIFE-002.A7",
+      "id": "LIFE-002.A7",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_mark_active_requires_review_and_reason",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-002",
+      "text": "audit event emitted."
+    },
+    {
+      "case": "LIFE-003.A1",
+      "id": "LIFE-003.A1",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_supersession_is_atomic_same_tenant_and_acyclic",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-003",
+      "text": "source/new and target/old differ;"
+    },
+    {
+      "case": "LIFE-003.A2",
+      "id": "LIFE-003.A2",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_supersession_is_atomic_same_tenant_and_acyclic",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-003",
+      "text": "both belong to same organization;"
+    },
+    {
+      "case": "LIFE-003.A3",
+      "id": "LIFE-003.A3",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_supersession_is_atomic_same_tenant_and_acyclic",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-003",
+      "text": "both are admitted Knowledge Objects;"
+    },
+    {
+      "case": "LIFE-003.A4",
+      "id": "LIFE-003.A4",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_supersession_is_atomic_same_tenant_and_acyclic",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-003",
+      "text": "both are currently APPROVED or EDITED;"
+    },
+    {
+      "case": "LIFE-003.A5",
+      "id": "LIFE-003.A5",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_supersession_is_atomic_same_tenant_and_acyclic",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-003",
+      "text": "both expected review sequences and lifecycle versions match under lock;"
+    },
+    {
+      "case": "LIFE-003.A6",
+      "id": "LIFE-003.A6",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_supersession_is_atomic_same_tenant_and_acyclic",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-003",
+      "text": "relation direction is `new SUPERSEDES old`;"
+    },
+    {
+      "case": "LIFE-003.A7",
+      "id": "LIFE-003.A7",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_supersession_is_atomic_same_tenant_and_acyclic",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-003",
+      "text": "old receives `superseded` event in same transaction;"
+    },
+    {
+      "case": "LIFE-003.A8",
+      "id": "LIFE-003.A8",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_supersession_is_atomic_same_tenant_and_acyclic",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-003",
+      "text": "relation/state records use canonical reason `REPLACED_BY_NEWER_KNOWLEDGE` plus optional bounded note;"
+    },
+    {
+      "case": "LIFE-003.A9",
+      "id": "LIFE-003.A9",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_supersession_is_atomic_same_tenant_and_acyclic",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-003",
+      "text": "new does not auto-activate;"
+    },
+    {
+      "case": "LIFE-003.A10",
+      "id": "LIFE-003.A10",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_supersession_is_atomic_same_tenant_and_acyclic",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-003",
+      "text": "cycle/duplicate relation rejected;"
+    },
+    {
+      "case": "LIFE-003.A11",
+      "id": "LIFE-003.A11",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_supersession_is_atomic_same_tenant_and_acyclic",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-003",
+      "text": "graph mutation serialized per organization; traversal bound exhaustion fails closed without mutation;"
+    },
+    {
+      "case": "LIFE-003.A12",
+      "id": "LIFE-003.A12",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_supersession_is_atomic_same_tenant_and_acyclic",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-003",
+      "text": "cross-tenant selection impossible."
+    },
+    {
+      "case": "LIFE-004.A1",
+      "id": "LIFE-004.A1",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_withdrawn_is_not_customer_action",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-004",
+      "text": "Existing `withdrawn` state remains available для approved admin/operator workflows, но не является Alpha reviewer action."
+    },
+    {
+      "case": "LIFE-005.A1",
+      "id": "LIFE-005.A1",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_operator_correction_is_append_only_and_atomic",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-005",
+      "text": "request rechecks expected review, lifecycle and nullable relation versions;"
+    },
+    {
+      "case": "LIFE-005.A2",
+      "id": "LIFE-005.A2",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_operator_correction_is_append_only_and_atomic",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-005",
+      "text": "original relation/event never deleted;"
+    },
+    {
+      "case": "LIFE-005.A3",
+      "id": "LIFE-005.A3",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_operator_correction_is_append_only_and_atomic",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-005",
+      "text": "relation receives append-only `RETRACTED` state event with reason/actor;"
+    },
+    {
+      "case": "LIFE-005.A4",
+      "id": "LIFE-005.A4",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_operator_correction_is_append_only_and_atomic",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-005",
+      "text": "old object receives explicit `UNRESOLVED` or `ACTIVE` compensating lifecycle event selected by operator;"
+    },
+    {
+      "case": "LIFE-005.A5",
+      "id": "LIFE-005.A5",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_operator_correction_is_append_only_and_atomic",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-005",
+      "text": "relation-state event and lifecycle compensation commit atomically;"
+    },
+    {
+      "case": "LIFE-005.A6",
+      "id": "LIFE-005.A6",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_operator_correction_is_append_only_and_atomic",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-005",
+      "text": "reviewed-active projection ignores retracted relation;"
+    },
+    {
+      "case": "LIFE-005.A7",
+      "id": "LIFE-005.A7",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_operator_correction_is_append_only_and_atomic",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-005",
+      "text": "concurrent correction/supersession serialized per organization;"
+    },
+    {
+      "case": "LIFE-005.A8",
+      "id": "LIFE-005.A8",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_operator_correction_is_append_only_and_atomic",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-005",
+      "text": "operator execution/rejection is derived from authenticated platform identity;"
+    },
+    {
+      "case": "LIFE-005.A9",
+      "id": "LIFE-005.A9",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_operator_correction_is_append_only_and_atomic",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-005",
+      "text": "same command replay returns same receipt; failed execution is resumable without duplicate state event;"
+    },
+    {
+      "case": "LIFE-005.A10",
+      "id": "LIFE-005.A10",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_operator_correction_is_append_only_and_atomic",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-005",
+      "text": "active-knowledge withdrawal appends existing internal `withdrawn` event and never rewrites review/admission;"
+    },
+    {
+      "case": "LIFE-005.A11",
+      "id": "LIFE-005.A11",
+      "primaryEvidence": "test_knowledge_lifecycle_live.py::test_operator_correction_is_append_only_and_atomic",
+      "primaryOwner": "B08",
+      "requirementId": "LIFE-005",
+      "text": "customer UI shows request status, bounded reason and complete history but no operator-only action."
+    },
+    {
+      "case": "PR-001.A1",
+      "id": "PR-001.A1",
+      "primaryEvidence": "test_console_read_api_live.py::test_pr_detail_separates_admission_and_knowledge",
+      "primaryOwner": "B09",
+      "requirementId": "PR-001",
+      "text": "persisted source/provenance used;"
+    },
+    {
+      "case": "PR-001.A2",
+      "id": "PR-001.A2",
+      "primaryEvidence": "test_console_read_api_live.py::test_pr_detail_separates_admission_and_knowledge",
+      "primaryOwner": "B09",
+      "requirementId": "PR-001",
+      "text": "REJECTED shows reason, not fake KO;"
+    },
+    {
+      "case": "PR-001.A3",
+      "id": "PR-001.A3",
+      "primaryEvidence": "test_console_read_api_live.py::test_pr_detail_separates_admission_and_knowledge",
+      "primaryOwner": "B09",
+      "requirementId": "PR-001",
+      "text": "QUARANTINED shows bounded validation categories;"
+    },
+    {
+      "case": "PR-001.A4",
+      "id": "PR-001.A4",
+      "primaryEvidence": "test_console_read_api_live.py::test_pr_detail_separates_admission_and_knowledge",
+      "primaryOwner": "B09",
+      "requirementId": "PR-001",
+      "text": "raw private payload not exposed;"
+    },
+    {
+      "case": "PR-001.A5",
+      "id": "PR-001.A5",
+      "primaryEvidence": "test_console_read_api_live.py::test_pr_detail_separates_admission_and_knowledge",
+      "primaryOwner": "B09",
+      "requirementId": "PR-001",
+      "text": "cross-tenant URL/ID tampering denied."
+    },
+    {
+      "case": "PROC-001.A1",
+      "id": "PROC-001.A1",
+      "primaryEvidence": "test_console_read_api_live.py::test_processing_outcomes_and_cost_status_are_distinct",
+      "primaryOwner": "B09",
+      "requirementId": "PROC-001",
+      "text": "backend states used directly through a versioned mapping;"
+    },
+    {
+      "case": "PROC-001.A2",
+      "id": "PROC-001.A2",
+      "primaryEvidence": "test_console_read_api_live.py::test_processing_outcomes_and_cost_status_are_distinct",
+      "primaryOwner": "B09",
+      "requirementId": "PROC-001",
+      "text": "REJECTED not shown as infrastructure failure;"
+    },
+    {
+      "case": "PROC-001.A3",
+      "id": "PROC-001.A3",
+      "primaryEvidence": "test_console_read_api_live.py::test_processing_outcomes_and_cost_status_are_distinct",
+      "primaryOwner": "B09",
+      "requirementId": "PROC-001",
+      "text": "QUARANTINED distinct from provider/network failure;"
+    },
+    {
+      "case": "PROC-001.A4",
+      "id": "PROC-001.A4",
+      "primaryEvidence": "test_console_read_api_live.py::test_processing_outcomes_and_cost_status_are_distinct",
+      "primaryOwner": "B09",
+      "requirementId": "PROC-001",
+      "text": "payload-free stable error code translated to user-safe copy;"
+    },
+    {
+      "case": "PROC-001.A5",
+      "id": "PROC-001.A5",
+      "primaryEvidence": "test_console_read_api_live.py::test_processing_outcomes_and_cost_status_are_distinct",
+      "primaryOwner": "B09",
+      "requirementId": "PROC-001",
+      "text": "missing/expired/revoked operational authorization is rendered as `Waiting for Evirion authorization`, not extracting/failed/retryable;"
+    },
+    {
+      "case": "PROC-001.A6",
+      "id": "PROC-001.A6",
+      "primaryEvidence": "test_console_read_api_live.py::test_processing_outcomes_and_cost_status_are_distinct",
+      "primaryOwner": "B09",
+      "requirementId": "PROC-001",
+      "text": "pagination and tenant filters enforced."
+    },
+    {
+      "case": "PROC-002.A1",
+      "id": "PROC-002.A1",
+      "primaryEvidence": "test_console_customer_operations_live.py::test_retry_uses_backend_capability_and_checkpoint",
+      "primaryOwner": "B06A",
+      "requirementId": "PROC-002",
+      "text": "frontend never classifies retryability itself;"
+    },
+    {
+      "case": "PROC-002.A2",
+      "id": "PROC-002.A2",
+      "primaryEvidence": "test_console_customer_operations_live.py::test_retry_uses_backend_capability_and_checkpoint",
+      "primaryOwner": "B06A",
+      "requirementId": "PROC-002",
+      "text": "checkpointed job does not make second provider call;"
+    },
+    {
+      "case": "PROC-002.A3",
+      "id": "PROC-002.A3",
+      "primaryEvidence": "test_console_customer_operations_live.py::test_retry_uses_backend_capability_and_checkpoint",
+      "primaryOwner": "B06A",
+      "requirementId": "PROC-002",
+      "text": "non-retryable entitlement/contract errors have no Retry CTA;"
+    },
+    {
+      "case": "PROC-002.A4",
+      "id": "PROC-002.A4",
+      "primaryEvidence": "test_console_customer_operations_live.py::test_retry_uses_backend_capability_and_checkpoint",
+      "primaryOwner": "B06A",
+      "requirementId": "PROC-002",
+      "text": "operation idempotent and audited;"
+    },
+    {
+      "case": "PROC-002.A5",
+      "id": "PROC-002.A5",
+      "primaryEvidence": "test_console_customer_operations_live.py::test_retry_uses_backend_capability_and_checkpoint",
+      "primaryOwner": "B06A",
+      "requirementId": "PROC-002",
+      "text": "Alpha excludes unrestricted replay/DLQ controls."
+    },
+    {
+      "case": "PROC-003.A1",
+      "id": "PROC-003.A1",
+      "primaryEvidence": "test_console_read_api_live.py::test_validation_issues_are_bounded_and_role_scoped",
+      "primaryOwner": "B09",
+      "requirementId": "PROC-003",
+      "text": "no raw model response;"
+    },
+    {
+      "case": "PROC-003.A2",
+      "id": "PROC-003.A2",
+      "primaryEvidence": "test_console_read_api_live.py::test_validation_issues_are_bounded_and_role_scoped",
+      "primaryOwner": "B09",
+      "requirementId": "PROC-003",
+      "text": "no source payload;"
+    },
+    {
+      "case": "PROC-003.A3",
+      "id": "PROC-003.A3",
+      "primaryEvidence": "test_console_read_api_live.py::test_validation_issues_are_bounded_and_role_scoped",
+      "primaryOwner": "B09",
+      "requirementId": "PROC-003",
+      "text": "no secret-bearing stack trace;"
+    },
+    {
+      "case": "PROC-003.A4",
+      "id": "PROC-003.A4",
+      "primaryEvidence": "test_console_read_api_live.py::test_validation_issues_are_bounded_and_role_scoped",
+      "primaryOwner": "B09",
+      "requirementId": "PROC-003",
+      "text": "customer-safe field allowlist;"
+    },
+    {
+      "case": "PROC-003.A5",
+      "id": "PROC-003.A5",
+      "primaryEvidence": "test_console_read_api_live.py::test_validation_issues_are_bounded_and_role_scoped",
+      "primaryOwner": "B09",
+      "requirementId": "PROC-003",
+      "text": "tenant-scoped."
+    },
+    {
+      "case": "SET-001.A1",
+      "id": "SET-001.A1",
+      "primaryEvidence": "test_console_membership_live.py::test_member_management_and_owner_guard",
+      "primaryOwner": "B02",
+      "requirementId": "SET-001",
+      "text": "no self-removal of final owner;"
+    },
+    {
+      "case": "SET-001.A2",
+      "id": "SET-001.A2",
+      "primaryEvidence": "test_console_membership_live.py::test_member_management_and_owner_guard",
+      "primaryOwner": "B02",
+      "requirementId": "SET-001",
+      "text": "invite tenant-bound;"
+    },
+    {
+      "case": "SET-001.A3",
+      "id": "SET-001.A3",
+      "primaryEvidence": "test_console_membership_live.py::test_member_management_and_owner_guard",
+      "primaryOwner": "B02",
+      "requirementId": "SET-001",
+      "text": "role changes live-authorized;"
+    },
+    {
+      "case": "SET-001.A4",
+      "id": "SET-001.A4",
+      "primaryEvidence": "test_console_membership_live.py::test_member_management_and_owner_guard",
+      "primaryOwner": "B02",
+      "requirementId": "SET-001",
+      "text": "audit emitted."
+    },
+    {
+      "case": "SET-002.A1",
+      "id": "SET-002.A1",
+      "primaryEvidence": "test_console_read_api_live.py::test_github_settings_counts_and_freshness",
+      "primaryOwner": "B09",
+      "requirementId": "SET-002",
+      "text": "Показывает:  - GitHub account/organization; - installation status; - accessible repository count; - active Evirion repository count; - last successful sync.  Никаких токенов или secret diagnostics."
+    },
+    {
+      "case": "SET-003.A1",
+      "id": "SET-003.A1",
+      "primaryEvidence": "test_console_read_api_live.py::test_usage_is_historical_complete_and_not_invoice",
+      "primaryOwner": "B09",
+      "requirementId": "SET-003",
+      "text": "clearly labelled operational, not invoice;"
+    },
+    {
+      "case": "SET-003.A2",
+      "id": "SET-003.A2",
+      "primaryEvidence": "test_console_read_api_live.py::test_usage_is_historical_complete_and_not_invoice",
+      "primaryOwner": "B09",
+      "requirementId": "SET-003",
+      "text": "tenant-scoped;"
+    },
+    {
+      "case": "SET-003.A3",
+      "id": "SET-003.A3",
+      "primaryEvidence": "test_console_read_api_live.py::test_usage_is_historical_complete_and_not_invoice",
+      "primaryOwner": "B09",
+      "requirementId": "SET-003",
+      "text": "deactivation не уменьшает historical usage;"
+    },
+    {
+      "case": "SET-003.A4",
+      "id": "SET-003.A4",
+      "primaryEvidence": "test_console_read_api_live.py::test_usage_is_historical_complete_and_not_invoice",
+      "primaryOwner": "B09",
+      "requirementId": "SET-003",
+      "text": "cost derived from existing immutable attempt/run records;"
+    },
+    {
+      "case": "SET-003.A5",
+      "id": "SET-003.A5",
+      "primaryEvidence": "test_console_read_api_live.py::test_usage_is_historical_complete_and_not_invoice",
+      "primaryOwner": "B09",
+      "requirementId": "SET-003",
+      "text": "period/timezone documented."
+    },
+    {
+      "case": "OPS-001.A1",
+      "id": "OPS-001.A1",
+      "primaryEvidence": "test_operator_paid_authorization_live.py::test_operator_authorization_scope_lifecycle_and_dispatch_race",
+      "primaryOwner": "B06B",
+      "requirementId": "OPS-001",
+      "text": "customer consent и chat approval сами не создают authorization;"
+    },
+    {
+      "case": "OPS-001.A2",
+      "id": "OPS-001.A2",
+      "primaryEvidence": "test_operator_paid_authorization_live.py::test_operator_authorization_scope_lifecycle_and_dispatch_race",
+      "primaryOwner": "B06B",
+      "requirementId": "OPS-001",
+      "text": "operator principal derived, not supplied by request;"
+    },
+    {
+      "case": "OPS-001.A3",
+      "id": "OPS-001.A3",
+      "primaryEvidence": "test_operator_paid_authorization_live.py::test_operator_authorization_scope_lifecycle_and_dispatch_race",
+      "primaryOwner": "B06B",
+      "requirementId": "OPS-001",
+      "text": "authorization фиксирует environment, organization/repository or import, model profile, phases, attempt/call ceilings, budget, retry policy, entitlement generation и expiry;"
+    },
+    {
+      "case": "OPS-001.A4",
+      "id": "OPS-001.A4",
+      "primaryEvidence": "test_operator_paid_authorization_live.py::test_operator_authorization_scope_lifecycle_and_dispatch_race",
+      "primaryOwner": "B06B",
+      "requirementId": "OPS-001",
+      "text": "create/revoke idempotent and audit-logged;"
+    },
+    {
+      "case": "OPS-001.A5",
+      "id": "OPS-001.A5",
+      "primaryEvidence": "test_operator_paid_authorization_live.py::test_operator_authorization_scope_lifecycle_and_dispatch_race",
+      "primaryOwner": "B06B",
+      "requirementId": "OPS-001",
+      "text": "revoke/expiry блокирует undispatched provider calls;"
+    },
+    {
+      "case": "OPS-001.A6",
+      "id": "OPS-001.A6",
+      "primaryEvidence": "test_operator_paid_authorization_live.py::test_operator_authorization_scope_lifecycle_and_dispatch_race",
+      "primaryOwner": "B06B",
+      "requirementId": "OPS-001",
+      "text": "dispatched/checkpointed history не удаляется и не переписывается;"
+    },
+    {
+      "case": "OPS-001.A7",
+      "id": "OPS-001.A7",
+      "primaryEvidence": "test_operator_paid_authorization_live.py::test_operator_authorization_scope_lifecycle_and_dispatch_race",
+      "primaryOwner": "B06B",
+      "requirementId": "OPS-001",
+      "text": "customer role и browser session не могут list/create/revoke authorizations;"
+    },
+    {
+      "case": "OPS-001.A8",
+      "id": "OPS-001.A8",
+      "primaryEvidence": "test_operator_paid_authorization_live.py::test_operator_authorization_scope_lifecycle_and_dispatch_race",
+      "primaryOwner": "B06B",
+      "requirementId": "OPS-001",
+      "text": "bounded list/status не раскрывает provider secret или customer payload;"
+    },
+    {
+      "case": "OPS-001.A9",
+      "id": "OPS-001.A9",
+      "primaryEvidence": "test_operator_paid_authorization_live.py::test_operator_authorization_scope_lifecycle_and_dispatch_race",
+      "primaryOwner": "B06B",
+      "requirementId": "OPS-001",
+      "text": "missing authorization is `PAID_OPERATION_NOT_AUTHORIZED`."
+    },
+    {
+      "case": "OPS-002.A1",
+      "id": "OPS-002.A1",
+      "primaryEvidence": "test_operator_organization_control_live.py::test_partner_offboarding_is_resumable_and_fences_all_new_work",
+      "primaryOwner": "B03A",
+      "requirementId": "OPS-002",
+      "text": "new invitations disabled and pending invitations revoked;"
+    },
+    {
+      "case": "OPS-002.A2",
+      "id": "OPS-002.A2",
+      "primaryEvidence": "test_operator_organization_control_live.py::test_partner_offboarding_is_resumable_and_fences_all_new_work",
+      "primaryOwner": "B03A",
+      "requirementId": "OPS-002",
+      "text": "memberships disabled under organization guard; stale JWT loses backend access immediately;"
+    },
+    {
+      "case": "OPS-002.A3",
+      "id": "OPS-002.A3",
+      "primaryEvidence": "test_operator_organization_control_live.py::test_partner_offboarding_is_resumable_and_fences_all_new_work",
+      "primaryOwner": "B03A",
+      "requirementId": "OPS-002",
+      "text": "target-organization membership denial is immediate. Principal application/ provider sessions remain usable for another active organization; global Auth revocation occurs only when no active membership remains or a separately authorized security incident requires it. Any required Auth revocation and GitHub unbind are durable reconciled effects;"
+    },
+    {
+      "case": "OPS-002.A4",
+      "id": "OPS-002.A4",
+      "primaryEvidence": "test_operator_organization_control_live.py::test_partner_offboarding_is_resumable_and_fences_all_new_work",
+      "primaryOwner": "B03A",
+      "requirementId": "OPS-002",
+      "text": "entitlements disabled/generation-incremented, policies/consents revoked and every operational authorization revoked;"
+    },
+    {
+      "case": "OPS-002.A5",
+      "id": "OPS-002.A5",
+      "primaryEvidence": "test_operator_organization_control_live.py::test_partner_offboarding_is_resumable_and_fences_all_new_work",
+      "primaryOwner": "B03A",
+      "requirementId": "OPS-002",
+      "text": "workers/queues cannot start new source/provider work;"
+    },
+    {
+      "case": "OPS-002.A6",
+      "id": "OPS-002.A6",
+      "primaryEvidence": "test_operator_organization_control_live.py::test_partner_offboarding_is_resumable_and_fences_all_new_work",
+      "primaryOwner": "B03A",
+      "requirementId": "OPS-002",
+      "text": "checkpointed responses follow BR-007; provenance/history/usage remain under retention;"
+    },
+    {
+      "case": "OPS-002.A7",
+      "id": "OPS-002.A7",
+      "primaryEvidence": "test_operator_organization_control_live.py::test_partner_offboarding_is_resumable_and_fences_all_new_work",
+      "primaryOwner": "B03A",
+      "requirementId": "OPS-002",
+      "text": "same command replay is idempotent; partial failure resumes without repeating completed effects;"
+    },
+    {
+      "case": "OPS-002.A8",
+      "id": "OPS-002.A8",
+      "primaryEvidence": "test_operator_organization_control_live.py::test_partner_offboarding_is_resumable_and_fences_all_new_work",
+      "primaryOwner": "B03A",
+      "requirementId": "OPS-002",
+      "text": "actor, reason, affected counts and bounded failure status audit-logged;"
+    },
+    {
+      "case": "OPS-002.A9",
+      "id": "OPS-002.A9",
+      "primaryEvidence": "test_operator_organization_control_live.py::test_partner_offboarding_is_resumable_and_fences_all_new_work",
+      "primaryOwner": "B03A",
+      "requirementId": "OPS-002",
+      "text": "no customer/browser endpoint can execute offboarding directly."
+    },
+    {
+      "case": "MET-001.A1",
+      "id": "MET-001.A1",
+      "primaryEvidence": "test_console_read_api_live.py::test_first_review_quality_metric_formulas",
+      "primaryOwner": "B09",
+      "requirementId": "MET-001",
+      "text": "Автоматически рассчитываются:  ```text reviewed_count approved_without_edit_count edited_count user_rejected_count approval_without_edit_rate edit_rate user_rejection_rate ```"
+    },
+    {
+      "case": "MET-002.A1",
+      "id": "MET-002.A1",
+      "primaryEvidence": "test_console_read_api_live.py::test_lifecycle_metric_formulas",
+      "primaryOwner": "B09",
+      "requirementId": "MET-002",
+      "text": "```text active_count superseded_count unresolved_count lifecycle_resolution_rate ```"
+    },
+    {
+      "case": "MET-003.A1",
+      "id": "MET-003.A1",
+      "primaryEvidence": "test_console_read_api_live.py::test_admission_cost_latency_metric_formulas",
+      "primaryOwner": "B09",
+      "requirementId": "MET-003",
+      "text": "```text accepted_runs rejected_runs quarantined_runs failed_jobs cost_per_pr cost_per_accepted_knowledge_object latency_per_pr ```  Acceptance for all metrics:  - numerator/denominator defined; - time window explicit; - no cross-tenant customer aggregation; - machine admission and human review not mixed; - divide-by-zero returns null/not-applicable, not misleading zero; - calculations reproducible without manual spreadsheet."
+    },
+    {
+      "case": "J-001.A1",
+      "id": "J-001.A1",
+      "primaryEvidence": "tests/e2e/auth.spec.ts::journey_accept_invite_and_sign_in",
+      "primaryOwner": "C02",
+      "requirementId": "J-001",
+      "text": "Preconditions:  - Organization exists; - active Owner/Admin created invitation; - email delivery available.  Main flow:  1. User opens the clean Console sign-in URL; email contains no invitation/Auth credential-bearing link. 2. User requests and enters the email OTP through the pre-auth BFF flow. 3. Backend validates the exact Auth token and one-time BFF bootstrap proof. 4. If the verified user has no active membership and exactly one eligible live invitation, bootstrap selects it. If multiple invitations are eligible, BFF renders only post-auth bounded organization labels plus opaque invitation IDs and requires explicit selection; zero eligible invitations denies. 5. Under rank-1 locks, backend rechecks selected invitation, verified user/ email, expiry/revocation and membership, then atomically registers the application session and activates membership/invitation. 6. Console loads organization context and capabilities. 7. New Admin is sent to onboarding; Reviewer/Viewer is sent to repository or memory view.  Alternate/error flows:  - expired invite → safe reissue request; - revoked invite → generic unavailable state; - existing active member → idempotent sign-in; - disabled member → access denied; - wrong signed-in email → no activation. - concurrent revoke/expire/accept or stale opaque selection → no session or membership mutation; - multiple invitations never auto-select by iteration/order and no organization label is exposed before email verification.  Postconditions:  - the selected membership is active exactly once; unrelated existing memberships are unchanged; - audit receipt; - no GitHub or processing side effect."
+    },
+    {
+      "case": "J-002.A1",
+      "id": "J-002.A1",
+      "primaryEvidence": "tests/e2e/repositories.spec.ts::journey_connect_and_discover_locked_repositories",
+      "primaryOwner": "C03",
+      "requirementId": "J-002",
+      "text": "Preconditions:  - active Owner/Admin; - organization has no usable installation or user explicitly reconnects.  Main flow:  1. Console requests signed installation state. 2. User is redirected to GitHub App installation. 3. GitHub redirects to backend control-plane callback. 4. Backend validates state and resolves installation/account. 5. Backend binds installation to Organization. 6. Backend synchronizes accessible repository metadata. 7. Console shows accessible repositories as `Locked`.  Postconditions:  - installation identity stored; - no entitlement auto-created; - no backfill, job, Source Envelope or provider call; - audit receipt."
+    },
+    {
+      "case": "J-003.A1",
+      "id": "J-003.A1",
+      "primaryEvidence": "tests/e2e/repositories.spec.ts::journey_activate_one_repository",
+      "primaryOwner": "C03",
+      "requirementId": "J-003",
+      "text": "Preconditions:  - Owner/Admin; - active GitHub installation; - repository still accessible; - active slot available.  Main flow:  1. Admin opens activation confirmation. 2. Console sends expected organization/repository and idempotency key. 3. Backend rechecks membership, installation access and limit under lock. 4. Backend creates/activates entitlement and audit event atomically. 5. Console refreshes repository projection.  Conflicts:  - another request consumed last slot → `409 REPOSITORY_LIMIT_REACHED`; - repository access removed → `409 REPOSITORY_ACCESS_CHANGED`; - duplicate request → existing success receipt.  Postconditions:  - exactly one ACTIVE entitlement; - no extraction starts merely from activation."
+    },
+    {
+      "case": "J-004.A1",
+      "id": "J-004.A1",
+      "primaryEvidence": "tests/e2e/import.spec.ts::journey_prepare_and_approve_historical_import",
+      "primaryOwner": "C04",
+      "requirementId": "J-004",
+      "text": "Preconditions:  - Owner/Admin; - ACTIVE entitlement; - policy permits history preparation.  Main flow:  1. Admin chooses range and clicks `Prepare import`. 2. Existing backfill performs discovery and Source Envelope preparation. 3. Console polls/subscribes to backend projection. 4. Run reaches `awaiting_approval`. 5. Console displays workload and known budget. 6. Admin confirms `Approve extraction`. 7. Backend rechecks entitlement, policy, budget and approval capability. 8. Until Evirion operational authorization exists, Console shows `Waiting for Evirion authorization` and zero provider dispatch. 9. Backend rechecks all gates and Knowledge queue work begins. 10. Console displays progress and outcomes.  Error flows:  - entitlement disabled before approval → approval denied; - duplicate approval → existing receipt; - operational authorization missing/expired/revoked → existing run waits; customer cannot self-authorize or Retry; - provider response checkpointed, затем entitlement disabled → deterministic completion without new provider call; - free-stage failure → processing incident, no paid call."
+    },
+    {
+      "case": "J-005.A1",
+      "id": "J-005.A1",
+      "primaryEvidence": "tests/e2e/memory-review.spec.ts::journey_review_knowledge_object",
+      "primaryOwner": "C05",
+      "requirementId": "J-005",
+      "text": "Preconditions:  - active member with review capability; - object belongs to organization; - object came from accepted admission. - available actions are derived from current review and lifecycle versions; - normal Reject is available only while effective lifecycle is UNRESOLVED.  Main flow:  1. Reviewer opens detail. 2. Console shows original claim, classification, source and exact evidence. 3. Reviewer chooses only an action allowed by the REV-005 matrix. 4. Mutation carries idempotency key, expected review sequence and expected lifecycle version. 5. Backend validates tenant/capability/state. 6. Backend appends review and audit records atomically. 7. Effective projection updates.  Conflict:  - another reviewer acted first → `409 REVIEW_VERSION_CONFLICT`; UI shows current state and asks user to reconsider. - lifecycle changed to ACTIVE/SUPERSEDED → normal Reject is unavailable and UI routes the user to a correction request; - stale lifecycle/review version returns bounded conflict with no review row."
+    },
+    {
+      "case": "J-006.A1",
+      "id": "J-006.A1",
+      "primaryEvidence": "tests/e2e/memory-review.spec.ts::journey_supersede_old_knowledge",
+      "primaryOwner": "C05",
+      "requirementId": "J-006",
+      "text": "Preconditions:  - review capability; - old and new objects belong to same organization; - both admitted. - both latest review decisions are APPROVED or EDITED; - old effective lifecycle is UNRESOLVED or ACTIVE; neither object is already terminal SUPERSEDED for this action.  Main flow:  1. Reviewer opens old object. 2. Chooses `Mark superseded`. 3. Searches/selects newer object. 4. Console displays relation direction and confirmation. 5. Mutation carries both objects’ expected review sequences and lifecycle versions plus idempotency key. 6. Backend locks/rechecks both objects. 7. Backend inserts `new -> supersedes -> old` relation and old `superseded` event atomically. 8. Old object appears as superseded; new stays unresolved unless separately activated.  Conflict/error:  - stale review/lifecycle version → no relation/event and current bounded state; - either object no longer APPROVED/EDITED → action unavailable; - erroneous existing supersession → customer submits LIFE-005 correction request; normal action never rewrites/deletes history."
+    },
+    {
+      "case": "J-007.A1",
+      "id": "J-007.A1",
+      "primaryEvidence": "tests/e2e/processing-settings.spec.ts::journey_investigate_processing_outcome",
+      "primaryOwner": "C06",
+      "requirementId": "J-007",
+      "text": "Preconditions:  - member has processing-view capability.  Main flow:  1. User opens Processing Activity. 2. Filters repository/PR/status. 3. Opens row. 4. Console shows job/run/admission summary and bounded error/validation data. 5. Retry action appears only when backend advertises it.  Postconditions:  - view has no processing side effect; - raw source/model payload remains protected."
+    },
+    {
+      "case": "J-008.A1",
+      "id": "J-008.A1",
+      "primaryEvidence": "tests/e2e/processing-settings.spec.ts::journey_manage_members_with_owner_guard",
+      "primaryOwner": "C06",
+      "requirementId": "J-008",
+      "text": "1. Owner/Admin opens Members. 2. Invites Reviewer/Viewer or requests role change. 3. Backend locks organization membership guard and rechecks live roles. 4. Invite/change writes command receipt and durable workflow/audit. 5. Concurrent demotion/removal cannot leave zero active Owners.  Failure/recovery:  - email delivery failure remains resumable; - revoked/expired invite cannot activate; - Admin cannot create/promote Owner; - final Owner transfer requires explicit new Owner acceptance before old Owner can leave."
+    },
+    {
+      "case": "J-009.A1",
+      "id": "J-009.A1",
+      "primaryEvidence": "tests/e2e/repositories.spec.ts::journey_reconnect_suspend_or_remove_installation",
+      "primaryOwner": "C03",
+      "requirementId": "J-009",
+      "text": "1. Owner/Admin sees stale/suspended/removed status. 2. Reconnect creates a new one-time setup intent. 3. Successful callback atomically selects one effective installation. 4. Asynchronous sync reaches complete generation before access tombstones. 5. Removed/suspended installation blocks new source authorization immediately.  No entitlement or provenance is deleted. Reconnect does not auto-replay ignored events."
+    },
+    {
+      "case": "J-010.A1",
+      "id": "J-010.A1",
+      "primaryEvidence": "tests/e2e/processing-settings.spec.ts::journey_recover_failed_or_paused_work",
+      "primaryOwner": "C06",
+      "requirementId": "J-010",
+      "text": "1. User opens failure detail. 2. Backend projection supplies stable error and explicit capability: `NONE | RETRY | RESUME | CONTACT_SUPPORT`. 3. UI exposes only that action. 4. Retry/resume uses durable idempotency receipt and current entitlement/policy/approval checks. 5. Checkpoint reuse occurs before any new provider authorization.  Unknown/unsafe state has no retry CTA."
+    },
+    {
+      "case": "J-011.A1",
+      "id": "J-011.A1",
+      "primaryEvidence": "tests/e2e/processing-settings.spec.ts::journey_request_and_observe_offboarding",
+      "primaryOwner": "C06",
+      "requirementId": "J-011",
+      "text": "1. Owner submits bounded offboarding request or Operator creates it directly. 2. Operator executes the durable OPS-002 workflow. 3. Invitations/memberships, repository entitlements, policies, customer consents and paid operational authorizations are disabled/revoked. 4. GitHub unbind and any conditionally required Auth revocation reconcile from durable checkpoints; multi-organization users retain unrelated access. 5. New work stops; checkpointed responses follow BR-007. 6. Historical data remains under configured retention/legal policy. 7. Export/erasure, when required, uses the existing separately approved retention/erasure runbook; Console Alpha does not invent an ad-hoc delete. 8. Audit records the offboarding boundary without raw payload."
+    },
+    {
+      "case": "NFR-SEC-001.A1",
+      "id": "NFR-SEC-001.A1",
+      "primaryEvidence": "tests/security/release-surface.spec.ts::secrets_and_production_debug_surfaces_are_absent",
+      "primaryOwner": "I01-C",
+      "requirementId": "NFR-SEC-001",
+      "text": "Browser bundle and payload contain no:  - service-role key; - GitHub App private key; - installation token; - worker DSN; - provider key; - raw model response; - unrestricted source payload."
+    },
+    {
+      "case": "NFR-SEC-002.A1",
+      "id": "NFR-SEC-002.A1",
+      "primaryEvidence": "test_console_release_security_live.py::test_full_grant_rls_fk_capability_and_audit_matrix",
+      "primaryOwner": "I01-B",
+      "requirementId": "NFR-SEC-002",
+      "text": "Authorization uses:  1. purpose-built API surface; 2. SQL grants; 3. forced RLS on every new Console-owned tenant table; 4. tenant-aware foreign keys; 5. capability checks; 6. audit.  Existing `organization_memberships` has a documented non-FORCE-RLS exception to avoid recursive membership lookup. Its owner/runtime non-bypass, grants and security-definer helper require explicit regression tests. Obsolete direct authenticated reads of `core` tables are revoked after customer-safe APIs are available; `api.trusted_knowledge` keeps its existing machine-trusted semantics only until EEM-8/03 migrates supported consumers. Before EEM-9/10, accepted but `UNRESOLVED` objects must be absent from every active/trusted projection."
+    },
+    {
+      "case": "NFR-SEC-003.A1",
+      "id": "NFR-SEC-003.A1",
+      "primaryEvidence": "tests/security/web-boundary.spec.ts::otp_http_only_session_csrf_csp_cache_xss_abuse_dast_matrix",
+      "primaryOwner": "I01-C",
+      "requirementId": "NFR-SEC-003",
+      "text": "Console must implement:  - server-only Supabase Auth session handling with host-scoped `__Host-` access/refresh cookies using `HttpOnly; Secure; SameSite=Lax; Path=/` and no `Domain`, request-local clients and online `getUser(accessToken)` verification in both BFF and backend; - canonical local/staging/production origins and trusted-proxy/TLS policy; local browser/E2E and DAST harnesses preserve the production `__Host-`/ `Secure` contract over a pinned HTTPS origin rather than weakening cookie attributes; - no session-bearing Supabase browser client and no Auth token in browser JavaScript, URL, storage, analytics or logs; - `private, no-store` for authenticated/session-refresh and nonce-bearing pre- auth/Auth/MFA/recovery responses, with no tenant/Auth state in CDN/ISR/router cache; - force-dynamic authenticated Next.js routes, `cache: \"no-store\"` Auth/customer fetches, server-applied refresh/cookie headers, zero/disabled hosting cache TTL, and no module-scope Supabase client or tenant/user state; - no raw HTML or `dangerouslySetInnerHTML`; Markdown disabled in Alpha; - pre-auth-transaction- then live-session-bound HMAC double-submit CSRF, exact Origin/canonical Host, Fetch-Metadata/content-type and trusted-proxy validation for every Route Handler/Server Action mutation; - per-response CSPRNG nonce CSP with `strict-dynamic`, no `unsafe-inline` or `unsafe-eval`, and executable warm-instance nonce/header binding tests; - clickjacking protection; - safe redirect allowlist; - state/nonce for GitHub flows; - output encoding; - bounded input; - route/user/tenant plus direct-Auth OTP/IP/email abuse limits, generic anti-enumeration, CAPTCHA/risk equivalent and alerts; - full-SHA CI Actions, approved registry, deny-by-default install scripts with reviewed build allowlist, lockfile/manifests consistency, dependency-diff review, SBOM/provenance, dependency and secret scanning; - no production source maps, debug overlays/routes, diagnostics or internal API documentation outside an explicitly protected upload channel; - stored/reflected/DOM/mutation XSS and malicious HTML/Markdown/SVG/URL corpus tests; - local baseline plus separately authorized authenticated staging DAST with synthetic roles and zero provider/paid side effects; - assigned manual Auth/session/authorization/CSRF/business-logic charter and independent full-platform penetration-test closure including Console/BFF/Auth before readiness."
+    },
+    {
+      "case": "NFR-SEC-004.A1",
+      "id": "NFR-SEC-004.A1",
+      "primaryEvidence": "test_console_read_api_live.py::test_role_field_and_action_matrix",
+      "primaryOwner": "B09",
+      "requirementId": "NFR-SEC-004",
+      "text": "| Data/action | owner | admin | Reviewer/member | viewer | |---|---:|---:|---:|---:| | Repository and admitted memory summaries | yes | yes | yes | yes | | Exact evidence | yes | yes | yes | yes | | Aggregate token/cost/latency | yes | yes | no | no | | Bounded validation issue codes | yes | yes | yes | read-only | | Member email/list | yes | yes | no | no | | Usage/Alpha metrics | yes | yes | no | no | | Invite/role/entitlement/policy/paid actions | policy-specific | policy-specific | no | no | | Review/lifecycle actions | yes | yes | yes | no |  Endpoint projections enforce this matrix server-side; UI hiding is not authorization."
+    },
+    {
+      "case": "NFR-PRIV-001.A1",
+      "id": "NFR-PRIV-001.A1",
+      "primaryEvidence": "test_console_read_api_live.py::test_every_endpoint_obeys_payload_field_allowlist",
+      "primaryOwner": "B09",
+      "requirementId": "NFR-PRIV-001",
+      "text": "List APIs return summary fields only. Detail APIs return only fields necessary for the screen and role."
+    },
+    {
+      "case": "NFR-AUD-001.A1",
+      "id": "NFR-AUD-001.A1",
+      "primaryEvidence": "test_console_control_foundation_live.py::test_audit_actor_correlation_and_redaction_contract",
+      "primaryOwner": "B01A",
+      "requirementId": "NFR-AUD-001",
+      "text": "Audit actor, organization, action, target, timestamp, result and bounded reason for:  - membership changes; - GitHub binding; - entitlement activation/disable; - policy/limit changes; - backfill approval; - review; - lifecycle; - retry.  No raw customer payload or secrets in audit metadata."
+    },
+    {
+      "case": "NFR-REL-001.A1",
+      "id": "NFR-REL-001.A1",
+      "primaryEvidence": "test_console_control_foundation_live.py::test_receipt_replay_and_concurrent_duplicate_are_durable",
+      "primaryOwner": "B01A",
+      "requirementId": "NFR-REL-001",
+      "text": "All mutations are idempotent at business boundary. Duplicate browser request, network retry, page reload или worker replay не создаёт duplicate business outcome.  Database-only commands use transactional immutable command receipts. Auth, GitHub and email side effects additionally use durable domain workflow states and idempotent reconciliation."
+    },
+    {
+      "case": "NFR-PERF-001.A1",
+      "id": "NFR-PERF-001.A1",
+      "primaryEvidence": "test_console_read_api_live.py::test_representative_tenant_query_plans_and_p95",
+      "primaryOwner": "B09",
+      "requirementId": "NFR-PERF-001",
+      "text": "- cursor pagination; - default page size 50, maximum 100; - no unbounded scans; - no per-row N+1; - tenant-first indexes; - measured query plan with at least 1,000 repositories, 10,000 Knowledge Objects and 10,000 processing rows in one synthetic tenant; - initial target: p95 server response under 500 ms for normal paginated reads in staging, excluding GitHub sync and long-running jobs."
+    },
+    {
+      "case": "NFR-PERF-002.A1",
+      "id": "NFR-PERF-002.A1",
+      "primaryEvidence": "test_console_async_operations_live.py::test_sync_and_import_return_receipts_without_waiting",
+      "primaryOwner": "I01-B",
+      "requirementId": "NFR-PERF-002",
+      "text": "GitHub sync, backfill и extraction asynchronous. Web request возвращает receipt/status resource, а не ждёт completion."
+    },
+    {
+      "case": "NFR-ACC-001.A1",
+      "id": "NFR-ACC-001.A1",
+      "primaryEvidence": "tests/e2e/accessibility.spec.ts::keyboard_focus_name_status_and_contrast_gate",
+      "primaryOwner": "I01-C",
+      "requirementId": "NFR-ACC-001",
+      "text": "Customer workflows meet WCAG 2.2 AA target:  - keyboard navigation; - visible focus; - semantic headings/landmarks; - labels and error association; - contrast; - non-color status indicators; - screen-reader status announcements."
+    },
+    {
+      "case": "NFR-COMP-001.A1",
+      "id": "NFR-COMP-001.A1",
+      "primaryEvidence": "tests/unit/test_console_contract.py::test_openapi_compatibility_and_pinned_digest",
+      "primaryOwner": "B01",
+      "requirementId": "NFR-COMP-001",
+      "text": "Console pins exact API contract version. Backend breaking change не deploy-ится до совместимого Console release."
+    },
+    {
+      "case": "NFR-OBS-001.A1",
+      "id": "NFR-OBS-001.A1",
+      "primaryEvidence": "test_console_control_foundation_live.py::test_correlation_propagation_and_log_redaction",
+      "primaryOwner": "B01A",
+      "requirementId": "NFR-OBS-001",
+      "text": "Для каждого web/API request доступны:  - correlation ID; - organization-safe actor/route/action dimensions; - latency/status; - dependency result; - redacted error code.  Source text, evidence quote, raw response, token и secret не входят в logs по умолчанию."
+    },
+    {
+      "case": "NFR-OPS-001.A1",
+      "id": "NFR-OPS-001.A1",
+      "primaryEvidence": "tests/operations/test_console_rollback_rehearsal.py::test_pause_rollback_and_forward_fix_are_executable",
+      "primaryOwner": "I01-B",
+      "requirementId": "NFR-OPS-001",
+      "text": "UI rollback не требует rollback migration. Backend schema changes forward-only. New capabilities deploy-ятся additively до Console activation."
+    },
+    {
+      "case": "P01-A001",
+      "id": "P01-A001",
+      "primaryEvidence": "tests.test_bootstrap_contract.RepositoryBootstrapFilesTests.test_initial_license_and_first_ignore_rule_are_preserved",
+      "primaryOwner": "P01-dashboard",
+      "requirementId": "EEM-9/01",
+      "text": "Exact merged backend prerequisite and preserved initial Dashboard history."
+    },
+    {
+      "case": "P01-A002",
+      "id": "P01-A002",
+      "primaryEvidence": "scripts.migrate_authority_sources::migrate_sources",
+      "primaryOwner": "P01-dashboard",
+      "requirementId": "EEM-9/01",
+      "text": "Accepted authority notes migrate with exact source digests and safe links."
+    },
+    {
+      "case": "P01-A003",
+      "id": "P01-A003",
+      "primaryEvidence": "scripts.generate_acceptance_map::build_acceptance_rows",
+      "primaryOwner": "P01-dashboard",
+      "requirementId": "EEM-9/01",
+      "text": "Every product acceptance row has one immutable primary owner and test."
+    },
+    {
+      "case": "P01-A004",
+      "id": "P01-A004",
+      "primaryEvidence": "scripts.generate_asvs_matrix::build_asvs_matrix",
+      "primaryOwner": "P01-dashboard",
+      "requirementId": "EEM-9/01",
+      "text": "Every selected ASVS Level 2 row has one owner, evidence, environment, verifier, and applicability rationale."
+    },
+    {
+      "case": "P01-A005",
+      "id": "P01-A005",
+      "primaryEvidence": "scripts.check_docs::validate_document_tree",
+      "primaryOwner": "P01-dashboard",
+      "requirementId": "EEM-9/01",
+      "text": "Authority documentation has no broken, deleted, escaping, unresolved-wiki, or machine-local link."
+    },
+    {
+      "case": "P01-A006",
+      "id": "P01-A006",
+      "primaryEvidence": "tests.test_bootstrap_contract.AuthorityPackageTests.test_archive_is_deterministic_and_contains_only_manifest_inventory",
+      "primaryOwner": "P01-dashboard",
+      "requirementId": "EEM-9/01",
+      "text": "Authority manifest and package are deterministic and immutable by digest."
+    },
+    {
+      "case": "P01-A007",
+      "id": "P01-A007",
+      "primaryEvidence": "tests.test_bootstrap_contract.ArtifactAttestationPolicyTests.test_repository_policy_fixture_rejects_every_required_negative",
+      "primaryOwner": "P01-dashboard",
+      "requirementId": "EEM-9/01",
+      "text": "Replaced asset, mutable release, wrong identity/ref/digest, stale policy, and unpinned verifier fail closed."
+    },
+    {
+      "case": "P01-A008",
+      "id": "P01-A008",
+      "primaryEvidence": "tests.test_bootstrap_contract.CrossRepositoryAuthorityTests.test_governance_waiver_stays_open_and_readiness_blocking",
+      "primaryOwner": "P01-dashboard",
+      "requirementId": "EEM-9/01",
+      "text": "Repository controls record the approved bootstrap waiver while SEC-2026-012 remains open and readiness-blocking."
+    },
+    {
+      "case": "P01-A009",
+      "id": "P01-A009",
+      "primaryEvidence": "tests.test_bootstrap_contract.CrossRepositoryAuthorityTests.test_auth_session_and_transport_baseline_is_frozen",
+      "primaryOwner": "P01-dashboard",
+      "requirementId": "EEM-9/01",
+      "text": "Auth/session, server-only token, cookie/header, origin, proxy, TLS, recovery, and no-store boundaries are frozen."
+    },
+    {
+      "case": "P01-A010",
+      "id": "P01-A010",
+      "primaryEvidence": "tests.test_bootstrap_contract.CrossRepositoryAuthorityTests.test_frozen_global_lock_input_matches_merged_prerequisite",
+      "primaryOwner": "P01-backend",
+      "requirementId": "EEM-9/01",
+      "text": "Merged EEM-3 global lock graph and catalog digests remain non-contradictory."
+    },
+    {
+      "case": "P01-A011",
+      "id": "P01-A011",
+      "primaryEvidence": "services/model-orchestration/tests/unit/test_dashboard_authority_pointer.py::test_exact_dashboard_pointer",
+      "primaryOwner": "P01-backend",
+      "requirementId": "EEM-9/01",
+      "text": "Backend stable pointer binds the exact merged Dashboard commit, manifest path, and authority package digest."
+    },
+    {
+      "case": "P01-A012",
+      "id": "P01-A012",
+      "primaryEvidence": "services/model-orchestration/tests/unit/test_dashboard_authority_pointer.py::test_catalog_and_reading_map",
+      "primaryOwner": "P01-backend",
+      "requirementId": "EEM-9/01",
+      "text": "Both repositories expose the same EEM-9/01 through EEM-9/10 catalog and mandatory reading-map locators."
+    },
+    {
+      "case": "P01-A013",
+      "id": "P01-A013",
+      "primaryEvidence": "tests.test_bootstrap_contract.CrossRepositoryAuthorityTests.test_no_dashboard_runtime_scaffold_exists_in_bootstrap",
+      "primaryOwner": "P01-dashboard",
+      "requirementId": "EEM-9/01",
+      "text": "Bootstrap creates no Dashboard runtime or remote/paid/customer-data change."
+    }
+  ],
+  "schemaVersion": "1.0",
+  "source": "docs/product/design-partner-console-requirements.md",
+  "sourceSha256": "7c4e224c39faa7f59b739c994b7acf15e0f37a8d6c39d40d8038c96f1e9a8a9d"
+}
