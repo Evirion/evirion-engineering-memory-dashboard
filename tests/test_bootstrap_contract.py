@@ -508,6 +508,35 @@ class CrossRepositoryAuthorityTests(unittest.TestCase):
         ):
             self.assertIn(source, plan)
 
+    def test_task_catalog_aliases_match_the_controlling_plan(self) -> None:
+        catalog = (
+            self.root / "docs/plans/active/README.md"
+        ).read_text(encoding="utf-8")
+        plan = (
+            self.root
+            / "docs/plans/active/"
+            "eem-9-design-partner-console-dashboard-and-certification.md"
+        ).read_text(encoding="utf-8")
+
+        plan_aliases = dict(
+            re.findall(
+                r"^### EEM-9/(\d{2}).*?`(EEM-9/\d{2}-[a-z0-9-]+)`",
+                plan,
+                flags=re.MULTILINE,
+            )
+        )
+        catalog_matches = re.findall(
+            r"`Start (EEM-9/(\d{2})-[a-z0-9-]+)",
+            catalog,
+        )
+        catalog_aliases = {
+            ordinal: alias
+            for alias, ordinal in catalog_matches
+        }
+
+        self.assertEqual(set(plan_aliases), {f"{ordinal:02d}" for ordinal in range(1, 11)})
+        self.assertEqual(catalog_aliases, plan_aliases)
+
     def test_frozen_global_lock_input_matches_merged_prerequisite(self) -> None:
         lock_input = json.loads(
             (

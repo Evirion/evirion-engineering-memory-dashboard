@@ -4,56 +4,64 @@ Updated: 2026-08-27
 
 ## Current state
 
-- Active task: `EEM-9/01-dashboard-repo-bootstrap`.
-- Branch: `EEM-9/01-dashboard-repo-bootstrap`, based on initial Dashboard
-  commit `85c851202dd978af50dbdac1a599c74f3994c5ad`.
-- Backend prerequisite: EEM-3/13 merged through backend PR #24 at
-  `b23f6ba2b11f583b61200cec63500a782992f1f0`; reviewed and merged trees match,
-  and the merged PostgreSQL 17 global-lock attestation passes 10 tests.
-- Dashboard authority migration, bounded full-diff audit, and complete local
-  free verification are finished on the uncommitted task branch.
-- No Dashboard commit, push, PR, merge, release, signature, deployment, hosted
-  configuration, provider call, paid operation, or customer-data action has
-  been performed in this task.
+- Active task: EEM-9/01 authority catalog remediation.
+- Branch: `EEM-9/01-dashboard-catalog-remediation`, based on merged Dashboard
+  PR [#1](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/1)
+  commit `6a489ccb84ce3bd0b17e0d42b983f8d15d238cef`.
+- PR #1 moved the accepted authority package into this repository with
+  content-set package digest
+  `c0ff6f5e75de706ab301328947e519de762c030b40923d60a93783755b02b089`.
+  That package remains immutable historical evidence but cannot be pinned by
+  the backend because its copy-ready catalog conflicts with the controlling
+  full plan.
+- The accepted resolution is to keep the full EEM-9 plan controlling and
+  correct only the catalog/current-state authority around it. The local
+  remediation restores the exact `/01`–`/10` aliases and adds an executable
+  alias-parity regression.
+- The paired backend pointer work is paused with local uncommitted changes. It
+  must pin the remediation merge commit and successor package digest, not PR
+  #1's superseded package.
 
 ## Fixed delivery order
 
-1. Freeze and locally verify the Dashboard authority/catalog tree.
-2. Obtain separate user authorization for Dashboard commit, push, and PR.
-3. Merge the Dashboard PR first.
-4. Update backend `main`.
-5. Prepare the paired backend stable pointer, machine-readable manifest,
-   EEM-3 global-lock attestation, executable cross-repository verification, and
-   index/current-state updates.
-6. Obtain separate user authorization for the backend publication actions.
-7. Merge the backend PR.
+1. Regenerate and mechanically verify the corrected Dashboard authority
+   manifest.
+2. Obtain separate user authorization before commit, push, or PR creation.
+3. Merge the Dashboard catalog-remediation PR.
+4. Update Dashboard `main`.
+5. Resume the paired backend branch and pin the corrected Dashboard
+   commit/tree/manifest/package.
+6. Obtain separate user authorization before backend commit, push, or PR
+   creation.
+7. Merge the backend pointer/global-lock-attestation PR.
 
-EEM-9/01 is complete only after both merges and a non-contradictory lock
-attestation. EEM-9/02 and EEM-4 remain out of scope.
+EEM-9/01 is complete only after both corrective delivery steps and the backend
+merge. EEM-4/01 and EEM-9/02 remain blocked. No adjacent EEM task has started.
 
 ## Security and release state
 
-- Public Sigstore/Fulcio and Rekor are the selected keyless attestation trust
-  service.
-- `SEC-2026-012` is open under the user-approved GitHub Free bootstrap waiver.
-- The dedicated GitHub API check reports immutable releases are not enabled.
-  The release workflow therefore fails closed before signing or publication.
-- Technical Design Partner Ready remains blocked until repository and immutable
-  release enforcement evidence exists.
-- The Auth/session contract is frozen at JWT 15m, visible-tab human idle 30m
-  with a 5m warning, touch coalescing 1m, absolute application session 8h,
-  maximum three sessions with explicit oldest-session replacement, dangerous
-  operation reauthentication 10m, OTP 10m, and resend cooldown 60s.
+- Public Sigstore/Fulcio and Rekor remain the selected keyless attestation
+  trust service.
+- `SEC-2026-012` remains open under the approved GitHub Free bootstrap waiver.
+- Immutable releases are not enabled. The release workflow therefore fails
+  closed before signing or publication.
+- Technical Design Partner Ready remains blocked until repository and
+  immutable-release enforcement evidence exists.
+- The Auth/session contract remains frozen at JWT 15m, visible-tab human idle
+  30m with a 5m warning, touch coalescing 1m, absolute application session 8h,
+  maximum three sessions with explicit oldest-session replacement,
+  dangerous-operation reauthentication 10m, OTP 10m, and resend cooldown 60s.
 
-## Next action
+## Verification and next action
 
-Obtain explicit authorization before creating the Dashboard commit, pushing
-the branch, or opening its PR. Merge the Dashboard PR before beginning the
-paired backend pointer/attestation half.
+The focused alias-parity regression passed. Because this remediation changes
+only tracked authority/current-state files and their regression, no broad
+Dashboard, backend, PostgreSQL, Supabase, runtime, container, security, paid,
+or remote gate ran. The corrected authority manifest was regenerated and
+mechanically verified.
 
-Local evidence: 37 bootstrap tests passed; 392 acceptance rows, 212 selected
-ASVS Level 2 rows, and 12 `SEC-WEB` rows verified; documentation, generated
-authority, repository secret-pattern, JSON-compatible document, workflow YAML,
-marker/whitespace, manifest, and 50-member deterministic archive checks passed.
-Local `gitleaks` and `actionlint` executables were unavailable; the repository
-scanner plus Ruby YAML parsing and full-SHA workflow tests were used.
+Commit/push/PR/merge authorization has been granted for this remediation.
+After Git confirms its merge, update local Dashboard `main` and resume the
+paired backend pointer against the remediation merge commit and package digest.
+No release, signature, deployment, hosted configuration, provider call, paid
+operation, or customer-data action is authorized.
