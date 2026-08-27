@@ -1,0 +1,13 @@
+.idea/
+__pycache__/
+*.py[cod]
+.DS_Store
+.env
+.env.*
+!.env.example
+dist/
+node_modules/
+.next/
+coverage/
+test-results/
+playwright-report/

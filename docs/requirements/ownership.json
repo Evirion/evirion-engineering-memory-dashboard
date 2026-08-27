@@ -1,0 +1,446 @@
+{
+  "AUTH-001": {
+    "primaryEvidence": "test_console_membership_live.py::test_unknown_user_cannot_signup_without_invitation",
+    "primaryOwner": "B02"
+  },
+  "AUTH-002": {
+    "primaryEvidence": "test_console_membership_live.py::test_disabled_membership_denies_stale_jwt",
+    "primaryOwner": "B02"
+  },
+  "AUTH-003": {
+    "primaryEvidence": "test_console_membership_live.py::test_role_capability_matrix_blocks_direct_rpc",
+    "primaryOwner": "B02"
+  },
+  "AUTH-004": {
+    "primaryEvidence": "test_console_membership_live.py::test_explicit_organization_scope_cannot_be_forged",
+    "primaryOwner": "B02"
+  },
+  "AUTH-005": {
+    "primaryEvidence": "test_console_membership_live.py::test_invitation_state_reconciles_partial_external_failure",
+    "primaryOwner": "B02"
+  },
+  "AUTH-006": {
+    "primaryEvidence": "test_operator_organization_control_live.py::test_bootstrap_is_atomic_idempotent_and_operator_derived",
+    "primaryOwner": "B03A"
+  },
+  "AUTH-007": {
+    "primaryEvidence": "test_console_membership_live.py::test_online_token_mfa_session_recovery_matrix",
+    "primaryOwner": "B02"
+  },
+  "AUTH-008": {
+    "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::server_only_cookie_otp_mfa_session_recovery_matrix",
+    "primaryOwner": "C02"
+  },
+  "AUTH-009": {
+    "primaryEvidence": "tests/security/auth-hosted-parity-abuse.spec.ts::hosted_provider_limits_and_release_evidence",
+    "primaryOwner": "I01-C"
+  },
+  "BF-001": {
+    "primaryEvidence": "test_console_customer_operations_live.py::test_customer_import_is_idempotent_missing_only",
+    "primaryOwner": "B06A"
+  },
+  "BF-002": {
+    "primaryEvidence": "test_console_customer_operations_live.py::test_backfill_states_map_exhaustively",
+    "primaryOwner": "B06A"
+  },
+  "BF-003": {
+    "primaryEvidence": "test_console_customer_operations_live.py::test_customer_consent_does_not_bypass_paid_authorization",
+    "primaryOwner": "B06A"
+  },
+  "BF-004": {
+    "primaryEvidence": "test_console_read_api_live.py::test_import_progress_and_cost_completeness",
+    "primaryOwner": "B09"
+  },
+  "BR-001": {
+    "primaryEvidence": "test_console_entitlement_enforcement_live.py::test_access_without_entitlement_has_zero_pipeline_side_effects",
+    "primaryOwner": "B05"
+  },
+  "BR-002": {
+    "primaryEvidence": "test_console_model_call_authorization_live.py::test_all_paid_gates_compose_fail_closed",
+    "primaryOwner": "B06"
+  },
+  "BR-003": {
+    "primaryEvidence": "test_console_entitlement_enforcement_live.py::test_locked_delivery_has_exact_zero_counts",
+    "primaryOwner": "B05"
+  },
+  "BR-004": {
+    "primaryEvidence": "test_console_entitlement_enforcement_live.py::test_ignored_delivery_is_not_replayed_after_activation",
+    "primaryOwner": "B05"
+  },
+  "BR-005": {
+    "primaryEvidence": "test_operator_paid_authorization_live.py::test_customer_consent_and_chat_cannot_authorize_paid_work",
+    "primaryOwner": "B06B"
+  },
+  "BR-006": {
+    "primaryEvidence": "test_console_model_call_authorization_live.py::test_logical_authorization_and_bounded_dispatch_matrix",
+    "primaryOwner": "B06"
+  },
+  "BR-007": {
+    "primaryEvidence": "test_console_model_call_authorization_live.py::test_checkpoint_disable_initial_and_repair_matrix",
+    "primaryOwner": "B06"
+  },
+  "BR-008": {
+    "primaryEvidence": "test_knowledge_human_review_live.py::test_review_preserves_original_provenance_bytes_and_hashes",
+    "primaryOwner": "B07"
+  },
+  "BR-009": {
+    "primaryEvidence": "test_console_read_api_live.py::test_admission_review_and_lifecycle_are_independent",
+    "primaryOwner": "B09"
+  },
+  "BR-010": {
+    "primaryEvidence": "test_console_read_api_live.py::test_rejected_and_quarantined_runs_create_zero_knowledge",
+    "primaryOwner": "B09"
+  },
+  "BR-011": {
+    "primaryEvidence": "test_console_read_api_live.py::test_absent_review_derives_pending",
+    "primaryOwner": "B09"
+  },
+  "BR-012": {
+    "primaryEvidence": "test_console_read_api_live.py::test_absent_or_retracted_lifecycle_derives_unresolved",
+    "primaryOwner": "B09"
+  },
+  "BR-013": {
+    "primaryEvidence": "test_knowledge_lifecycle_live.py::test_supersession_direction_is_new_to_old",
+    "primaryOwner": "B08"
+  },
+  "BR-014": {
+    "primaryEvidence": "test_knowledge_lifecycle_live.py::test_injected_relation_event_failure_rolls_back_atomically",
+    "primaryOwner": "B08"
+  },
+  "BR-015": {
+    "primaryEvidence": "test_knowledge_lifecycle_live.py::test_superseding_object_remains_unresolved",
+    "primaryOwner": "B08"
+  },
+  "BR-016": {
+    "primaryEvidence": "test_console_release_security_live.py::test_every_tenant_path_is_constrained_rls_and_api_guarded",
+    "primaryOwner": "I01-B"
+  },
+  "BR-017": {
+    "primaryEvidence": "test_operator_organization_control_live.py::test_rotation_requires_atomic_operator_replacement",
+    "primaryOwner": "B03A"
+  },
+  "BR-018": {
+    "primaryEvidence": "test_console_entitlement_enforcement_live.py::test_disable_preserves_history_usage_and_provenance",
+    "primaryOwner": "B05"
+  },
+  "BR-019": {
+    "primaryEvidence": "test_console_customer_operations_live.py::test_backend_alone_owns_state_and_retry_capability",
+    "primaryOwner": "B06A"
+  },
+  "BR-020": {
+    "primaryEvidence": "test_console_read_api_live.py::test_exact_evidence_precedes_review_action_capability",
+    "primaryOwner": "B09"
+  },
+  "BR-021": {
+    "primaryEvidence": "test_console_control_foundation_live.py::test_command_receipt_lost_response_and_request_hash_matrix",
+    "primaryOwner": "B01A"
+  },
+  "BR-022": {
+    "primaryEvidence": "test_console_model_call_authorization_live.py::test_crash_lease_reactivation_cannot_revive_stale_generation",
+    "primaryOwner": "B06"
+  },
+  "BR-023": {
+    "primaryEvidence": "test_console_read_api_live.py::test_organization_visibility_has_no_repository_acl",
+    "primaryOwner": "B09"
+  },
+  "BR-024": {
+    "primaryEvidence": "test_console_read_api_live.py::test_unresolved_cost_is_never_zero",
+    "primaryOwner": "B09"
+  },
+  "ENT-001": {
+    "primaryEvidence": "test_repository_entitlements_live.py::test_entitlement_is_distinct_tenant_safe_and_guarded",
+    "primaryOwner": "B03"
+  },
+  "ENT-002": {
+    "primaryEvidence": "test_repository_entitlements_live.py::test_limit_modes_slots_and_concurrent_capacity",
+    "primaryOwner": "B03"
+  },
+  "ENT-003": {
+    "primaryEvidence": "test_repository_entitlements_live.py::test_activation_is_atomic_versioned_and_idempotent",
+    "primaryOwner": "B03"
+  },
+  "ENT-004": {
+    "primaryEvidence": "test_console_model_call_authorization_live.py::test_disable_state_matrix",
+    "primaryOwner": "B06"
+  },
+  "ENT-005": {
+    "primaryEvidence": "test_operator_organization_control_live.py::test_operator_only_replacement_prevents_rotation",
+    "primaryOwner": "B03A"
+  },
+  "ENT-006": {
+    "primaryEvidence": "test_repository_entitlements_live.py::test_entitlement_source_is_operator_owned",
+    "primaryOwner": "B03"
+  },
+  "G-001": {
+    "primaryEvidence": "tests/e2e/free-integration.spec.ts::goal_safe_onboarding_without_ingestion",
+    "primaryOwner": "I01-C"
+  },
+  "G-002": {
+    "primaryEvidence": "test_console_entitlement_enforcement_live.py::test_only_active_entitlement_creates_processing_work",
+    "primaryOwner": "B05"
+  },
+  "G-003": {
+    "primaryEvidence": "test_console_free_integration_live.py::test_live_and_historical_paths_reuse_existing_guards",
+    "primaryOwner": "I01-B"
+  },
+  "G-004": {
+    "primaryEvidence": "tests/e2e/memory-review.spec.ts::goal_human_validation_preserves_machine_provenance",
+    "primaryOwner": "C05"
+  },
+  "G-005": {
+    "primaryEvidence": "tests/e2e/memory-review.spec.ts::goal_lifecycle_is_independent",
+    "primaryOwner": "C05"
+  },
+  "G-006": {
+    "primaryEvidence": "tests/e2e/processing-settings.spec.ts::goal_operational_transparency_uses_safe_projections",
+    "primaryOwner": "C06"
+  },
+  "G-007": {
+    "primaryEvidence": "test_console_read_api_live.py::test_first_partner_metrics_are_reproducible",
+    "primaryOwner": "B09"
+  },
+  "GH-001": {
+    "primaryEvidence": "github-installation-control/index_test.ts::start_and_callback_consume_one_time_intent",
+    "primaryOwner": "B04"
+  },
+  "GH-002": {
+    "primaryEvidence": "test_github_control_live.py::test_exactly_one_effective_installation",
+    "primaryOwner": "B04"
+  },
+  "GH-003": {
+    "primaryEvidence": "test_github_control_live.py::test_sync_generation_tombstones_only_after_complete_traversal",
+    "primaryOwner": "B04"
+  },
+  "GH-004": {
+    "primaryEvidence": "github-webhook/index_test.ts::installation_lifecycle_updates_access_without_extraction",
+    "primaryOwner": "B04"
+  },
+  "J-001": {
+    "primaryEvidence": "tests/e2e/auth.spec.ts::journey_accept_invite_and_sign_in",
+    "primaryOwner": "C02"
+  },
+  "J-002": {
+    "primaryEvidence": "tests/e2e/repositories.spec.ts::journey_connect_and_discover_locked_repositories",
+    "primaryOwner": "C03"
+  },
+  "J-003": {
+    "primaryEvidence": "tests/e2e/repositories.spec.ts::journey_activate_one_repository",
+    "primaryOwner": "C03"
+  },
+  "J-004": {
+    "primaryEvidence": "tests/e2e/import.spec.ts::journey_prepare_and_approve_historical_import",
+    "primaryOwner": "C04"
+  },
+  "J-005": {
+    "primaryEvidence": "tests/e2e/memory-review.spec.ts::journey_review_knowledge_object",
+    "primaryOwner": "C05"
+  },
+  "J-006": {
+    "primaryEvidence": "tests/e2e/memory-review.spec.ts::journey_supersede_old_knowledge",
+    "primaryOwner": "C05"
+  },
+  "J-007": {
+    "primaryEvidence": "tests/e2e/processing-settings.spec.ts::journey_investigate_processing_outcome",
+    "primaryOwner": "C06"
+  },
+  "J-008": {
+    "primaryEvidence": "tests/e2e/processing-settings.spec.ts::journey_manage_members_with_owner_guard",
+    "primaryOwner": "C06"
+  },
+  "J-009": {
+    "primaryEvidence": "tests/e2e/repositories.spec.ts::journey_reconnect_suspend_or_remove_installation",
+    "primaryOwner": "C03"
+  },
+  "J-010": {
+    "primaryEvidence": "tests/e2e/processing-settings.spec.ts::journey_recover_failed_or_paused_work",
+    "primaryOwner": "C06"
+  },
+  "J-011": {
+    "primaryEvidence": "tests/e2e/processing-settings.spec.ts::journey_request_and_observe_offboarding",
+    "primaryOwner": "C06"
+  },
+  "KD-001": {
+    "primaryEvidence": "test_console_read_api_live.py::test_original_and_effective_payload_are_distinct",
+    "primaryOwner": "B09"
+  },
+  "KD-002": {
+    "primaryEvidence": "test_console_read_api_live.py::test_exact_evidence_and_safe_source_link",
+    "primaryOwner": "B09"
+  },
+  "KD-003": {
+    "primaryEvidence": "test_console_read_api_live.py::test_pr_context_is_tenant_scoped",
+    "primaryOwner": "B09"
+  },
+  "KD-004": {
+    "primaryEvidence": "test_console_read_api_live.py::test_technical_details_follow_role_allowlist",
+    "primaryOwner": "B09"
+  },
+  "LIFE-001": {
+    "primaryEvidence": "test_knowledge_lifecycle_live.py::test_no_event_is_unresolved",
+    "primaryOwner": "B08"
+  },
+  "LIFE-002": {
+    "primaryEvidence": "test_knowledge_lifecycle_live.py::test_mark_active_requires_review_and_reason",
+    "primaryOwner": "B08"
+  },
+  "LIFE-003": {
+    "primaryEvidence": "test_knowledge_lifecycle_live.py::test_supersession_is_atomic_same_tenant_and_acyclic",
+    "primaryOwner": "B08"
+  },
+  "LIFE-004": {
+    "primaryEvidence": "test_knowledge_lifecycle_live.py::test_withdrawn_is_not_customer_action",
+    "primaryOwner": "B08"
+  },
+  "LIFE-005": {
+    "primaryEvidence": "test_knowledge_lifecycle_live.py::test_operator_correction_is_append_only_and_atomic",
+    "primaryOwner": "B08"
+  },
+  "MEM-001": {
+    "primaryEvidence": "test_console_read_api_live.py::test_memory_queue_contains_accepted_knowledge_only",
+    "primaryOwner": "B09"
+  },
+  "MEM-002": {
+    "primaryEvidence": "test_console_read_api_live.py::test_memory_filters_cursor_and_stable_order",
+    "primaryOwner": "B09"
+  },
+  "MEM-003": {
+    "primaryEvidence": "test_console_read_api_live.py::test_memory_summary_uses_bounded_fields",
+    "primaryOwner": "B09"
+  },
+  "MET-001": {
+    "primaryEvidence": "test_console_read_api_live.py::test_first_review_quality_metric_formulas",
+    "primaryOwner": "B09"
+  },
+  "MET-002": {
+    "primaryEvidence": "test_console_read_api_live.py::test_lifecycle_metric_formulas",
+    "primaryOwner": "B09"
+  },
+  "MET-003": {
+    "primaryEvidence": "test_console_read_api_live.py::test_admission_cost_latency_metric_formulas",
+    "primaryOwner": "B09"
+  },
+  "NFR-ACC-001": {
+    "primaryEvidence": "tests/e2e/accessibility.spec.ts::keyboard_focus_name_status_and_contrast_gate",
+    "primaryOwner": "I01-C"
+  },
+  "NFR-AUD-001": {
+    "primaryEvidence": "test_console_control_foundation_live.py::test_audit_actor_correlation_and_redaction_contract",
+    "primaryOwner": "B01A"
+  },
+  "NFR-COMP-001": {
+    "primaryEvidence": "tests/unit/test_console_contract.py::test_openapi_compatibility_and_pinned_digest",
+    "primaryOwner": "B01"
+  },
+  "NFR-OBS-001": {
+    "primaryEvidence": "test_console_control_foundation_live.py::test_correlation_propagation_and_log_redaction",
+    "primaryOwner": "B01A"
+  },
+  "NFR-OPS-001": {
+    "primaryEvidence": "tests/operations/test_console_rollback_rehearsal.py::test_pause_rollback_and_forward_fix_are_executable",
+    "primaryOwner": "I01-B"
+  },
+  "NFR-PERF-001": {
+    "primaryEvidence": "test_console_read_api_live.py::test_representative_tenant_query_plans_and_p95",
+    "primaryOwner": "B09"
+  },
+  "NFR-PERF-002": {
+    "primaryEvidence": "test_console_async_operations_live.py::test_sync_and_import_return_receipts_without_waiting",
+    "primaryOwner": "I01-B"
+  },
+  "NFR-PRIV-001": {
+    "primaryEvidence": "test_console_read_api_live.py::test_every_endpoint_obeys_payload_field_allowlist",
+    "primaryOwner": "B09"
+  },
+  "NFR-REL-001": {
+    "primaryEvidence": "test_console_control_foundation_live.py::test_receipt_replay_and_concurrent_duplicate_are_durable",
+    "primaryOwner": "B01A"
+  },
+  "NFR-SEC-001": {
+    "primaryEvidence": "tests/security/release-surface.spec.ts::secrets_and_production_debug_surfaces_are_absent",
+    "primaryOwner": "I01-C"
+  },
+  "NFR-SEC-002": {
+    "primaryEvidence": "test_console_release_security_live.py::test_full_grant_rls_fk_capability_and_audit_matrix",
+    "primaryOwner": "I01-B"
+  },
+  "NFR-SEC-003": {
+    "primaryEvidence": "tests/security/web-boundary.spec.ts::otp_http_only_session_csrf_csp_cache_xss_abuse_dast_matrix",
+    "primaryOwner": "I01-C"
+  },
+  "NFR-SEC-004": {
+    "primaryEvidence": "test_console_read_api_live.py::test_role_field_and_action_matrix",
+    "primaryOwner": "B09"
+  },
+  "OPS-001": {
+    "primaryEvidence": "test_operator_paid_authorization_live.py::test_operator_authorization_scope_lifecycle_and_dispatch_race",
+    "primaryOwner": "B06B"
+  },
+  "OPS-002": {
+    "primaryEvidence": "test_operator_organization_control_live.py::test_partner_offboarding_is_resumable_and_fences_all_new_work",
+    "primaryOwner": "B03A"
+  },
+  "PR-001": {
+    "primaryEvidence": "test_console_read_api_live.py::test_pr_detail_separates_admission_and_knowledge",
+    "primaryOwner": "B09"
+  },
+  "PROC-001": {
+    "primaryEvidence": "test_console_read_api_live.py::test_processing_outcomes_and_cost_status_are_distinct",
+    "primaryOwner": "B09"
+  },
+  "PROC-002": {
+    "primaryEvidence": "test_console_customer_operations_live.py::test_retry_uses_backend_capability_and_checkpoint",
+    "primaryOwner": "B06A"
+  },
+  "PROC-003": {
+    "primaryEvidence": "test_console_read_api_live.py::test_validation_issues_are_bounded_and_role_scoped",
+    "primaryOwner": "B09"
+  },
+  "REPO-001": {
+    "primaryEvidence": "test_repository_entitlements_live.py::test_repository_product_state_projection",
+    "primaryOwner": "B03"
+  },
+  "REPO-002": {
+    "primaryEvidence": "test_repository_entitlements_live.py::test_activation_confirmation_contract_has_no_processing_side_effect",
+    "primaryOwner": "B03"
+  },
+  "REPO-003": {
+    "primaryEvidence": "test_console_read_api_live.py::test_repository_overview_separates_processing_and_memory",
+    "primaryOwner": "B09"
+  },
+  "REPO-004": {
+    "primaryEvidence": "test_repository_entitlements_live.py::test_policy_modes_are_versioned_allowlisted_and_entitlement_gated",
+    "primaryOwner": "B03"
+  },
+  "REV-001": {
+    "primaryEvidence": "test_knowledge_human_review_live.py::test_approve_original_is_immutable_and_hashed",
+    "primaryOwner": "B07"
+  },
+  "REV-002": {
+    "primaryEvidence": "test_knowledge_human_review_live.py::test_edit_schema_allowlist_hash_and_original_preservation",
+    "primaryOwner": "B07"
+  },
+  "REV-003": {
+    "primaryEvidence": "test_knowledge_human_review_live.py::test_user_reject_reason_severity_and_projection",
+    "primaryOwner": "B07"
+  },
+  "REV-004": {
+    "primaryEvidence": "test_knowledge_human_review_live.py::test_concurrent_review_sequence_conflict",
+    "primaryOwner": "B07"
+  },
+  "REV-005": {
+    "primaryEvidence": "test_knowledge_human_review_live.py::test_review_lifecycle_combination_matrix",
+    "primaryOwner": "B07"
+  },
+  "SET-001": {
+    "primaryEvidence": "test_console_membership_live.py::test_member_management_and_owner_guard",
+    "primaryOwner": "B02"
+  },
+  "SET-002": {
+    "primaryEvidence": "test_console_read_api_live.py::test_github_settings_counts_and_freshness",
+    "primaryOwner": "B09"
+  },
+  "SET-003": {
+    "primaryEvidence": "test_console_read_api_live.py::test_usage_is_historical_complete_and_not_invoice",
+    "primaryOwner": "B09"
+  }
+}

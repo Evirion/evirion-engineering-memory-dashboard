@@ -1,0 +1,113 @@
+name: Release signed authority package
+
+on:
+  push:
+    tags:
+      - dashboard-authority-v*
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: authority-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build, sign, and publish exact authority bytes
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out exact tagged source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Require exact tag and unused immutable release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "$GITHUB_REF_TYPE" = "tag"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          [[ "$GITHUB_REF_NAME" =~ ^dashboard-authority-v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          immutable_policy="$(
+            gh api --method GET \
+              "repos/$GITHUB_REPOSITORY/immutable-releases"
+          )"
+          test "$(jq -r '.enabled' <<<"$immutable_policy")" = "true"
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "release already exists; replacement is forbidden" >&2
+            exit 1
+          fi
+
+      - name: Verify frozen authority
+        run: |
+          python3 -m unittest discover -s tests -p 'test_*.py'
+          python3 scripts/check_docs.py
+          python3 scripts/generate_acceptance_map.py
+          python3 scripts/generate_asvs_matrix.py
+          python3 scripts/generate_security_controls.py
+          python3 scripts/check_authority.py
+          python3 scripts/scan_tracked_secrets.py
+
+      - name: Build deterministic package twice
+        run: |
+          python3 -m scripts.build_authority_package \
+            --output "$RUNNER_TEMP/$GITHUB_REF_NAME.first.tar.gz"
+          python3 -m scripts.build_authority_package \
+            --output "$RUNNER_TEMP/$GITHUB_REF_NAME.tar.gz"
+          cmp \
+            "$RUNNER_TEMP/$GITHUB_REF_NAME.first.tar.gz" \
+            "$RUNNER_TEMP/$GITHUB_REF_NAME.tar.gz"
+          sha256sum "$RUNNER_TEMP/$GITHUB_REF_NAME.tar.gz"
+
+      - name: Install pinned Cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6
+        with:
+          cosign-release: v3.1.3
+
+      - name: Verify Cosign binary and sign through public Sigstore
+        run: |
+          test \
+            "$(sha256sum "$(command -v cosign)" | cut -d' ' -f1)" = \
+            "4629c757b7618056f8ddd7e2625ae9fdd94c0372a65049520bc7d9df9efc7f71"
+          cosign sign-blob \
+            --yes \
+            --bundle "$RUNNER_TEMP/$GITHUB_REF_NAME.sigstore.json" \
+            "$RUNNER_TEMP/$GITHUB_REF_NAME.tar.gz"
+
+      - name: Publish immutable release assets
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
+        with:
+          fail_on_unmatched_files: true
+          generate_release_notes: false
+          make_latest: false
+          files: |
+            ${{ runner.temp }}/${{ github.ref_name }}.tar.gz
+            ${{ runner.temp }}/${{ github.ref_name }}.sigstore.json
+
+      - name: Record payload-free release evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          release="$(
+            gh api \
+              "repos/$GITHUB_REPOSITORY/releases/tags/$GITHUB_REF_NAME"
+          )"
+          test "$(jq -r '.tag_name' <<<"$release")" = "$GITHUB_REF_NAME"
+          test "$(jq -r '.immutable' <<<"$release")" = "true"
+          test "$(jq '.assets | length' <<<"$release")" = "2"
+          jq -e --arg archive "$GITHUB_REF_NAME.tar.gz" \
+            --arg bundle "$GITHUB_REF_NAME.sigstore.json" \
+            '
+              (.assets | map(.name) | sort) == ([$archive, $bundle] | sort)
+              and all(.assets[]?; .id > 0)
+            ' <<<"$release" >/dev/null
+          jq --arg source_commit "$GITHUB_SHA" '{
+            tag: .tag_name,
+            sourceCommit: $source_commit,
+            immutable,
+            assets: [.assets[] | {name, id, digest}]
+          }' <<<"$release" >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,49 @@
+{
+  "acceptedPackageDate": "2026-08-25",
+  "backendSourceCommit": "b23f6ba2b11f583b61200cec63500a782992f1f0",
+  "sources": [
+    {
+      "destination": "docs/product/design-partner-console-requirements.md",
+      "kind": "accepted-obsidian-source",
+      "sha256": "832cc5bf8352d8995598b4256c451dd54fb333683a206c93533dbe4b6e195fd4",
+      "source": "10 Evirion/01 Products/EEM - Design Partner Console requirements.md"
+    },
+    {
+      "destination": "docs/architecture/design-partner-console.md",
+      "kind": "accepted-obsidian-source",
+      "sha256": "6b011bfb49d1aa8c0bf7c03474b9ef2990a9902305fcaa1d9688fcf21044ba58",
+      "source": "10 Evirion/Architecture/EEM - Design Partner Console architecture.md"
+    },
+    {
+      "destination": "docs/plans/design-partner-console-implementation.md",
+      "kind": "accepted-obsidian-source",
+      "sha256": "ab026e23a4a49c13e304adee9d86819f96291970accae71dea08a6c2f5155e41",
+      "source": "10 Evirion/Roadmaps/EEM - Design Partner Console implementation plan.md"
+    },
+    {
+      "destination": "docs/plans/active/eem-9-design-partner-console-dashboard-and-certification.md",
+      "kind": "backend-source",
+      "sha256": "44ac0c4ebe4030cbf24028a3092c35e6ca38d45b52c92d92cd25a2330d16ea97",
+      "source": "docs/plans/active/eem-9-design-partner-console-dashboard-and-certification.md"
+    },
+    {
+      "destination": "docs/architecture/design-partner-console-program-design.md",
+      "kind": "backend-source",
+      "sha256": "5caa5e785ea625c210d9cd7cbc72e07b00e854c5ea90cbeb276d6792d653ce6d",
+      "source": "docs/superpowers/specs/2026-08-25-design-partner-console-program-design.md"
+    },
+    {
+      "destination": "retained-reading-map-only",
+      "kind": "retained-obsidian-security-source",
+      "sha256": "c73c097bdb8cbad79cd88f50acf9b6af4c1ae7d858e76345d88aeb459fb6d0f6",
+      "source": "10 Evirion/Architecture/EEM - OWASP-аудит и модель угроз.md"
+    },
+    {
+      "destination": "retained-reading-map-only",
+      "kind": "retained-obsidian-operations-source",
+      "sha256": "2d384e32274835bf70838d5a32bb97711a14861b6247e436520bdaad9e7ce467",
+      "source": "10 Evirion/Architecture/EEM - Полный runbook запуска и эксплуатации.md"
+    }
+  ],
+  "schemaVersion": "1.0"
+}

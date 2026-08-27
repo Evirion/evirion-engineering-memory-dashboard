@@ -1,0 +1,78 @@
+{
+  "backend": {
+    "commit": "b23f6ba2b11f583b61200cec63500a782992f1f0",
+    "mergedPullRequest": 24,
+    "reviewedAndMergedTree": "48bd95459fa626af0c72133da9a9fc0cbe1dec50",
+    "repository": "Evirion/evirion-engineering-memory"
+  },
+  "catalogDigests": {
+    "foreignKey": "03bf2568291f3bb196020cd95a35c54d022b0567d6410d4d0ab7e17b954306bc",
+    "foreignKeyTrigger": "2a9cc1fbfeaa26b0c73a2e4d5033a68017925ecb3c0c4b1dd9fb64920a589f33",
+    "function": "32bd9e26482b2d9398d2fab5eaa889817b666a8880d97abc71185fae7720d45c",
+    "trigger": "585f0d63c7177fb3486ee0904899b1445cd363aca0ba5dbe6da84e050a6bc287"
+  },
+  "contract": {
+    "alreadyHeldException": "exact same lock key only",
+    "dynamicSqlInLockBearingPathAllowed": false,
+    "multiRankForUpdateOfAllowed": false,
+    "multiRowOrdering": "stable PostgreSQL key order",
+    "newLowerRankAfterHigherAllowed": false,
+    "runtimeDdlAllowed": false,
+    "runtimeLockTableAllowed": false,
+    "mutableFactRecheck": "after the final prerequisite lock"
+  },
+  "manifest": {
+    "path": "services/model-orchestration/tests/database/fixtures/eem3_global_lock_contract.v1.json",
+    "sha256": "ff422f622d60f43e41bb78e77a01c665b0dd100b80b701f71296c88486956f8d"
+  },
+  "migration": {
+    "path": "supabase/migrations/20260827133549_eem3_13_global_lock_order_remediation.sql",
+    "sha256": "9d195b22eacb221f9dbd120b23d259f8ad7163252f2348767c4d608dc37d44d5",
+    "remoteApplicationState": "not-applied"
+  },
+  "rankOrder": [
+    "0a.1",
+    "0a.2",
+    "0b.1",
+    "0b.2",
+    "1a",
+    "1b",
+    "1c",
+    "2a",
+    "2b",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8a",
+    "8b",
+    "9",
+    "10",
+    "11a",
+    "11b",
+    "11c",
+    "11d",
+    "11e",
+    "11f",
+    "11g",
+    "11h",
+    "11i",
+    "12a",
+    "12b",
+    "13",
+    "14",
+    "15",
+    "16a",
+    "16b",
+    "16c",
+    "16d",
+    "16e"
+  ],
+  "schemaVersion": "1.0",
+  "verification": {
+    "catalogAttestationTests": 10,
+    "environment": "local PostgreSQL 17",
+    "result": "passed"
+  }
+}
