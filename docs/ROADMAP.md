@@ -24,13 +24,25 @@ the [controlling EEM-9 plan](plans/active/eem-9-design-partner-console-dashboard
    attestation text and release workflow; and backend PR
    [#52](https://github.com/Evirion/evirion-engineering-memory/pull/52), the
    successor pointer, which re-pinned this repository.
-4. `EEM-9/02-auth-shell` is implemented and locally verified on its branch.
-   It is not pushed, has no pull request and is not merged.
+4. `EEM-9/02-auth-shell` is merged as PR
+   [#4](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/4)
+   at `5ff0c0c`.
+5. `EEM-9/02b-response-envelope` is implemented and locally verified on its
+   branch. It is not pushed, has no pull request and is not merged. It corrects
+   the response-envelope handling every later subtask depends on, and merges
+   before `EEM-9/03` starts.
 
 All EEM-4 subtasks are merged in the backend as PRs
 [#26](https://github.com/Evirion/evirion-engineering-memory/pull/26)–[#29](https://github.com/Evirion/evirion-engineering-memory/pull/29),
 so the EEM-9/02 prerequisite is satisfied. An earlier statement here that
 EEM-4/01 remained blocked was stale.
+
+All EEM-6 subtasks are merged in the backend, ending with PR
+[#37](https://github.com/Evirion/evirion-engineering-memory/pull/37), so the
+`EEM-9/03` prerequisite is satisfied. That commit is an ancestor of the source
+commit the Console contract lock records, so the single lock already covers the
+repository, entitlement and GitHub operations; no separate EEM-6 contract lock
+exists.
 
 ## Accepted cross-repository order
 

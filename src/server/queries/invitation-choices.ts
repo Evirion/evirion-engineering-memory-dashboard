@@ -8,6 +8,7 @@ import { readSession } from "@/lib/auth/session-broker"
 import { readServerEnvironment } from "@/lib/env/server"
 import { describeTreatment, mapConsoleError } from "@/lib/errors/console-errors"
 import { readPreAuthCsrfToken } from "@/server/actions/pre-auth"
+import { isSuccessEnvelope } from "@/server/adapters/console-api"
 
 /**
  * Post-authentication invitation choices.
@@ -53,6 +54,20 @@ const asChoices = (value: unknown): InvitationChoice[] | undefined => {
   return choices
 }
 
+/**
+ * This route is read directly rather than through `callConsoleApi`, so it
+ * reuses that adapter's envelope guard instead of carrying a second one. Two
+ * envelope handlers would drift apart, and this one already had.
+ */
+export const parseInvitationChoices = (
+  payload: unknown,
+): InvitationChoice[] | undefined => {
+  if (!isSuccessEnvelope(payload)) return undefined
+  const { data } = payload
+  if (typeof data !== "object" || data === null) return undefined
+  return asChoices((data as { invitations?: unknown }).invitations)
+}
+
 export const readInvitationChoices = async (): Promise<InvitationChoices> => {
   const jar = await cookies()
   const outcome = readSession(
@@ -90,9 +105,7 @@ export const readInvitationChoices = async (): Promise<InvitationChoices> => {
     }
   }
 
-  const choices = asChoices(
-    (payload as { invitations?: unknown } | undefined)?.invitations,
-  )
+  const choices = parseInvitationChoices(payload)
   // An unrecognised shape fails closed rather than rendering a partial list.
   if (!choices)
     return { status: "unavailable", message: describeTreatment("unknown-outcome") }

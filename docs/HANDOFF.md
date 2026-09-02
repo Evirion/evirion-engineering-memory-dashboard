@@ -4,97 +4,94 @@ Updated: 2026-09-02
 
 ## Current state
 
-- Active task: EEM-9/02, the secure Console shell and invite-only Auth UX.
-- Branch: `EEM-9/02-auth-shell`, based on Dashboard `main` at `a6665b5`, which
-  merged PR
-  [#3](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/3).
-- EEM-9/01b is complete. Backend PR 3,
-  [#52](https://github.com/Evirion/evirion-engineering-memory/pull/52), merged
-  and re-pinned this repository. The pointer verifies at commit
+- Active task: EEM-9/02b, correcting the Console response envelope before
+  EEM-9/03 consumes it.
+- Branch: `EEM-9/02b-response-envelope`, based on Dashboard `main` at `5ff0c0c`,
+  which merged PR
+  [#4](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/4).
+- EEM-9/02 is merged. Its Definition-of-Done trace is
+  [`plans/active/eem-9-02-acceptance-trace.md`](plans/active/eem-9-02-acceptance-trace.md).
+- The backend pointer verifies at commit
   `a6665b599472e295636382ece4d0071e1cb4492c` and package digest
-  `6897d9661a038a14eee0fd8128e7a3e96d5b191ef41f197f621779cc2e0ec56f`.
-- Prerequisite check: EEM-4/01–04 are merged in the backend as PRs
-  [#26](https://github.com/Evirion/evirion-engineering-memory/pull/26)–[#29](https://github.com/Evirion/evirion-engineering-memory/pull/29).
-  The previous roadmap statement that EEM-4/01 was blocked was stale and is
-  corrected.
+  `6897d9661a038a14eee0fd8128e7a3e96d5b191ef41f197f621779cc2e0ec56f`. It reads
+  the pinned commit rather than Dashboard `main`, so it keeps verifying after
+  the EEM-9/02 merge moved the authority digest.
+- Prerequisite check for EEM-9/03: all EEM-6 subtasks are merged in the backend,
+  ending with PR
+  [#37](https://github.com/Evirion/evirion-engineering-memory/pull/37). That
+  commit is an ancestor of `20cd3b60`, the source commit recorded by
+  [`contracts/console-contract-lock.json`](contracts/console-contract-lock.json),
+  so the single Console contract lock already covers the repository,
+  entitlement and GitHub operations. No separate EEM-6 contract lock exists and
+  none is needed.
 - This work is committed on its branch and not pushed. No pull request exists.
 
 ## What changed here and why
 
-- **C00 separates the authority package from application source.** The package
-  inventory and the manifest held the same 84 entries, so the package was the
-  whole repository and every scaffold file would either enter the reviewed
-  authority or break the authority gate. All 84 entries stay packaged and the
-  rule changed instead: a reviewed allowlist now names non-package tracked
-  paths, a path in both lists fails, a path in neither still fails, and a
-  pattern matching nothing fails.
-- **C00 inverts the bootstrap guard rather than deleting it.** Six
-  prohibitions expired with the arrival of the runtime. `supabase` did not and
-  keeps its own named test. The replacement asserts the URLs the App Router
-  resolves, because a route group can serve the wrong URL while still
-  rendering.
-- **C01 bootstraps the application.** Pinned Corepack, pnpm, Node and registry
-  with denied install scripts; strict TypeScript under `src`; the environment
-  boundary; the per-response nonce CSP; the supply-chain and release-surface
-  gates; and the local HTTPS harness.
-- **C02 adds authentication.** The server-only `__Host-` session broker, the
-  pre-auth transaction, the CSRF and origin boundary, server-side `verifyOtp`,
-  invitation selection, the protected shell and the Auth surfaces.
-- **C03 records the trace and history.**
-- Rationale is in
-  [ADR-0003](decisions/0003-application-source-boundary-and-route-contract.md)
-  and
-  [ADR-0004](decisions/0004-console-lint-and-format-toolchain.md).
+- **The Console never unwrapped the response envelope.** The backend answers
+  every route, internal ones included, through one success responder that emits
+  `{contractVersion, requestId, data}`. The Console passed that whole document
+  to a generated payload validator, and those validators reject unknown keys, so
+  every real success would have become an `unsupported` failure and every
+  protected page would have rendered its fail-closed unavailable state.
+- **The fixtures hid it.** `transportReturning(200, sessionContext)` sent the
+  bare payload, so the test proved the validator agreed with itself. The
+  fixtures were corrected to the bytes the backend sends rather than the
+  expectations being relaxed, because only that closes the class of defect.
+- **The check is symmetric, not just an unwrap.** The generated `isConsoleError`
+  already pins `contractVersion` and requires a UUID `requestId`. The success
+  path now applies the same three checks before handing `data` onward, so a
+  backend version bump cannot pass one way and fail the other.
+- `ConsoleResult` carries `requestId` on success, which EEM-9/06 needs for the
+  `PROC-002` support path.
+- `src/server/queries/invitation-choices.ts` had the same assumption and now
+  reuses the adapter's guard rather than carrying a second envelope handler.
 
 ## Decisions a reviewer should check first
 
-- The frozen EEM-9 plan freezes `/auth/*`; the accepted implementation plan's
-  C02 file list uses a route group that would serve `/sign-in`. By owner
-  decision the URL contract binds and the file list is layout guidance.
-  `/settings/sessions` is a reviewed fourteenth path and `/` is a declared
-  owned route. Neither frozen plan was edited.
-- The pinned `typescript@7.0.2` is the native compiler and exposes no compiler
-  API, so `eslint-config-next` cannot run. The pin stands; the linter is
-  `oxlint`, which enforces the same prohibitions.
+- The generator and the contract were deliberately not touched. The asymmetry is
+  the contract's own: `Error` models a complete response body while all
+  eighteen payload schemas model the `data` member. Changing that is a contract
+  release and a new frozen digest, not an implementation fix.
+- Operation-to-validator binding is an adapter convention. The contract binds no
+  operation to a payload schema: all 41 success responses reference the bare
+  `SuccessEnvelope`, whose `data` property carries no type or `$ref`, and there
+  is no `allOf` anywhere.
 
 ## Security and release state
 
-- The Auth/session contract remains frozen at JWT 15m, visible-tab human idle
-  30m with a 5m warning, touch coalescing 1m, absolute application session 8h,
-  maximum three sessions with explicit oldest-session replacement,
-  dangerous-operation reauthentication 10m, OTP 10m, and resend cooldown 60s.
-  `src/lib/auth/session-policy.ts` mirrors these and a contract test asserts
-  the mirror stays exact.
-- Two defects were found by the gates and fixed. Redirects were built from
-  `request.url`, which behind the trusted edge carries the internal upstream
-  host, so every redirect left the canonical origin; only the pinned HTTPS
-  harness could see it. Gitleaks found the bootstrap commit had captured the
-  generated local TLS private keys, because `.gitignore` did not cover
-  `.local/`; they were untracked and the branch history was purged before
-  anything was pushed.
+- The Auth/session contract is unchanged and remains frozen at the values
+  `src/lib/auth/session-policy.ts` mirrors.
+- No token, cookie, CSRF or origin behavior changed. The envelope check runs
+  after transport and before any payload reaches a page, so a malformed document
+  still fails closed rather than rendering partially.
 - `SEC-2026-012` remains open under the approved GitHub Free bootstrap waiver
   and remains readiness-blocking.
 - Technical Design Partner Ready remains blocked.
-- No hosted Supabase Auth setting was read or changed, no real email was sent,
-  no worker ran, no provider was called and no paid operation was authorized.
-  The backend repository was read with `git show` at the pinned commit and
-  never modified.
+- No hosted Supabase setting was read or changed, no worker ran, no provider was
+  called and no paid operation was authorized. The backend repository was read
+  with `git show` at the pinned commit and never modified.
 
 ## Verification and next action
 
-Lint, format, `tsc --noEmit`, 236 Vitest tests, a production build, 45
-Playwright tests over the pinned origin `https://console.evirion.test:3443`,
-Semgrep, digest-verified Gitleaks over the full history, and 78 Python tests
-all pass. Documentation, generated authorities, the authority manifest, the
-Console contract lock and backend Auth parity all verify. Every
-Definition-of-Done row is traced in
-[`plans/active/eem-9-02-acceptance-trace.md`](plans/active/eem-9-02-acceptance-trace.md).
+Lint, format, `tsc --noEmit`, 253 Vitest tests, a production build, and 45
+Playwright tests over the pinned origin `https://console.evirion.test:3443` all
+pass. Local Node is 22.18.0 against a baseline pin of 24.20.0, which affects
+installation rather than these gates; CI runs the pinned runtime.
 
-The next action is review of this branch, then a decision on whether the moved
-authority `packageSha256` warrants a paired backend successor pointer. The
-pointer keeps verifying either way, because it reads the pinned commit rather
-than Dashboard `main`.
+The next action is review, then merge, then start `EEM-9/03-repository-control`
+from updated `main`. EEM-9/03 must not be stacked on this branch.
 
 Commit, push, pull request, and merge each require separate explicit
 authorization. Accessibility open decision 1 is unresolved and is due before
 EEM-9/07.
+
+## Open decision 6 is a contract gap, not only a product question
+
+Whether `/repositories/:repositoryId` shows repository counters cannot be
+answered by product alone. There is no `repository-overview.json` among the
+eighteen contract schemas and no `RepositoryOverview` among the eighteen
+generated types, so the counters have no validated shape for either EEM-9/03 or
+their owner EEM-9/06. Rendering them requires adding a schema to the contract,
+which is a backend change and a new frozen digest. It is recorded here so it is
+resolved before EEM-9/06 starts rather than rediscovered there.
