@@ -37,6 +37,17 @@ detect_platform() {
   esac
 }
 
+# A missing tool must say which tool and why, not exit 127 from a subshell.
+# CI once failed this way because uv happened to be installed on the machine
+# where the gate was written and absent on the runner.
+require_command() {
+  local name="$1" reason="$2"
+  if ! command -v "${name}" >/dev/null 2>&1; then
+    echo "required tool '${name}' is not installed: ${reason}" >&2
+    exit 1
+  fi
+}
+
 verify_sha256() {
   local file="$1" expected="$2" actual
   if command -v sha256sum >/dev/null 2>&1; then
@@ -76,12 +87,15 @@ command="${1:-verify}"
 
 case "${command}" in
   verify)
+    require_command curl "the pinned Gitleaks release is fetched over HTTPS"
+    require_command uv "Semgrep is resolved from tools/security/uv.lock"
     binary="$(ensure_gitleaks)"
     "${binary}" version
     uv run --frozen --project "${repository_root}/tools/security" semgrep --version
     echo "security toolchain verified against tools/security/toolchain.lock"
     ;;
   semgrep-scan)
+    require_command uv "Semgrep is resolved from tools/security/uv.lock"
     uv run --frozen --project "${repository_root}/tools/security" semgrep scan \
       --config "${repository_root}/tools/security/semgrep.yml" \
       --error \
@@ -89,6 +103,7 @@ case "${command}" in
       "${repository_root}/src" "${repository_root}/tests" "${repository_root}/tools"
     ;;
   gitleaks-scan)
+    require_command curl "the pinned Gitleaks release is fetched over HTTPS"
     binary="$(ensure_gitleaks)"
     "${binary}" git "${repository_root}" --redact --no-banner --exit-code 1
     ;;

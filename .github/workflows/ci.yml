@@ -86,6 +86,15 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      # The runner has no uv, and Semgrep is resolved from the committed
+      # tools/security/uv.lock. Pinning the version keeps the resolver that
+      # produces the security gate result from drifting under us.
+      - name: Install the pinned uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d
+        with:
+          version: "0.12.9"
+          enable-cache: false
+
       - name: Verify the digest-pinned security toolchain
         run: bash scripts/security/verify-toolchain.sh verify
 
