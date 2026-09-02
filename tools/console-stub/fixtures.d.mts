@@ -49,4 +49,21 @@ export type StubScenario = {
   readonly listError?: string
 }
 
-export declare const SCENARIOS: Readonly<Record<string, () => StubScenario>>
+/**
+ * Enumerated rather than indexed by an open string, so a scenario name that
+ * does not exist fails to compile instead of resolving to `undefined`.
+ */
+export declare const SCENARIOS: {
+  readonly default: () => StubScenario
+  readonly limitReached: () => StubScenario
+  readonly empty: () => StubScenario
+  readonly operatorOnly: () => StubScenario
+  readonly limitNotProvisioned: () => StubScenario
+  readonly notConnected: () => StubScenario
+  readonly syncRunning: () => StubScenario
+  readonly installationSuspended: () => StubScenario
+  readonly paged: () => StubScenario
+  readonly unlimited: () => StubScenario
+}
+
+export type StubScenarioName = keyof typeof SCENARIOS

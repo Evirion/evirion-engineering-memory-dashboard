@@ -11,6 +11,7 @@
   "postcss.config.mjs",
   "prettier.config.mjs",
   "src/**",
+  "tests/component/**",
   "tests/contract/**",
   "tests/e2e/**",
   "tests/security/**",

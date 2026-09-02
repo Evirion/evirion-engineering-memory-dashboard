@@ -33,6 +33,11 @@ const PUBLISHED_PRODUCT_STATES = [
   "CHANGE_REQUESTED",
 ] as const
 
+const active = (scenario: StubScenario): number =>
+  scenario.repositories.filter(
+    (repository) => repository.entitlement?.state === "ACTIVE",
+  ).length
+
 const scenarios = Object.entries(SCENARIOS)
 const everyScenario = scenarios.map(([name, build]) => [name, build()] as const)
 
@@ -108,13 +113,8 @@ describe("the Console API double serves contract-shaped bytes", () => {
   })
 
   it("leaves a free slot in the default scenario and none in the full one", () => {
-    const activeIn = (name: string): number =>
-      (SCENARIOS[name] as () => StubScenario)().repositories.filter(
-        (repository) => repository.entitlement?.state === "ACTIVE",
-      ).length
-
-    expect(activeIn("default")).toBeLessThan(5)
-    expect(activeIn("limitReached")).toBe(4)
+    expect(active(SCENARIOS.default())).toBeLessThan(5)
+    expect(active(SCENARIOS.limitReached())).toBe(4)
   })
 
   it("names only capabilities the backend actually grants", () => {

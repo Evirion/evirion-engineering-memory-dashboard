@@ -36,6 +36,7 @@
     { "path": "/auth/sign-in", "owner": "EEM-9/02" },
     { "path": "/auth/verify", "owner": "EEM-9/02" },
     { "path": "/onboarding", "owner": "EEM-9/02" },
+    { "path": "/repositories", "owner": "EEM-9/03" },
     { "path": "/settings/sessions", "owner": "EEM-9/02" }
   ]
 }

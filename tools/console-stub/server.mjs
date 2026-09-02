@@ -46,21 +46,36 @@ const MESSAGES = {
   VERSION_CONFLICT: "The resource changed before this request was applied.",
 }
 
-let state = load("default")
+/**
+ * State is per isolation identifier, not global.
+ *
+ * The browser gate runs fully parallel against one double, so a single mutable
+ * scenario would let one test change what every other test sees. The caller
+ * token carries the identifier, and the Console forwards that token unchanged,
+ * which makes the isolation boundary the same one the tenant check uses.
+ */
+const states = new Map()
 
 function load(name) {
   const build = SCENARIOS[name]
   if (!build) throw new Error(`unknown scenario: ${name}`)
-  const scenario = build()
   return {
     name,
-    ...scenario,
+    ...build(),
     // Idempotency is durable for the life of the scenario, exactly as a stored
     // command receipt is: same key and same request returns the same receipt.
     receipts: new Map(),
     syncRuns: new Map(),
     setupIntents: new Map(),
   }
+}
+
+const stateFor = (isolation) => {
+  const existing = states.get(isolation)
+  if (existing) return existing
+  const fresh = load("default")
+  states.set(isolation, fresh)
+  return fresh
 }
 
 const digest = (value) =>
@@ -95,10 +110,19 @@ const fail = (response, code, extra = {}) => {
   })
 }
 
+/**
+ * The bearer token is `<principal>|<isolation>`. The principal decides the
+ * tenant, exactly as a real token would; the isolation identifier decides which
+ * scenario state this caller sees.
+ */
 const principalOf = (request) => {
   const authorization = request.headers["authorization"] ?? ""
   const token = authorization.startsWith("Bearer ") ? authorization.slice(7) : ""
-  return PRINCIPALS[token]
+  const separator = token.indexOf("|")
+  const name = separator === -1 ? token : token.slice(0, separator)
+  const isolation = separator === -1 ? "shared" : token.slice(separator + 1)
+  const principal = PRINCIPALS[name]
+  return principal ? { ...principal, isolation } : undefined
 }
 
 const readBody = async (request) => {
@@ -118,7 +142,7 @@ const readBody = async (request) => {
  * Same key and same request returns the stored receipt, which is a success and
  * not an error. Same key with a different request is a conflict with no effect.
  */
-const replay = (principal, organizationId, operation, target, key, request) => {
+const replay = (state, principal, organizationId, operation, target, key, request) => {
   const slot = [principal.actorId, organizationId, operation, target, key].join("|")
   const stored = state.receipts.get(slot)
   if (!stored) return { kind: "fresh", slot }
@@ -127,7 +151,7 @@ const replay = (principal, organizationId, operation, target, key, request) => {
     : { kind: "reused" }
 }
 
-const remember = (slot, request, receipt) => {
+const remember = (state, slot, request, receipt) => {
   state.receipts.set(slot, { requestDigest: digest(request), receipt })
   return receipt
 }
@@ -139,7 +163,7 @@ const receiptFor = (responseCode, responsePayload) => ({
   status: "completed",
 })
 
-const activeCount = () =>
+const activeCount = (state) =>
   state.repositories.filter((entry) => entry.entitlement?.state === "ACTIVE").length
 
 const entitlementPayload = (repository) => ({
@@ -150,7 +174,7 @@ const entitlementPayload = (repository) => ({
 })
 
 /** A foreign resource is refused without disclosing that it exists. */
-const findRepository = (principal, repositoryId) => {
+const findRepository = (state, principal, repositoryId) => {
   if (principal.organizationId !== state.installation.organizationId) return undefined
   return state.repositories.find((entry) => entry.id === repositoryId)
 }
@@ -158,7 +182,7 @@ const findRepository = (principal, repositoryId) => {
 const requireCapability = (principal, capability) =>
   CAPABILITIES[principal.role]?.includes(capability) ?? false
 
-const page = (after) => {
+const page = (state, after) => {
   const size = state.pageSize
   const start = after ? state.repositories.findIndex((e) => e.id === after) + 1 : 0
   const items = state.repositories.slice(start, start + size)
@@ -173,7 +197,7 @@ const page = (after) => {
     },
     summary: {
       accessibleRepositories: state.repositories.filter((e) => e.accessible).length,
-      activeRepositories: activeCount(),
+      activeRepositories: activeCount(state),
       limit: state.limit,
     },
   }
@@ -182,16 +206,19 @@ const page = (after) => {
 const handle = async (request, response, url) => {
   // Control surface. It exists only in this double and never in the product.
   if (url.pathname === "/__stub/ready" && request.method === "GET") {
-    return succeed(response, { scenario: state.name })
+    return succeed(response, { ready: true })
   }
   if (url.pathname === "/__stub/scenario" && request.method === "POST") {
     const body = await readBody(request)
-    state = load(body?.scenario ?? "default")
-    return succeed(response, { scenario: state.name })
+    const isolation = body?.isolation ?? "shared"
+    states.set(isolation, load(body?.scenario ?? "default"))
+    return succeed(response, { scenario: body?.scenario ?? "default", isolation })
   }
 
   const principal = principalOf(request)
   if (!principal) return fail(response, "AUTHENTICATION_REQUIRED")
+
+  const state = stateFor(principal.isolation)
 
   if (url.pathname === "/v1/session/context" && request.method === "GET") {
     return succeed(response, {
@@ -226,7 +253,7 @@ const handle = async (request, response, url) => {
   }
 
   if (rest === "/github/installation-intents" && request.method === "POST") {
-    return withCommand(request, response, principal, organizationId, {
+    return withCommand(request, response, state, principal, organizationId, {
       operation: "github.installation-intent",
       target: organizationId,
       capability: "organization.github.manage",
@@ -248,7 +275,7 @@ const handle = async (request, response, url) => {
   }
 
   if (rest === "/github/sync-runs" && request.method === "POST") {
-    return withCommand(request, response, principal, organizationId, {
+    return withCommand(request, response, state, principal, organizationId, {
       operation: "github.sync",
       target: organizationId,
       capability: "organization.github.manage",
@@ -288,7 +315,7 @@ const handle = async (request, response, url) => {
 
   if (rest === "/repositories" && request.method === "GET") {
     if (state.listError) return fail(response, state.listError)
-    return succeed(response, page(url.searchParams.get("after") ?? undefined))
+    return succeed(response, page(state, url.searchParams.get("after") ?? undefined))
   }
 
   const repositoryMatch = /^\/repositories\/([^/]+)(\/[a-z-]+)?$/.exec(rest)
@@ -298,7 +325,7 @@ const handle = async (request, response, url) => {
   const action = repositoryMatch[2] ?? ""
   if (!UUID.test(repositoryId)) return fail(response, "REQUEST_INVALID")
 
-  const repository = findRepository(principal, repositoryId)
+  const repository = findRepository(state, principal, repositoryId)
 
   if (action === "" && request.method === "GET") {
     return repository
@@ -309,7 +336,7 @@ const handle = async (request, response, url) => {
   if (!repository) return fail(response, "RESOURCE_NOT_FOUND")
 
   if (action === "/activate" && request.method === "POST") {
-    return withCommand(request, response, principal, organizationId, {
+    return withCommand(request, response, state, principal, organizationId, {
       operation: "repository.activate",
       target: repositoryId,
       capability: "repository.entitlements.manage",
@@ -325,7 +352,7 @@ const handle = async (request, response, url) => {
         if (
           repository.entitlement?.state !== "ACTIVE" &&
           state.limit.mode === "FIXED" &&
-          activeCount() >= state.limit.maxActiveRepositories
+          activeCount(state) >= state.limit.maxActiveRepositories
         ) {
           return { error: "REPOSITORY_LIMIT_REACHED" }
         }
@@ -347,7 +374,7 @@ const handle = async (request, response, url) => {
   }
 
   if (action === "/disable" && request.method === "POST") {
-    return withCommand(request, response, principal, organizationId, {
+    return withCommand(request, response, state, principal, organizationId, {
       operation: "repository.disable",
       target: repositoryId,
       capability: "repository.entitlements.manage",
@@ -379,7 +406,7 @@ const handle = async (request, response, url) => {
   }
 
   if (action === "/request-change" && request.method === "POST") {
-    return withCommand(request, response, principal, organizationId, {
+    return withCommand(request, response, state, principal, organizationId, {
       operation: "repository.request-change",
       target: repositoryId,
       capability: "repository.entitlements.manage",
@@ -411,7 +438,7 @@ const handle = async (request, response, url) => {
   }
 
   if (action === "/processing-policy" && request.method === "PATCH") {
-    return withCommand(request, response, principal, organizationId, {
+    return withCommand(request, response, state, principal, organizationId, {
       operation: "repository.policy",
       target: repositoryId,
       capability: "repository.policy.manage",
@@ -458,7 +485,7 @@ const productStateOf = (repository) => {
   }
 }
 
-async function withCommand(request, response, principal, organizationId, spec) {
+async function withCommand(request, response, state, principal, organizationId, spec) {
   if (!requireCapability(principal, spec.capability)) {
     return fail(response, "CAPABILITY_REQUIRED")
   }
@@ -472,6 +499,7 @@ async function withCommand(request, response, principal, organizationId, spec) {
   if (body === Symbol.for("unparsable")) return fail(response, "REQUEST_INVALID")
 
   const previous = replay(
+    state,
     principal,
     organizationId,
     spec.operation,
@@ -497,7 +525,7 @@ async function withCommand(request, response, principal, organizationId, spec) {
 
   return succeed(
     response,
-    remember(previous.slot, body, receiptFor(outcome.code, outcome.payload)),
+    remember(state, previous.slot, body, receiptFor(outcome.code, outcome.payload)),
   )
 }
 
