@@ -44,6 +44,25 @@ def _safe_relative_path(value: str) -> Path:
     return path
 
 
+def _compile_allowlist(patterns: list[str]) -> tuple[set[str], tuple[str, ...]]:
+    """Split reviewed non-package patterns into exact paths and directory prefixes.
+
+    A pattern is either an exact relative POSIX path or a `directory/**` prefix.
+    """
+    if len(patterns) != len(set(patterns)):
+        raise AuthorityError("non-package path allowlist contains duplicates")
+
+    exact: set[str] = set()
+    prefixes: list[str] = []
+    for value in patterns:
+        if value.endswith("/**"):
+            directory = _safe_relative_path(value[: -len("/**")])
+            prefixes.append(directory.as_posix() + "/")
+        else:
+            exact.add(_safe_relative_path(value).as_posix())
+    return exact, tuple(prefixes)
+
+
 def build_manifest(root: Path, paths: list[str]) -> dict[str, Any]:
     if len(paths) != len(set(paths)):
         raise AuthorityError("authority path inventory contains duplicates")
@@ -74,10 +93,30 @@ def validate_inventory(
     inventory: list[str],
     *,
     manifest_path: str = "docs/authority/manifest.json",
+    allowlist: list[str] | None = None,
 ) -> None:
+    """Require every tracked file to be packaged or explicitly allowlisted.
+
+    A tracked path belongs to exactly one side. Application source is
+    allowlisted so a scaffold file can neither enter the reviewed authority
+    package nor break this gate; a path in neither side still fails.
+    """
     if len(inventory) != len(set(inventory)):
         raise AuthorityError("authority package inventory contains duplicates")
     expected = {_safe_relative_path(value).as_posix() for value in inventory}
+    allowed_exact, allowed_prefixes = _compile_allowlist(list(allowlist or []))
+
+    packaged_and_allowlisted = sorted(
+        path
+        for path in expected
+        if path in allowed_exact or path.startswith(allowed_prefixes)
+    )
+    if packaged_and_allowlisted:
+        raise AuthorityError(
+            "authority path is both packaged and allowlisted: "
+            + ", ".join(packaged_and_allowlisted)
+        )
+
     actual: set[str] = set()
     for path in root.rglob("*"):
         relative = path.relative_to(root)
@@ -94,7 +133,13 @@ def validate_inventory(
             continue
         actual.add(relative.as_posix())
 
-    unlisted = sorted(actual - expected)
+    allowlisted = {
+        path
+        for path in actual
+        if path in allowed_exact or path.startswith(allowed_prefixes)
+    }
+
+    unlisted = sorted(actual - expected - allowlisted)
     if unlisted:
         raise AuthorityError(
             "unlisted authority files: " + ", ".join(unlisted)
@@ -103,6 +148,16 @@ def validate_inventory(
     if missing:
         raise AuthorityError(
             "authority inventory files are missing: " + ", ".join(missing)
+        )
+
+    unused = sorted(allowed_exact - actual) + sorted(
+        prefix[: -len("/")] + "/**"
+        for prefix in allowed_prefixes
+        if not any(path.startswith(prefix) for path in actual)
+    )
+    if unused:
+        raise AuthorityError(
+            "non-package allowlist patterns match nothing: " + ", ".join(sorted(unused))
         )
 
 
@@ -160,22 +215,34 @@ def _main() -> int:
         type=Path,
         default=Path("docs/authority/package-files.json"),
     )
+    parser.add_argument(
+        "--allowlist",
+        type=Path,
+        default=Path("docs/authority/non-package-paths.json"),
+    )
     parser.add_argument("--write", action="store_true")
     arguments = parser.parse_args()
 
     root = arguments.root.resolve()
     manifest_relative = _safe_relative_path(arguments.manifest.as_posix())
     inventory_relative = _safe_relative_path(arguments.inventory.as_posix())
+    allowlist_relative = _safe_relative_path(arguments.allowlist.as_posix())
     manifest_path = root / manifest_relative
     inventory = _load_json(root / inventory_relative)
     if not isinstance(inventory, list) or not all(
         isinstance(path, str) for path in inventory
     ):
         raise AuthorityError("authority package inventory must be a string list")
+    allowlist = _load_json(root / allowlist_relative)
+    if not isinstance(allowlist, list) or not all(
+        isinstance(pattern, str) for pattern in allowlist
+    ):
+        raise AuthorityError("non-package path allowlist must be a string list")
     validate_inventory(
         root,
         inventory,
         manifest_path=manifest_relative.as_posix(),
+        allowlist=allowlist,
     )
     if arguments.write:
         manifest = build_manifest(root, inventory)

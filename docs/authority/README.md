@@ -13,6 +13,15 @@ does not hash itself; the release archive contains the manifest and exactly
 its listed payload. A separately authorized release must independently pin and
 attest the resulting archive SHA-256.
 
+`non-package-paths.json` enumerates tracked paths that are deliberately outside
+the package, so Console application source cannot silently turn `packageSha256`
+into a digest of the running application. Every tracked file belongs to exactly
+one side: a path in both lists fails, a path in neither still fails as an
+unlisted authority file, and an allowlist pattern matching nothing fails so dead
+patterns cannot accumulate. A pattern is an exact relative POSIX path or a
+`directory/**` prefix. Add an allowlist entry in the same reviewed commit as the
+files it covers. The rationale is [ADR-0003](../decisions/0003-application-source-boundary-and-route-contract.md).
+
 Generate after authority bytes are frozen:
 
 ```text
