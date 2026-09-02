@@ -48,6 +48,8 @@ export type RepositoryDetailView =
       readonly capabilities: readonly string[]
       /** Repositories a change request could name, from the backend list. */
       readonly candidates: readonly Repository[]
+      /** True when the backend has more repositories than one page carries. */
+      readonly candidatesTruncated: boolean
     }
   | { readonly status: "unavailable"; readonly failure: ViewFailure }
 
@@ -175,7 +177,10 @@ export const readRepositoryDetail = async (
 
   // The capacity and replacement mode live on the list summary, and the
   // detail page needs them to know which entitlement control is even offered.
-  const page = await fetchRepositoryPage(resolved.scope, {})
+  // The contract maximum is requested because the same response supplies the
+  // change-request candidates; walking every cursor to render one page would
+  // be an unbounded read, so a remaining cursor is disclosed instead.
+  const page = await fetchRepositoryPage(resolved.scope, { pageSize: 100 })
   if (!page.ok) return { status: "unavailable", failure: describeFailure(page.failure) }
 
   return {
@@ -190,6 +195,7 @@ export const readRepositoryDetail = async (
         !candidate.archived &&
         candidate.entitlement === null,
     ),
+    candidatesTruncated: page.value.page.nextCursor !== null,
   }
 }
 

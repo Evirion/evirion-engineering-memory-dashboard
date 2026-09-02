@@ -118,6 +118,46 @@ agreement.
 A third defect, the response envelope, was corrected in the separate
 `EEM-9/02b` pull request that precedes this one.
 
+## Independent review
+
+One bounded review wave ran against this tree: a security reviewer and a
+correctness reviewer in parallel.
+
+The security reviewer found nothing at medium severity or above, and confirmed
+each of the nine Console invariants against the changed code, including that
+the caller token never leaves the server-only modules, that both header changes
+are narrowly scoped with no other directive widened, that a crafted `?result=`
+cannot print arbitrary text, and that `tools/console-stub/` is unreachable from
+`src`. It noted below its threshold that a crafted `?result=applied` link can
+show a misleading banner to the same signed-in user. That was considered and
+left as it is: the banner's substantive claim, that the state below is the
+committed one, is true on every render, the page re-reads that state from the
+backend regardless of how it was reached, and the alternatives all add durable
+server state to defend against a customer misleading only themselves.
+
+The correctness reviewer found three defects, all accepted and all fixed in one
+remediation wave.
+
+- **A budget ceiling under a microdollar became the value the contract
+  forbids.** `Number("0.0000001")` is positive, so it passed the local check,
+  and `toFixed(6)` then produced exactly `0.000000`, which the consent schema
+  refuses with `not: { const: "0.000000" }`. The backend would have rejected
+  the body, so nothing unsafe could happen, but the Console was building a
+  request the contract does not admit. Refused before the call now, and
+  `tests/unit/repositories/consent-fields.test.ts` pins both edges.
+- **A repeated model profile passed a schema requiring unique items.** It is
+  refused rather than silently collapsed, because quietly editing the contents
+  of a consent is exactly what a consent form must not do.
+- **Change-request candidates came from one default page.** The detail read now
+  asks for the contract maximum, and a remaining cursor is disclosed rather
+  than a partial list being offered as though it were complete. Walking every
+  cursor to render one page would be an unbounded read.
+
+The self-audit before that wave closed three of its own findings: a component
+naming its failure type from a server-only module, an unreachable branch in the
+failure path, and an API double that did not store a GitHub projection against
+its idempotency key.
+
 ## What this subtask does not claim
 
 Implemented and locally verified only. Nothing is merged, deployed, observed,

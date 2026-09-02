@@ -21,7 +21,13 @@ const MODEL_PROFILE = /^[a-z][a-z0-9_.-]{0,63}$/
 const budgetCeiling = (raw: string): string | undefined => {
   const amount = Number(raw)
   if (!Number.isFinite(amount) || amount <= 0 || amount > 999999999999) return undefined
+
   const fixed = amount.toFixed(6)
+  // Positive is not the same as non-zero once it is rounded: anything under a
+  // microdollar becomes exactly the value the contract forbids. Refusing here
+  // keeps a body the backend would reject from ever being built.
+  if (fixed === "0.000000") return undefined
+
   return /^(0|[1-9][0-9]{0,11})\.[0-9]{6}$/.test(fixed) ? fixed : undefined
 }
 
@@ -32,7 +38,13 @@ const expiry = (raw: string): string | undefined => {
   return `${parsed.toISOString().slice(0, 19)}Z`
 }
 
-const readConsent = (form: FormData): LiveRepositoryConsent | undefined => {
+/**
+ * Exported so the contract's edges are provable without a running server.
+ * Every rule here mirrors the consent schema; nothing is a house preference.
+ */
+export const readConsentFields = (
+  form: FormData,
+): LiveRepositoryConsent | undefined => {
   const profiles = String(form.get("allowedModelProfiles") ?? "")
     .split(",")
     .map((profile) => profile.trim())
@@ -46,6 +58,9 @@ const readConsent = (form: FormData): LiveRepositoryConsent | undefined => {
   if (
     profiles.length === 0 ||
     profiles.length > 16 ||
+    // The contract requires unique items, so a repeated profile is a typo
+    // rather than a stronger consent, and it is refused rather than collapsed.
+    new Set(profiles).size !== profiles.length ||
     !profiles.every((profile) => MODEL_PROFILE.test(profile)) ||
     !Number.isInteger(callCeiling) ||
     callCeiling < 1 ||
@@ -90,7 +105,7 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
     return refuseRepositoryCommand(fields.repositoryId, "REQUEST_INVALID")
   }
 
-  const consent = mode === "AUTO_EXTRACT" ? readConsent(fields.form) : null
+  const consent = mode === "AUTO_EXTRACT" ? readConsentFields(fields.form) : null
   if (mode === "AUTO_EXTRACT" && consent === undefined) {
     return refuseRepositoryCommand(fields.repositoryId, "REQUEST_INVALID")
   }

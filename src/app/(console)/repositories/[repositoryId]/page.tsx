@@ -86,7 +86,7 @@ const RepositoryDetailPage = async ({
     )
   }
 
-  const { repository, candidates } = view
+  const { repository, candidates, candidatesTruncated } = view
   const controls = repositoryControls(repository, view.summary.limit, view.capabilities)
   const context = {
     repository,
@@ -118,7 +118,11 @@ const RepositoryDetailPage = async ({
         <PolicyForm {...context} />
         <ConsentForm {...context} />
         <DisableForm {...context} />
-        <RequestChangeForm {...context} candidates={candidates} />
+        <RequestChangeForm
+          {...context}
+          candidates={candidates}
+          candidatesTruncated={candidatesTruncated}
+        />
         <OperatorManagedNotice controls={controls} />
       </div>
 

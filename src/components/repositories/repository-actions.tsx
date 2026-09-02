@@ -127,7 +127,11 @@ export const RequestChangeForm = ({
   csrfToken,
   idempotencyKeys,
   candidates,
-}: ActionContext & { readonly candidates: readonly Repository[] }) =>
+  candidatesTruncated,
+}: ActionContext & {
+  readonly candidates: readonly Repository[]
+  readonly candidatesTruncated: boolean
+}) =>
   !controls.canRequestChange || candidates.length === 0 ? null : (
     <form
       action="/api/repositories/request-change"
@@ -158,6 +162,15 @@ export const RequestChangeForm = ({
           ))}
         </select>
       </label>
+      {/* A partial list is said to be partial. Offering the first hundred as
+          though they were all of them is the same defect as rendering an
+          unavailable count as zero. */}
+      {candidatesTruncated ? (
+        <p className="text-xs text-slate-600">
+          This lists the first hundred accessible repositories. If the one you want is
+          missing, say so in the reason and an operator will find it.
+        </p>
+      ) : null}
       <label className="flex flex-col gap-1 text-sm text-slate-900">
         Reason, optional
         <input type="text" name="reason" maxLength={500} className={field} />

@@ -127,11 +127,31 @@ describe("the disable and change-request controls", () => {
       <RequestChangeForm
         {...context}
         candidates={[find(REPOSITORIES.availableLocked)]}
+        candidatesTruncated={false}
       />,
     )
     expect(change).toContain('action="/api/repositories/request-change"')
     expect(change).toContain("acme/payments")
     expect(change).toMatch(/does not free the slot/)
+    expect(change).not.toMatch(/first hundred/)
+  })
+
+  it("says so when the candidate list is only the first page", () => {
+    // Offering a partial list as though it were complete is the same defect
+    // as rendering an unavailable count as zero.
+    const change = markup(
+      <RequestChangeForm
+        {...contextFor(
+          find(REPOSITORIES.activeSourceOnly),
+          OWNER,
+          operatorScenario.limit,
+        )}
+        candidates={[find(REPOSITORIES.availableLocked)]}
+        candidatesTruncated
+      />,
+    )
+
+    expect(change).toMatch(/first hundred accessible repositories/)
   })
 
   it("explains an operator-managed allowance rather than saying nothing", () => {

@@ -71,9 +71,16 @@
   `src/server/queries/repositories.ts`, `src/components/repositories/`,
   `src/app/(console)/repositories/`, `src/app/api/repositories/`,
   `src/app/api/github/`, `tools/console-stub/`.
-- Verification: lint, format, `tsc --noEmit`, 402 Vitest tests, a production
+- Review: one bounded wave of a security and a correctness reviewer. The
+  security reviewer found nothing at medium severity or above. The correctness
+  reviewer found three contract-fidelity defects, all fixed: a budget ceiling
+  below a microdollar rounded to the `0.000000` the consent schema forbids, a
+  repeated model profile passed a schema requiring unique items, and the
+  change-request candidate list came from one default page without saying so.
+- Verification: lint, format, `tsc --noEmit`, 423 Vitest tests, a production
   build, 83 Playwright tests over `https://console.evirion.test:3443`, 58
-  Python tests, the authority package, the documentation tree and the Console
+  Python tests, Semgrep with no findings, digest-verified Gitleaks over the
+  full history, the authority package, the documentation tree and the Console
   contract lock all pass. Local Node is 22.18.0 against a baseline pin of
   24.20.0; CI runs the pinned runtime. Every Definition-of-Done row is traced
   in [`plans/active/eem-9-03-acceptance-trace.md`](plans/active/eem-9-03-acceptance-trace.md).

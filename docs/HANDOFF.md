@@ -80,10 +80,13 @@ Updated: 2026-09-02
 
 ## Verification and next action
 
-Lint, format, `tsc --noEmit`, 402 Vitest tests, a production build, 83
+Lint, format, `tsc --noEmit`, 423 Vitest tests, a production build, 83
 Playwright tests over the pinned origin `https://console.evirion.test:3443`, 58
-Python tests, the authority package, the documentation tree and the Console
-contract lock all pass. Local Node is 22.18.0 against a baseline pin of
+Python tests, Semgrep with no findings, digest-verified Gitleaks over the full
+history, the authority package, the documentation tree and the Console contract
+lock all pass. One bounded review wave ran: the security reviewer found nothing
+at medium severity or above, and the correctness reviewer's three
+contract-fidelity findings are fixed and pinned by test. Local Node is 22.18.0 against a baseline pin of
 24.20.0, which affects installation rather than these gates; CI runs the pinned
 runtime.
 
