@@ -1,4 +1,16 @@
 import { ConsoleUnavailable } from "@/components/console/console-unavailable"
+import {
+  CommandOutcomeNotice,
+  readCommandResult,
+} from "@/components/repositories/command-outcome"
+import {
+  ActivateForm,
+  ConsentForm,
+  DisableForm,
+  OperatorManagedNotice,
+  PolicyForm,
+  RequestChangeForm,
+} from "@/components/repositories/repository-actions"
 import { RepositoryAxisList } from "@/components/repositories/repository-axes"
 import {
   BackToRepositories,
@@ -7,12 +19,22 @@ import {
   EntitlementFacts,
   PolicyVocabulary,
 } from "@/components/repositories/repository-detail"
-import { productStateLabel } from "@/lib/repositories/presentation"
+import { productStateLabel, repositoryControls } from "@/lib/repositories/presentation"
+import { readSessionCsrfToken } from "@/server/actions/session-csrf-read"
 import { readRepositoryDetail, validRepositoryId } from "@/server/queries/repositories"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 export const fetchCache = "force-no-store"
+
+/** One key per rendered form, so a duplicate click replays instead of repeating. */
+const mintIdempotencyKeys = (): Record<string, string> =>
+  Object.fromEntries(
+    ["activate", "disable", "request-change", "policy", "consent"].map((action) => [
+      action,
+      crypto.randomUUID(),
+    ]),
+  )
 
 /**
  * One repository: access versus entitlement versus policy.
@@ -24,11 +46,17 @@ export const fetchCache = "force-no-store"
  */
 const RepositoryDetailPage = async ({
   params,
+  searchParams,
 }: {
   params: Promise<{ repositoryId: string }>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
 }) => {
   const { repositoryId } = await params
   const identifier = validRepositoryId(repositoryId)
+  const requested = (await searchParams)["result"]
+  const outcome = readCommandResult(
+    typeof requested === "string" ? requested : undefined,
+  )
 
   // A malformed identifier gets the same answer as a foreign one. Anything
   // else would tell the caller which identifiers are well formed.
@@ -58,7 +86,14 @@ const RepositoryDetailPage = async ({
     )
   }
 
-  const { repository } = view
+  const { repository, candidates } = view
+  const controls = repositoryControls(repository, view.summary.limit, view.capabilities)
+  const context = {
+    repository,
+    controls,
+    csrfToken: await readSessionCsrfToken(),
+    idempotencyKeys: mintIdempotencyKeys(),
+  }
 
   return (
     <section className="flex flex-col gap-6">
@@ -71,12 +106,23 @@ const RepositoryDetailPage = async ({
         </p>
       </div>
 
+      {outcome ? <CommandOutcomeNotice result={outcome} /> : null}
+
       <RepositoryAxisList repository={repository} />
       <ChangeRequestNotice repository={repository} />
       <EntitlementFacts repository={repository} />
       <ConsentFacts repository={repository} />
-      <PolicyVocabulary />
 
+      <div className="flex flex-col gap-3">
+        <ActivateForm {...context} />
+        <PolicyForm {...context} />
+        <ConsentForm {...context} />
+        <DisableForm {...context} />
+        <RequestChangeForm {...context} candidates={candidates} />
+        <OperatorManagedNotice controls={controls} />
+      </div>
+
+      <PolicyVocabulary />
       <BackToRepositories />
     </section>
   )

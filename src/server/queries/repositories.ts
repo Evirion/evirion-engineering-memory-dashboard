@@ -58,6 +58,8 @@ export type RepositoryDetailView =
       readonly repository: Repository
       readonly summary: RepositoryPage["summary"]
       readonly capabilities: readonly string[]
+      /** Repositories a change request could name, from the backend list. */
+      readonly candidates: readonly Repository[]
     }
   | { readonly status: "unavailable"; readonly failure: ViewFailure }
 
@@ -203,6 +205,13 @@ export const readRepositoryDetail = async (
     repository: repository.value,
     summary: page.value.summary,
     capabilities: resolved.capabilities,
+    candidates: page.value.items.filter(
+      (candidate) =>
+        candidate.id !== repository.value.id &&
+        candidate.accessible &&
+        !candidate.archived &&
+        candidate.entitlement === null,
+    ),
   }
 }
 

@@ -62,7 +62,13 @@ export const buildSecurityHeaders = ({
   "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
   "X-Content-Type-Options": "nosniff",
   "X-Frame-Options": "DENY",
-  "Referrer-Policy": "no-referrer",
+  // `same-origin` rather than `no-referrer`, and the difference is load
+  // bearing. Under `no-referrer` Chrome sends `Origin: null` on a form
+  // navigation, so the mutation guard refuses every native form post as an
+  // origin mismatch and no state-changing form in the Console can ever
+  // succeed. `same-origin` still sends no referrer to any other origin, so
+  // nothing leaks off-origin, and the exact-Origin check stays as frozen.
+  "Referrer-Policy": "same-origin",
   "Permissions-Policy": [
     "accelerometer=()",
     "camera=()",

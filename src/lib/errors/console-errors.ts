@@ -92,6 +92,18 @@ const TREATMENTS: Readonly<Record<ConsoleErrorCode, ErrorTreatment>> = {
   INTERNAL_ERROR: "non-retryable",
 }
 
+/**
+ * The treatment for a code that arrived without its payload.
+ *
+ * A mutation answers with a redirect, so the page that reports the outcome
+ * sees the stable code but not the response that carried it. Only the reviewed
+ * code-to-treatment table is consulted here; `retryable` is deliberately not
+ * reconstructed, because it belongs to the backend payload and a boolean
+ * re-derived on a later request would be the UI asserting it for itself.
+ */
+export const treatmentForCode = (code: string): ErrorTreatment | undefined =>
+  Object.hasOwn(TREATMENTS, code) ? TREATMENTS[code as ConsoleErrorCode] : undefined
+
 /** Anything the contract did not publish fails closed here. */
 export const UNKNOWN_ERROR: MappedError = {
   code: "UNSUPPORTED_SERVER_RESPONSE",

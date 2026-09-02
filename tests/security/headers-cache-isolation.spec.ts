@@ -73,7 +73,11 @@ test.describe("security headers and cache isolation", () => {
     expect(headers["strict-transport-security"]).toContain("max-age=63072000")
     expect(headers["x-content-type-options"]).toBe("nosniff")
     expect(headers["x-frame-options"]).toBe("DENY")
-    expect(headers["referrer-policy"]).toBe("no-referrer")
+    // Not `no-referrer`: under that policy Chrome sends `Origin: null` on a
+    // form navigation, and the mutation guard then refuses every native form
+    // post. `same-origin` sends no referrer off-origin either, so the leakage
+    // this row exists to prevent is still prevented.
+    expect(headers["referrer-policy"]).toBe("same-origin")
     expect(headers["permissions-policy"]).toContain("camera=()")
     expect(headers["cross-origin-opener-policy"]).toBe("same-origin")
   })
