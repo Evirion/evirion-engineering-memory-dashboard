@@ -1,5 +1,93 @@
 # Dashboard changelog
 
+## 2026-09-02 — EEM-9/03 repository control
+
+- Why: EEM-9/03 exposes GitHub setup, repository entitlement and policy after
+  the EEM-6 contract freeze. All EEM-6 subtasks are merged in the backend,
+  ending with PR
+  [#37](https://github.com/Evirion/evirion-engineering-memory/pull/37), whose
+  commit is an ancestor of the source commit the Console contract lock records,
+  so the single lock already covers these operations. The task catalog names an
+  "attestation-verified EEM-6 contract lock"; no such artifact exists and none
+  is required, and the catalog now says so.
+- Behavior: `/repositories` lists accessible and entitled repositories with
+  GitHub access, Evirion entitlement and live processing as three independent
+  axes, each in its own labelled slot with its own text value. Collapsing them
+  into one status chip is the failure this prevents, and text rather than
+  colour is what `NFR-ACC-001` asks of a status indicator. Accessible and
+  active are reported as separate counts, and an unprovisioned allowance says
+  so instead of rendering as zero.
+- Behavior: `/repositories/:repositoryId` states the facts behind those axes,
+  none of them selectable, and carries the entitlement and policy controls.
+  Operator-managed and locked render as resting states with an explanation
+  rather than as failures.
+- Contracts: every command carries the canonical `Idempotency-Key` header and
+  `expectedVersion` in the body. The contract declares no expected-version
+  header, so the adapter's inherited header mechanism would have been silently
+  dropped and the optimistic check would never have run; a test pins the body
+  form. The idempotency key is minted once per rendered form, so a duplicate
+  click replays the stored receipt as a success and only a same key with a
+  different body conflicts.
+- Behavior: capacity, replacement mode, generation and operator decisions are
+  never judged locally. A one-slot race and a stale version are both decided by
+  the backend, and its answer is what the customer sees.
+- Behavior: `AUTO_EXTRACT` is reachable only through its own consent form,
+  which collects the model profiles, call ceiling, budget ceiling, retry policy
+  and expiry the contract requires and states that Evirion operational
+  authorization is still separate. An incomplete consent is refused rather than
+  partially recorded. Moving back to `OFF` or `SOURCE_ONLY` sends an explicit
+  null consent.
+- Behavior: onboarding carries the GitHub connection, and the repository
+  inventory carries installation freshness and synchronization progress. A
+  running traversal states that the inventory shown is the last complete one,
+  because an incomplete traversal must never read as lost access. A suspended
+  installation is visible, explained and recoverable, and entitlements are
+  untouched by it.
+- Security: `Referrer-Policy` changes from `no-referrer` to `same-origin`.
+  Under `no-referrer` Chrome sends `Origin: null` on a form navigation, so the
+  mutation guard refused every native form post and no state-changing form in
+  the Console could ever have succeeded. EEM-9/02 could not see it because its
+  auth journey accepts either destination for anti-enumeration reasons.
+  `same-origin` sends no referrer to any other origin, so the leakage the
+  control exists to prevent is still prevented and the exact-Origin check is
+  unchanged.
+- Security: `form-action` now names the configured GitHub App install origin
+  beside `'self'`. Chrome applies the directive to the entire redirect chain,
+  so the connect form was refused outright. The origin is derived from
+  `CONSOLE_GITHUB_APP_INSTALL_URL` rather than hardcoded, and a test asserts no
+  other directive widened with it.
+- Security: the GitHub App handoff is the only off-origin redirect in the
+  Console. It goes through a named helper that builds the destination from
+  configuration and refuses a state that is not a setup-intent nonce, and a
+  contract test asserts no other route may use it.
+- Operations: the browser gate gained a contract-shaped Console API double,
+  because `CONSOLE_API_BASE_URL` previously pointed at a host that does not
+  resolve and every read failed unreachable. Its fixtures are validated by the
+  same generated schemas the Console uses at runtime, and a coverage assertion
+  fails if a published product state has no fixture. Its state is per session,
+  so the suite still runs fully parallel. The harness maps GitHub to loopback
+  so no test can reach it.
+- Files: `src/lib/repositories/`, `src/server/adapters/repositories.ts`,
+  `src/server/queries/repositories.ts`, `src/components/repositories/`,
+  `src/app/(console)/repositories/`, `src/app/api/repositories/`,
+  `src/app/api/github/`, `tools/console-stub/`.
+- Verification: lint, format, `tsc --noEmit`, 402 Vitest tests, a production
+  build, 83 Playwright tests over `https://console.evirion.test:3443`, 58
+  Python tests, the authority package, the documentation tree and the Console
+  contract lock all pass. Local Node is 22.18.0 against a baseline pin of
+  24.20.0; CI runs the pinned runtime. Every Definition-of-Done row is traced
+  in [`plans/active/eem-9-03-acceptance-trace.md`](plans/active/eem-9-03-acceptance-trace.md).
+- Deployment state: implemented and locally verified only. Not merged, not
+  deployed, not observed, not staging-certified, not paid-certified, not
+  production-certified. No real GitHub App was connected, no GitHub API was
+  called, no worker ran, no provider was called and no paid operation was
+  authorized.
+- Remaining gates: open decision 6 is blocked on a contract gap, because no
+  repository-overview schema exists for either this subtask or EEM-9/06 to
+  validate; the same conversation owns the absence of any endpoint listing
+  allowed model profiles. Open decisions 1, 3, 4 and 5 remain unanswered.
+  `SEC-2026-012` remains open and readiness-blocking.
+
 ## 2026-09-02 — EEM-9/02b Console response envelope
 
 - Why: EEM-9/03 could not read a repository, and the merged Auth shell could not
