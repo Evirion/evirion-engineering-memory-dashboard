@@ -69,10 +69,13 @@ is a continuing release invariant for every later backend mutation.
 
 Two contract gaps found during `EEM-9/03` block work that `EEM-9/06` owns. The
 contract publishes no repository-overview schema, so the counters open decision
-6 asks about cannot be validated by either subtask, and no endpoint enumerates
-the model profiles an `AUTO_EXTRACT` consent may name. Both need a backend
-contract change and a new frozen digest, and both should be resolved before
-`EEM-9/06` starts.
+6 asks about cannot be validated by either subtask, and the model profiles an
+`AUTO_EXTRACT` consent may name are neither enumerated nor expressible in the
+format the worker uses. Both need a backend contract change and a new frozen
+digest. They are tracked as backend issues
+[#53](https://github.com/Evirion/evirion-engineering-memory/issues/53) and
+[#54](https://github.com/Evirion/evirion-engineering-memory/issues/54), and both
+should be resolved before `EEM-9/06` starts.
 
 Technical Design Partner Ready and paid readiness remain false. In particular,
 `SEC-2026-012`, staging evidence, external manual verification, paid

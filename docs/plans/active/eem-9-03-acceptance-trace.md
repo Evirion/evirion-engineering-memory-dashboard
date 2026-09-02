@@ -68,10 +68,17 @@ schemas and no `RepositoryOverview` among the eighteen generated types.
 
 So the counters are unimplementable by `EEM-9/06` as well, not merely open here.
 Answering "yes, show them" requires adding a schema to the contract, which is a
-backend change and a new frozen digest. It is raised now so it is resolved
-before `EEM-9/06` starts rather than rediscovered there. Rendering them from a
-hand-written type was rejected: it would make the one surface with no contract
-authority also the only surface rendering unvalidated backend data.
+backend change and a new frozen digest. Rendering them from a hand-written type
+was rejected: it would make the one surface with no contract authority also the
+only surface rendering unvalidated backend data.
+
+Raised as backend issue
+[#53](https://github.com/Evirion/evirion-engineering-memory/issues/53) and
+assigned there as `EEM-8/07-repository-overview-contract`, so it is resolved
+before `EEM-9/06` starts rather than rediscovered there. Tracing it further
+showed the work is smaller than it first appears: `api.get_repository_overview`
+and its handler already exist and return exactly the counters `REPO-003` names,
+so only the published schema is missing.
 
 ### No endpoint enumerates the allowed model profiles
 
@@ -79,8 +86,21 @@ authority also the only surface rendering unvalidated backend data.
 publishes no operation that lists which profiles an organization may name. The
 consent form prefills from an existing consent where one exists and otherwise
 accepts the contract's own pattern, leaving the backend to refuse an unknown
-profile. That is fail-closed and correct, but it is a poor first-time
-experience and it belongs in the same contract conversation as the counters.
+profile. That is fail-closed and correct, and a poor first-time experience.
+
+Tracing what a profile actually is then surfaced something worse, which is not
+this subtask's to fix but which the Console surface depends on. A profile is a
+runtime identifier of the form `provider:model_id`, and the contract pattern for
+each consent item, `^[a-z][a-z0-9_.-]{0,63}$`, does not admit a colon. The paid
+gate compares by exact string equality, so a customer can only ever store a
+value the worker will never present and every `AUTO_EXTRACT` call would be
+refused. The consent form this subtask ships is contract-correct; the feature
+behind it cannot currently authorize anything.
+
+Raised as backend issue
+[#54](https://github.com/Evirion/evirion-engineering-memory/issues/54) and
+assigned there as `EEM-7/05-model-profile-registry`, with the owner's decisions
+on the identifier and the catalogue shape recorded in it.
 
 ## Open decisions carried, not answered
 

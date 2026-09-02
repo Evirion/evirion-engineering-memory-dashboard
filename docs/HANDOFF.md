@@ -109,8 +109,15 @@ neither EEM-9/03 nor EEM-9/06 can validate such a response. Answering yes
 requires a backend contract change and a new frozen digest.
 
 In the same conversation: no endpoint enumerates the model profiles an
-organization may name in an `AUTO_EXTRACT` consent, so the consent form can
-only prefill from an existing consent and otherwise rely on the backend to
-refuse an unknown one.
+`AUTO_EXTRACT` consent may name, and the format the contract admits cannot
+express the identifier the worker builds, so the paid gate could never match.
+
+Both are raised as backend issues
+[#53](https://github.com/Evirion/evirion-engineering-memory/issues/53), assigned
+`EEM-8/07-repository-overview-contract`, and
+[#54](https://github.com/Evirion/evirion-engineering-memory/issues/54), assigned
+`EEM-7/05-model-profile-registry`. They are tracked there rather than only here,
+because the work belongs to the backend and a record in this repository would
+not reach it.
 
 Accessibility open decision 1 is unresolved and is due before EEM-9/07.
