@@ -18,6 +18,7 @@
     "format:check": "prettier --check .",
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
+    "routes": "node tools/verify/routes.mjs",
     "tls:generate": "node tools/local-tls/generate-certificate.mjs",
     "tls:serve": "node tools/local-tls/edge.mjs",
     "security:sast": "uv run --frozen --project tools/security semgrep scan --config tools/security/semgrep.yml --error",

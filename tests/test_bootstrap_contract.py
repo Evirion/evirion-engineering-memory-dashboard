@@ -379,6 +379,12 @@ class AuthorityManifestTests(unittest.TestCase):
                 (root / directory / "artifact").write_text("local\n", encoding="utf-8")
             for name in (".env", ".env.local", ".env.production.local"):
                 (root / name).write_text("SECRET=x\n", encoding="utf-8")
+            # Next rewrites this on every dev run and every build, pointing at a
+            # different generated types directory each time.
+            (root / "next-env.d.ts").write_text(
+                'import "./.next/dev/types/routes.d.ts"\n',
+                encoding="utf-8",
+            )
 
             validate_inventory(
                 root,
@@ -953,6 +959,21 @@ class CrossRepositoryAuthorityTests(unittest.TestCase):
             evidence["observations"]["immutableReleases"]["result"],
             "enabled",
         )
+
+    def test_no_tool_injects_content_into_an_authority_document(self) -> None:
+        # `next dev` appends a managed agent-rules block to AGENTS.md whenever
+        # it detects an AI coding agent, with no configuration opt-out. AGENTS.md
+        # is an authority package member, so the digest check already refuses the
+        # change; this names the cause so the failure explains itself.
+        for relative in ("AGENTS.md", "README.md", "SECURITY.md"):
+            document = (self.root / relative).read_text(encoding="utf-8")
+            with self.subTest(document=relative):
+                for marker in (
+                    "BEGIN:nextjs-agent-rules",
+                    "NEXT-AGENTS-MD-START",
+                    "END:nextjs-agent-rules",
+                ):
+                    self.assertNotIn(marker, document)
 
     def test_dashboard_never_contains_a_supabase_project(self) -> None:
         # The six sibling EEM-9/01 prohibitions expired when EEM-9/02 created the

@@ -3,7 +3,6 @@
   ".nvmrc",
   ".oxlintrc.json",
   ".prettierignore",
-  "next-env.d.ts",
   "next.config.ts",
   "package.json",
   "playwright.config.ts",
