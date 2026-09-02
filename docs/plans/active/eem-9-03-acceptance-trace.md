@@ -116,7 +116,9 @@ agreement.
   `tests/unit/repositories/form-action-policy.test.ts`.
 
 A third defect, the response envelope, was corrected in the separate
-`EEM-9/02b` pull request that precedes this one.
+`EEM-9/02b` pull request, merged as
+[#5](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/5)
+before this branch was rebased onto it.
 
 ## Independent review
 

@@ -5,11 +5,11 @@ Updated: 2026-09-02
 ## Current state
 
 - Active task: EEM-9/03, repository control.
-- Branch: `EEM-9/03-repository-control`, based on
-  `EEM-9/02b-response-envelope`. Stacking was explicitly authorized by the
-  owner because EEM-9/03 cannot read a repository without the envelope
-  correction. `EEM-9/02b` merges first; this branch rebases onto updated `main`
-  before it is opened.
+- Branch: `EEM-9/03-repository-control`, based on Dashboard `main` at
+  `8aa5418`. It was developed stacked on `EEM-9/02b-response-envelope` with
+  explicit owner authorization, because EEM-9/03 cannot read a repository
+  without the envelope correction, and was rebased onto updated `main` once
+  that merged. It carries nine commits of its own.
 - EEM-9/02 is merged as PR
   [#4](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/4)
   at `5ff0c0c`.
@@ -29,7 +29,9 @@ Updated: 2026-09-02
 
 ## What changed here and why
 
-- **EEM-9/02b corrects the response envelope.** The backend answers every
+- **EEM-9/02b corrected the response envelope** and is merged as PR
+  [#5](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/5).
+  The backend answers every
   route through one success responder emitting
   `{contractVersion, requestId, data}`, and the Console validated that whole
   document against a generated payload schema. Every real success would have
@@ -90,8 +92,9 @@ contract-fidelity findings are fixed and pinned by test. Local Node is 22.18.0 a
 24.20.0, which affects installation rather than these gates; CI runs the pinned
 runtime.
 
-The next action is review of both branches, then merging `EEM-9/02b` and
-rebasing `EEM-9/03` onto updated `main`.
+The gate above was rerun on the rebased tree, so it describes the bytes this
+branch actually proposes rather than the pre-rebase ones. The next action is
+review of `EEM-9/03-repository-control`.
 
 Commit, push, pull request, and merge each require separate explicit
 authorization.

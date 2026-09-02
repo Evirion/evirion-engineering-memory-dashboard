@@ -27,15 +27,16 @@ the [controlling EEM-9 plan](plans/active/eem-9-design-partner-console-dashboard
 4. `EEM-9/02-auth-shell` is merged as PR
    [#4](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/4)
    at `5ff0c0c`.
-5. `EEM-9/02b-response-envelope` is implemented and locally verified on its
-   branch. It is not pushed, has no pull request and is not merged. It corrects
-   the response-envelope handling every later subtask depends on, and merges
-   before `EEM-9/03`.
+5. `EEM-9/02b-response-envelope` is merged as PR
+   [#5](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/5)
+   at `8aa5418`. It corrected the response-envelope handling every later
+   subtask depends on.
 6. `EEM-9/03-repository-control` is implemented and locally verified on its
-   branch, based on `EEM-9/02b` with explicit owner authorization to stack
-   because it cannot read a repository without that correction. It is not
-   pushed, has no pull request and is not merged, and it rebases onto updated
-   `main` once `EEM-9/02b` merges. Its Definition-of-Done trace is
+   branch, based on updated `main` after `EEM-9/02b` merged. It was developed
+   stacked on that branch with explicit owner authorization, because it cannot
+   read a repository without the correction, and has since been rebased. It is
+   not pushed, has no pull request and is not merged. Its Definition-of-Done
+   trace is
    [`eem-9-03-acceptance-trace.md`](plans/active/eem-9-03-acceptance-trace.md).
 
 All EEM-4 subtasks are merged in the backend as PRs

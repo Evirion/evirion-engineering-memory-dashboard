@@ -28,13 +28,14 @@ EEM-9/02 is merged as Dashboard PR
 Its Definition-of-Done trace is
 [`eem-9-02-acceptance-trace.md`](eem-9-02-acceptance-trace.md).
 
-`EEM-9/02b-response-envelope` corrects the response-envelope handling that
-subtask left latent, and merges before EEM-9/03. All EEM-6 subtasks are merged
-in the backend, so the remaining EEM-9/03 prerequisite is that correction.
+`EEM-9/02b-response-envelope` corrected the response-envelope handling that
+subtask left latent and is merged as PR
+[#5](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/5).
+All EEM-6 subtasks are merged in the backend, so every EEM-9/03 prerequisite is
+satisfied.
 
 EEM-9/03 is implemented and locally verified on `EEM-9/03-repository-control`,
-stacked on `EEM-9/02b` with explicit owner authorization and rebased onto
-updated `main` before it opens. Its Definition-of-Done trace is
+now based on updated `main`. Its Definition-of-Done trace is
 [`eem-9-03-acceptance-trace.md`](eem-9-03-acceptance-trace.md), which also
 records two contract gaps that block work EEM-9/06 owns.
 
