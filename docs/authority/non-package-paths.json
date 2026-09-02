@@ -13,6 +13,7 @@
   "prettier.config.mjs",
   "src/**",
   "tests/contract/**",
+  "tests/e2e/**",
   "tests/security/**",
   "tests/support/**",
   "tests/unit/**",

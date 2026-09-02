@@ -36,6 +36,10 @@
     {
       "files": ["tests/**", "tools/**"],
       "rules": { "no-console": "off" }
+    },
+    {
+      "files": ["tests/e2e/**", "tests/security/**"],
+      "rules": { "no-await-in-loop": "off" }
     }
   ]
 }

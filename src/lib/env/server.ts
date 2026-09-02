@@ -42,7 +42,13 @@ export type ServerEnvironment = {
   readonly consoleApiBaseUrl: string
   readonly canonicalOrigin: string
   readonly trustedProxyHops: number
+  /** 256-bit minimum. Signs the double-submit CSRF proof. */
+  readonly csrfSigningKey: string
+  /** 256-bit minimum. Signs the one-time backend bootstrap proof. */
+  readonly bootstrapProofSigningKey: string
 }
+
+const MINIMUM_SIGNING_KEY_BYTES = 32
 
 /** A plain record rather than `NodeJS.ProcessEnv`, so a test can supply an
  * exact environment instead of one carrying whatever the runner inherited. */
@@ -54,6 +60,16 @@ const requireValue = (source: EnvironmentSource, name: string): string => {
     throw new ServerEnvironmentError(`missing required server variable: ${name}`)
   }
   return value.trim()
+}
+
+const requireSigningKey = (source: EnvironmentSource, name: string): string => {
+  const value = requireValue(source, name)
+  if (new TextEncoder().encode(value).length < MINIMUM_SIGNING_KEY_BYTES) {
+    throw new ServerEnvironmentError(
+      `${name} must carry at least ${MINIMUM_SIGNING_KEY_BYTES * 8} bits`,
+    )
+  }
+  return value
 }
 
 const requireHttpsUrl = (source: EnvironmentSource, name: string): string => {
@@ -125,5 +141,10 @@ export const readServerEnvironment = (
     consoleApiBaseUrl: requireHttpsUrl(source, "CONSOLE_API_BASE_URL"),
     canonicalOrigin: parsedOrigin.origin,
     trustedProxyHops: 1,
+    csrfSigningKey: requireSigningKey(source, "CONSOLE_CSRF_SIGNING_KEY"),
+    bootstrapProofSigningKey: requireSigningKey(
+      source,
+      "CONSOLE_BFF_PROOF_SIGNING_KEY",
+    ),
   }
 }

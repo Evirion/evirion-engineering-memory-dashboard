@@ -2,6 +2,10 @@
 __pycache__/
 *.py[cod]
 .DS_Store
+# Locally generated tool output and key material. `.local` is also excluded
+# from the authority walk, so nothing here is ever a tracked repository file.
+.local/
+.venv/
 .env
 .env.*
 !.env.example

@@ -71,6 +71,10 @@ export default defineConfig({
       SUPABASE_URL: "https://project.supabase.test",
       SUPABASE_PUBLISHABLE_KEY: "sb_publishable_local_fixture",
       CONSOLE_API_BASE_URL: "https://api.evirion.test",
+      // Documented public test fixtures. They sign nothing outside this
+      // harness and are not credentials for any real environment.
+      CONSOLE_CSRF_SIGNING_KEY: "console-local-test-csrf-signing-key-0001",
+      CONSOLE_BFF_PROOF_SIGNING_KEY: "console-local-test-proof-signing-key-001",
     },
   },
 })

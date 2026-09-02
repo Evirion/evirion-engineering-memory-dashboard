@@ -9,11 +9,17 @@ import {
   readServerEnvironment,
 } from "@/lib/env/server"
 
+// A deliberately low-entropy, self-describing fixture. It signs nothing
+// outside this suite and is not a credential for any environment.
+const SIGNING_KEY = "console-unit-test-signing-key-not-a-secret"
+
 const validServerEnvironment = (): EnvironmentSource => ({
   SUPABASE_URL: "https://project.supabase.co",
   SUPABASE_PUBLISHABLE_KEY: "sb_publishable_local_fixture",
   CONSOLE_API_BASE_URL: "https://api.evirion.test",
   CONSOLE_CANONICAL_ORIGIN: "https://console.evirion.test:3443",
+  CONSOLE_CSRF_SIGNING_KEY: SIGNING_KEY,
+  CONSOLE_BFF_PROOF_SIGNING_KEY: SIGNING_KEY,
 })
 
 describe("server environment boundary", () => {
@@ -29,6 +35,8 @@ describe("server environment boundary", () => {
     "SUPABASE_PUBLISHABLE_KEY",
     "CONSOLE_API_BASE_URL",
     "CONSOLE_CANONICAL_ORIGIN",
+    "CONSOLE_CSRF_SIGNING_KEY",
+    "CONSOLE_BFF_PROOF_SIGNING_KEY",
   ])("fails startup when %s is missing", (name) => {
     const source = validServerEnvironment()
     delete source[name]
@@ -41,11 +49,22 @@ describe("server environment boundary", () => {
     "SUPABASE_PUBLISHABLE_KEY",
     "CONSOLE_API_BASE_URL",
     "CONSOLE_CANONICAL_ORIGIN",
+    "CONSOLE_CSRF_SIGNING_KEY",
+    "CONSOLE_BFF_PROOF_SIGNING_KEY",
   ])("fails startup when %s is blank", (name) => {
     const source = { ...validServerEnvironment(), [name]: "   " }
 
     expect(() => readServerEnvironment(source)).toThrow(ServerEnvironmentError)
   })
+
+  it.each(["CONSOLE_CSRF_SIGNING_KEY", "CONSOLE_BFF_PROOF_SIGNING_KEY"])(
+    "fails startup when %s carries fewer than 256 bits",
+    (name) => {
+      const source = { ...validServerEnvironment(), [name]: "too-short-secret" }
+
+      expect(() => readServerEnvironment(source)).toThrow(/256 bits/)
+    },
+  )
 
   it("rejects a non-https origin so the __Host- cookie contract cannot weaken", () => {
     const source = {

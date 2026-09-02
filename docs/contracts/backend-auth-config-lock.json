@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "1.0",
+  "recordedAt": "2026-09-02",
+  "recordedBy": "EEM-9/02 C02",
+  "note": "Derived, non-secret Auth settings read from the backend repository at the exact source commit the attestation-verified Console contract lock records. The values are pinned here so CI verifies Dashboard/backend Auth parity without a cross-repository read, which no Dashboard workflow token could perform. A local check re-verifies these values against the sibling bytes.",
+  "source": {
+    "repository": "Evirion/evirion-engineering-memory",
+    "commit": "20cd3b60ba4b067277e960ede99d508cf0bef70a",
+    "commitSource": "docs/contracts/console-contract-lock.json sourceCommit",
+    "files": [
+      {
+        "path": "supabase/config.toml",
+        "sha256": "6e9aa1bf77953f6a5cb54f1de144b01b1c1e551bfb6b7fad1ac00956d719ec81"
+      },
+      {
+        "path": "supabase/auth-template-manifest.v1.json",
+        "sha256": "20c704aea9342b738ca753050a69bfbe3c44b8c32017990849715cc69799ce7f"
+      }
+    ]
+  },
+  "expectedLocalAuthConfiguration": {
+    "signupEnabled": false,
+    "anonymousSignInsEnabled": false,
+    "smsSignupEnabled": false,
+    "smsConfirmationsEnabled": false,
+    "totpEnrollEnabled": true,
+    "totpVerifyEnabled": true,
+    "jwtExpirySeconds": 900,
+    "otpExpirySeconds": 600,
+    "otpLength": 6,
+    "otpMaxFrequency": "1m",
+    "siteUrl": "https://console.evirion.test:3443",
+    "additionalRedirectUrls": ["https://console.evirion.test:3443"]
+  },
+  "expectedHostedAuthConfiguration": {
+    "note": "The hosted manifest is the same shape as the local configuration. EEM-9/07 proves live hosted parity under its own separate remote authorization; nothing here observes or changes a hosted project.",
+    "signupEnabled": false,
+    "anonymousSignInsEnabled": false,
+    "smsSignupEnabled": false,
+    "smsConfirmationsEnabled": false,
+    "totpEnrollEnabled": true,
+    "totpVerifyEnabled": true,
+    "jwtExpirySeconds": 900,
+    "otpExpirySeconds": 600,
+    "otpLength": 6,
+    "otpMaxFrequency": "1m",
+    "disabledProviders": [
+      "anonymous",
+      "apple",
+      "azure",
+      "bitbucket",
+      "discord",
+      "facebook",
+      "github",
+      "gitlab",
+      "google",
+      "keycloak",
+      "linkedin",
+      "notion",
+      "password",
+      "phone",
+      "saml",
+      "slack",
+      "spotify",
+      "twitch",
+      "twitter",
+      "workos",
+      "zoom"
+    ],
+    "allowedProviders": ["email-otp", "totp"],
+    "manualIdentityLinkingEnabled": false
+  },
+  "verification": {
+    "localCommand": "python3 scripts/check_backend_auth_parity.py --backend ../evirion-engineering-memory",
+    "ciBehaviour": "CI verifies the Dashboard policy against the pinned values only. The sibling comparison runs locally, because a Dashboard workflow token cannot read the backend repository."
+  }
+}
