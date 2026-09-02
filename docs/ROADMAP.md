@@ -27,10 +27,17 @@ the [controlling EEM-9 plan](plans/active/eem-9-design-partner-console-dashboard
 4. `EEM-9/02-auth-shell` is merged as PR
    [#4](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/4)
    at `5ff0c0c`.
-5. `EEM-9/02b-response-envelope` is implemented and locally verified on its
-   branch. It is not pushed, has no pull request and is not merged. It corrects
-   the response-envelope handling every later subtask depends on, and merges
-   before `EEM-9/03` starts.
+5. `EEM-9/02b-response-envelope` is merged as PR
+   [#5](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/5)
+   at `8aa5418`. It corrected the response-envelope handling every later
+   subtask depends on.
+6. `EEM-9/03-repository-control` is implemented and locally verified on its
+   branch, based on updated `main` after `EEM-9/02b` merged. It was developed
+   stacked on that branch with explicit owner authorization, because it cannot
+   read a repository without the correction, and has since been rebased. It is
+   not pushed, has no pull request and is not merged. Its Definition-of-Done
+   trace is
+   [`eem-9-03-acceptance-trace.md`](plans/active/eem-9-03-acceptance-trace.md).
 
 All EEM-4 subtasks are merged in the backend as PRs
 [#26](https://github.com/Evirion/evirion-engineering-memory/pull/26)–[#29](https://github.com/Evirion/evirion-engineering-memory/pull/29),
@@ -59,6 +66,13 @@ exists.
 
 Backend EEM-3/13 is merged and locally reverified. Its EEM-3 global lock graph
 is a continuing release invariant for every later backend mutation.
+
+Two contract gaps found during `EEM-9/03` block work that `EEM-9/06` owns. The
+contract publishes no repository-overview schema, so the counters open decision
+6 asks about cannot be validated by either subtask, and no endpoint enumerates
+the model profiles an `AUTO_EXTRACT` consent may name. Both need a backend
+contract change and a new frozen digest, and both should be resolved before
+`EEM-9/06` starts.
 
 Technical Design Partner Ready and paid readiness remain false. In particular,
 `SEC-2026-012`, staging evidence, external manual verification, paid

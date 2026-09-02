@@ -40,6 +40,12 @@ export type ServerEnvironment = {
   readonly supabaseUrl: string
   readonly supabasePublishableKey: string
   readonly consoleApiBaseUrl: string
+  /**
+   * Where a customer installs the Evirion GitHub App. Deployment
+   * configuration, not a credential: the App private key and installation
+   * tokens stay in the backend control plane and never reach this process.
+   */
+  readonly githubAppInstallUrl: string
   readonly canonicalOrigin: string
   readonly trustedProxyHops: number
   /** 256-bit minimum. Signs the double-submit CSRF proof. */
@@ -139,6 +145,7 @@ export const readServerEnvironment = (
     supabaseUrl: requireHttpsUrl(source, "SUPABASE_URL"),
     supabasePublishableKey: requireValue(source, "SUPABASE_PUBLISHABLE_KEY"),
     consoleApiBaseUrl: requireHttpsUrl(source, "CONSOLE_API_BASE_URL"),
+    githubAppInstallUrl: requireHttpsUrl(source, "CONSOLE_GITHUB_APP_INSTALL_URL"),
     canonicalOrigin: parsedOrigin.origin,
     trustedProxyHops: 1,
     csrfSigningKey: requireSigningKey(source, "CONSOLE_CSRF_SIGNING_KEY"),

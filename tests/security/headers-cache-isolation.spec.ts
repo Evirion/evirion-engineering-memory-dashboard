@@ -73,7 +73,17 @@ test.describe("security headers and cache isolation", () => {
     expect(headers["strict-transport-security"]).toContain("max-age=63072000")
     expect(headers["x-content-type-options"]).toBe("nosniff")
     expect(headers["x-frame-options"]).toBe("DENY")
-    expect(headers["referrer-policy"]).toBe("no-referrer")
+    // `form-action` names the configured GitHub App handoff and nothing else,
+    // because Chrome applies it to the whole redirect chain and the Console
+    // legitimately redirects a form there exactly once.
+    expect(headers["content-security-policy"]).toContain(
+      "form-action 'self' https://github.com",
+    )
+    // Not `no-referrer`: under that policy Chrome sends `Origin: null` on a
+    // form navigation, and the mutation guard then refuses every native form
+    // post. `same-origin` sends no referrer off-origin either, so the leakage
+    // this row exists to prevent is still prevented.
+    expect(headers["referrer-policy"]).toBe("same-origin")
     expect(headers["permissions-policy"]).toContain("camera=()")
     expect(headers["cross-origin-opener-policy"]).toBe("same-origin")
   })

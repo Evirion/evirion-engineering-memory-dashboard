@@ -106,6 +106,9 @@ export const proxy = async (request: NextRequest): Promise<NextResponse> => {
     buildSecurityHeaders({
       nonce,
       isProduction: process.env.NODE_ENV === "production",
+      // The GitHub App installation handoff is the one form target beyond this
+      // origin, and it comes from configuration rather than from a literal.
+      formActionOrigins: [readServerEnvironment().githubAppInstallUrl],
     }),
   )) {
     response.headers.set(name, value)

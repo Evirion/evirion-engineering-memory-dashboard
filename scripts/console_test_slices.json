@@ -34,6 +34,25 @@
         "tests/security/csrf-origin.spec.ts",
         "tests/security/redirect-url-boundary.spec.ts"
       ]
+    },
+    "repositories": {
+      "owner": "EEM-9/03 C03",
+      "focused": ["lint", "typecheck", "test:repositories"],
+      "affected": [
+        "lint",
+        "format:check",
+        "typecheck",
+        "test:unit",
+        "build",
+        "test:e2e"
+      ],
+      "testFiles": [
+        "tests/unit/repositories",
+        "tests/component/repositories",
+        "tests/contract/console-stub-fixtures.test.ts",
+        "tests/e2e/repositories.spec.ts",
+        "tests/security/repository-boundary.spec.ts"
+      ]
     }
   }
 }
