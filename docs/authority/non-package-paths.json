@@ -1,0 +1,23 @@
+[
+  ".npmrc",
+  ".nvmrc",
+  ".oxlintrc.json",
+  ".prettierignore",
+  "next.config.ts",
+  "package.json",
+  "playwright.config.ts",
+  "pnpm-lock.yaml",
+  "pnpm-workspace.yaml",
+  "postcss.config.mjs",
+  "prettier.config.mjs",
+  "src/**",
+  "tests/contract/**",
+  "tests/e2e/**",
+  "tests/security/**",
+  "tests/support/**",
+  "tests/unit/**",
+  "tools/local-tls/**",
+  "tools/verify/**",
+  "tsconfig.json",
+  "vitest.config.ts"
+]

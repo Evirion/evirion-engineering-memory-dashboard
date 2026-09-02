@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "1.0",
+  "note": "Fixed Console slice registry. An unknown or empty slice fails; a later subtask adds its own slice in the same pull request that adds the surface.",
+  "slices": {
+    "bootstrap": {
+      "owner": "EEM-9/02 C01",
+      "focused": ["lint", "typecheck", "test:bootstrap"],
+      "affected": ["lint", "format:check", "typecheck", "test:unit", "build"],
+      "testFiles": [
+        "tests/unit/env.test.ts",
+        "tests/contract/no-browser-secrets.test.ts",
+        "tests/contract/supply-chain-policy.test.ts",
+        "tests/contract/console-contract-provenance.test.ts",
+        "tests/security/headers-cache-isolation.spec.ts",
+        "tests/security/release-surface.spec.ts"
+      ]
+    },
+    "auth": {
+      "owner": "EEM-9/02 C02",
+      "focused": ["lint", "typecheck", "test:auth"],
+      "affected": [
+        "lint",
+        "format:check",
+        "typecheck",
+        "test:unit",
+        "build",
+        "test:e2e"
+      ],
+      "testFiles": [
+        "tests/unit/auth",
+        "tests/component/auth",
+        "tests/e2e/auth.spec.ts",
+        "tests/security/auth-session-recovery.spec.ts",
+        "tests/security/csrf-origin.spec.ts",
+        "tests/security/redirect-url-boundary.spec.ts"
+      ]
+    }
+  }
+}

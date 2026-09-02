@@ -50,6 +50,112 @@ from scripts.verify_artifact_attestation import (
 )
 
 
+PAGE_FILES = frozenset({"page.tsx", "page.ts", "page.jsx", "page.js"})
+ROUTE_HANDLER_FILES = frozenset({"route.tsx", "route.ts", "route.jsx", "route.js"})
+
+
+def resolve_app_router_url(segments: tuple[str, ...]) -> str | None:
+    """Resolve App Router directory segments to the URL Next.js actually serves.
+
+    Returns `None` when the segments are not routable. A parallel-route slot is
+    rejected rather than skipped, because it changes resolution in a way the
+    reviewed route inventory cannot express.
+    """
+    parts: list[str] = []
+    for segment in segments:
+        if segment.startswith("(") and segment.endswith(")"):
+            continue
+        if segment.startswith("_"):
+            return None
+        if segment.startswith("@"):
+            raise ValueError(f"unsupported parallel route slot: {segment}")
+        if segment.startswith("[[") and segment.endswith("]]"):
+            parts.append(":" + segment[2:-2].removeprefix("...") + "*")
+            continue
+        if segment.startswith("[") and segment.endswith("]"):
+            inner = segment[1:-1]
+            if inner.startswith("..."):
+                parts.append(":" + inner[3:] + "*")
+            else:
+                parts.append(":" + inner)
+            continue
+        parts.append(segment)
+    return "/" + "/".join(parts)
+
+
+def collect_app_router_routes(application: Path) -> tuple[list[str], list[str]]:
+    """Return the sorted page URLs and route-handler URLs served from `src/app`."""
+    pages: set[str] = set()
+    handlers: set[str] = set()
+    for path in sorted(application.rglob("*")):
+        if not path.is_file():
+            continue
+        is_page = path.name in PAGE_FILES
+        if not is_page and path.name not in ROUTE_HANDLER_FILES:
+            continue
+        url = resolve_app_router_url(path.relative_to(application).parts[:-1])
+        if url is None:
+            continue
+        (pages if is_page else handlers).add(url)
+    return sorted(pages), sorted(handlers)
+
+
+def matches_frozen_path(path: str, frozen: list[str]) -> bool:
+    for entry in frozen:
+        if entry.endswith("/*"):
+            if path.startswith(entry[: -len("*")]) and path != entry[: -len("/*")]:
+                return True
+        elif path == entry:
+            return True
+    return False
+
+
+class AppRouterResolutionTests(unittest.TestCase):
+    def test_groups_parameters_and_private_folders_resolve_like_next(self) -> None:
+        cases = {
+            (): "/",
+            ("auth", "sign-in"): "/auth/sign-in",
+            ("(console)", "onboarding"): "/onboarding",
+            ("(auth)", "sign-in"): "/sign-in",
+            ("memory", "[knowledgeObjectId]"): "/memory/:knowledgeObjectId",
+            ("docs", "[...slug]"): "/docs/:slug*",
+            ("shop", "[[...filters]]"): "/shop/:filters*",
+            ("_internal", "page"): None,
+        }
+
+        for segments, expected in cases.items():
+            with self.subTest(segments=segments):
+                self.assertEqual(resolve_app_router_url(segments), expected)
+
+    def test_parallel_route_slot_is_rejected(self) -> None:
+        with self.assertRaisesRegex(ValueError, "parallel route slot"):
+            resolve_app_router_url(("dashboard", "@analytics"))
+
+    def test_a_route_group_that_swallows_a_frozen_prefix_is_detectable(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            application = Path(temporary_directory)
+            (application / "(auth)/sign-in").mkdir(parents=True)
+            (application / "(auth)/sign-in/page.tsx").write_text("x\n", encoding="utf-8")
+            (application / "api/auth/logout").mkdir(parents=True)
+            (application / "api/auth/logout/route.ts").write_text("x\n", encoding="utf-8")
+
+            pages, handlers = collect_app_router_routes(application)
+
+            self.assertEqual(pages, ["/sign-in"])
+            self.assertNotIn("/auth/sign-in", pages)
+            self.assertEqual(handlers, ["/api/auth/logout"])
+
+    def test_frozen_wildcard_matches_only_paths_beneath_it(self) -> None:
+        frozen = ["/auth/*", "/onboarding"]
+
+        self.assertTrue(matches_frozen_path("/auth/sign-in", frozen))
+        self.assertTrue(matches_frozen_path("/auth/mfa/enroll", frozen))
+        self.assertTrue(matches_frozen_path("/onboarding", frozen))
+        self.assertFalse(matches_frozen_path("/auth", frozen))
+        self.assertFalse(matches_frozen_path("/authorize", frozen))
+        self.assertFalse(matches_frozen_path("/settings/sessions", frozen))
+
+
 class AcceptanceMapTests(unittest.TestCase):
     def test_explicit_and_implicit_acceptance_rows_keep_stable_ordinals(self) -> None:
         requirements = """\
@@ -196,6 +302,123 @@ class AuthorityManifestTests(unittest.TestCase):
             (root / "docs/unlisted.md").write_text("drift\n", encoding="utf-8")
             with self.assertRaisesRegex(AuthorityError, "unlisted"):
                 validate_inventory(root, ["docs/a.md"])
+
+    @staticmethod
+    def _application_tree(root: Path) -> None:
+        (root / "docs/authority").mkdir(parents=True)
+        (root / "src/app").mkdir(parents=True)
+        (root / "docs/a.md").write_text("alpha\n", encoding="utf-8")
+        (root / "package.json").write_text("{}\n", encoding="utf-8")
+        (root / "src/app/page.tsx").write_text("export default () => null\n", encoding="utf-8")
+        (root / "docs/authority/manifest.json").write_text("{}\n", encoding="utf-8")
+
+    def test_allowlisted_application_source_is_tracked_outside_the_package(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            self._application_tree(root)
+
+            validate_inventory(
+                root,
+                ["docs/a.md"],
+                allowlist=["package.json", "src/**"],
+            )
+
+    def test_path_in_neither_package_nor_allowlist_still_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            self._application_tree(root)
+            (root / "next.config.ts").write_text("export default {}\n", encoding="utf-8")
+
+            with self.assertRaisesRegex(AuthorityError, r"unlisted authority files: next\.config\.ts"):
+                validate_inventory(
+                    root,
+                    ["docs/a.md"],
+                    allowlist=["package.json", "src/**"],
+                )
+
+    def test_path_in_both_package_and_allowlist_fails(self) -> None:
+        for inventory, allowlist, expected in (
+            (["docs/a.md", "package.json"], ["package.json", "src/**"], "package.json"),
+            (
+                ["docs/a.md", "package.json", "src/app/page.tsx"],
+                ["package.json", "src/**"],
+                "src/app/page.tsx",
+            ),
+        ):
+            with self.subTest(expected=expected):
+                with tempfile.TemporaryDirectory() as temporary_directory:
+                    root = Path(temporary_directory)
+                    self._application_tree(root)
+
+                    with self.assertRaisesRegex(
+                        AuthorityError, "both packaged and allowlisted"
+                    ):
+                        validate_inventory(root, inventory, allowlist=allowlist)
+
+    def test_allowlist_pattern_matching_nothing_fails(self) -> None:
+        for allowlist in (
+            ["package.json", "src/**", "playwright.config.ts"],
+            ["package.json", "src/**", "tools/local-tls/**"],
+        ):
+            with self.subTest(allowlist=allowlist):
+                with tempfile.TemporaryDirectory() as temporary_directory:
+                    root = Path(temporary_directory)
+                    self._application_tree(root)
+
+                    with self.assertRaisesRegex(
+                        AuthorityError, "non-package allowlist patterns match nothing"
+                    ):
+                        validate_inventory(root, ["docs/a.md"], allowlist=allowlist)
+
+    def test_local_tool_output_and_env_files_never_reach_the_gate(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            self._application_tree(root)
+            for directory in (".venv/lib", ".local/certificates", "tools/security/.venv"):
+                (root / directory).mkdir(parents=True)
+                (root / directory / "artifact").write_text("local\n", encoding="utf-8")
+            for name in (".env", ".env.local", ".env.production.local"):
+                (root / name).write_text("SECRET=x\n", encoding="utf-8")
+            # Next rewrites this on every dev run and every build, pointing at a
+            # different generated types directory each time.
+            (root / "next-env.d.ts").write_text(
+                'import "./.next/dev/types/routes.d.ts"\n',
+                encoding="utf-8",
+            )
+
+            validate_inventory(
+                root,
+                ["docs/a.md"],
+                allowlist=["package.json", "src/**"],
+            )
+
+    def test_a_tracked_env_example_must_still_be_declared(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            self._application_tree(root)
+            (root / ".env.example").write_text("SUPABASE_URL=\n", encoding="utf-8")
+
+            with self.assertRaisesRegex(AuthorityError, r"unlisted authority files: \.env\.example"):
+                validate_inventory(
+                    root,
+                    ["docs/a.md"],
+                    allowlist=["package.json", "src/**"],
+                )
+
+    def test_allowlist_rejects_unsafe_or_duplicate_patterns(self) -> None:
+        for allowlist in (
+            ["../outside"],
+            ["/etc/passwd"],
+            ["../outside/**"],
+            ["package.json", "package.json"],
+        ):
+            with self.subTest(allowlist=allowlist):
+                with tempfile.TemporaryDirectory() as temporary_directory:
+                    root = Path(temporary_directory)
+                    self._application_tree(root)
+
+                    with self.assertRaises(AuthorityError):
+                        validate_inventory(root, ["docs/a.md"], allowlist=allowlist)
 
 
 class AuthorityPackageTests(unittest.TestCase):
@@ -404,9 +627,12 @@ class RepositoryBootstrapFilesTests(unittest.TestCase):
             "README.md",
             "SECURITY.md",
             "docs/README.md",
+            "docs/architecture/console-route-inventory.json",
+            "docs/architecture/console-ui-conventions.md",
             "docs/architecture/design-partner-console.md",
             "docs/architecture/design-partner-console-program-design.md",
             "docs/architecture/toolchain-baseline.json",
+            "docs/authority/non-package-paths.json",
             "docs/contracts/console-contract-lock.json",
             "docs/contracts/console-contract-v1.0-evidence.json",
             "docs/decisions/0001-two-repository-contract-boundary.md",
@@ -414,6 +640,11 @@ class RepositoryBootstrapFilesTests(unittest.TestCase):
                 "docs/decisions/"
                 "0002-console-contract-consumption-and-immutability-evidence.md"
             ),
+            (
+                "docs/decisions/"
+                "0003-application-source-boundary-and-route-contract.md"
+            ),
+            "docs/decisions/0004-console-lint-and-format-toolchain.md",
             "docs/decisions/README.md",
             "docs/plans/active/README.md",
             (
@@ -440,6 +671,32 @@ class RepositoryBootstrapFilesTests(unittest.TestCase):
         missing = [path for path in required if not (self.root / path).is_file()]
 
         self.assertEqual(missing, [])
+
+    def test_non_package_allowlist_is_sorted_and_disjoint_from_the_package(self) -> None:
+        inventory = json.loads(
+            (self.root / "docs/authority/package-files.json").read_text(encoding="utf-8")
+        )
+        allowlist = json.loads(
+            (
+                self.root / "docs/authority/non-package-paths.json"
+            ).read_text(encoding="utf-8")
+        )
+
+        self.assertIsInstance(allowlist, list)
+        self.assertTrue(all(isinstance(pattern, str) for pattern in allowlist))
+        self.assertEqual(allowlist, sorted(allowlist))
+        self.assertEqual(len(allowlist), len(set(allowlist)))
+
+        exact = {pattern for pattern in allowlist if not pattern.endswith("/**")}
+        prefixes = tuple(
+            pattern[: -len("**")] for pattern in allowlist if pattern.endswith("/**")
+        )
+        packaged = set(inventory)
+        self.assertEqual(sorted(packaged & exact), [])
+        self.assertEqual(
+            sorted(path for path in packaged if path.startswith(prefixes)),
+            [],
+        )
 
     def test_initial_license_and_first_ignore_rule_are_preserved(self) -> None:
         license_digest = hashlib.sha256((self.root / "LICENSE").read_bytes()).hexdigest()
@@ -703,21 +960,97 @@ class CrossRepositoryAuthorityTests(unittest.TestCase):
             "enabled",
         )
 
-    def test_no_dashboard_runtime_scaffold_exists_in_bootstrap(self) -> None:
-        prohibited = [
-            "app",
-            "src",
-            "package.json",
-            "next.config.js",
-            "next.config.mjs",
-            "next.config.ts",
-            "supabase",
-        ]
+    def test_no_tool_injects_content_into_an_authority_document(self) -> None:
+        # `next dev` appends a managed agent-rules block to AGENTS.md whenever
+        # it detects an AI coding agent, with no configuration opt-out. AGENTS.md
+        # is an authority package member, so the digest check already refuses the
+        # change; this names the cause so the failure explains itself.
+        for relative in ("AGENTS.md", "README.md", "SECURITY.md"):
+            document = (self.root / relative).read_text(encoding="utf-8")
+            with self.subTest(document=relative):
+                for marker in (
+                    "BEGIN:nextjs-agent-rules",
+                    "NEXT-AGENTS-MD-START",
+                    "END:nextjs-agent-rules",
+                ):
+                    self.assertNotIn(marker, document)
 
+    def test_dashboard_never_contains_a_supabase_project(self) -> None:
+        # The six sibling EEM-9/01 prohibitions expired when EEM-9/02 created the
+        # runtime. This one is permanent: the backend owns the database, so a
+        # Supabase project here would be a second source of truth. ADR-0003.
+        self.assertFalse((self.root / "supabase").exists())
+
+    def test_app_router_urls_are_exactly_the_reviewed_present_set(self) -> None:
+        inventory = json.loads(
+            (
+                self.root / "docs/architecture/console-route-inventory.json"
+            ).read_text(encoding="utf-8")
+        )
+        application = self.root / "src/app"
+
+        self.assertTrue(
+            application.is_dir(),
+            "the Console scaffold must exist from EEM-9/02 C01 onwards",
+        )
+
+        pages, handlers = collect_app_router_routes(application)
+
+        # Resolving URLs, not folder names: a route group that swallows the
+        # /auth prefix renders correctly and silently breaks a frozen contract.
+        self.assertEqual(pages, sorted(entry["path"] for entry in inventory["present"]))
         self.assertEqual(
-            [path for path in prohibited if (self.root / path).exists()],
+            sorted(url for url in handlers if not url.startswith("/api/")),
             [],
         )
+
+    def test_every_present_route_is_frozen_or_declared_with_an_owner(self) -> None:
+        inventory = json.loads(
+            (
+                self.root / "docs/architecture/console-route-inventory.json"
+            ).read_text(encoding="utf-8")
+        )
+        frozen = inventory["frozenPaths"]
+        declared = {entry["path"]: entry for entry in inventory["declaredRoutes"]}
+
+        self.assertEqual(
+            sorted(frozen),
+            sorted(
+                [
+                    "/auth/*",
+                    "/memory",
+                    "/memory/:knowledgeObjectId",
+                    "/onboarding",
+                    "/processing",
+                    "/repositories",
+                    "/repositories/:repositoryId",
+                    "/repositories/:repositoryId/import",
+                    "/repositories/:repositoryId/memory",
+                    "/repositories/:repositoryId/pull-requests/:prNumber",
+                    "/settings/github",
+                    "/settings/members",
+                    "/settings/usage",
+                ]
+            ),
+        )
+
+        for path, entry in declared.items():
+            with self.subTest(declared=path):
+                self.assertFalse(
+                    matches_frozen_path(path, frozen),
+                    "a route already covered by the freeze must not be declared",
+                )
+                self.assertTrue(entry.get("owner"))
+                self.assertTrue(entry.get("rationale"))
+
+        for entry in inventory["present"]:
+            path = entry["path"]
+            with self.subTest(present=path):
+                self.assertTrue(entry.get("owner"))
+                self.assertTrue(
+                    matches_frozen_path(path, frozen) or path in declared,
+                    f"{path} is neither frozen nor declared with an owner",
+                )
 
 
 class AsvsMatrixTests(unittest.TestCase):

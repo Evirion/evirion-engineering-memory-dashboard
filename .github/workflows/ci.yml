@@ -1,0 +1,105 @@
+name: Console CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: console-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # A gate must never inherit a Compose, staging or paid-run value.
+  NEXT_TELEMETRY_DISABLED: "1"
+  CI: "true"
+
+jobs:
+  verify:
+    name: Lint, typecheck, test and build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out exact source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Pin the Node runtime from .nvmrc
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version-file: .nvmrc
+
+      - name: Activate the pinned pnpm through Corepack
+        run: |
+          corepack enable
+          corepack prepare --activate
+          pnpm --version
+
+      - name: Install from the frozen lockfile
+        run: pnpm install --frozen-lockfile
+
+      - name: Prove install did not rewrite a tracked file
+        run: git diff --exit-code
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Check formatting
+        run: pnpm format:check
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Unit, component and contract tests
+        run: pnpm test:unit
+
+      - name: Production build
+        run: pnpm build
+
+      # SEC-WEB-008: a production build must ship no source map and no debug
+      # surface, and no build step may mutate a tracked file.
+      - name: Prove the build emitted no browser source map
+        run: |
+          if find .next/static -name '*.js.map' -print -quit | grep -q .; then
+            echo "production browser source maps are present"
+            exit 1
+          fi
+          git diff --exit-code
+
+      - name: Dependency audit
+        run: pnpm audit --audit-level high
+
+  security:
+    name: SAST and secret scan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out full history for the secret scan
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # The runner has no uv, and Semgrep is resolved from the committed
+      # tools/security/uv.lock. Pinning the version keeps the resolver that
+      # produces the security gate result from drifting under us.
+      - name: Install the pinned uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d
+        with:
+          version: "0.12.9"
+          enable-cache: false
+
+      - name: Verify the digest-pinned security toolchain
+        run: bash scripts/security/verify-toolchain.sh verify
+
+      - name: Semgrep
+        run: bash scripts/security/verify-toolchain.sh semgrep-scan
+
+      - name: Gitleaks over the full tracked history
+        run: bash scripts/security/verify-toolchain.sh gitleaks-scan

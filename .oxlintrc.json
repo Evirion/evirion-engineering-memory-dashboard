@@ -1,0 +1,45 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react", "nextjs", "jsx-a11y", "typescript", "import", "unicorn"],
+  "env": { "browser": true, "node": true, "es2024": true },
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "error"
+  },
+  "ignorePatterns": [
+    "generated/**",
+    "vendor/**",
+    ".next/**",
+    "coverage/**",
+    "node_modules/**",
+    "playwright-report/**",
+    "test-results/**",
+    "tools/local-tls/.local/**"
+  ],
+  "rules": {
+    "react/react-in-jsx-scope": "off",
+    "import/no-unassigned-import": "off",
+    "no-unused-vars": "error",
+    "no-console": "error",
+    "no-eval": "error",
+    "no-implied-eval": "error",
+    "react/no-danger": "error",
+    "react/no-danger-with-children": "error",
+    "no-script-url": "error",
+    "typescript/no-explicit-any": "error",
+    "typescript/consistent-type-imports": "error",
+    "import/no-cycle": "error",
+    "unicorn/prefer-node-protocol": "error"
+  },
+  "overrides": [
+    {
+      "files": ["tests/**", "tools/**"],
+      "rules": { "no-console": "off" }
+    },
+    {
+      "files": ["tests/e2e/**", "tests/security/**"],
+      "rules": { "no-await-in-loop": "off" }
+    }
+  ]
+}

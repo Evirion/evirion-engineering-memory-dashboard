@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "1.0",
+  "frozenPaths": [
+    "/auth/*",
+    "/memory",
+    "/memory/:knowledgeObjectId",
+    "/onboarding",
+    "/processing",
+    "/repositories",
+    "/repositories/:repositoryId",
+    "/repositories/:repositoryId/import",
+    "/repositories/:repositoryId/memory",
+    "/repositories/:repositoryId/pull-requests/:prNumber",
+    "/settings/github",
+    "/settings/members",
+    "/settings/usage"
+  ],
+  "declaredRoutes": [
+    {
+      "path": "/",
+      "owner": "EEM-9/02",
+      "rationale": "Root entry created by implementation task C01. Requirements Section 10 lists no root path, so it is declared rather than frozen. C01 renders the unauthenticated shell; C02 replaces it with a server-side redirect to the authorized destination. It renders no customer data."
+    },
+    {
+      "path": "/settings/sessions",
+      "owner": "EEM-9/02",
+      "rationale": "Self-service application-session inventory required by AUTH-007 and AUTH-008. The implementation plan's C02 file list places it under settings; requirements Section 10 does not list it. Owner decision of 2026-09-02 accepts it as a reviewed fourteenth path rather than relocating it under /auth/*."
+    }
+  ],
+  "present": [
+    { "path": "/", "owner": "EEM-9/02" },
+    { "path": "/auth/invite", "owner": "EEM-9/02" },
+    { "path": "/auth/mfa/challenge", "owner": "EEM-9/02" },
+    { "path": "/auth/mfa/enroll", "owner": "EEM-9/02" },
+    { "path": "/auth/recovery", "owner": "EEM-9/02" },
+    { "path": "/auth/sign-in", "owner": "EEM-9/02" },
+    { "path": "/auth/verify", "owner": "EEM-9/02" },
+    { "path": "/onboarding", "owner": "EEM-9/02" },
+    { "path": "/settings/sessions", "owner": "EEM-9/02" }
+  ]
+}

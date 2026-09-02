@@ -15,20 +15,22 @@ the [controlling EEM-9 plan](plans/active/eem-9-design-partner-console-dashboard
 2. `EEM-9/01-dashboard-catalog-remediation` — PR
    [#2](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/2)
    merged at `773f3af`, restoring the accepted `/02`–`/10` catalog aliases.
-3. EEM-9/01b is one subtask delivered as three sequential pull requests:
-   1. backend PR
-      [#51](https://github.com/Evirion/evirion-engineering-memory/pull/51),
-      merged, which published the immutable signed `console-contract-v1.0`
-      release;
-   2. this Dashboard pull request, which pins and consumes those published
-      bytes and corrects the EEM-9/01 attestation text and release workflow
-      that consumption proved unexecutable;
-   3. the backend successor pointer, which re-pins this repository's merged
-      commit, corrected artifacts, and new authority package digest.
+3. `EEM-9/01b` is complete. It was one subtask delivered as three sequential
+   pull requests: backend PR
+   [#51](https://github.com/Evirion/evirion-engineering-memory/pull/51), which
+   published the immutable signed `console-contract-v1.0` release; Dashboard PR
+   [#3](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/3),
+   merged at `a6665b5`, which consumed those bytes and corrected the EEM-9/01
+   attestation text and release workflow; and backend PR
+   [#52](https://github.com/Evirion/evirion-engineering-memory/pull/52), the
+   successor pointer, which re-pinned this repository.
+4. `EEM-9/02-auth-shell` is implemented and locally verified on its branch.
+   It is not pushed, has no pull request and is not merged.
 
-EEM-9/01b is complete only after all three merge and the EEM-3 global-lock
-attestation remains non-contradictory. EEM-4/01 and EEM-9/02 remain blocked
-until then.
+All EEM-4 subtasks are merged in the backend as PRs
+[#26](https://github.com/Evirion/evirion-engineering-memory/pull/26)–[#29](https://github.com/Evirion/evirion-engineering-memory/pull/29),
+so the EEM-9/02 prerequisite is satisfied. An earlier statement here that
+EEM-4/01 remained blocked was stale.
 
 ## Accepted cross-repository order
 
