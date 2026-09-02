@@ -124,6 +124,73 @@ test.describe("repository inventory states", () => {
   })
 })
 
+test.describe("journey_open_one_repository", () => {
+  test("reaches the detail page from the list and keeps the axes apart", async ({
+    context,
+    page,
+  }) => {
+    await signIn(context)
+
+    await page.goto("/repositories")
+    await page.getByRole("link", { name: "acme/extraction" }).click()
+
+    await expect(page.getByRole("heading", { name: "acme/extraction" })).toBeVisible()
+    await expect(page.getByRole("region", { name: "Entitlement" })).toContainText(
+      "Active",
+    )
+    await expect(page.getByRole("region", { name: "Recorded consent" })).toContainText(
+      "standard-extraction",
+    )
+  })
+
+  test("keeps the four gates separate and says who decides each", async ({
+    context,
+    page,
+  }) => {
+    await signIn(context)
+
+    await page.goto("/repositories")
+    await page.getByRole("link", { name: "acme/console" }).click()
+
+    const gates = page.getByRole("region", { name: "What each step means" })
+    await expect(gates).toContainText("Source work")
+    await expect(gates).toContainText("Your consent")
+    await expect(gates).toContainText("Evirion authorization")
+    await expect(gates).toContainText("Paid execution")
+    // Consent is never presented as satisfying Evirion authorization.
+    await expect(gates).toContainText("Your consent never grants this")
+  })
+
+  test("shows an outstanding change request as a wait with no action", async ({
+    context,
+    page,
+  }) => {
+    await signIn(context)
+
+    await page.goto("/repositories")
+    await page.getByRole("link", { name: "acme/search" }).click()
+
+    const notice = page.getByRole("region", { name: "Change request" })
+    await expect(notice).toContainText("with an Evirion operator")
+    await expect(notice.getByRole("button")).toHaveCount(0)
+  })
+
+  test("shows no repository counters, because the contract publishes none", async ({
+    context,
+    page,
+  }) => {
+    await signIn(context)
+
+    await page.goto("/repositories")
+    await page.getByRole("link", { name: "acme/console" }).click()
+
+    // Open decision 6 is blocked on a contract gap. Nothing here may invent a
+    // count, and an unavailable aggregate must never render as zero.
+    await expect(page.getByText(/merged pull requests discovered/i)).toHaveCount(0)
+    await expect(page.getByText(/knowledge objects/i)).toHaveCount(0)
+  })
+})
+
 test.describe("repository tenant boundary", () => {
   test("sends an unauthenticated caller to sign-in", async ({ page }) => {
     await page.goto("/repositories")
