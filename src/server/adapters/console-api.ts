@@ -10,10 +10,11 @@ import {
 /**
  * The only path from the Console to the backend.
  *
- * Every response is validated with the generated runtime schema before it
- * reaches a page. An unrecognised shape is an explicit unsupported state, not
- * a partially rendered document, and a raw SQL, Supabase, GitHub, worker or
- * provider error is never forwarded.
+ * Every response arrives inside the contract envelope, and both halves are
+ * checked the same way: the envelope first, then the payload against the
+ * generated runtime schema. An unrecognised shape is an explicit unsupported
+ * state, not a partially rendered document, and a raw SQL, Supabase, GitHub,
+ * worker or provider error is never forwarded.
  *
  * This adapter forwards the caller token, a canonical idempotency key, the
  * exact expected-version set and a bounded correlation ID. It never sends a
@@ -26,8 +27,47 @@ export type ConsoleFailure =
   | { readonly kind: "unreachable" }
 
 export type ConsoleResult<T> =
-  | { readonly ok: true; readonly value: T }
+  | {
+      readonly ok: true
+      readonly value: T
+      /** The backend request identifier, quoted to support without a retry. */
+      readonly requestId: string
+    }
   | { readonly ok: false; readonly failure: ConsoleFailure }
+
+export type SuccessEnvelope = {
+  readonly contractVersion: "1.0"
+  readonly requestId: string
+  readonly data: unknown
+}
+
+const UUID =
+  /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
+
+/**
+ * The success half of the response envelope, checked exactly as the generated
+ * `isConsoleError` checks the failure half.
+ *
+ * Both halves must agree. Unwrapping `data` without pinning `contractVersion`
+ * would let a backend version bump pass silently on success while the error
+ * path still rejected it, which is precisely what the field exists to prevent.
+ * `data` carries no schema in the contract, so only its presence is asserted
+ * here and the payload validator owns its shape.
+ */
+export const isSuccessEnvelope = (value: unknown): value is SuccessEnvelope => {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return false
+  const envelope = value as Record<string, unknown>
+
+  return (
+    Object.keys(envelope).every((key) =>
+      ["contractVersion", "data", "requestId"].includes(key),
+    ) &&
+    envelope["contractVersion"] === "1.0" &&
+    "data" in envelope &&
+    typeof envelope["requestId"] === "string" &&
+    UUID.test(envelope["requestId"])
+  )
+}
 
 export type ConsoleRequest = {
   readonly method: "GET" | "POST" | "PATCH" | "DELETE"
@@ -105,11 +145,11 @@ export const callConsoleApi = async <T>(
       : { ok: false, failure: { kind: "unsupported", status: response.status } }
   }
 
-  if (!isExpected(payload)) {
+  if (!isSuccessEnvelope(payload) || !isExpected(payload.data)) {
     return { ok: false, failure: { kind: "unsupported", status: response.status } }
   }
 
-  return { ok: true, value: payload }
+  return { ok: true, value: payload.data, requestId: payload.requestId }
 }
 
 /**
@@ -117,7 +157,9 @@ export const callConsoleApi = async <T>(
  *
  * It is absent from the customer OpenAPI on purpose, so it has no generated
  * validator. The exact bearer token alone is not sufficient: the backend also
- * requires the one-time BFF-signed proof, which no browser can mint.
+ * requires the one-time BFF-signed proof, which no browser can mint. Being
+ * internal does not exempt it from the envelope: the backend answers every
+ * route, this one included, through its single success responder.
  */
 export const SESSION_BOOTSTRAP_PATH = "/internal/console/v1/session/bootstrap"
 

@@ -1,5 +1,54 @@
 # Dashboard changelog
 
+## 2026-09-02 — EEM-9/02b Console response envelope
+
+- Why: EEM-9/03 could not read a repository, and the merged Auth shell could not
+  have read a live session either. The backend answers every route through one
+  success responder that emits `{contractVersion, requestId, data}`, but the
+  Console validated that whole document against the generated payload schema.
+  Those schemas reject unknown keys, so every real success would have been
+  classified `unsupported` and every protected page would have rendered its
+  fail-closed unavailable state. Nothing caught it because the transport
+  fixtures were written to match the validator rather than the backend.
+- Contracts: `callConsoleApi` now checks the success envelope exactly as the
+  generated `isConsoleError` checks the failure envelope — the three keys and no
+  others, `contractVersion` pinned to `1.0`, and a UUID `requestId` — then hands
+  only `data` to the payload validator. Unwrapping alone was rejected: without
+  the version pin, a backend bump would pass silently on success while the error
+  path still refused it, which is what the field exists to prevent. `data`
+  carries no schema in the contract, so only its presence is asserted and the
+  payload validator still owns its shape.
+- Behavior: the success arm of `ConsoleResult` now carries `requestId`. It is
+  the support-correlation handle a customer can quote without retrying, and the
+  `PROC-002` call to action in EEM-9/06 needs it.
+- Behavior: the private session bootstrap is enveloped too. Being absent from
+  the customer OpenAPI exempts it from having a generated validator, not from
+  the responder every route shares.
+- Behavior: `src/server/queries/invitation-choices.ts` reads `/v1/session/pre-auth`
+  directly rather than through the adapter and had the same assumption. It now
+  imports the adapter's envelope guard instead of carrying a second one, and its
+  parsing is exposed as `parseInvitationChoices` so it is provable in isolation.
+- Tests: every transport fixture now sends what the backend sends. Correcting
+  only the expectations would have re-admitted the same class of defect, so the
+  fixtures moved and negatives were added for an absent envelope, an unannounced
+  contract version, a non-UUID request identifier, an unexpected envelope key,
+  and a payload that fails its validator inside a valid envelope.
+- Not changed: the client generator and the contract. The asymmetry is the
+  contract's own — `Error` models a complete response body while every payload
+  schema models the `data` member — and `packageSha256`
+  `53da9379428d8f34b7e674805019244e85ed89a7cd6f0e1d9b4a2a79b23d6b6c` does not
+  move.
+- Verification: lint, format, `tsc --noEmit`, 253 Vitest tests including 24 in
+  the two envelope suites, a production build, and 45 Playwright tests over
+  `https://console.evirion.test:3443` all pass. Local Node is 22.18.0 against a
+  baseline pin of 24.20.0; CI runs the pinned runtime.
+- Deployment state: implemented and locally verified only. Not merged, not
+  deployed, not observed, not staging-certified, not paid-certified, not
+  production-certified. No backend, hosted Supabase, provider or paid path was
+  touched; the sibling repository was read with `git show` at the pinned commit.
+- Remaining gates: EEM-9/07 proves this against a live backend. `SEC-2026-012`
+  remains open and readiness-blocking.
+
 ## 2026-09-02 — EEM-9/02 secure Console shell and invite-only authentication
 
 - Why: EEM-9/02 builds the Console shell and the invite-only email-OTP

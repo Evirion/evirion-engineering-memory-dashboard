@@ -23,10 +23,22 @@ backend PR
 [#52](https://github.com/Evirion/evirion-engineering-memory/pull/52) re-pinned
 the corrected Dashboard commit and authority digest.
 
-EEM-9/02 is implemented and locally verified on `EEM-9/02-auth-shell`, and is
-not pushed or merged. Its Definition-of-Done trace is
-[`eem-9-02-acceptance-trace.md`](eem-9-02-acceptance-trace.md). EEM-9/03 stays
-blocked until EEM-6 and this subtask merge.
+EEM-9/02 is merged as Dashboard PR
+[#4](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/4).
+Its Definition-of-Done trace is
+[`eem-9-02-acceptance-trace.md`](eem-9-02-acceptance-trace.md).
+
+`EEM-9/02b-response-envelope` corrects the response-envelope handling that
+subtask left latent, and merges before EEM-9/03 starts. All EEM-6 subtasks are
+merged in the backend, so the remaining EEM-9/03 prerequisite is that
+correction.
+
+The EEM-9/03 request below names "the attestation-verified EEM-6 contract lock".
+No such artifact exists and none is required: the single
+[`console-contract-lock.json`](../../contracts/console-contract-lock.json) pins
+backend source commit `20cd3b60`, which descends from every merged EEM-6
+commit, and already carries the repository, entitlement and GitHub operations.
+Read the sibling with `git show 20cd3b60:<path>`.
 
 ## Copy-ready requests
 

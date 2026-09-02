@@ -4,6 +4,7 @@ import { isSessionContext } from "@contracts/console"
 
 import {
   type ConsoleTransport,
+  bootstrapSession,
   buildConsoleHeaders,
   callConsoleApi,
 } from "@/server/adapters/console-api"
@@ -21,6 +22,21 @@ const sessionContext = {
   role: "reviewer",
   capabilities: ["knowledge.read"],
 }
+
+const REQUEST_ID = "00000000-0000-4000-8000-0000000001aa"
+
+/**
+ * What `supabase/functions/console-api/index.ts` actually puts on the wire.
+ *
+ * The earlier fixtures sent the bare payload, which matched the generated
+ * validator instead of the backend, so no test could see that the adapter
+ * never unwrapped the envelope.
+ */
+const enveloped = (data: unknown, requestId: string = REQUEST_ID): unknown => ({
+  contractVersion: "1.0",
+  requestId,
+  data,
+})
 
 const transportReturning = (status: number, payload: unknown): ConsoleTransport =>
   vi.fn(async () => ({ status, json: async () => payload }))
@@ -78,19 +94,23 @@ describe("what the BFF forwards", () => {
 })
 
 describe("what the BFF accepts back", () => {
-  it("returns a contract-valid projection", async () => {
+  it("unwraps the success envelope and returns the contract-valid projection", async () => {
     const result = await callConsoleApi(
       "https://api.evirion.test",
       baseRequest,
       isSessionContext,
-      transportReturning(200, sessionContext),
+      transportReturning(200, enveloped(sessionContext)),
     )
 
-    expect(result).toEqual({ ok: true, value: sessionContext })
+    expect(result).toEqual({
+      ok: true,
+      value: sessionContext,
+      requestId: REQUEST_ID,
+    })
   })
 
   it("never caches an authenticated tenant response", async () => {
-    const transport = transportReturning(200, sessionContext)
+    const transport = transportReturning(200, enveloped(sessionContext))
 
     await callConsoleApi(
       "https://api.evirion.test",
@@ -110,7 +130,67 @@ describe("what the BFF accepts back", () => {
       "https://api.evirion.test",
       baseRequest,
       isSessionContext,
-      transportReturning(200, { role: "sovereign", capabilities: "everything" }),
+      transportReturning(
+        200,
+        enveloped({ role: "sovereign", capabilities: "everything" }),
+      ),
+    )
+
+    expect(result).toEqual({ ok: false, failure: { kind: "unsupported", status: 200 } })
+  })
+
+  it("rejects a success body that carries no envelope", async () => {
+    // The projection itself is valid. Accepting it would mean the adapter
+    // cannot tell a contract response from an arbitrary JSON document.
+    const result = await callConsoleApi(
+      "https://api.evirion.test",
+      baseRequest,
+      isSessionContext,
+      transportReturning(200, sessionContext),
+    )
+
+    expect(result).toEqual({ ok: false, failure: { kind: "unsupported", status: 200 } })
+  })
+
+  it("rejects an unannounced contract version on the success path", async () => {
+    // `isConsoleError` already pins "1.0". Without the same check on success,
+    // a backend bump would pass silently one way and fail the other.
+    const result = await callConsoleApi(
+      "https://api.evirion.test",
+      baseRequest,
+      isSessionContext,
+      transportReturning(200, {
+        contractVersion: "1.1",
+        requestId: REQUEST_ID,
+        data: sessionContext,
+      }),
+    )
+
+    expect(result).toEqual({ ok: false, failure: { kind: "unsupported", status: 200 } })
+  })
+
+  it("rejects a success envelope whose request identifier is not a UUID", async () => {
+    const result = await callConsoleApi(
+      "https://api.evirion.test",
+      baseRequest,
+      isSessionContext,
+      transportReturning(200, enveloped(sessionContext, "not-a-uuid")),
+    )
+
+    expect(result).toEqual({ ok: false, failure: { kind: "unsupported", status: 200 } })
+  })
+
+  it("rejects a success envelope carrying an unexpected key", async () => {
+    const result = await callConsoleApi(
+      "https://api.evirion.test",
+      baseRequest,
+      isSessionContext,
+      transportReturning(200, {
+        contractVersion: "1.0",
+        requestId: REQUEST_ID,
+        data: sessionContext,
+        debug: { sql: "select 1" },
+      }),
     )
 
     expect(result).toEqual({ ok: false, failure: { kind: "unsupported", status: 200 } })
@@ -177,6 +257,41 @@ describe("what the BFF accepts back", () => {
       baseRequest,
       isSessionContext,
       unparsable,
+    )
+
+    expect(result).toEqual({ ok: false, failure: { kind: "unsupported", status: 200 } })
+  })
+})
+
+describe("the private session bootstrap", () => {
+  const bootstrapRequest = {
+    accessToken: "caller-access-token",
+    correlationId: "correlation-1",
+    idempotencyKey: "00000000-0000-4000-8000-0000000002aa",
+    bootstrapProof: "proof",
+  }
+
+  it("accepts the receipt through the same envelope as every customer route", async () => {
+    // The internal route is absent from the customer OpenAPI, but the backend
+    // answers it with the one `succeed` responder, so it is enveloped too.
+    const result = await bootstrapSession(
+      "https://api.evirion.test",
+      bootstrapRequest,
+      transportReturning(200, enveloped({ registered: true })),
+    )
+
+    expect(result).toEqual({
+      ok: true,
+      value: { registered: true },
+      requestId: REQUEST_ID,
+    })
+  })
+
+  it("rejects a bare receipt with no envelope", async () => {
+    const result = await bootstrapSession(
+      "https://api.evirion.test",
+      bootstrapRequest,
+      transportReturning(200, { registered: true }),
     )
 
     expect(result).toEqual({ ok: false, failure: { kind: "unsupported", status: 200 } })
