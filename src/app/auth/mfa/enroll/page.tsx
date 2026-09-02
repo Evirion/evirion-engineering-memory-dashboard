@@ -10,8 +10,11 @@ export const fetchCache = "force-no-store"
  * a refreshed current and next AAL prove `aal2`.
  *
  * The QR image and raw seed are one-time browser-visible privileged material.
- * They are rendered only on this dynamic `private, no-store` response and are
- * never carried into router cache, prefetch, analytics, logs or error capture.
+ * Displaying them is deliberately not done here yet: it requires rendering the
+ * enrolment response itself under `private, no-store` without it reaching
+ * router cache, prefetch, analytics, logs or error capture, and that lands
+ * with the live MFA flow in EEM-9/07. This page therefore promises only what
+ * it does, which is to register the factor and move to confirmation.
  */
 const MfaEnrollPage = async () => {
   const csrfToken = await readSessionCsrfToken()
@@ -28,8 +31,8 @@ const MfaEnrollPage = async () => {
         </p>
       </div>
       <p className="rounded border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-700">
-        The setup code is shown once and is not recoverable from this page afterwards.
-        If you leave before finishing, start again from the beginning.
+        Enrolling registers a factor against your account and then asks you to confirm
+        one code. Nothing privileged becomes available until that confirmation succeeds.
       </p>
       <form action="/api/auth/mfa/enroll" method="post" className="flex flex-col gap-4">
         <input type="hidden" name="csrfToken" value={csrfToken} />
