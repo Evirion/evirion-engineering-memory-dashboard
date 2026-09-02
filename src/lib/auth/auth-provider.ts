@@ -44,6 +44,19 @@ export type IssuedTokens = {
 
 export type SignOutScope = "local" | "others" | "global"
 
+/**
+ * One-time browser-visible privileged material. It is returned only to a
+ * dynamic `private, no-store` response and never enters router cache,
+ * prefetch, analytics, logs, audit metadata or later navigation state.
+ */
+export type TotpEnrolment = {
+  readonly factorId: string
+  readonly qrCode: string
+  readonly secret: string
+}
+
+export type TotpChallenge = { readonly factorId: string; readonly challengeId: string }
+
 export type AuthProvider = {
   /** Send an email OTP. `shouldCreateUser` is always false: no public signup. */
   requestEmailOtp(email: string): Promise<AuthOutcome<null>>
@@ -52,18 +65,36 @@ export type AuthProvider = {
   getUser(accessToken: string): Promise<AuthOutcome<VerifiedUser>>
   refresh(refreshToken: string): Promise<AuthOutcome<IssuedTokens>>
   signOut(accessToken: string, scope: SignOutScope): Promise<AuthOutcome<null>>
+  enrollTotp(accessToken: string): Promise<AuthOutcome<TotpEnrolment>>
+  challengeTotp(accessToken: string): Promise<AuthOutcome<TotpChallenge>>
+  verifyTotp(
+    accessToken: string,
+    challenge: TotpChallenge,
+    code: string,
+  ): Promise<AuthOutcome<IssuedTokens>>
 }
+
+const REQUEST_LOCAL_AUTH = {
+  // Nothing about this client may outlive the request, and it must never
+  // write a token anywhere the browser can reach.
+  persistSession: false,
+  autoRefreshToken: false,
+  detectSessionInUrl: false,
+} as const
 
 const anonymousClient = () => {
   const environment = readServerEnvironment()
   return createClient(environment.supabaseUrl, environment.supabasePublishableKey, {
-    auth: {
-      // Nothing about this client may outlive the request, and it must never
-      // write a token anywhere the browser can reach.
-      persistSession: false,
-      autoRefreshToken: false,
-      detectSessionInUrl: false,
-    },
+    auth: REQUEST_LOCAL_AUTH,
+  })
+}
+
+/** A request-local client acting as the caller, never as a service role. */
+const callerClient = (accessToken: string) => {
+  const environment = readServerEnvironment()
+  return createClient(environment.supabaseUrl, environment.supabasePublishableKey, {
+    auth: REQUEST_LOCAL_AUTH,
+    global: { headers: { Authorization: `Bearer ${accessToken}` } },
   })
 }
 
@@ -174,26 +205,75 @@ export const createSupabaseAuthProvider = (): AuthProvider => ({
     try {
       // Signing out uses the caller's own token. The admin surface would need
       // a service-role key, which the BFF must never hold.
-      const environment = readServerEnvironment()
-      const client = createClient(
-        environment.supabaseUrl,
-        environment.supabasePublishableKey,
-        {
-          auth: {
-            persistSession: false,
-            autoRefreshToken: false,
-            detectSessionInUrl: false,
-          },
-          global: { headers: { Authorization: `Bearer ${accessToken}` } },
-        },
-      )
-      const { error } = await client.auth.signOut({ scope })
+      const { error } = await callerClient(accessToken).auth.signOut({ scope })
       return error
         ? { status: "denied", reason: "sign-out-rejected" }
         : { status: "ok", value: null }
     } catch {
       // Application denial has already committed; the provider effect is
       // reconciled by observation, never by a blind retry.
+      return { status: "unknown" }
+    }
+  },
+
+  async enrollTotp(accessToken) {
+    try {
+      const { data, error } = await callerClient(accessToken).auth.mfa.enroll({
+        factorType: "totp",
+      })
+      if (error || !data) return { status: "denied", reason: "enrolment-denied" }
+
+      return {
+        status: "ok",
+        value: {
+          factorId: data.id,
+          qrCode: data.totp.qr_code,
+          secret: data.totp.secret,
+        },
+      }
+    } catch {
+      return { status: "unknown" }
+    }
+  },
+
+  async challengeTotp(accessToken) {
+    try {
+      const client = callerClient(accessToken)
+      const { data: factors, error: listError } = await client.auth.mfa.listFactors()
+      const factor = factors?.totp?.find((candidate) => candidate.status === "verified")
+      if (listError || !factor)
+        return { status: "denied", reason: "no-verified-factor" }
+
+      const { data, error } = await client.auth.mfa.challenge({ factorId: factor.id })
+      if (error || !data) return { status: "denied", reason: "challenge-denied" }
+
+      return { status: "ok", value: { factorId: factor.id, challengeId: data.id } }
+    } catch {
+      return { status: "unknown" }
+    }
+  },
+
+  async verifyTotp(accessToken, challenge, code) {
+    try {
+      const { data, error } = await callerClient(accessToken).auth.mfa.verify({
+        factorId: challenge.factorId,
+        challengeId: challenge.challengeId,
+        code,
+      })
+      if (error || !data) return { status: "denied", reason: "totp-rejected" }
+
+      return {
+        status: "ok",
+        value: {
+          accessToken: data.access_token,
+          refreshToken: data.refresh_token,
+          // The MFA verify response reports a relative lifetime, not an
+          // absolute expiry, so it is converted rather than assumed.
+          accessTokenExpiresAt: Math.floor(Date.now() / 1000) + data.expires_in,
+          sessionId: extractSessionId(data.access_token),
+        },
+      }
+    } catch {
       return { status: "unknown" }
     }
   },

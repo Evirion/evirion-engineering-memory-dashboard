@@ -1,6 +1,7 @@
 import type { ReactNode } from "react"
 
 import { ConsoleNavigation } from "@/components/layout/console-navigation"
+import { readSessionCsrfToken } from "@/server/actions/session-csrf-read"
 import { requireSessionContext } from "@/server/queries/session-context"
 
 // A tenant response must never enter the Next.js data, router or CDN cache.
@@ -15,6 +16,7 @@ export const fetchCache = "force-no-store"
  */
 const ConsoleLayout = async ({ children }: { children: ReactNode }) => {
   const result = await requireSessionContext()
+  const csrfToken = await readSessionCsrfToken()
 
   if (result.status === "unavailable") {
     return (
@@ -27,7 +29,7 @@ const ConsoleLayout = async ({ children }: { children: ReactNode }) => {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <ConsoleNavigation context={result.context} />
+      <ConsoleNavigation context={result.context} csrfToken={csrfToken} />
       <main className="mx-auto w-full max-w-5xl flex-1 p-6">{children}</main>
     </div>
   )

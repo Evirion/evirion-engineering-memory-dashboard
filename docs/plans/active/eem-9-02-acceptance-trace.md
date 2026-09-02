@@ -27,14 +27,14 @@ Rows are numbered in the order the plan states them.
 | 5 | `verifyOtp` server-side, tokens only in `__Host-` cookies, clean `303` | covered | `src/app/api/auth/verify-otp/route.ts`; `tests/security/auth-session-recovery.spec.ts`; `tests/unit/auth/session-broker.test.ts` |
 | 6 | Local browser/E2E uses the pinned HTTPS origin and proves the same `__Host-`/`Secure` attributes as staging | covered | `playwright.config.ts` and `tools/local-tls/`; `tests/security/auth-session-recovery.spec.ts` asserts the attributes. `ignoreHTTPSErrors` is never set |
 | 7 | Existing-member and invited-member bootstrap, transient post-OTP retry, terminal cleanup, unregistered-session bypass | partial | `tests/unit/auth/pre-auth-transaction.test.ts` covers the state machine including re-enterable `BOOTSTRAP_PENDING` and terminal cleanup. The backend bootstrap transaction is `EEM-4/03`; the wired round trip is `EEM-9/07` |
-| 8 | Zero/one/many invitations, opaque post-auth selection, no pre-auth disclosure, no order-based auto-selection | covered | `src/server/queries/invitation-choices.ts`; `tests/e2e/auth.spec.ts` |
+| 8 | Zero/one/many invitations, opaque post-auth selection, no pre-auth disclosure, no order-based auto-selection | covered | `src/server/queries/invitation-choices.ts` and `src/app/api/auth/select-invitation/route.ts`; `tests/e2e/auth.spec.ts` |
 | 9 | Current-generation delivery `OUTCOME_UNKNOWN` reconciles exactly once; no automatic verification retry | covered | `tests/unit/auth/pre-auth-transaction.test.ts` |
 | 10 | A provider bearer without BFF proof, a wrong or retired key, an expired or replayed proof, and direct bootstrap invocation create no mutation | owned elsewhere | Backend `EEM-4/03` owns proof consumption and rejection. The Console side is `src/lib/auth/bootstrap-proof.ts`, whose claim set is fixed here; end-to-end refusal is `EEM-9/07` |
 | 11 | BFF and backend independently perform online exact-token `getUser`; wrong issuer/audience/algorithm, rotation and Auth outage fail closed | partial | `src/lib/auth/auth-provider.ts` uses `getUser(accessToken)` only and maps an outage to `unknown` with no domain effect; `tools/security/semgrep.yml` forbids `getSession`. Backend-side validation is `EEM-4/03` |
 | 12 | Anonymous flag, unsupported `amr`, password/phone/OAuth/recovery/linked identity and configuration drift deny | covered | `tests/unit/auth/identity-admission.test.ts`; `tests/contract/backend-auth-parity.test.ts` |
 | 13 | Provider-valid but unregistered/revoked/expired `session_id` fails every path; revocation denies before provider reconciliation | partial | `src/app/api/auth/sessions/revoke/route.ts` commits application denial first; `tests/unit/auth/session-revocation.test.ts`. The registry itself is backend `EEM-4/03` |
 | 14 | Provider scope mapping and selected-non-current `NOT_APPLICABLE` visible in bounded UX and audit; response loss observes before retry | covered | `src/lib/auth/session-revocation.ts`; `tests/unit/auth/session-revocation.test.ts`; `src/app/(console)/settings/sessions/page.tsx` states it |
-| 15 | TOTP/AAL2, session inventory, recent reauthentication, factor-change termination, recovery and final-owner matrices | partial | `tests/unit/auth/identity-admission.test.ts` covers AAL evidence; the Auth surfaces exist at `/auth/mfa/*` and `/auth/recovery`. Backend enforcement is `EEM-4/03`; the live matrix is `EEM-9/07` |
+| 15 | TOTP/AAL2, session inventory, recent reauthentication, factor-change termination, recovery and final-owner matrices | partial | Enrolment, challenge and verification are wired through `src/app/api/auth/mfa/*` onto the provider MFA surface; `tests/unit/auth/identity-admission.test.ts` covers AAL evidence. Recovery is deliberately operator-led with no self-service form. Backend enforcement is `EEM-4/03`; the live matrix is `EEM-9/07` |
 | 16 | Stale post-factor-change `aal2`, forced refresh, current/next AAL and `REAUTH_REQUIRED` | covered | `tests/unit/auth/identity-admission.test.ts` |
 | 17 | First TOTP enrolment from fresh AAL1 tested separately from later reauthentication; no privileged action before `aal2` | partial | `satisfiesPrivilegedAal` requires both current and next AAL, tested in `tests/unit/auth/identity-admission.test.ts`; `/auth/mfa/enroll` states the constraint. The privileged-action matrix is backend `EEM-4/03` |
 | 18 | Reauth replay/session/action/expiry mismatch and TOTP seed absence after navigation | partial | Seed handling is a dynamic `private, no-store` response asserted by `tests/security/auth-session-recovery.spec.ts`. The application reauth challenge is backend-owned; the ceremony fixtures are `EEM-9/07` |
@@ -43,7 +43,7 @@ Rows are numbered in the order the plan states them.
 | 21 | Chunked-cookie rotation and logout clear every old `__Host-` chunk; over-budget state fails closed | covered | `tests/unit/auth/session-cookies.test.ts`; `tests/unit/auth/session-broker.test.ts` |
 | 22 | Unchunked collision, gap, duplicate, reorder, corruption, mixed generation, excess and stale chunks and aggregate overflow clear slots with no effect | covered | `tests/unit/auth/session-cookies.test.ts` |
 | 23 | Per-response CSP nonces unique across warm instances and bound to the enforced header; no `unsafe-inline`/`unsafe-eval` | covered | `tests/security/headers-cache-isolation.spec.ts` |
-| 24 | Session-bound CSRF, exact Origin/Host/Fetch-Metadata/content-type and trusted proxy across cross-site, sibling subdomain, malformed Origin and forged forwarding | covered | `tests/security/csrf-origin.spec.ts`; `tests/unit/auth/request-origin.test.ts`; `tests/unit/auth/csrf.test.ts` |
+| 24 | Session-bound CSRF, exact Origin/Host/Fetch-Metadata/content-type and trusted proxy across cross-site, sibling subdomain, malformed Origin and forged forwarding | covered | The proxy mints a session-bound proof and every post-authentication form carries it, asserted by `tests/contract/form-actions.test.ts`; `tests/security/csrf-origin.spec.ts`; `tests/unit/auth/request-origin.test.ts`; `tests/unit/auth/csrf.test.ts` |
 | 25 | Pre-auth CSRF covers OTP request/verify/selection, login CSRF, session swapping, replay, parallel tabs, stale generation and direct form posts | covered | `tests/unit/auth/csrf.test.ts`; `tests/security/csrf-origin.spec.ts` |
 | 26 | Force-dynamic/no-store, zero hosting TTL and no module-scope state across nonce-bearing and authenticated responses | covered | `tests/security/headers-cache-isolation.spec.ts`; `tests/security/auth-session-recovery.spec.ts`. Warm-instance cross-tenant leakage with two live tenants is `EEM-9/07` |
 | 27 | Direct Auth endpoint tests prove OTP expiry/resend/IP/email bounds, generic anti-enumeration and CAPTCHA equivalent | owned elsewhere | `AUTH-009` primary evidence is `I01-C` (`EEM-9/07`). The Console half is here: the frozen expiry and cooldown are asserted by `tests/contract/backend-auth-parity.test.ts`, and identical known/unknown responses by `tests/e2e/auth.spec.ts` |
@@ -85,6 +85,24 @@ sign-in journey is keyboard reachable, both in `tests/e2e/auth.spec.ts` — and
 records that the configured axe gate cannot be written until the product owner
 answers. `NFR-ACC-001` names `I01-C` as primary owner, so the decision is due
 before `EEM-9/07`, not before this merge. Nothing here selects a level.
+
+## Independent review
+
+One bounded review wave ran against this tree: a correctness reviewer and a
+security reviewer in parallel. The security reviewer found no issue at medium
+severity or above, and confirmed the token boundary, the mutation-guard
+ordering, the cookie contract and the canonical-redirect fix.
+
+It did surface a functional defect the self-audit missed: five forms posted to
+route handlers that were never written, so those controls rendered and returned
+`404`. Nothing in lint, typecheck, the build or the route guard could see it,
+because the guard checks that routes are declared rather than that referenced
+routes exist. The remediation wave implemented `/api/auth/organization`,
+`/api/auth/select-invitation`, `/api/auth/mfa/enroll` and
+`/api/auth/mfa/challenge`, replaced the recovery form with the operator-led
+surface the backend contract actually supports, minted the session-bound CSRF
+proof the post-authentication forms needed, and added
+`tests/contract/form-actions.test.ts` so the class of defect cannot recur.
 
 ## What this subtask does not claim
 

@@ -68,9 +68,18 @@
   attestation-verified contract lock records, so CI proves parity without a
   cross-repository read. `scripts/check_backend_auth_parity.py` closes the
   other half locally by re-reading the sibling with `git show`.
-- Verification: lint, format, `tsc --noEmit`, 236 Vitest tests, production
+- Review: one bounded independent wave ran against the final tree. No security
+  issue at medium severity or above. It found that five forms posted to route
+  handlers that were never written, which lint, typecheck, the build and the
+  route guard could all miss, because the guard checks that routes are declared
+  rather than that referenced routes exist. The remediation added the four
+  missing BFF routes, replaced the recovery form with the operator-led surface
+  the backend contract supports, minted the session-bound CSRF proof the
+  post-authentication forms needed, and added a contract test asserting every
+  form action resolves to an existing handler and carries a proof.
+- Verification: lint, format, `tsc --noEmit`, 240 Vitest tests, production
   build, 45 Playwright tests over the pinned HTTPS origin, Semgrep, Gitleaks
-  over the full history, and 78 Python tests all pass. Every Definition-of-Done
+  over the full history, and 79 Python tests all pass. Every Definition-of-Done
   row is traced in
   [`docs/plans/active/eem-9-02-acceptance-trace.md`](plans/active/eem-9-02-acceptance-trace.md).
 - Open decision: the accessibility target is WCAG 2.2 AA per `AGENTS.md`, but

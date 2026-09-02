@@ -19,31 +19,19 @@ const RecoveryPage = () => (
         control your email address, Evirion has to verify you before access is restored.
       </p>
     </div>
-    <form action="/api/auth/recovery" method="post" className="flex flex-col gap-4">
-      <div className="flex flex-col gap-2">
-        <label htmlFor="email" className="text-sm font-medium">
-          Email address on the account
-        </label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          required
-          autoComplete="email"
-          className="rounded border border-slate-300 px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-        />
-      </div>
-      <button
-        type="submit"
-        className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-      >
-        Request recovery
-      </button>
-      <p className="text-xs text-slate-500">
-        Submitting this starts a review. It does not sign you in and it does not change
-        your factors.
-      </p>
-    </form>
+    <ol className="flex list-decimal flex-col gap-2 pl-5 text-sm text-slate-700">
+      <li>Contact Evirion support from an address or channel you still control.</li>
+      <li>An authorized operator verifies that you are the account holder.</li>
+      <li>
+        After approval and a cooldown, your factors are reset and every existing session
+        ends. You then sign in again with a fresh code.
+      </li>
+    </ol>
+    <p className="rounded border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+      There is deliberately no self-service form here. Recovery ends sessions and resets
+      a second factor, so it is never something an unverified request can start. If the
+      reset would leave your organization without an owner, it is refused.
+    </p>
   </section>
 )
 

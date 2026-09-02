@@ -135,7 +135,10 @@ test.describe("server-only session boundary", () => {
 
     expect(body).toContain("no password to reset")
     expect(body).not.toMatch(/reset your password/i)
-    expect(body).toMatch(/does not sign you in/i)
+    // Recovery ends sessions and resets a factor, so no unverified request may
+    // start it: the page offers no form at all, only the operator-led path.
+    expect(body).toMatch(/no self-service form/i)
+    expect(await page.locator("form").count()).toBe(0)
   })
 
   test("states the concurrent-session cap and its replacement notice", async ({

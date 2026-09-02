@@ -8,11 +8,20 @@ import { OrganizationSwitcher } from "./organization-switcher"
  * reaching the same route directly is still refused by the backend, and the
  * refusal path is rendered rather than assumed unreachable.
  */
-export const ConsoleNavigation = ({ context }: { context: SessionContext }) => (
+export const ConsoleNavigation = ({
+  context,
+  csrfToken,
+}: {
+  context: SessionContext
+  csrfToken: string
+}) => (
   <header className="border-b border-slate-200">
     <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-4 p-4">
       <span className="text-sm font-semibold tracking-tight">Engineering Memory</span>
-      <OrganizationSwitcher organizationId={context.organizationId} />
+      <OrganizationSwitcher
+        organizationId={context.organizationId}
+        csrfToken={csrfToken}
+      />
       <nav aria-label="Console" className="flex flex-1 flex-wrap gap-3">
         {visibleNavigation(context).map((item) => (
           <a
@@ -28,6 +37,7 @@ export const ConsoleNavigation = ({ context }: { context: SessionContext }) => (
         {roleLabel(context.role)}
       </span>
       <form action="/api/auth/logout" method="post">
+        <input type="hidden" name="csrfToken" value={csrfToken} />
         <button
           type="submit"
           className="rounded border border-slate-300 px-3 py-1 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"

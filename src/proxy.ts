@@ -6,10 +6,16 @@ import {
   createTransactionId,
   preAuthCookieOptions,
 } from "@/lib/auth/pre-auth-cookies"
+import { readSession } from "@/lib/auth/session-broker"
 import { SESSION_POLICY } from "@/lib/auth/session-policy"
 import { readServerEnvironment } from "@/lib/env/server"
 import { NONCE_HEADER, buildSecurityHeaders, createNonce } from "@/lib/security/headers"
 import { importCsrfKey, issueCsrfToken } from "@/lib/security/csrf"
+import {
+  SESSION_CSRF_COOKIE,
+  issueSessionCsrfToken,
+  sessionCsrfCookie,
+} from "@/server/actions/session-csrf"
 
 /**
  * Next.js 16 calls this the proxy; it is the former middleware entry point.
@@ -55,7 +61,33 @@ export const proxy = async (request: NextRequest): Promise<NextResponse> => {
     )
   }
 
+  // The post-authentication proof is bound to the live session, so it is
+  // reissued whenever the session identity changes. A proof that survived a
+  // logout or a session swap therefore no longer matches the expected binding.
+  const session = readSession(
+    Object.fromEntries(
+      request.cookies.getAll().map((cookie) => [cookie.name, cookie.value]),
+    ),
+  )
+  const sessionCsrf =
+    session.status === "active" &&
+    !request.cookies.has(SESSION_CSRF_COOKIE) &&
+    !request.nextUrl.pathname.startsWith("/api/")
+      ? await issueSessionCsrfToken(session.session.providerSessionId)
+      : undefined
+
+  if (sessionCsrf !== undefined) {
+    requestHeaders.set(
+      "cookie",
+      appendCookies(requestHeaders.get("cookie"), [[SESSION_CSRF_COOKIE, sessionCsrf]]),
+    )
+  }
+
   const response = NextResponse.next({ request: { headers: requestHeaders } })
+
+  if (sessionCsrf !== undefined) {
+    response.cookies.set(sessionCsrfCookie(sessionCsrf))
+  }
 
   if (needsPreAuth && csrfToken !== undefined) {
     response.cookies.set({

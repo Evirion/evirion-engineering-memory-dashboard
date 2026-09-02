@@ -1,3 +1,4 @@
+import { readSessionCsrfToken } from "@/server/actions/session-csrf-read"
 import { requireSessionContext } from "@/server/queries/session-context"
 
 export const dynamic = "force-dynamic"
@@ -15,6 +16,7 @@ export const fetchCache = "force-no-store"
  */
 const SessionsPage = async () => {
   const result = await requireSessionContext()
+  const csrfToken = await readSessionCsrfToken()
 
   if (result.status === "unavailable") {
     return <p className="text-sm text-slate-600">{result.message}</p>
@@ -35,6 +37,7 @@ const SessionsPage = async () => {
         method="post"
         className="flex flex-wrap gap-3"
       >
+        <input type="hidden" name="csrfToken" value={csrfToken} />
         <button
           name="selection"
           value="others"

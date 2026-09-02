@@ -7,8 +7,10 @@
  */
 export const OrganizationSwitcher = ({
   organizationId,
+  csrfToken,
 }: {
   organizationId: string
+  csrfToken: string
 }) => (
   <form
     action="/api/auth/organization"
@@ -16,6 +18,7 @@ export const OrganizationSwitcher = ({
     className="flex items-center gap-2"
     aria-label="Active organization"
   >
+    <input type="hidden" name="csrfToken" value={csrfToken} />
     <label htmlFor="organizationId" className="sr-only">
       Active organization
     </label>
