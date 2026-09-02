@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "1.0",
+  "note": "Every security tool is fetched by exact version and verified by SHA-256 before it runs. A tool that fails verification fails its gate; it is never used unverified.",
+  "tools": {
+    "gitleaks": {
+      "version": "8.30.1",
+      "releaseTag": "v8.30.1",
+      "repository": "gitleaks/gitleaks",
+      "assets": {
+        "darwin-arm64": {
+          "name": "gitleaks_8.30.1_darwin_arm64.tar.gz",
+          "sha256": "b40ab0ae55c505963e365f271a8d3846efbc170aa17f2607f13df610a9aeb6a5"
+        },
+        "linux-x64": {
+          "name": "gitleaks_8.30.1_linux_x64.tar.gz",
+          "sha256": "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+        }
+      }
+    },
+    "semgrep": {
+      "version": "1.176.0",
+      "source": "tools/security/uv.lock",
+      "note": "uv resolves and hash-verifies Semgrep from the committed lockfile, so no separate binary digest is needed."
+    }
+  }
+}

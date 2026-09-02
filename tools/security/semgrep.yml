@@ -1,0 +1,96 @@
+rules:
+  - id: console-no-raw-html
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      NFR-SEC-003 prohibits raw HTML in the Console. Render untrusted backend
+      data as React text, never as markup.
+    pattern-either:
+      - pattern: dangerouslySetInnerHTML=$X
+      - pattern: $EL.innerHTML = $X
+      - pattern: $EL.outerHTML = $X
+      - pattern: $EL.insertAdjacentHTML(...)
+
+  - id: console-no-dynamic-code-execution
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      Dynamic code execution defeats the nonce CSP, which carries no
+      'unsafe-eval' in production.
+    pattern-either:
+      - pattern: eval(...)
+      - pattern: new Function(...)
+
+  - id: console-no-session-bearing-browser-supabase-client
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      AUTH-008 and the fixed ASVS V10.1.1 boundary: the browser never
+      initializes a session-bearing Supabase client. Use the server-only
+      request-local broker.
+    paths:
+      include:
+        - src/**
+    patterns:
+      - pattern-either:
+          - pattern: createBrowserClient(...)
+          - pattern: createClient(...)
+      - pattern-inside: |
+          "use client"
+          ...
+
+  - id: console-no-service-role-or-dsn
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      The BFF must never hold a service-role key or a database DSN. Authority
+      for customer operations lives behind the versioned Console API.
+    paths:
+      exclude:
+        # This module names the forbidden variables in order to reject them,
+        # which is the opposite of holding one. Its behaviour is asserted by
+        # tests/unit/env.test.ts rather than by this regex.
+        - src/lib/env/server.ts
+    pattern-regex: "(SUPABASE_SERVICE_ROLE_KEY|service_role|postgres(?:ql)?://)"
+
+  - id: console-no-process-env-outside-the-boundary
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      Read configuration through src/lib/env/server.ts or src/lib/env/client.ts
+      so the browser secret boundary stays in one reviewed place.
+    paths:
+      include:
+        - src/**
+      exclude:
+        - src/lib/env/server.ts
+        - src/lib/env/client.ts
+    patterns:
+      - pattern: process.env.$NAME
+      - pattern-not: process.env.NODE_ENV
+
+  - id: console-no-getsession
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      The baseline forbids getSession. Validate the exact token online with
+      getUser(accessToken); cached session metadata is never an authorization
+      fact.
+    pattern-either:
+      - pattern: $CLIENT.auth.getSession(...)
+
+  - id: console-no-cookie-without-host-prefix
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      Session and pre-auth cookies must use the __Host- prefix so they are
+      host-scoped with no Domain attribute.
+    paths:
+      include:
+        - src/**
+    patterns:
+      - pattern-either:
+          - pattern: '$JAR.set({ name: "$NAME", ... })'
+      - metavariable-regex:
+          metavariable: $NAME
+          regex: "^(?!__Host-)(?:console|session|auth|sb)[-_].*"

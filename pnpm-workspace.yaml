@@ -1,0 +1,8 @@
+# Lifecycle scripts are denied by default in .npmrc. Only packages listed here
+# may run a build script, and each entry is a reviewed supply-chain decision.
+onlyBuiltDependencies: []
+
+# pnpm quarantines freshly published versions. The list stays empty on purpose:
+# every pinned version is old enough to clear the quarantine, so a compromised
+# same-day publish cannot enter this tree through an exclusion.
+minimumReleaseAgeExclude: []

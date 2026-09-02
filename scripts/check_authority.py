@@ -14,7 +14,9 @@ class AuthorityError(ValueError):
 EXCLUDED_PARTS = {
     ".git",
     ".idea",
+    ".local",
     ".next",
+    ".venv",
     "__pycache__",
     "coverage",
     "dist",
@@ -24,6 +26,15 @@ EXCLUDED_PARTS = {
 }
 EXCLUDED_NAMES = {".DS_Store"}
 EXCLUDED_SUFFIXES = {".pyc"}
+
+
+def _is_local_environment_file(name: str) -> bool:
+    """Local `.env` files are secret-bearing and must never be packaged.
+
+    `.env.example` is deliberately not excluded: if it is ever added it must be
+    declared like any other tracked file.
+    """
+    return (name == ".env" or name.startswith(".env.")) and name != ".env.example"
 
 
 def _sha256_bytes(value: bytes) -> str:
@@ -128,6 +139,7 @@ def validate_inventory(
             not path.is_file()
             or path.name in EXCLUDED_NAMES
             or path.suffix in EXCLUDED_SUFFIXES
+            or _is_local_environment_file(path.name)
             or relative.as_posix() == manifest_path
         ):
             continue

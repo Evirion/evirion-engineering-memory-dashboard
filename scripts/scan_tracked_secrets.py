@@ -21,7 +21,22 @@ SECRET_PATTERNS = {
         r"(?!\$\{\{|<|REDACTED|example)[A-Za-z0-9_./+=-]{20,}"
     ),
 }
-EXCLUDED_PARTS = {".git", ".idea", "__pycache__"}
+# Mirrors scripts/check_authority.py. Installed dependencies and generated
+# output are not tracked repository content, and scanning them reports another
+# project's documentation as this repository's secret.
+EXCLUDED_PARTS = {
+    ".git",
+    ".idea",
+    ".local",
+    ".next",
+    ".venv",
+    "__pycache__",
+    "coverage",
+    "dist",
+    "node_modules",
+    "playwright-report",
+    "test-results",
+}
 EXCLUDED_SUFFIXES = {".pyc", ".png", ".jpg", ".jpeg", ".gif", ".webp"}
 
 

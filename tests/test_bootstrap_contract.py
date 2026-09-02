@@ -370,6 +370,35 @@ class AuthorityManifestTests(unittest.TestCase):
                     ):
                         validate_inventory(root, ["docs/a.md"], allowlist=allowlist)
 
+    def test_local_tool_output_and_env_files_never_reach_the_gate(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            self._application_tree(root)
+            for directory in (".venv/lib", ".local/certificates", "tools/security/.venv"):
+                (root / directory).mkdir(parents=True)
+                (root / directory / "artifact").write_text("local\n", encoding="utf-8")
+            for name in (".env", ".env.local", ".env.production.local"):
+                (root / name).write_text("SECRET=x\n", encoding="utf-8")
+
+            validate_inventory(
+                root,
+                ["docs/a.md"],
+                allowlist=["package.json", "src/**"],
+            )
+
+    def test_a_tracked_env_example_must_still_be_declared(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            self._application_tree(root)
+            (root / ".env.example").write_text("SUPABASE_URL=\n", encoding="utf-8")
+
+            with self.assertRaisesRegex(AuthorityError, r"unlisted authority files: \.env\.example"):
+                validate_inventory(
+                    root,
+                    ["docs/a.md"],
+                    allowlist=["package.json", "src/**"],
+                )
+
     def test_allowlist_rejects_unsafe_or_duplicate_patterns(self) -> None:
         for allowlist in (
             ["../outside"],
@@ -609,6 +638,7 @@ class RepositoryBootstrapFilesTests(unittest.TestCase):
                 "docs/decisions/"
                 "0003-application-source-boundary-and-route-contract.md"
             ),
+            "docs/decisions/0004-console-lint-and-format-toolchain.md",
             "docs/decisions/README.md",
             "docs/plans/active/README.md",
             (
