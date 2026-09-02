@@ -1,0 +1,390 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:repository-import",
+  "title": "RepositoryImport",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "importId",
+    "repositoryId",
+    "mode",
+    "status",
+    "filters",
+    "highWatermark",
+    "modelCallsApproved",
+    "paidAuthorizationStatus",
+    "missingPrerequisite",
+    "terminationReasonCategory",
+    "counts",
+    "dispositions",
+    "cost",
+    "capabilities",
+    "recoveryAction",
+    "createdAt",
+    "updatedAt"
+  ],
+  "properties": {
+    "importId": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "core.backfill_runs.id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "repositoryId": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "core.backfill_runs.repository_id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "mode": {
+      "type": "string",
+      "const": "MISSING_ONLY",
+      "x-evirion-backend-projection": "core.backfill_runs.mode",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PLANNING",
+        "DISCOVERING",
+        "AWAITING_APPROVAL",
+        "PROCESSING",
+        "PAUSED",
+        "COMPLETED",
+        "FAILED",
+        "CANCELLED"
+      ],
+      "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+      "x-evirion-backend-projection": "core.backfill_runs.status",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "filters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mergedFrom": {
+          "type": "string",
+          "format": "date-time",
+          "x-evirion-backend-projection": "core.backfill_runs.filters",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "mergedTo": {
+          "type": "string",
+          "format": "date-time",
+          "x-evirion-backend-projection": "core.backfill_runs.filters",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        }
+      },
+      "x-evirion-backend-projection": "core.backfill_runs.filters",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "highWatermark": {
+      "type": "string",
+      "format": "date-time",
+      "x-evirion-backend-projection": "core.backfill_runs.high_watermark",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "modelCallsApproved": {
+      "type": "boolean",
+      "x-evirion-backend-projection": "core.backfill_runs.model_calls_approved_at",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "paidAuthorizationStatus": {
+      "type": "string",
+      "enum": [
+        "NOT_REQUIRED",
+        "AWAITING_CUSTOMER_CONSENT",
+        "AWAITING_OPERATIONAL_AUTHORIZATION",
+        "AUTHORIZED",
+        "EXPIRED",
+        "REVOKED"
+      ],
+      "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+      "x-evirion-backend-projection": "core.paid_operation_authorizations.status",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "missingPrerequisite": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "enum": [
+            "REPOSITORY_BUDGET",
+            "CUSTOMER_CONSENT",
+            "OPERATIONAL_AUTHORIZATION"
+          ]
+        }
+      ],
+      "x-evirion-backend-projection": "paid-provisioning-gap-projection",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "terminationReasonCategory": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "enum": [
+            "OPERATOR_REVOCATION",
+            "ORGANIZATION_OFFBOARDING",
+            "EXPIRY",
+            "ALLOWANCE_CONSUMED"
+          ]
+        }
+      ],
+      "x-evirion-backend-projection": "core.paid_operation_authorizations.termination_reason_category",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "discovered",
+        "enqueued",
+        "skipped",
+        "sourceReady",
+        "completed",
+        "failed"
+      ],
+      "properties": {
+        "discovered": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "core.backfill_runs.discovered_count",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "enqueued": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "core.backfill_runs.enqueued_count",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "skipped": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "core.backfill_runs.skipped_count",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "sourceReady": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "core.backfill_runs.source_ready_count",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "completed": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "core.backfill_runs.completed_count",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "failed": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "core.backfill_runs.failed_count",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        }
+      },
+      "x-evirion-backend-projection": "core.backfill_runs",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "dispositions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "accepted",
+        "rejected",
+        "quarantined"
+      ],
+      "properties": {
+        "accepted": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "core.extraction_runs.disposition",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "rejected": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "core.extraction_runs.disposition",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "quarantined": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "core.extraction_runs.disposition",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        }
+      },
+      "x-evirion-backend-projection": "core.extraction_runs.disposition",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "cost": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "completeness",
+        "budgetUsd",
+        "reservedUsd",
+        "measuredUsd",
+        "unresolvedUsd"
+      ],
+      "properties": {
+        "completeness": {
+          "type": "string",
+          "enum": [
+            "RESERVED",
+            "MEASURED",
+            "UNRESOLVED",
+            "NOT_APPLICABLE"
+          ],
+          "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+          "x-evirion-backend-projection": "core.backfill_runs",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "budgetUsd": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]{0,11})\\.[0-9]{6}$"
+            }
+          ],
+          "x-evirion-backend-projection": "core.backfill_runs.cost_budget_usd",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "reservedUsd": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,11})\\.[0-9]{6}$",
+          "x-evirion-backend-projection": "core.backfill_runs.reserved_cost_usd",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "measuredUsd": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,11})\\.[0-9]{6}$",
+          "x-evirion-backend-projection": "core.backfill_runs.actual_cost_usd",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "unresolvedUsd": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,11})\\.[0-9]{6}$",
+          "x-evirion-backend-projection": "core.backfill_runs.unresolved_cost_usd",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        }
+      },
+      "x-evirion-backend-projection": "core.backfill_runs",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "canApprove",
+        "canPause",
+        "canResume",
+        "canCancel"
+      ],
+      "properties": {
+        "canApprove": {
+          "type": "boolean",
+          "x-evirion-backend-projection": "import-capability-projection",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "canPause": {
+          "type": "boolean",
+          "x-evirion-backend-projection": "import-capability-projection",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "canResume": {
+          "type": "boolean",
+          "x-evirion-backend-projection": "import-capability-projection",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "canCancel": {
+          "type": "boolean",
+          "x-evirion-backend-projection": "import-capability-projection",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        }
+      },
+      "x-evirion-backend-projection": "import-capability-projection",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "recoveryAction": {
+      "type": "string",
+      "enum": [
+        "AWAIT_DISCOVERY",
+        "APPROVE_IMPORT",
+        "GRANT_CUSTOMER_CONSENT",
+        "AWAIT_EVIRION_AUTHORIZATION",
+        "PAUSE_IMPORT_TO_RETRY",
+        "RETRY_JOB",
+        "CONTACT_SUPPORT",
+        "NONE"
+      ],
+      "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+      "x-evirion-backend-projection": "import-recovery-action-projection",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "x-evirion-backend-projection": "core.backfill_runs.created_at",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "x-evirion-backend-projection": "core.backfill_runs.updated_at",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    }
+  },
+  "examples": [
+    {
+      "importId": "00000000-0000-4000-8000-000000000701",
+      "repositoryId": "00000000-0000-4000-8000-000000000702",
+      "mode": "MISSING_ONLY",
+      "status": "AWAITING_APPROVAL",
+      "filters": {
+        "mergedFrom": "2025-08-31T00:00:00.000000Z"
+      },
+      "highWatermark": "2026-08-31T11:43:10.000000Z",
+      "modelCallsApproved": false,
+      "paidAuthorizationStatus": "AWAITING_OPERATIONAL_AUTHORIZATION",
+      "missingPrerequisite": "OPERATIONAL_AUTHORIZATION",
+      "terminationReasonCategory": null,
+      "counts": {
+        "discovered": 12,
+        "enqueued": 12,
+        "skipped": 0,
+        "sourceReady": 9,
+        "completed": 0,
+        "failed": 0
+      },
+      "dispositions": {
+        "accepted": 0,
+        "rejected": 0,
+        "quarantined": 0
+      },
+      "cost": {
+        "completeness": "NOT_APPLICABLE",
+        "budgetUsd": null,
+        "reservedUsd": "0.000000",
+        "measuredUsd": "0.000000",
+        "unresolvedUsd": "0.000000"
+      },
+      "capabilities": {
+        "canApprove": true,
+        "canPause": true,
+        "canResume": false,
+        "canCancel": true
+      },
+      "recoveryAction": "AWAIT_EVIRION_AUTHORIZATION",
+      "createdAt": "2026-08-31T11:43:10.000000Z",
+      "updatedAt": "2026-08-31T11:44:02.000000Z"
+    }
+  ]
+}

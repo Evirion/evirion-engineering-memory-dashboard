@@ -25,35 +25,59 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
-      - name: Require exact tag and unused immutable release
+      - name: Require exact tag and administrator immutability evidence
         env:
-          GH_TOKEN: ${{ github.token }}
+          # repos/{owner}/{repo}/immutable-releases requires admin read access
+          # and the Actions permissions surface has no administration scope, so
+          # the ephemeral token can never answer it. A tag-scoped administrator
+          # attestation stands in before signing; the authoritative check is the
+          # immutable flag asserted on the published release below.
+          ATTESTATION: docs/security/immutable-release-attestation.json
+          MAXIMUM_ATTESTATION_AGE_SECONDS: "86400"
+          MAXIMUM_CLOCK_SKEW_SECONDS: "300"
         run: |
+          set -euo pipefail
           test "$GITHUB_REF_TYPE" = "tag"
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           [[ "$GITHUB_REF_NAME" =~ ^dashboard-authority-v[0-9]+\.[0-9]+\.[0-9]+$ ]]
-          immutable_policy="$(
-            gh api --method GET \
-              "repos/$GITHUB_REPOSITORY/immutable-releases"
-          )"
-          test "$(jq -r '.enabled' <<<"$immutable_policy")" = "true"
-          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            echo "release already exists; replacement is forbidden" >&2
+          if ! jq -e \
+            --arg repository "$GITHUB_REPOSITORY" \
+            --arg tag "$GITHUB_REF_NAME" \
+            '
+              .schemaVersion == "1.0"
+              and .repository == $repository
+              and .tag == $tag
+              and .immutableReleasesEnabled == true
+              and (.observedAt | type) == "string"
+            ' "$ATTESTATION" >/dev/null; then
+            echo "no administrator attestation for this exact tag; refusing to sign" >&2
             exit 1
           fi
+          observed_at="$(jq -r '.observedAt' "$ATTESTATION")"
+          observed_epoch="$(date -u -d "$observed_at" +%s)"
+          age=$(( $(date -u +%s) - observed_epoch ))
+          if (( age > MAXIMUM_ATTESTATION_AGE_SECONDS )) ||
+            (( age < -MAXIMUM_CLOCK_SKEW_SECONDS )); then
+            echo "administrator attestation is stale or post-dated; refusing to sign" >&2
+            exit 1
+          fi
+          echo "IMMUTABLE_RELEASES_ATTESTED_AT=$observed_at" >>"$GITHUB_ENV"
 
       - name: Verify frozen authority
         run: |
+          set -euo pipefail
           python3 -m unittest discover -s tests -p 'test_*.py'
           python3 scripts/check_docs.py
           python3 scripts/generate_acceptance_map.py
           python3 scripts/generate_asvs_matrix.py
           python3 scripts/generate_security_controls.py
           python3 scripts/check_authority.py
+          python3 -m scripts.check_console_contract_lock
           python3 scripts/scan_tracked_secrets.py
 
       - name: Build deterministic package twice
         run: |
+          set -euo pipefail
           python3 -m scripts.build_authority_package \
             --output "$RUNNER_TEMP/$GITHUB_REF_NAME.first.tar.gz"
           python3 -m scripts.build_authority_package \
@@ -61,7 +85,23 @@ jobs:
           cmp \
             "$RUNNER_TEMP/$GITHUB_REF_NAME.first.tar.gz" \
             "$RUNNER_TEMP/$GITHUB_REF_NAME.tar.gz"
-          sha256sum "$RUNNER_TEMP/$GITHUB_REF_NAME.tar.gz"
+          rm -f "$RUNNER_TEMP/$GITHUB_REF_NAME.first.tar.gz"
+          echo "ARCHIVE_SHA256=$(
+            sha256sum "$RUNNER_TEMP/$GITHUB_REF_NAME.tar.gz" | cut -d' ' -f1
+          )" >>"$GITHUB_ENV"
+
+      # Placed after the deterministic build so that re-running this workflow on
+      # an already published tag reproduces and reports the digest before it
+      # refuses to replace the release.
+      - name: Refuse to replace an existing release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "release already exists; replacement is forbidden" >&2
+            exit 1
+          fi
 
       - name: Install pinned Cosign
         uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6
@@ -70,6 +110,7 @@ jobs:
 
       - name: Verify Cosign binary and sign through public Sigstore
         run: |
+          set -euo pipefail
           test \
             "$(sha256sum "$(command -v cosign)" | cut -d' ' -f1)" = \
             "4629c757b7618056f8ddd7e2625ae9fdd94c0372a65049520bc7d9df9efc7f71"
@@ -78,36 +119,138 @@ jobs:
             --bundle "$RUNNER_TEMP/$GITHUB_REF_NAME.sigstore.json" \
             "$RUNNER_TEMP/$GITHUB_REF_NAME.tar.gz"
 
-      - name: Publish immutable release assets
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
-        with:
-          fail_on_unmatched_files: true
-          generate_release_notes: false
-          make_latest: false
-          files: |
-            ${{ runner.temp }}/${{ github.ref_name }}.tar.gz
-            ${{ runner.temp }}/${{ github.ref_name }}.sigstore.json
+      - name: Require a Rekor inclusion proof in the published bundle
+        run: |
+          set -euo pipefail
+          bundle="$RUNNER_TEMP/$GITHUB_REF_NAME.sigstore.json"
+          jq -e '
+            .verificationMaterial.tlogEntries
+            | length == 1
+            and ((.[0].inclusionProof.checkpoint.envelope | type) == "string")
+            and ((.[0].inclusionProof.checkpoint.envelope | length) > 0)
+            and ((.[0].inclusionProof.rootHash | type) == "string")
+            and ((.[0].integratedTime | tonumber) > 0)
+          ' "$bundle" >/dev/null
+          {
+            echo "REKOR_LOG_INDEX=$(
+              jq -r '.verificationMaterial.tlogEntries[0].logIndex // 0' "$bundle"
+            )"
+            echo "REKOR_INTEGRATED_TIME=$(
+              jq -r '.verificationMaterial.tlogEntries[0].integratedTime' "$bundle"
+            )"
+          } >>"$GITHUB_ENV"
+
+      # Assets can only be attached while the release is still a draft, because
+      # publishing is what makes an immutable release immutable.
+      - name: Create the draft release and attach both assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release create "$GITHUB_REF_NAME" \
+            --draft \
+            --latest=false \
+            --title "Dashboard authority ${GITHUB_REF_NAME#dashboard-authority-v}" \
+            --notes "Deterministic Dashboard authority package signed with pinned Cosign v3.1.3 through GitHub OIDC. Archive SHA-256 $ARCHIVE_SHA256 at source commit $GITHUB_SHA."
+          gh release upload "$GITHUB_REF_NAME" \
+            "$RUNNER_TEMP/$GITHUB_REF_NAME.tar.gz" \
+            "$RUNNER_TEMP/$GITHUB_REF_NAME.sigstore.json"
+          # Draft releases are invisible to the get-release-by-tag endpoint, so
+          # the identifier has to come from the release list.
+          matched_ids="$(
+            gh api --paginate "repos/$GITHUB_REPOSITORY/releases" \
+              --jq ".[] | select(.tag_name == \"$GITHUB_REF_NAME\") | .id"
+          )"
+          mapfile -t release_ids <<<"$matched_ids"
+          test "${#release_ids[@]}" -eq 1
+          release_id="${release_ids[0]}"
+          [[ "$release_id" =~ ^[0-9]+$ ]]
+          echo "RELEASE_ID=$release_id" >>"$GITHUB_ENV"
+
+      - name: Verify the attached assets while the release is still a draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          draft="$(gh api "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID")"
+          jq -e \
+            --arg archive "$GITHUB_REF_NAME.tar.gz" \
+            --arg bundle "$GITHUB_REF_NAME.sigstore.json" \
+            --arg tag "$GITHUB_REF_NAME" \
+            --arg archive_digest "sha256:$ARCHIVE_SHA256" \
+            '
+              .tag_name == $tag
+              and .draft == true
+              and (.assets | length) == 2
+              and ((.assets | map(.name) | sort) == ([$archive, $bundle] | sort))
+              and all(.assets[]; .id > 0 and .state == "uploaded")
+              and any(.assets[]; .name == $archive and .digest == $archive_digest)
+            ' <<<"$draft" >/dev/null
+          jq -S '[.assets[] | {name, id, size, digest}] | sort_by(.name)' \
+            <<<"$draft" >"$RUNNER_TEMP/draft-assets.json"
+
+      - name: Publish the release and make it immutable
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release edit "$GITHUB_REF_NAME" --draft=false
 
       - name: Record payload-free release evidence
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          release="$(
-            gh api \
-              "repos/$GITHUB_REPOSITORY/releases/tags/$GITHUB_REF_NAME"
-          )"
-          test "$(jq -r '.tag_name' <<<"$release")" = "$GITHUB_REF_NAME"
-          test "$(jq -r '.immutable' <<<"$release")" = "true"
-          test "$(jq '.assets | length' <<<"$release")" = "2"
-          jq -e --arg archive "$GITHUB_REF_NAME.tar.gz" \
-            --arg bundle "$GITHUB_REF_NAME.sigstore.json" \
+          set -euo pipefail
+          release="$(gh api "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID")"
+          jq -e \
+            --arg tag "$GITHUB_REF_NAME" \
+            --slurpfile expected_assets "$RUNNER_TEMP/draft-assets.json" \
             '
-              (.assets | map(.name) | sort) == ([$archive, $bundle] | sort)
-              and all(.assets[]?; .id > 0)
+              .tag_name == $tag
+              and .draft == false
+              and .immutable == true
+              and (.published_at | type) == "string"
+              and (
+                ([.assets[] | {name, id, size, digest}] | sort_by(.name))
+                == $expected_assets[0]
+              )
             ' <<<"$release" >/dev/null
-          jq --arg source_commit "$GITHUB_SHA" '{
-            tag: .tag_name,
-            sourceCommit: $source_commit,
-            immutable,
-            assets: [.assets[] | {name, id, digest}]
-          }' <<<"$release" >> "$GITHUB_STEP_SUMMARY"
+          jq -n \
+            --argjson release "$release" \
+            --arg source_commit "$GITHUB_SHA" \
+            --arg workflow_path ".github/workflows/authority-release.yml" \
+            --arg repository "$GITHUB_REPOSITORY" \
+            --arg ref "$GITHUB_REF" \
+            --arg archive_sha256 "$ARCHIVE_SHA256" \
+            --arg immutable_attested_at "$IMMUTABLE_RELEASES_ATTESTED_AT" \
+            --argjson rekor_log_index "$REKOR_LOG_INDEX" \
+            --argjson rekor_integrated_time "$REKOR_INTEGRATED_TIME" \
+            '{
+              policyId: "dashboard-authority-v1",
+              repository: $repository,
+              workflowPath: $workflow_path,
+              sourceCommit: $source_commit,
+              eventName: "push",
+              ref: $ref,
+              certificateIdentity:
+                "https://github.com/\($repository)/\($workflow_path)@\($ref)",
+              oidcIssuer: "https://token.actions.githubusercontent.com",
+              immutableReleasesAttestedAt: $immutable_attested_at,
+              archiveSha256: $archive_sha256,
+              release: {
+                tag: $release.tag_name,
+                immutable: $release.immutable,
+                publishedAt: $release.published_at,
+                assets: [$release.assets[] | {name, id, size, digest}]
+              },
+              rekor: {
+                logIndex: $rekor_log_index,
+                integratedTime: $rekor_integrated_time
+              },
+              verifier: {name: "cosign", version: "v3.1.3"}
+            }' >"$RUNNER_TEMP/release-evidence.json"
+          {
+            echo '## Dashboard authority release evidence'
+            echo
+            echo '```json'
+            cat "$RUNNER_TEMP/release-evidence.json"
+            echo '```'
+          } >>"$GITHUB_STEP_SUMMARY"

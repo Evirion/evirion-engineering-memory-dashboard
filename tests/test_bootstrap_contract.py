@@ -8,6 +8,7 @@ import tarfile
 import tempfile
 import unittest
 from pathlib import Path
+from typing import Any
 from unittest.mock import patch
 
 from scripts.build_authority_package import (
@@ -397,6 +398,7 @@ class RepositoryBootstrapFilesTests(unittest.TestCase):
             ".github/CODEOWNERS",
             ".github/workflows/authority-integrity.yml",
             ".github/workflows/authority-release.yml",
+            ".github/workflows/console-contract-attestation.yml",
             ".gitignore",
             "AGENTS.md",
             "README.md",
@@ -405,7 +407,13 @@ class RepositoryBootstrapFilesTests(unittest.TestCase):
             "docs/architecture/design-partner-console.md",
             "docs/architecture/design-partner-console-program-design.md",
             "docs/architecture/toolchain-baseline.json",
+            "docs/contracts/console-contract-lock.json",
+            "docs/contracts/console-contract-v1.0-evidence.json",
             "docs/decisions/0001-two-repository-contract-boundary.md",
+            (
+                "docs/decisions/"
+                "0002-console-contract-consumption-and-immutability-evidence.md"
+            ),
             "docs/decisions/README.md",
             "docs/plans/active/README.md",
             (
@@ -424,6 +432,9 @@ class RepositoryBootstrapFilesTests(unittest.TestCase):
             "docs/security/asvs-v5.0.0-l2-source.json",
             "docs/security/console-security-controls.yaml",
             "docs/security/repository-governance-evidence.json",
+            "docs/security/sigstore-trusted-root.json",
+            "generated/console-contract/v1/index.ts",
+            "vendor/console-contract-v1.0/console-contract-v1.0.tar.gz",
         ]
 
         missing = [path for path in required if not (self.root / path).is_file()]
@@ -447,7 +458,11 @@ class RepositoryBootstrapFilesTests(unittest.TestCase):
                 self.root / "docs/architecture/toolchain-baseline.json"
             ).read_text(encoding="utf-8")
         )
-        for workflow_name in ("authority-integrity.yml", "authority-release.yml"):
+        for workflow_name in (
+            "authority-integrity.yml",
+            "authority-release.yml",
+            "console-contract-attestation.yml",
+        ):
             workflow = (
                 self.root / ".github/workflows" / workflow_name
             ).read_text(encoding="utf-8")
@@ -466,24 +481,48 @@ class RepositoryBootstrapFilesTests(unittest.TestCase):
         for required in (
             "id-token: write",
             "persist-credentials: false",
-            "repos/$GITHUB_REPOSITORY/immutable-releases",
-            "'.enabled'",
+            "docs/security/immutable-release-attestation.json",
+            'MAXIMUM_ATTESTATION_AGE_SECONDS: "86400"',
+            'MAXIMUM_CLOCK_SKEW_SECONDS: "300"',
+            "no administrator attestation for this exact tag; refusing to sign",
+            "administrator attestation is stale or post-dated; refusing to sign",
             'gh release view "$GITHUB_REF_NAME"',
-            "'.immutable'",
+            ".immutable == true",
             "cmp",
             "python3 -m scripts.build_authority_package",
+            "python3 -m scripts.check_console_contract_lock",
             "^dashboard-authority-v[0-9]+\\.[0-9]+\\.[0-9]+$",
             "cosign sign-blob",
             "release already exists; replacement is forbidden",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, workflow)
-        self.assertLess(
-            workflow.index("repos/$GITHUB_REPOSITORY/immutable-releases"),
-            workflow.index("uses: softprops/action-gh-release@"),
-        )
+
+        # The endpoint requires admin read access that no workflow token can
+        # hold, so depending on it again would forbid publication permanently.
+        self.assertNotIn("immutable-releases\n", workflow)
+        self.assertNotIn("repos/$GITHUB_REPOSITORY/immutable-releases", workflow)
         self.assertNotIn("--method PATCH", workflow)
         self.assertNotIn("pull_request_target", workflow)
+
+        attestation_gate = workflow.index("refusing to sign")
+        signing = workflow.index("cosign sign-blob")
+        draft_create = workflow.index("gh release create")
+        draft_verify = workflow.index(".draft == true")
+        publish = workflow.index("--draft=false")
+        published_immutability = workflow.index(".immutable == true")
+        self.assertLess(attestation_gate, signing)
+        self.assertLess(signing, draft_create)
+        self.assertLess(draft_create, draft_verify)
+        self.assertLess(draft_verify, publish)
+        self.assertLess(publish, published_immutability)
+
+    def test_no_workflow_requires_release_commit_reachability(self) -> None:
+        for workflow_path in sorted((self.root / ".github/workflows").glob("*.yml")):
+            with self.subTest(workflow=workflow_path.name):
+                workflow = workflow_path.read_text(encoding="utf-8")
+                for forbidden in ("merge-base", "--is-ancestor", "branch --contains"):
+                    self.assertNotIn(forbidden, workflow)
 
 
 class CrossRepositoryAuthorityTests(unittest.TestCase):
@@ -657,9 +696,11 @@ class CrossRepositoryAuthorityTests(unittest.TestCase):
         self.assertTrue(finding["enforcementWaiverApproved"])
         self.assertTrue(finding["readinessBlocking"])
         self.assertEqual(evidence["observations"]["rulesets"]["httpStatus"], 403)
+        # Immutable releases were enabled for EEM-9/01b. SEC-2026-012 is about
+        # ruleset governance and stays open regardless.
         self.assertEqual(
             evidence["observations"]["immutableReleases"]["result"],
-            "not-enabled",
+            "enabled",
         )
 
     def test_no_dashboard_runtime_scaffold_exists_in_bootstrap(self) -> None:
@@ -838,30 +879,52 @@ class SecurityControlTests(unittest.TestCase):
         self.assertEqual(supply_chain["findingStatus"], "open")
 
 
+def apply_negative_case(evidence: dict[str, Any], case: dict[str, Any]) -> dict[str, Any]:
+    changed = copy.deepcopy(evidence)
+    target = changed
+    for part in case["path"][:-1]:
+        target = target[part]
+    if case.get("remove"):
+        del target[case["path"][-1]]
+    else:
+        target[case["path"][-1]] = case["value"]
+    return changed
+
+
 class ArtifactAttestationPolicyTests(unittest.TestCase):
     def setUp(self) -> None:
         self.policy = {
             "schemaVersion": "1.0",
-            "policyId": "dashboard-authority-v1",
-            "artifact": {
-                "repository": "Evirion/evirion-engineering-memory-dashboard",
-                "workflowPath": ".github/workflows/authority-release.yml",
-                "refPrefix": "refs/tags/dashboard-authority-v",
-                "refPattern": (
-                    r"^refs/tags/dashboard-authority-v[0-9]+\.[0-9]+\.[0-9]+$"
-                ),
-                "eventName": "push",
-                "oidcIssuer": "https://token.actions.githubusercontent.com",
-                "verifier": {
-                    "name": "cosign",
-                    "version": "v3.1.3",
-                    "sha256": "b" * 64,
-                },
+            "artifacts": {
+                "dashboard-authority-v1": {
+                    "repository": "Evirion/evirion-engineering-memory-dashboard",
+                    "workflowPath": ".github/workflows/authority-release.yml",
+                    "refPrefix": "refs/tags/dashboard-authority-v",
+                    "refPattern": (
+                        r"^refs/tags/dashboard-authority-v[0-9]+\.[0-9]+\.[0-9]+$"
+                    ),
+                    "eventName": "push",
+                    "oidcIssuer": "https://token.actions.githubusercontent.com",
+                    "verifier": {
+                        "name": "cosign",
+                        "version": "v3.1.3",
+                        "sha256": "b" * 64,
+                    },
+                }
+            },
+            "immutableReleaseEvidence": {
+                "maximumAttestationAgeSeconds": 86400,
+                "maximumClockSkewSeconds": 300,
+                "postPublicationReleaseImmutableRequired": True,
+                "preSigningAdministratorAttestationRequired": True,
+                "tagScoped": True,
             },
             "publication": {
                 "githubImmutableReleaseRequired": True,
                 "maximumSigningToReleaseSeconds": 3600,
+                "releaseCommitReachableFromDefaultBranchRequired": False,
             },
+            "trustedRoot": {"sha256": "a" * 64},
         }
         self.policy["policyDigest"] = compute_policy_digest(self.policy)
         self.evidence = {
@@ -888,6 +951,14 @@ class ArtifactAttestationPolicyTests(unittest.TestCase):
                 "assetSha256": "c" * 64,
                 "publishedAt": 1787840300,
             },
+            "immutableReleaseAttestation": {
+                "schemaVersion": "1.0",
+                "repository": "Evirion/evirion-engineering-memory-dashboard",
+                "tag": "dashboard-authority-v1.0.0",
+                "immutableReleasesEnabled": True,
+                "attestedAt": "2026-08-27T14:08:20Z",
+                "observedBy": "repository-administrator",
+            },
             "rekor": {
                 "uuid": "e" * 64,
                 "integratedTime": 1787840000,
@@ -897,6 +968,7 @@ class ArtifactAttestationPolicyTests(unittest.TestCase):
                 "name": "cosign",
                 "version": "v3.1.3",
                 "sha256": "b" * 64,
+                "trustedRootSha256": "a" * 64,
             },
             "cryptographicVerification": {
                 "bundleVerified": True,
@@ -924,6 +996,7 @@ class ArtifactAttestationPolicyTests(unittest.TestCase):
         validate_attestation_evidence(
             selected_policy,
             evidence or self.evidence,
+            expected_policy_id="dashboard-authority-v1",
             expected_subject_sha256="c" * 64,
             expected_source_commit="d" * 40,
             expected_policy_digest=(
@@ -950,10 +1023,27 @@ class ArtifactAttestationPolicyTests(unittest.TestCase):
             "wrong issuer": ("signer", "oidcIssuer", "https://issuer.invalid"),
             "wrong digest": ("subject", "sha256", "f" * 64),
             "stale policy": ("root", "policyDigest", "f" * 64),
+            "unregistered artifact": ("root", "policyId", "console-contract-v1"),
             "unpinned verifier": ("verifier", "sha256", ""),
+            "unpinned trusted root": ("verifier", "trustedRootSha256", ""),
             "missing inclusion proof": ("rekor", "inclusionProofVerified", False),
             "malformed Rekor UUID": ("rekor", "uuid", "not-a-uuid"),
             "stale Rekor evidence": ("rekor", "integratedTime", 1780000000),
+            "stale attestation": (
+                "immutableReleaseAttestation",
+                "attestedAt",
+                "2026-08-25T00:00:00Z",
+            ),
+            "post-dated attestation": (
+                "immutableReleaseAttestation",
+                "attestedAt",
+                "2026-08-27T14:30:00Z",
+            ),
+            "attestation for another tag": (
+                "immutableReleaseAttestation",
+                "tag",
+                "dashboard-authority-v2.0.0",
+            ),
             "unverified workflow sha": (
                 "cryptographicVerification",
                 "workflowShaVerified",
@@ -971,9 +1061,41 @@ class ArtifactAttestationPolicyTests(unittest.TestCase):
                 with self.assertRaises(AttestationPolicyError):
                     self._validate(evidence=changed)
 
+    def test_missing_administrator_attestation_is_rejected(self) -> None:
+        changed = copy.deepcopy(self.evidence)
+        del changed["immutableReleaseAttestation"]
+
+        with self.assertRaises(AttestationPolicyError):
+            self._validate(evidence=changed)
+
+    def test_absent_release_immutable_field_is_rejected(self) -> None:
+        changed = copy.deepcopy(self.evidence)
+        del changed["release"]["immutable"]
+
+        with self.assertRaisesRegex(AttestationPolicyError, "immutable"):
+            self._validate(evidence=changed)
+
+    def test_policy_requiring_default_branch_reachability_is_refused(self) -> None:
+        changed_policy = copy.deepcopy(self.policy)
+        changed_policy["publication"][
+            "releaseCommitReachableFromDefaultBranchRequired"
+        ] = True
+        changed_policy["policyDigest"] = compute_policy_digest(changed_policy)
+        changed_evidence = copy.deepcopy(self.evidence)
+        changed_evidence["policyDigest"] = changed_policy["policyDigest"]
+
+        with self.assertRaisesRegex(AttestationPolicyError, "reachability"):
+            self._validate(
+                policy=changed_policy,
+                evidence=changed_evidence,
+                expected_policy_digest=changed_policy["policyDigest"],
+            )
+
     def test_policy_content_change_requires_new_policy_digest(self) -> None:
         changed_policy = copy.deepcopy(self.policy)
-        changed_policy["artifact"]["repository"] = "Other/repository"
+        changed_policy["artifacts"]["dashboard-authority-v1"]["repository"] = (
+            "Other/repository"
+        )
         changed_policy["policyDigest"] = compute_policy_digest(changed_policy)
         changed_evidence = copy.deepcopy(self.evidence)
         changed_evidence["signer"]["repository"] = "Other/repository"
@@ -1006,32 +1128,60 @@ class ArtifactAttestationPolicyTests(unittest.TestCase):
             ).read_text()
         )
         self.assertEqual(policy["policyDigest"], compute_policy_digest(policy))
+        self.assertEqual(
+            sorted(artifact["policyId"] for artifact in fixture["artifacts"]),
+            sorted(policy["artifacts"]),
+        )
+
+        required_new_cases = {
+            "absent-release-immutable-field",
+            "immutable-release-attestation-for-another-tag",
+            "missing-immutable-release-attestation",
+            "post-dated-immutable-release-attestation",
+            "stale-immutable-release-attestation",
+        }
+        for artifact in fixture["artifacts"]:
+            expectations = {
+                "expected_policy_id": artifact["policyId"],
+                "expected_subject_sha256": artifact["expectedSubjectSha256"],
+                "expected_source_commit": artifact["expectedSourceCommit"],
+                "expected_policy_digest": artifact["expectedPolicyDigest"],
+                "expected_release_tag": artifact["expectedReleaseTag"],
+                "expected_release_asset_id": artifact["expectedReleaseAssetId"],
+            }
+            with self.subTest(artifact=artifact["policyId"]):
+                validate_attestation_evidence(
+                    policy, artifact["validEvidence"], **expectations
+                )
+                identifiers = {case["id"] for case in artifact["negativeCases"]}
+                self.assertEqual(len(identifiers), len(artifact["negativeCases"]))
+                self.assertTrue(required_new_cases.issubset(identifiers))
+            for case in artifact["negativeCases"]:
+                with self.subTest(artifact=artifact["policyId"], case=case["id"]):
+                    changed = apply_negative_case(artifact["validEvidence"], case)
+                    with self.assertRaises(AttestationPolicyError):
+                        validate_attestation_evidence(policy, changed, **expectations)
+
+    def test_published_console_contract_evidence_is_accepted(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        policy = json.loads(
+            (root / "docs/security/artifact-attestation-policy.json").read_text()
+        )
+        lock = json.loads(
+            (root / "docs/contracts/console-contract-lock.json").read_text()
+        )
+        evidence = json.loads((root / lock["evidencePath"]).read_text())
+
         validate_attestation_evidence(
             policy,
-            fixture["validEvidence"],
-            expected_subject_sha256=fixture["expectedSubjectSha256"],
-            expected_source_commit=fixture["expectedSourceCommit"],
-            expected_policy_digest=fixture["expectedPolicyDigest"],
-            expected_release_tag=fixture["expectedReleaseTag"],
-            expected_release_asset_id=fixture["expectedReleaseAssetId"],
+            evidence,
+            expected_policy_id=lock["policyId"],
+            expected_subject_sha256=lock["artifact"]["assetSha256"],
+            expected_source_commit=lock["sourceCommit"],
+            expected_policy_digest=lock["policyDigest"],
+            expected_release_tag=lock["artifact"]["tag"],
+            expected_release_asset_id=lock["artifact"]["assetId"],
         )
-        for case in fixture["negativeCases"]:
-            with self.subTest(case=case["id"]):
-                changed = copy.deepcopy(fixture["validEvidence"])
-                target = changed
-                for part in case["path"][:-1]:
-                    target = target[part]
-                target[case["path"][-1]] = case["value"]
-                with self.assertRaises(AttestationPolicyError):
-                    validate_attestation_evidence(
-                        policy,
-                        changed,
-                        expected_subject_sha256=fixture["expectedSubjectSha256"],
-                        expected_source_commit=fixture["expectedSourceCommit"],
-                        expected_policy_digest=fixture["expectedPolicyDigest"],
-                        expected_release_tag=fixture["expectedReleaseTag"],
-                        expected_release_asset_id=fixture["expectedReleaseAssetId"],
-                    )
 
 
 if __name__ == "__main__":

@@ -7,10 +7,6 @@
     "sigstore/cosign-installer": {
       "commit": "6f9f17788090df1f26f669e9d70d6ae9567deba6",
       "version": "v4.1.2"
-    },
-    "softprops/action-gh-release": {
-      "commit": "3bb12739c298aeb8a4eeaf626c5b8d85266b0e65",
-      "version": "v2"
     }
   },
   "authSession": {

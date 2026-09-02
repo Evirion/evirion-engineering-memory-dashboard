@@ -1,0 +1,3350 @@
+openapi: "3.1.2"
+info:
+  title: Evirion Console API
+  version: "1.0"
+  description: >-
+    Authenticated membership, invitation, application-session, and repository
+    entitlement API. Every operation resolves live session, membership, and
+    capability state.
+x-evirion-contract-version: "1.0"
+x-evirion-runtime-status: repository-entitlements
+x-evirion-request-bounds:
+  bearerBytes: 8192
+  bodyBytes: 65536
+  queryBytes: 4096
+x-evirion-rate-limit:
+  requests: 60
+  windowSeconds: 60
+security:
+  - consoleBearer: []
+tags:
+  - name: session
+    description: Authenticated application-session context.
+  - name: organizations
+    description: Organization membership and administration.
+  - name: github
+    description: GitHub App installation and synchronization.
+  - name: repositories
+    description: Repository access, entitlement, and processing policy.
+  - name: imports
+    description: Historical import preparation and execution.
+  - name: knowledge
+    description: Customer-safe knowledge projections.
+  - name: review
+    description: Human review commands and history.
+  - name: lifecycle
+    description: Knowledge lifecycle and correction requests.
+  - name: processing
+    description: Processing state and bounded retries.
+  - name: settings
+    description: Customer-visible organization settings.
+  - name: metrics
+    description: Customer-safe aggregate metrics.
+paths:
+  /v1/session/context:
+    get:
+      operationId: getSessionContext
+      tags:
+        - session
+      summary: Resolve live organization and application-session context.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationSelection"
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: Live organization and session context.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/session/pre-auth:
+    post:
+      operationId: issueMemberSessionPreAuth
+      tags:
+        - session
+      summary: Issue a one-time pre-auth transaction for an existing member.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CorrelationId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionPreAuthRequest"
+      responses:
+        "200":
+          description: One-time existing-member pre-auth transaction issued.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "409":
+          $ref: "#/components/responses/FoundationError"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/sessions:
+    get:
+      operationId: listSelfSessions
+      tags:
+        - session
+      summary: List current and recent application sessions.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: Application-session inventory.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/session-revocations:
+    post:
+      operationId: revokeSelfSessions
+      tags:
+        - session
+      summary: Revoke one or more application sessions.
+      x-evirion-versioned: true
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CorrelationId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionRevocationRequest"
+      responses:
+        "200":
+          description: Application deny committed and provider effect scheduled.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "409":
+          $ref: "#/components/responses/VersionConflict"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/members:
+    parameters:
+      - $ref: "#/components/parameters/OrganizationId"
+    get:
+      operationId: listOrganizationMembers
+      tags:
+        - organizations
+      summary: List live organization members.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: Organization member inventory.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/members/{membershipId}:
+    parameters:
+      - $ref: "#/components/parameters/OrganizationId"
+      - $ref: "#/components/parameters/MembershipId"
+    patch:
+      operationId: updateOrganizationMembership
+      tags:
+        - organizations
+      summary: Change role, disable a member, or transfer ownership.
+      x-evirion-versioned: true
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CorrelationId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMembershipRequest"
+      responses:
+        "200":
+          description: Membership transition receipt.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "409":
+          $ref: "#/components/responses/VersionConflict"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/invitations:
+    parameters:
+      - $ref: "#/components/parameters/OrganizationId"
+    post:
+      operationId: createOrganizationInvitation
+      tags:
+        - organizations
+      summary: Create an invite-only organization invitation.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CorrelationId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateInvitationRequest"
+      responses:
+        "200":
+          description: Invitation creation receipt.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "409":
+          $ref: "#/components/responses/FoundationError"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/invitations/{invitationId}/resend:
+    parameters:
+      - $ref: "#/components/parameters/OrganizationId"
+      - $ref: "#/components/parameters/InvitationId"
+    post:
+      operationId: resendOrganizationInvitation
+      tags:
+        - organizations
+      summary: Start a new invitation delivery generation.
+      x-evirion-versioned: true
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CorrelationId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VersionedInvitationRequest"
+      responses:
+        "200":
+          description: Invitation resend receipt.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "409":
+          $ref: "#/components/responses/VersionConflict"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/invitations/{invitationId}/revoke:
+    parameters:
+      - $ref: "#/components/parameters/OrganizationId"
+      - $ref: "#/components/parameters/InvitationId"
+    post:
+      operationId: revokeOrganizationInvitation
+      tags:
+        - organizations
+      summary: Revoke a live invitation generation.
+      x-evirion-versioned: true
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CorrelationId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VersionedInvitationRequest"
+      responses:
+        "200":
+          description: Invitation revocation receipt.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "409":
+          $ref: "#/components/responses/VersionConflict"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/invitations/{invitationId}/accept:
+    parameters:
+      - $ref: "#/components/parameters/InvitationId"
+    post:
+      operationId: acceptOrganizationInvitation
+      tags:
+        - organizations
+      summary: Issue a one-time pre-auth transaction for invitation bootstrap.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CorrelationId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AcceptInvitationRequest"
+      responses:
+        "200":
+          description: One-time pre-auth transaction issued.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "409":
+          $ref: "#/components/responses/FoundationError"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/offboarding:
+    get:
+      operationId: getOrganizationOffboarding
+      tags:
+        - organizations
+      summary: Read the current organization offboarding state.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: Current offboarding state, or null when none exists.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+    post:
+      operationId: requestOrganizationOffboarding
+      tags:
+        - organizations
+      summary: Request durable partner offboarding for this organization.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/CorrelationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrganizationOffboardingRequest"
+      responses:
+        "200":
+          description: Completed offboarding request receipt.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "409":
+          $ref: "#/components/responses/VersionConflict"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/github/installation:
+    get:
+      operationId: getGithubInstallation
+      tags:
+        - github
+      summary: Read the current GitHub control-plane status.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: Installation access, latest setup intent, and latest sync run.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/github/installation-intents:
+    post:
+      operationId: startGithubInstallation
+      tags:
+        - github
+      summary: Start a one-time GitHub App installation handoff.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/CorrelationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GithubInstallationStartRequest"
+      responses:
+        "200":
+          description: Completed setup-intent receipt carrying the one-time state.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "409":
+          $ref: "#/components/responses/VersionConflict"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/github/installation-callbacks:
+    post:
+      operationId: completeGithubInstallation
+      tags:
+        - github
+      summary: Consume the one-time state and bind the GitHub App installation.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/CorrelationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GithubInstallationCallbackRequest"
+      responses:
+        "200":
+          description: Completed installation binding receipt.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "409":
+          $ref: "#/components/responses/VersionConflict"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/github/sync-runs:
+    post:
+      operationId: startGithubRepositorySync
+      tags:
+        - github
+      summary: Queue an accessible-repository synchronization run.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/CorrelationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GithubRepositorySyncStartRequest"
+      responses:
+        "200":
+          description: Completed synchronization receipt.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "409":
+          $ref: "#/components/responses/VersionConflict"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/github/sync-runs/{syncRunId}:
+    parameters:
+      - $ref: "#/components/parameters/SyncRunId"
+    get:
+      operationId: getGithubRepositorySync
+      tags:
+        - github
+      summary: Read synchronization progress and result.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: Synchronization run progress and result.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/repositories:
+    get:
+      operationId: listRepositories
+      tags:
+        - repositories
+      summary: List customer-safe repository entitlement states.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/PageSize"
+        - $ref: "#/components/parameters/AfterRepositoryId"
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: Repository entitlement inventory.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/repositories/{repositoryId}:
+    get:
+      operationId: getRepository
+      tags:
+        - repositories
+      summary: Read one customer-safe repository entitlement state.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/RepositoryId"
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: Repository entitlement state.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/repositories/{repositoryId}/activate:
+    post:
+      operationId: activateRepositoryEntitlement
+      tags:
+        - repositories
+      summary: Activate or reactivate a repository entitlement.
+      x-evirion-versioned: true
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/RepositoryId"
+        - $ref: "#/components/parameters/CorrelationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RepositoryActivationRequest"
+      responses:
+        "200":
+          description: Completed repository activation receipt.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "409":
+          $ref: "#/components/responses/VersionConflict"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/repositories/{repositoryId}/disable:
+    post:
+      operationId: disableRepositoryEntitlement
+      tags:
+        - repositories
+      summary: Disable a repository entitlement without starting replacement.
+      x-evirion-versioned: true
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/RepositoryId"
+        - $ref: "#/components/parameters/CorrelationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RepositoryDisableRequest"
+      responses:
+        "200":
+          description: Completed repository disable receipt.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "409":
+          $ref: "#/components/responses/VersionConflict"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/repositories/{repositoryId}/request-change:
+    post:
+      operationId: requestRepositoryEntitlementChange
+      tags:
+        - repositories
+      summary: Request an operator-owned repository replacement.
+      x-evirion-versioned: true
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/RepositoryId"
+        - $ref: "#/components/parameters/CorrelationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RepositoryChangeRequest"
+      responses:
+        "200":
+          description: Completed repository change-request receipt.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "409":
+          $ref: "#/components/responses/VersionConflict"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/repositories/{repositoryId}/processing-policy:
+    patch:
+      operationId: updateRepositoryProcessingPolicy
+      tags:
+        - repositories
+      summary: Update live repository policy and customer consent.
+      x-evirion-versioned: true
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/RepositoryId"
+        - $ref: "#/components/parameters/CorrelationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RepositoryPolicyUpdateRequest"
+      responses:
+        "200":
+          description: Completed repository policy receipt.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "409":
+          $ref: "#/components/responses/VersionConflict"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/repositories/{repositoryId}/imports:
+    post:
+      operationId: createRepositoryImport
+      tags:
+        - imports
+      summary: Prepare a historical import for one entitled repository.
+      description: >-
+        The backend always creates the import in `missing_only` mode. No request
+        field selects a mode, so `reextract` cannot be reached from this surface.
+      x-evirion-versioned: false
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/RepositoryId"
+        - $ref: "#/components/parameters/CorrelationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RepositoryImportCreateRequest"
+      responses:
+        "200":
+          description: Completed historical import receipt.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RepositoryImportReceipt"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "409":
+          $ref: "#/components/responses/VersionConflict"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/repositories/{repositoryId}/imports/current:
+    get:
+      operationId: getRepositoryImport
+      tags:
+        - imports
+      summary: Read the current historical import for one repository.
+      x-evirion-versioned: false
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/RepositoryId"
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: Customer-safe historical import projection.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RepositoryImport"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/imports/{importId}/approve:
+    post:
+      operationId: approveRepositoryImport
+      tags:
+        - imports
+      summary: Approve paid extraction for one historical import.
+      description: >-
+        Approval does not create Evirion operational authorization. While that
+        authorization is absent the projection reports
+        `AWAITING_OPERATIONAL_AUTHORIZATION` and no provider dispatch occurs.
+        `core.backfill_runs` carries no version column, so the optimistic token is
+        `expectedStatus`; a stale value conflicts exactly as a stale version does.
+      x-evirion-versioned: false
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/ImportId"
+        - $ref: "#/components/parameters/CorrelationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RepositoryImportApproveRequest"
+      responses:
+        "200":
+          description: Completed historical import approval receipt.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RepositoryImportReceipt"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "409":
+          $ref: "#/components/responses/VersionConflict"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/imports/{importId}/state:
+    patch:
+      operationId: setRepositoryImportState
+      tags:
+        - imports
+      summary: Pause, resume or cancel one historical import.
+      description: >-
+        `core.backfill_runs` carries no version column, so the optimistic token is
+        `expectedStatus`; a stale value conflicts exactly as a stale version does.
+      x-evirion-versioned: false
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/ImportId"
+        - $ref: "#/components/parameters/CorrelationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RepositoryImportStateRequest"
+      responses:
+        "200":
+          description: Completed historical import state receipt.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RepositoryImportReceipt"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "409":
+          $ref: "#/components/responses/VersionConflict"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/imports/{importId}/failures:
+    get:
+      operationId: listRepositoryImportFailures
+      tags:
+        - processing
+      summary: List failed work for one import with backend-declared retry capability.
+      description: >-
+        Retry capability and the recovery action are computed by the backend. A
+        caller must never classify retryability itself.
+      x-evirion-versioned: false
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/ImportId"
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: Bounded failure list with declared retry capability.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RepositoryImportFailureList"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/imports/{importId}/failures/{extractionJobId}/retry:
+    post:
+      operationId: retryRepositoryImportJob
+      tags:
+        - processing
+      summary: Retry one backend-declared retryable failed import job.
+      description: >-
+        Only work the backend declares retryable may be retried. A job that
+        reached a provider carries a checkpoint or a settled or unresolved cost
+        and is refused, so a retry can never produce a second provider call.
+      x-evirion-versioned: false
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/ImportId"
+        - $ref: "#/components/parameters/ExtractionJobId"
+        - $ref: "#/components/parameters/CorrelationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "200":
+          description: Completed retry receipt.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RepositoryImportReceipt"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "409":
+          $ref: "#/components/responses/VersionConflict"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/knowledge:
+    get:
+      operationId: listKnowledge
+      tags:
+        - knowledge
+      summary: List accepted Knowledge Objects for the review queue.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/PageSize"
+        - $ref: "#/components/parameters/AfterKnowledgeObjectId"
+        - $ref: "#/components/parameters/RepositoryFilter"
+        - $ref: "#/components/parameters/KnowledgeTypeFilter"
+        - $ref: "#/components/parameters/ReviewStatusFilter"
+        - $ref: "#/components/parameters/LifecycleStateFilter"
+        - $ref: "#/components/parameters/PullRequestFilter"
+        - $ref: "#/components/parameters/AuthorLoginFilter"
+        - $ref: "#/components/parameters/MergedFrom"
+        - $ref: "#/components/parameters/MergedTo"
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: List accepted Knowledge Objects for the review queue.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/knowledge/{knowledgeObjectId}:
+    get:
+      operationId: getKnowledgeDetail
+      tags:
+        - knowledge
+      summary: Read one Knowledge Object with its evidence-backed detail.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/KnowledgeObjectId"
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: Read one Knowledge Object with its evidence-backed detail.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/knowledge/{knowledgeObjectId}/evidence:
+    get:
+      operationId: listKnowledgeEvidence
+      tags:
+        - knowledge
+      summary: List the exact evidence quotes supporting one Knowledge Object.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/KnowledgeObjectId"
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: List the exact evidence quotes supporting one Knowledge Object.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/knowledge/{knowledgeObjectId}/reviews:
+    get:
+      operationId: listKnowledgeReviews
+      tags:
+        - knowledge
+      summary: List the append-only human review history of one Knowledge Object.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/KnowledgeObjectId"
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: The append-only review history, oldest sequence first.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+    post:
+      operationId: recordKnowledgeReview
+      tags:
+        - knowledge
+      summary: Append one immutable human review decision.
+      description: >-
+        Requires a live registered application session and the `knowledge.review`
+        capability, and deliberately does **not** require recent
+        reauthentication: the approved EEM-4 session freeze reserves one-time
+        reauthentication for enumerated dangerous operations, and a reviewer
+        works a queue of 50 to 100 objects. Activation and supersession do
+        require it.
+      x-evirion-versioned: false
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/KnowledgeObjectId"
+        - $ref: "#/components/parameters/CorrelationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KnowledgeReviewRequest"
+      responses:
+        "200":
+          description: Completed review receipt.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "409":
+          $ref: "#/components/responses/VersionConflict"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/knowledge/{knowledgeObjectId}/review-state:
+    get:
+      operationId: getKnowledgeReviewState
+      tags:
+        - knowledge
+      summary: Read the effective review decision and the actions it allows.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/KnowledgeObjectId"
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: >-
+            The effective review decision, both optimistic tokens and the
+            allowed actions. `allowedActions` is the authority for what the
+            interface may offer; it is never inferred by the client.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/knowledge/{knowledgeObjectId}/lifecycle-state:
+    get:
+      operationId: getKnowledgeLifecycleState
+      tags:
+        - knowledge
+      summary: Read the effective lifecycle state and the actions it allows.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/KnowledgeObjectId"
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: >-
+            The effective lifecycle state, its optimistic version, whether the
+            object is in the active projection, its supersession edges and the
+            identifier of any open correction request. Requires only
+            `knowledge.read`, so a viewer may read it.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/knowledge/{knowledgeObjectId}/activate:
+    post:
+      operationId: markKnowledgeActive
+      tags:
+        - knowledge
+      summary: Put one reviewed Knowledge Object into the active projection.
+      description: >-
+        Requires the `knowledge.lifecycle.manage` capability **and** recent
+        reauthentication, because activation is what puts a Knowledge Object
+        into trusted retrieval.
+      x-evirion-versioned: false
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/KnowledgeObjectId"
+        - $ref: "#/components/parameters/CorrelationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KnowledgeActivationRequest"
+      responses:
+        "200":
+          description: Completed activation receipt.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "409":
+          $ref: "#/components/responses/VersionConflict"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/knowledge/{knowledgeObjectId}/supersede:
+    post:
+      operationId: markKnowledgeSuperseded
+      tags:
+        - knowledge
+      summary: Record that a newer Knowledge Object supersedes this one.
+      description: >-
+        The path identifies the **old** object. The relation direction is always
+        new supersedes old. The new object is never auto-activated. Requires
+        `knowledge.lifecycle.manage` and recent reauthentication.
+      x-evirion-versioned: false
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/KnowledgeObjectId"
+        - $ref: "#/components/parameters/CorrelationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KnowledgeSupersessionRequest"
+      responses:
+        "200":
+          description: Completed supersession receipt.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "409":
+          $ref: "#/components/responses/VersionConflict"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/knowledge/{knowledgeObjectId}/corrections:
+    get:
+      operationId: listKnowledgeLifecycleCorrections
+      tags:
+        - knowledge
+      summary: List the durable lifecycle correction requests of one Knowledge Object.
+      description: >-
+        Requires `knowledge.lifecycle.manage`, which a viewer does not hold,
+        because the correction history is the audit trail of a workflow only a
+        reviewer can start and it carries the requester's bounded note and the
+        operator's failure code.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/KnowledgeObjectId"
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: The correction requests and their append-only transition history.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+    post:
+      operationId: requestKnowledgeLifecycleCorrection
+      tags:
+        - knowledge
+      summary: Request an operator-executed correction of a lifecycle mistake.
+      description: >-
+        The customer may request and read a correction but never execute one.
+        Execution and rejection are operator commands declared on the operator
+        contract. Requires `knowledge.lifecycle.manage` and recent
+        reauthentication.
+      x-evirion-versioned: false
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/KnowledgeObjectId"
+        - $ref: "#/components/parameters/CorrelationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KnowledgeCorrectionRequest"
+      responses:
+        "200":
+          description: Completed correction-request receipt.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "409":
+          $ref: "#/components/responses/VersionConflict"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/repositories/{repositoryId}/overview:
+    get:
+      operationId: getRepositoryOverview
+      tags:
+        - processing
+      summary: Read the repository processing and Engineering Memory overview.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/RepositoryId"
+        - $ref: "#/components/parameters/AsOf"
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: Read the repository processing and Engineering Memory overview.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/processing-activity:
+    get:
+      operationId: listProcessingActivity
+      tags:
+        - processing
+      summary: List customer-safe processing activity rows.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/PageSize"
+        - $ref: "#/components/parameters/AfterExtractionJobId"
+        - $ref: "#/components/parameters/RepositoryFilter"
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: List customer-safe processing activity rows.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/extraction-runs/{extractionRunId}/validation-issues:
+    get:
+      operationId: listValidationIssues
+      tags:
+        - processing
+      summary: List bounded validation issue codes for one extraction run.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/ExtractionRunId"
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: List bounded validation issue codes for one extraction run.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/pull-requests/{pullRequestId}:
+    get:
+      operationId: getPullRequestDetail
+      tags:
+        - processing
+      summary: Read the customer-safe pull request projection.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/PullRequestId"
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: Read the customer-safe pull request projection.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/settings/github:
+    get:
+      operationId: getGithubSettingsSummary
+      tags:
+        - settings
+      summary: Read the GitHub settings summary.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: Read the GitHub settings summary.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/usage:
+    get:
+      operationId: getOrganizationUsage
+      tags:
+        - settings
+      summary: Read operational usage for a UTC period.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/PeriodStart"
+        - $ref: "#/components/parameters/PeriodEnd"
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: Read operational usage for a UTC period.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/metrics:
+    get:
+      operationId: getOrganizationMetrics
+      tags:
+        - metrics
+      summary: Read the alpha metrics document at one server-derived cutoff.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/AsOf"
+        - $ref: "#/components/parameters/RepositoryFilter"
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: Read the alpha metrics document at one server-derived cutoff.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+components:
+  securitySchemes:
+    consoleBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >-
+        Server-forwarded Supabase access token used only to prove identity.
+        Runtime authorization must revalidate the exact token online and resolve
+        live application-session, membership, and capability state.
+  schemas:
+    ReviewStatus:
+      type: string
+      enum:
+        - PENDING
+        - APPROVED
+        - EDITED
+        - USER_REJECTED
+      x-evirion-backend-projection: private.b07_effective_review.decision
+      x-evirion-sensitivity: customer-safe-summary
+    LifecycleState:
+      type: string
+      enum:
+        - UNRESOLVED
+        - ACTIVE
+        - SUPERSEDED
+        - WITHDRAWN
+      x-evirion-backend-projection: private.b07_effective_lifecycle.lifecycleState
+      x-evirion-sensitivity: customer-safe-summary
+    KnowledgeReviewAction:
+      type: string
+      enum:
+        - APPROVE
+        - EDIT
+        - USER_REJECT
+        - REVERT_TO_ORIGINAL_AND_APPROVE
+      x-evirion-backend-projection: core.knowledge_reviews.action
+      x-evirion-sensitivity: customer-safe-summary
+    KnowledgeRejectReasonCode:
+      type: string
+      enum:
+        - INCORRECT
+        - NOT_DURABLE
+        - UNSUPPORTED
+        - TOO_VAGUE
+        - DUPLICATE
+        - OUTDATED
+        - OTHER
+      x-evirion-backend-projection: core.knowledge_reviews.reject_reason_code
+      x-evirion-sensitivity: customer-safe-summary
+    KnowledgeIssueSeverity:
+      type: string
+      enum:
+        - NONE
+        - MINOR
+        - MAJOR
+        - CRITICAL
+      x-evirion-backend-projection: core.knowledge_reviews.issue_severity
+      x-evirion-sensitivity: customer-safe-summary
+    KnowledgeReviewNote:
+      type: string
+      minLength: 1
+      maxLength: 2000
+      # Every routine rejects a note that is not `btrim`-stable, so a schema
+      # that allowed surrounding whitespace would validate a request the
+      # backend then refuses.
+      pattern: "^\\S(?:[\\s\\S]*\\S)?$"
+      x-evirion-backend-projection: core.knowledge_reviews.note
+      x-evirion-sensitivity: customer-safe-detail
+    KnowledgeExpectedSequence:
+      type: integer
+      minimum: 0
+      description: >-
+        The optimistic token the caller observed. Zero is a legitimate value:
+        review sequence zero means PENDING and lifecycle version zero means
+        UNRESOLVED, so this is deliberately not the `expectedVersion` shape used
+        by resource-versioned mutations.
+      x-evirion-backend-projection: private.b07_effective_review.reviewSequence
+      x-evirion-sensitivity: customer-safe-summary
+    KnowledgeEditPayload:
+      type: object
+      additionalProperties: false
+      description: >-
+        The complete editable projection. Every one of the thirteen keys is
+        required, because `REV-002` defines an edit as a full reviewed
+        derivative rather than a patch. Evidence, source, author, dates, code
+        anchors, model, admission and run identifiers, scoring, knowledge status
+        and every lifecycle or relation field are never editable and are absent
+        here by construction.
+      required:
+        - knowledgeType
+        - problem
+        - knowledge
+        - designRationale
+        - documentedTradeoffs
+        - explicitAlternatives
+        - constraints
+        - invariants
+        - failureModes
+        - affectedSystems
+        - futureImpact
+        - answerableQuestions
+        - implementationStatus
+      properties:
+        knowledgeType:
+          type: string
+          enum:
+            - ArchitectureDecision
+            - APIBehavior
+            - FeatureBehavior
+            - Constraint
+            - Invariant
+            - FailureMode
+            - Tradeoff
+            - MigrationPattern
+            - LifecycleBehavior
+            - ConcurrencyBehavior
+            - OperationalBehavior
+            - CompatibilityRule
+            - PerformanceBehavior
+            - SecurityBehavior
+            - SystemBehavior
+            - TechnologyChoice
+            - InfrastructureDecision
+            - ProcessDecision
+            - TeamOwnership
+            - ExternalDependency
+            - ProductDecision
+            - ImplementedTechnicalDetail
+          x-evirion-backend-projection: core.knowledge_objects.knowledge_type
+          x-evirion-sensitivity: customer-safe-summary
+        implementationStatus:
+          type: string
+          enum:
+            - implemented
+            - proposed
+            - partially_implemented
+            - unknown
+          x-evirion-backend-projection: core.knowledge_objects.implementation_status
+          x-evirion-sensitivity: customer-safe-summary
+        problem:
+          type: string
+          minLength: 1
+          maxLength: 20000
+          x-evirion-backend-projection: core.knowledge_reviews.edited_payload
+          x-evirion-sensitivity: customer-safe-detail
+        knowledge:
+          type: string
+          minLength: 1
+          maxLength: 20000
+          x-evirion-backend-projection: core.knowledge_reviews.edited_payload
+          x-evirion-sensitivity: customer-safe-detail
+        designRationale:
+          type: string
+          minLength: 1
+          maxLength: 20000
+          x-evirion-backend-projection: core.knowledge_reviews.edited_payload
+          x-evirion-sensitivity: customer-safe-detail
+        futureImpact:
+          type: string
+          minLength: 1
+          maxLength: 20000
+          x-evirion-backend-projection: core.knowledge_reviews.edited_payload
+          x-evirion-sensitivity: customer-safe-detail
+        documentedTradeoffs:
+          type: array
+          maxItems: 50
+          items:
+            type: string
+            minLength: 1
+            maxLength: 4000
+          x-evirion-backend-projection: core.knowledge_reviews.edited_payload
+          x-evirion-sensitivity: customer-safe-detail
+        explicitAlternatives:
+          type: array
+          maxItems: 50
+          items:
+            type: string
+            minLength: 1
+            maxLength: 4000
+          x-evirion-backend-projection: core.knowledge_reviews.edited_payload
+          x-evirion-sensitivity: customer-safe-detail
+        constraints:
+          type: array
+          maxItems: 50
+          items:
+            type: string
+            minLength: 1
+            maxLength: 4000
+          x-evirion-backend-projection: core.knowledge_reviews.edited_payload
+          x-evirion-sensitivity: customer-safe-detail
+        invariants:
+          type: array
+          maxItems: 50
+          items:
+            type: string
+            minLength: 1
+            maxLength: 4000
+          x-evirion-backend-projection: core.knowledge_reviews.edited_payload
+          x-evirion-sensitivity: customer-safe-detail
+        failureModes:
+          type: array
+          maxItems: 50
+          items:
+            type: string
+            minLength: 1
+            maxLength: 4000
+          x-evirion-backend-projection: core.knowledge_reviews.edited_payload
+          x-evirion-sensitivity: customer-safe-detail
+        affectedSystems:
+          type: array
+          maxItems: 50
+          items:
+            type: string
+            minLength: 1
+            maxLength: 4000
+          x-evirion-backend-projection: core.knowledge_reviews.edited_payload
+          x-evirion-sensitivity: customer-safe-detail
+        answerableQuestions:
+          type: array
+          maxItems: 6
+          items:
+            type: string
+            minLength: 1
+            maxLength: 4000
+          x-evirion-backend-projection: core.knowledge_reviews.edited_payload
+          x-evirion-sensitivity: customer-safe-detail
+    KnowledgeReviewEdit:
+      type: object
+      additionalProperties: false
+      required:
+        - schemaVersion
+        - payload
+      properties:
+        schemaVersion:
+          type: string
+          const: "1"
+          x-evirion-backend-projection: core.knowledge_reviews.edit_schema_version
+          x-evirion-sensitivity: customer-safe-summary
+        payload:
+          $ref: "#/components/schemas/KnowledgeEditPayload"
+          x-evirion-backend-projection: core.knowledge_reviews.edited_payload
+          x-evirion-sensitivity: customer-safe-detail
+    KnowledgeReviewRequest:
+      type: object
+      additionalProperties: false
+      description: >-
+        `edit` is required by `EDIT` and forbidden otherwise;
+        `rejectReasonCode` is required by `USER_REJECT` and forbidden otherwise;
+        `issueSeverity` is required by `EDIT` and `USER_REJECT`. The backend is
+        the authority for those combinations and refuses an invalid one with a
+        stable identifier rather than a constraint violation.
+      required:
+        - action
+        - expectedReviewSequence
+        - expectedLifecycleVersion
+      properties:
+        action:
+          $ref: "#/components/schemas/KnowledgeReviewAction"
+          x-evirion-backend-projection: api.record_knowledge_review.p_action
+          x-evirion-sensitivity: customer-safe-summary
+        expectedReviewSequence:
+          $ref: "#/components/schemas/KnowledgeExpectedSequence"
+          x-evirion-backend-projection: api.record_knowledge_review.p_expected_review_sequence
+          x-evirion-sensitivity: customer-safe-summary
+        expectedLifecycleVersion:
+          $ref: "#/components/schemas/KnowledgeExpectedSequence"
+          x-evirion-backend-projection: api.record_knowledge_review.p_expected_lifecycle_version
+          x-evirion-sensitivity: customer-safe-summary
+        edit:
+          $ref: "#/components/schemas/KnowledgeReviewEdit"
+          x-evirion-backend-projection: api.record_knowledge_review.p_edit
+          x-evirion-sensitivity: customer-safe-detail
+        rejectReasonCode:
+          $ref: "#/components/schemas/KnowledgeRejectReasonCode"
+          x-evirion-backend-projection: api.record_knowledge_review.p_reject_reason_code
+          x-evirion-sensitivity: customer-safe-summary
+        issueSeverity:
+          $ref: "#/components/schemas/KnowledgeIssueSeverity"
+          x-evirion-backend-projection: api.record_knowledge_review.p_issue_severity
+          x-evirion-sensitivity: customer-safe-summary
+        note:
+          $ref: "#/components/schemas/KnowledgeReviewNote"
+          x-evirion-backend-projection: api.record_knowledge_review.p_note
+          x-evirion-sensitivity: customer-safe-detail
+        acknowledgedEvidenceIds:
+          type: array
+          maxItems: 20
+          items:
+            type: string
+            format: uuid
+          x-evirion-backend-projection: api.record_knowledge_review.p_acknowledged_evidence_ids
+          x-evirion-sensitivity: customer-safe-summary
+    KnowledgeActivationRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - expectedReviewSequence
+        - expectedLifecycleVersion
+      properties:
+        expectedReviewSequence:
+          $ref: "#/components/schemas/KnowledgeExpectedSequence"
+          x-evirion-backend-projection: api.mark_knowledge_active.p_expected_review_sequence
+          x-evirion-sensitivity: customer-safe-summary
+        expectedLifecycleVersion:
+          $ref: "#/components/schemas/KnowledgeExpectedSequence"
+          x-evirion-backend-projection: api.mark_knowledge_active.p_expected_lifecycle_version
+          x-evirion-sensitivity: customer-safe-summary
+        note:
+          $ref: "#/components/schemas/KnowledgeReviewNote"
+          x-evirion-backend-projection: api.mark_knowledge_active.p_note
+          x-evirion-sensitivity: customer-safe-detail
+    KnowledgeSupersessionRequest:
+      type: object
+      additionalProperties: false
+      description: >-
+        The path identifies the superseded object; `newKnowledgeObjectId` names
+        the one that replaces it. Both objects carry their own optimistic pair,
+        and all four are rechecked under the locks.
+      required:
+        - newKnowledgeObjectId
+        - expectedNewReviewSequence
+        - expectedNewLifecycleVersion
+        - expectedOldReviewSequence
+        - expectedOldLifecycleVersion
+      properties:
+        newKnowledgeObjectId:
+          type: string
+          format: uuid
+          x-evirion-backend-projection: api.mark_knowledge_superseded.p_new_knowledge_object_id
+          x-evirion-sensitivity: customer-safe-summary
+        expectedNewReviewSequence:
+          $ref: "#/components/schemas/KnowledgeExpectedSequence"
+          x-evirion-backend-projection: api.mark_knowledge_superseded.p_expected_new_review_sequence
+          x-evirion-sensitivity: customer-safe-summary
+        expectedNewLifecycleVersion:
+          $ref: "#/components/schemas/KnowledgeExpectedSequence"
+          x-evirion-backend-projection: api.mark_knowledge_superseded.p_expected_new_lifecycle_version
+          x-evirion-sensitivity: customer-safe-summary
+        expectedOldReviewSequence:
+          $ref: "#/components/schemas/KnowledgeExpectedSequence"
+          x-evirion-backend-projection: api.mark_knowledge_superseded.p_expected_old_review_sequence
+          x-evirion-sensitivity: customer-safe-summary
+        expectedOldLifecycleVersion:
+          $ref: "#/components/schemas/KnowledgeExpectedSequence"
+          x-evirion-backend-projection: api.mark_knowledge_superseded.p_expected_old_lifecycle_version
+          x-evirion-sensitivity: customer-safe-summary
+        note:
+          $ref: "#/components/schemas/KnowledgeReviewNote"
+          x-evirion-backend-projection: api.mark_knowledge_superseded.p_note
+          x-evirion-sensitivity: customer-safe-detail
+    KnowledgeCorrectionRequestType:
+      type: string
+      enum:
+        - RETRACT_SUPERSESSION
+        - WITHDRAW_ACTIVE_KNOWLEDGE
+        - RESTORE_UNRESOLVED
+      x-evirion-backend-projection: core.knowledge_lifecycle_correction_requests.request_type
+      x-evirion-sensitivity: customer-safe-summary
+    KnowledgeCorrectionReasonCode:
+      type: string
+      enum:
+        - SUPERSESSION_ERRONEOUS
+        - KNOWLEDGE_NO_LONGER_TRUE
+        - KNOWLEDGE_MISATTRIBUTED
+        - OTHER
+      x-evirion-backend-projection: core.knowledge_lifecycle_correction_requests.reason_code
+      x-evirion-sensitivity: customer-safe-summary
+    KnowledgeCorrectionRequest:
+      type: object
+      additionalProperties: false
+      description: >-
+        `knowledgeRelationId` is required by `RETRACT_SUPERSESSION` and
+        forbidden otherwise, and `expectedRelationVersion` accompanies it. A
+        `reasonCode` of `OTHER` requires a bounded note.
+      required:
+        - requestType
+        - reasonCode
+        - expectedReviewSequence
+        - expectedLifecycleVersion
+      properties:
+        requestType:
+          $ref: "#/components/schemas/KnowledgeCorrectionRequestType"
+          x-evirion-backend-projection: api.request_knowledge_lifecycle_correction.p_request_type
+          x-evirion-sensitivity: customer-safe-summary
+        reasonCode:
+          $ref: "#/components/schemas/KnowledgeCorrectionReasonCode"
+          x-evirion-backend-projection: api.request_knowledge_lifecycle_correction.p_reason_code
+          x-evirion-sensitivity: customer-safe-summary
+        knowledgeRelationId:
+          type: string
+          format: uuid
+          x-evirion-backend-projection: api.request_knowledge_lifecycle_correction.p_knowledge_relation_id
+          x-evirion-sensitivity: customer-safe-summary
+        expectedReviewSequence:
+          $ref: "#/components/schemas/KnowledgeExpectedSequence"
+          x-evirion-backend-projection: api.request_knowledge_lifecycle_correction.p_expected_review_sequence
+          x-evirion-sensitivity: customer-safe-summary
+        expectedLifecycleVersion:
+          $ref: "#/components/schemas/KnowledgeExpectedSequence"
+          x-evirion-backend-projection: api.request_knowledge_lifecycle_correction.p_expected_lifecycle_version
+          x-evirion-sensitivity: customer-safe-summary
+        expectedRelationVersion:
+          $ref: "#/components/schemas/KnowledgeExpectedSequence"
+          x-evirion-backend-projection: api.request_knowledge_lifecycle_correction.p_expected_relation_version
+          x-evirion-sensitivity: customer-safe-summary
+        note:
+          $ref: "#/components/schemas/KnowledgeReviewNote"
+          x-evirion-backend-projection: api.request_knowledge_lifecycle_correction.p_note
+          x-evirion-sensitivity: customer-safe-detail
+    ContractVersion:
+      type: string
+      const: "1.0"
+      x-evirion-backend-projection: console-api.response-envelope
+      x-evirion-sensitivity: customer-safe-summary
+    RequestId:
+      type: string
+      format: uuid
+      x-evirion-backend-projection: console-api.request-context
+      x-evirion-sensitivity: admin-operational
+    CorrelationId:
+      type: string
+      format: uuid
+      x-evirion-backend-projection: console-api.request-context
+      x-evirion-sensitivity: admin-operational
+    ExpectedVersion:
+      type: integer
+      minimum: 1
+      x-evirion-backend-projection: owning-operation-projection
+      x-evirion-sensitivity: customer-safe-summary
+    SuccessEnvelope:
+      type: object
+      additionalProperties: false
+      required:
+        - contractVersion
+        - requestId
+        - data
+      properties:
+        contractVersion:
+          $ref: "#/components/schemas/ContractVersion"
+          x-evirion-backend-projection: console-api.response-envelope
+          x-evirion-sensitivity: customer-safe-summary
+        requestId:
+          $ref: "#/components/schemas/RequestId"
+          x-evirion-backend-projection: console-api.request-context
+          x-evirion-sensitivity: admin-operational
+        data:
+          x-evirion-backend-projection: owning-operation-projection
+          x-evirion-sensitivity: customer-safe-detail
+    ErrorEnvelope:
+      $ref: "./schemas/error.json"
+    CursorPage:
+      $ref: "./schemas/pagination.json"
+    SessionContext:
+      $ref: "./schemas/session-context.json"
+    Member:
+      $ref: "./schemas/member.json"
+    Invitation:
+      $ref: "./schemas/invitation.json"
+    Session:
+      $ref: "./schemas/session.json"
+    SessionRevocation:
+      $ref: "./schemas/session-revocation.json"
+    CommandReceipt:
+      $ref: "./schemas/command-receipt.json"
+    OrganizationOffboarding:
+      $ref: "./schemas/organization-offboarding.json"
+    OrganizationOffboardingRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - confirmationAccepted
+      properties:
+        confirmationAccepted:
+          type: boolean
+          const: true
+          x-evirion-backend-projection: api.request_organization_offboarding.p_confirmation_accepted
+          x-evirion-sensitivity: customer-safe-summary
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 500
+          x-evirion-backend-projection: api.request_organization_offboarding.p_reason
+          x-evirion-sensitivity: customer-safe-detail
+    GithubInstallation:
+      $ref: "./schemas/github-installation.json"
+    GithubSetupIntent:
+      $ref: "./schemas/github-setup-intent.json"
+    GithubSyncRun:
+      $ref: "./schemas/github-sync-run.json"
+    GithubInstallationStartRequest:
+      type: object
+      additionalProperties: false
+      properties: {}
+    GithubRepositorySyncStartRequest:
+      type: object
+      additionalProperties: false
+      properties: {}
+    GithubInstallationCallbackRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - state
+        - providerInstallationId
+        - accountLogin
+      properties:
+        state:
+          type: string
+          pattern: "^[0-9a-f]{64}$"
+          x-evirion-backend-projection: api.complete_github_installation.p_state
+          x-evirion-sensitivity: customer-safe-detail
+        providerInstallationId:
+          type: integer
+          minimum: 1
+          maximum: 999999999999999999
+          x-evirion-backend-projection: api.complete_github_installation.p_provider_installation_id
+          x-evirion-sensitivity: customer-safe-summary
+        accountLogin:
+          type: string
+          minLength: 1
+          maxLength: 128
+          x-evirion-backend-projection: api.complete_github_installation.p_account_login
+          x-evirion-sensitivity: customer-safe-detail
+    Repository:
+      $ref: "./schemas/repository.json"
+    RepositoryEntitlementCommand:
+      $ref: "./schemas/repository-entitlement-command.json"
+    RepositoryPage:
+      $ref: "./schemas/repository-page.json"
+    RepositoryPolicy:
+      $ref: "./schemas/repository-policy.json"
+    RepositoryPolicyMode:
+      type: string
+      enum:
+        - "OFF"
+        - SOURCE_ONLY
+        - AUTO_EXTRACT
+      x-evirion-backend-projection: core.repository_automation_policies
+      x-evirion-sensitivity: customer-safe-summary
+    RepositoryActivationRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - expectedVersion
+        - confirmationAccepted
+      properties:
+        expectedVersion:
+          type:
+            - integer
+            - "null"
+          minimum: 1
+          x-evirion-backend-projection: core.repository_entitlements.version
+          x-evirion-sensitivity: customer-safe-summary
+        confirmationAccepted:
+          type: boolean
+          const: true
+          x-evirion-backend-projection: api.activate_repository_entitlement.p_confirmation_accepted
+          x-evirion-sensitivity: customer-safe-summary
+    RepositoryDisableRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - expectedVersion
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+          x-evirion-backend-projection: core.repository_entitlements.version
+          x-evirion-sensitivity: customer-safe-summary
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 500
+          x-evirion-backend-projection: api.disable_repository_entitlement.p_reason
+          x-evirion-sensitivity: customer-safe-detail
+    RepositoryChangeRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - expectedVersion
+        - requestedRepositoryId
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+          x-evirion-backend-projection: core.repository_entitlements.version
+          x-evirion-sensitivity: customer-safe-summary
+        requestedRepositoryId:
+          type: string
+          format: uuid
+          x-evirion-backend-projection: core.repository_entitlement_change_requests.requested_repository_id
+          x-evirion-sensitivity: customer-safe-summary
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 500
+          x-evirion-backend-projection: api.request_repository_entitlement_change.p_reason
+          x-evirion-sensitivity: customer-safe-detail
+    RepositoryImportReceipt:
+      type: object
+      additionalProperties: false
+      description: >-
+        Durable command receipt for a historical import mutation. A replay
+        returns the stored receipt unchanged.
+      required:
+        - contractVersion
+        - requestId
+        - data
+      properties:
+        contractVersion:
+          $ref: "#/components/schemas/ContractVersion"
+          x-evirion-backend-projection: console-api.response-envelope
+          x-evirion-sensitivity: customer-safe-summary
+        requestId:
+          $ref: "#/components/schemas/RequestId"
+          x-evirion-backend-projection: console-api.request-context
+          x-evirion-sensitivity: admin-operational
+        data:
+          type: object
+          additionalProperties: false
+          x-evirion-backend-projection: core.console_command_receipts
+          x-evirion-sensitivity: customer-safe-summary
+          required:
+            - receiptId
+            - status
+            - responseCode
+            - responsePayload
+          properties:
+            receiptId:
+              type: string
+              format: uuid
+              x-evirion-backend-projection: core.console_command_receipts.id
+              x-evirion-sensitivity: customer-safe-summary
+            status:
+              type: string
+              const: completed
+              x-evirion-backend-projection: core.console_command_receipts.status
+              x-evirion-sensitivity: customer-safe-summary
+            responseCode:
+              type: string
+              enum:
+                - REPOSITORY_IMPORT_CREATED
+                - REPOSITORY_IMPORT_APPROVED
+                - REPOSITORY_IMPORT_JOB_RETRIED
+                - REPOSITORY_IMPORT_PAUSED
+                - REPOSITORY_IMPORT_RESUMED
+                - REPOSITORY_IMPORT_RESUME_BLOCKED
+                - REPOSITORY_IMPORT_CANCELLED
+              description: >-
+                `REPOSITORY_IMPORT_RESUME_BLOCKED` is returned when a resume is
+                forced back to `PAUSED` because source dead-letter work remains.
+                It is a completed command, not a failure.
+              x-evirion-unsupported-value: UNSUPPORTED_SERVER_RESPONSE
+              x-evirion-backend-projection: core.console_command_receipts.response_code
+              x-evirion-sensitivity: customer-safe-summary
+            responsePayload:
+              $ref: "#/components/schemas/RepositoryImport"
+              x-evirion-backend-projection: core.console_command_receipts.response_payload
+              x-evirion-sensitivity: customer-safe-summary
+    RepositoryImportFilters:
+      type: object
+      additionalProperties: false
+      description: >-
+        Bounded merge window. Omitting both bounds imports the entire history.
+      properties:
+        mergedFrom:
+          type: string
+          format: date-time
+          x-evirion-backend-projection: core.backfill_runs.filters
+          x-evirion-sensitivity: customer-safe-summary
+        mergedTo:
+          type: string
+          format: date-time
+          x-evirion-backend-projection: core.backfill_runs.filters
+          x-evirion-sensitivity: customer-safe-summary
+    RepositoryImportCreateRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - confirmationAccepted
+        - filters
+      properties:
+        confirmationAccepted:
+          type: boolean
+          const: true
+          x-evirion-backend-projection: api.create_repository_import.p_confirmation_accepted
+          x-evirion-sensitivity: customer-safe-summary
+        filters:
+          $ref: "#/components/schemas/RepositoryImportFilters"
+          x-evirion-backend-projection: api.create_repository_import.p_filters
+          x-evirion-sensitivity: customer-safe-summary
+    RepositoryImportApproveRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - expectedStatus
+        - costBudgetUsd
+        - confirmationAccepted
+      properties:
+        expectedStatus:
+          $ref: "#/components/schemas/RepositoryImportStatus"
+          x-evirion-backend-projection: api.approve_repository_import.p_expected_status
+          x-evirion-sensitivity: customer-safe-summary
+        costBudgetUsd:
+          type: string
+          pattern: "^(0|[1-9][0-9]{0,11})\\.[0-9]{6}$"
+          not:
+            const: "0.000000"
+          x-evirion-backend-projection: core.backfill_runs.cost_budget_usd
+          x-evirion-sensitivity: customer-safe-summary
+        confirmationAccepted:
+          type: boolean
+          const: true
+          x-evirion-backend-projection: api.approve_repository_import.p_confirmation_accepted
+          x-evirion-sensitivity: customer-safe-summary
+    RepositoryImportStateRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - state
+        - expectedStatus
+        - confirmationAccepted
+      properties:
+        state:
+          $ref: "#/components/schemas/RepositoryImportState"
+          x-evirion-backend-projection: api.set_repository_import_state.p_state
+          x-evirion-sensitivity: customer-safe-summary
+        expectedStatus:
+          $ref: "#/components/schemas/RepositoryImportStatus"
+          x-evirion-backend-projection: api.set_repository_import_state.p_expected_status
+          x-evirion-sensitivity: customer-safe-summary
+        confirmationAccepted:
+          type: boolean
+          x-evirion-backend-projection: api.set_repository_import_state.p_confirmation_accepted
+          x-evirion-sensitivity: customer-safe-summary
+    RepositoryImportState:
+      type: string
+      description: >-
+        The state a customer may drive an import into. `RESUMED` may complete as
+        `REPOSITORY_IMPORT_RESUME_BLOCKED` when source dead-letter work remains.
+      enum:
+        - PAUSED
+        - RESUMED
+        - CANCELLED
+    RepositoryImportStatus:
+      type: string
+      enum:
+        - PLANNING
+        - DISCOVERING
+        - AWAITING_APPROVAL
+        - PROCESSING
+        - PAUSED
+        - COMPLETED
+        - FAILED
+        - CANCELLED
+      x-evirion-unsupported-value: UNSUPPORTED_SERVER_RESPONSE
+      x-evirion-backend-projection: core.backfill_runs.status
+      x-evirion-sensitivity: customer-safe-summary
+    PaidAuthorizationStatus:
+      type: string
+      enum:
+        - NOT_REQUIRED
+        - AWAITING_CUSTOMER_CONSENT
+        - AWAITING_OPERATIONAL_AUTHORIZATION
+        - AUTHORIZED
+        - EXPIRED
+        - REVOKED
+      x-evirion-unsupported-value: UNSUPPORTED_SERVER_RESPONSE
+      x-evirion-backend-projection: core.paid_operation_authorizations.status
+      x-evirion-sensitivity: customer-safe-summary
+    ImportRecoveryAction:
+      type: string
+      enum:
+        - AWAIT_DISCOVERY
+        - APPROVE_IMPORT
+        - GRANT_CUSTOMER_CONSENT
+        - AWAIT_EVIRION_AUTHORIZATION
+        - PAUSE_IMPORT_TO_RETRY
+        - RETRY_JOB
+        - CONTACT_SUPPORT
+        - NONE
+      x-evirion-unsupported-value: UNSUPPORTED_SERVER_RESPONSE
+      x-evirion-backend-projection: import-recovery-action-projection
+      x-evirion-sensitivity: customer-safe-summary
+    RepositoryImport:
+      $ref: "./schemas/repository-import.json"
+    RepositoryImportFailureList:
+      $ref: "./schemas/repository-import-failures.json"
+    RepositoryPolicyUpdateRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - expectedVersion
+        - mode
+        - consent
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+          x-evirion-backend-projection: core.repository_automation_policies.version
+          x-evirion-sensitivity: customer-safe-summary
+        mode:
+          $ref: "#/components/schemas/RepositoryPolicyMode"
+          x-evirion-backend-projection: api.update_repository_processing_policy.p_mode
+          x-evirion-sensitivity: customer-safe-summary
+        consent:
+          oneOf:
+            - type: "null"
+            - type: object
+              additionalProperties: false
+              required:
+                - scope
+                - allowedModelProfiles
+                - callCeiling
+                - budgetCeilingUsd
+                - retryPolicy
+                - expiresAt
+              properties:
+                scope:
+                  type: string
+                  const: LIVE_REPOSITORY
+                  x-evirion-backend-projection: core.customer_paid_operation_consents.scope
+                  x-evirion-sensitivity: customer-safe-summary
+                allowedModelProfiles:
+                  type: array
+                  minItems: 1
+                  maxItems: 16
+                  uniqueItems: true
+                  items:
+                    type: string
+                    pattern: "^[a-z][a-z0-9_.-]{0,63}$"
+                  x-evirion-backend-projection: core.customer_paid_operation_consents.allowed_model_profiles
+                  x-evirion-sensitivity: customer-safe-detail
+                callCeiling:
+                  type: integer
+                  minimum: 1
+                  maximum: 1000000000
+                  x-evirion-backend-projection: core.customer_paid_operation_consents.call_ceiling
+                  x-evirion-sensitivity: customer-safe-summary
+                budgetCeilingUsd:
+                  type: string
+                  pattern: "^(0|[1-9][0-9]{0,11})\\.[0-9]{6}$"
+                  not:
+                    const: "0.000000"
+                  x-evirion-backend-projection: core.customer_paid_operation_consents.budget_ceiling_usd
+                  x-evirion-sensitivity: customer-safe-summary
+                retryPolicy:
+                  type: string
+                  enum:
+                    - NO_RETRY
+                    - BOUNDED_TRANSPORT_RETRY
+                  x-evirion-backend-projection: core.customer_paid_operation_consents.retry_policy
+                  x-evirion-sensitivity: customer-safe-summary
+                expiresAt:
+                  type: string
+                  format: date-time
+                  pattern: "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{1,6})?Z$"
+                  x-evirion-backend-projection: core.customer_paid_operation_consents.expires_at
+                  x-evirion-sensitivity: customer-safe-summary
+          x-evirion-backend-projection: api.update_repository_processing_policy.p_consent
+          x-evirion-sensitivity: customer-safe-detail
+    CreateInvitationRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - email
+        - role
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+          x-evirion-backend-projection: api.create_organization_invitation.p_email
+          x-evirion-sensitivity: customer-safe-detail
+        role:
+          type: string
+          enum:
+            - admin
+            - reviewer
+            - viewer
+          x-evirion-backend-projection: api.create_organization_invitation.p_role
+          x-evirion-sensitivity: customer-safe-summary
+    VersionedInvitationRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - expectedVersion
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+          x-evirion-backend-projection: core.organization_invitations.version
+          x-evirion-sensitivity: customer-safe-summary
+    UpdateMembershipRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - action
+        - expectedVersion
+      properties:
+        action:
+          type: string
+          enum:
+            - change_role
+            - disable
+            - transfer_owner
+          x-evirion-backend-projection: api.update_organization_membership.p_action
+          x-evirion-sensitivity: customer-safe-summary
+        role:
+          type: string
+          enum:
+            - admin
+            - reviewer
+            - viewer
+          x-evirion-backend-projection: api.update_organization_membership.p_role
+          x-evirion-sensitivity: customer-safe-summary
+        expectedVersion:
+          type: integer
+          minimum: 1
+          x-evirion-backend-projection: core.organization_memberships.version
+          x-evirion-sensitivity: customer-safe-summary
+    SessionRevocationRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - scope
+        - expectedVersion
+      properties:
+        scope:
+          type: string
+          enum:
+            - current
+            - others
+            - all
+            - session
+          x-evirion-backend-projection: api.revoke_self_sessions.p_scope
+          x-evirion-sensitivity: customer-safe-summary
+        sessionId:
+          type: string
+          format: uuid
+          x-evirion-backend-projection: api.revoke_self_sessions.p_session_id
+          x-evirion-sensitivity: customer-safe-summary
+        expectedVersion:
+          type: integer
+          minimum: 1
+          x-evirion-backend-projection: core.console_auth_sessions.version
+          x-evirion-sensitivity: customer-safe-summary
+    AcceptInvitationRequest:
+      type: object
+      additionalProperties: false
+      properties: {}
+    SessionPreAuthRequest:
+      type: object
+      additionalProperties: false
+      properties: {}
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: UUID command identity. It is never duplicated in the JSON body.
+      schema:
+        type: string
+        format: uuid
+        x-evirion-backend-projection: console-api.command-receipt
+        x-evirion-sensitivity: admin-operational
+      x-evirion-backend-projection: console-api.command-receipt
+      x-evirion-sensitivity: admin-operational
+    CorrelationId:
+      name: X-Correlation-ID
+      in: header
+      required: false
+      description: Optional bounded correlation identifier supplied by the BFF.
+      schema:
+        $ref: "#/components/schemas/CorrelationId"
+        x-evirion-backend-projection: console-api.request-context
+        x-evirion-sensitivity: admin-operational
+      x-evirion-backend-projection: console-api.request-context
+      x-evirion-sensitivity: admin-operational
+    OrganizationSelection:
+      name: organizationId
+      in: query
+      required: true
+      schema:
+        type: string
+        format: uuid
+        x-evirion-backend-projection: api.console_session_context.p_organization_id
+        x-evirion-sensitivity: customer-safe-summary
+    OrganizationId:
+      name: organizationId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+        x-evirion-backend-projection: core.organizations.id
+        x-evirion-sensitivity: customer-safe-summary
+    InvitationId:
+      name: invitationId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+        x-evirion-backend-projection: core.organization_invitations.id
+        x-evirion-sensitivity: customer-safe-summary
+    MembershipId:
+      name: membershipId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+        x-evirion-backend-projection: core.organization_memberships.id
+        x-evirion-sensitivity: customer-safe-summary
+    ImportId:
+      name: importId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+        x-evirion-backend-projection: core.backfill_runs.id
+        x-evirion-sensitivity: customer-safe-summary
+    ExtractionJobId:
+      name: extractionJobId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+        x-evirion-backend-projection: core.extraction_jobs.id
+        x-evirion-sensitivity: customer-safe-summary
+    RepositoryId:
+      name: repositoryId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+        x-evirion-backend-projection: core.repositories.id
+        x-evirion-sensitivity: customer-safe-summary
+    SyncRunId:
+      name: syncRunId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+        x-evirion-backend-projection: core.github_repository_sync_runs.id
+        x-evirion-sensitivity: customer-safe-summary
+    PageSize:
+      name: pageSize
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 50
+        x-evirion-backend-projection: api.list_console_repositories.p_page_size
+        x-evirion-sensitivity: customer-safe-summary
+    KnowledgeObjectId:
+      name: knowledgeObjectId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+        x-evirion-backend-projection: core.knowledge_objects.id
+        x-evirion-sensitivity: customer-safe-summary
+    ExtractionRunId:
+      name: extractionRunId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+        x-evirion-backend-projection: core.extraction_runs.id
+        x-evirion-sensitivity: customer-safe-summary
+    PullRequestId:
+      name: pullRequestId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+        x-evirion-backend-projection: core.pull_requests.id
+        x-evirion-sensitivity: customer-safe-summary
+    AfterKnowledgeObjectId:
+      name: after
+      in: query
+      required: false
+      schema:
+        type: string
+        format: uuid
+        x-evirion-backend-projection: api.list_knowledge.p_after_knowledge_object_id
+        x-evirion-sensitivity: customer-safe-summary
+    AfterExtractionJobId:
+      name: after
+      in: query
+      required: false
+      schema:
+        type: string
+        format: uuid
+        x-evirion-backend-projection: api.list_processing_activity.p_after_extraction_job_id
+        x-evirion-sensitivity: customer-safe-summary
+    RepositoryFilter:
+      name: repositoryId
+      in: query
+      required: false
+      schema:
+        type: string
+        format: uuid
+        x-evirion-backend-projection: core.repositories.id
+        x-evirion-sensitivity: customer-safe-summary
+    PullRequestFilter:
+      name: pullRequestId
+      in: query
+      required: false
+      schema:
+        type: string
+        format: uuid
+        x-evirion-backend-projection: core.pull_requests.id
+        x-evirion-sensitivity: customer-safe-summary
+    KnowledgeTypeFilter:
+      name: knowledgeType
+      in: query
+      required: false
+      schema:
+        type: string
+        pattern: "^[A-Za-z]{1,64}$"
+        x-evirion-backend-projection: core.knowledge_objects.knowledge_type
+        x-evirion-sensitivity: customer-safe-summary
+    AuthorLoginFilter:
+      name: authorLogin
+      in: query
+      required: false
+      schema:
+        type: string
+        pattern: "^[A-Za-z0-9._-]{1,64}$"
+        x-evirion-backend-projection: core.pull_requests.author_login
+        x-evirion-sensitivity: customer-safe-summary
+    ReviewStatusFilter:
+      name: reviewStatus
+      in: query
+      required: false
+      description: >-
+        Absent means the review queue default, which is PENDING.
+      schema:
+        $ref: "#/components/schemas/ReviewStatus"
+        x-evirion-backend-projection: api.list_knowledge.p_review_status
+        x-evirion-sensitivity: customer-safe-summary
+    LifecycleStateFilter:
+      name: lifecycleState
+      in: query
+      required: false
+      schema:
+        $ref: "#/components/schemas/LifecycleState"
+        x-evirion-backend-projection: api.list_knowledge.p_lifecycle_state
+        x-evirion-sensitivity: customer-safe-summary
+    MergedFrom:
+      name: mergedFrom
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date-time
+        x-evirion-backend-projection: core.pull_requests.merged_at
+        x-evirion-sensitivity: customer-safe-summary
+    MergedTo:
+      name: mergedTo
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date-time
+        x-evirion-backend-projection: core.pull_requests.merged_at
+        x-evirion-sensitivity: customer-safe-summary
+    AsOf:
+      name: asOf
+      in: query
+      required: false
+      description: >-
+        Server-derived metric cutoff. Absent means the current statement
+        timestamp. A cutoff in the future is refused.
+      schema:
+        type: string
+        format: date-time
+        x-evirion-backend-projection: api.get_organization_metrics.p_as_of
+        x-evirion-sensitivity: customer-safe-summary
+    PeriodStart:
+      name: periodStart
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date
+        x-evirion-backend-projection: api.get_organization_usage.p_period_start
+        x-evirion-sensitivity: customer-safe-summary
+    PeriodEnd:
+      name: periodEnd
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date
+        x-evirion-backend-projection: api.get_organization_usage.p_period_end
+        x-evirion-sensitivity: customer-safe-summary
+    AfterRepositoryId:
+      name: after
+      in: query
+      required: false
+      schema:
+        type: string
+        format: uuid
+        x-evirion-backend-projection: api.list_console_repositories.p_after_repository_id
+        x-evirion-sensitivity: customer-safe-summary
+  headers:
+    RequestId:
+      description: Backend-generated request identifier matching the response body.
+      required: true
+      schema:
+        $ref: "#/components/schemas/RequestId"
+        x-evirion-backend-projection: console-api.request-context
+        x-evirion-sensitivity: admin-operational
+      x-evirion-backend-projection: console-api.request-context
+      x-evirion-sensitivity: admin-operational
+    CorrelationId:
+      description: Correlation identifier normalized by the Console API.
+      required: true
+      schema:
+        $ref: "#/components/schemas/CorrelationId"
+        x-evirion-backend-projection: console-api.request-context
+        x-evirion-sensitivity: admin-operational
+      x-evirion-backend-projection: console-api.request-context
+      x-evirion-sensitivity: admin-operational
+    RateLimitLimit:
+      description: Maximum verified-user requests in the current fixed window.
+      required: false
+      schema:
+        type: integer
+        const: 60
+        x-evirion-backend-projection: console-api.rate-limit
+        x-evirion-sensitivity: admin-operational
+      x-evirion-backend-projection: console-api.rate-limit
+      x-evirion-sensitivity: admin-operational
+    RateLimitRemaining:
+      description: Verified-user requests remaining in the current fixed window.
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 59
+        x-evirion-backend-projection: console-api.rate-limit
+        x-evirion-sensitivity: admin-operational
+      x-evirion-backend-projection: console-api.rate-limit
+      x-evirion-sensitivity: admin-operational
+    RetryAfter:
+      description: Bounded delay before a rate-limited request may be retried.
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 60
+        x-evirion-backend-projection: console-api.rate-limit
+        x-evirion-sensitivity: admin-operational
+      x-evirion-backend-projection: console-api.rate-limit
+      x-evirion-sensitivity: admin-operational
+  responses:
+    StandardError:
+      description: Stable payload-free API error.
+      headers:
+        X-Request-ID:
+          $ref: "#/components/headers/RequestId"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    VersionConflict:
+      description: Optimistic version conflict.
+      x-evirion-http-status: 409
+      headers:
+        X-Request-ID:
+          $ref: "#/components/headers/RequestId"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    FoundationError:
+      description: Stable payload-free Console foundation error.
+      headers:
+        X-Request-ID:
+          $ref: "#/components/headers/RequestId"
+        X-Correlation-ID:
+          $ref: "#/components/headers/CorrelationId"
+        X-RateLimit-Limit:
+          $ref: "#/components/headers/RateLimitLimit"
+        X-RateLimit-Remaining:
+          $ref: "#/components/headers/RateLimitRemaining"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    RateLimited:
+      description: Verified-user fixed-window rate limit exceeded.
+      x-evirion-http-status: 429
+      headers:
+        X-Request-ID:
+          $ref: "#/components/headers/RequestId"
+        X-Correlation-ID:
+          $ref: "#/components/headers/CorrelationId"
+        X-RateLimit-Limit:
+          $ref: "#/components/headers/RateLimitLimit"
+        X-RateLimit-Remaining:
+          $ref: "#/components/headers/RateLimitRemaining"
+        Retry-After:
+          $ref: "#/components/headers/RetryAfter"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"

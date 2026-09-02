@@ -1,204 +1,573 @@
 {
-  "expectedPolicyDigest": "7feec887ecc73eed09f48a77186a4113581ba4340155b7011292cd808b936a24",
-  "expectedReleaseAssetId": 1234,
-  "expectedReleaseTag": "dashboard-authority-v1.0.0",
-  "expectedSourceCommit": "dddddddddddddddddddddddddddddddddddddddd",
-  "expectedSubjectSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-  "negativeCases": [
+  "artifacts": [
     {
-      "id": "replaced-asset",
-      "path": [
-        "release",
-        "assetSha256"
+      "expectedPolicyDigest": "dcf0652af2c96031e3856966c5e25ec8e50e621c432c90f5262ede66712f63f7",
+      "expectedReleaseAssetId": 540908882,
+      "expectedReleaseTag": "console-contract-v1.0",
+      "expectedSourceCommit": "20cd3b60ba4b067277e960ede99d508cf0bef70a",
+      "expectedSubjectSha256": "9d562738bd315aeeb3294c5c30332f7c1155eacf1182d3f493ef804156be1039",
+      "negativeCases": [
+        {
+          "id": "replaced-asset",
+          "path": [
+            "release",
+            "assetSha256"
+          ],
+          "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        },
+        {
+          "id": "mutable-release",
+          "path": [
+            "release",
+            "immutable"
+          ],
+          "value": false
+        },
+        {
+          "id": "absent-release-immutable-field",
+          "path": [
+            "release",
+            "immutable"
+          ],
+          "remove": true
+        },
+        {
+          "id": "wrong-release-tag",
+          "path": [
+            "release",
+            "tag"
+          ],
+          "value": "console-contract-v2.0"
+        },
+        {
+          "id": "wrong-release-asset-id",
+          "path": [
+            "release",
+            "assetId"
+          ],
+          "value": 4321
+        },
+        {
+          "id": "wrong-release-asset-name",
+          "path": [
+            "release",
+            "assetName"
+          ],
+          "value": "other.tar.gz"
+        },
+        {
+          "id": "wrong-repository",
+          "path": [
+            "signer",
+            "repository"
+          ],
+          "value": "Other/repository"
+        },
+        {
+          "id": "wrong-workflow",
+          "path": [
+            "signer",
+            "workflowPath"
+          ],
+          "value": ".github/workflows/untrusted.yml"
+        },
+        {
+          "id": "mutable-ref",
+          "path": [
+            "signer",
+            "ref"
+          ],
+          "value": "refs/heads/main"
+        },
+        {
+          "id": "wrong-source-commit",
+          "path": [
+            "signer",
+            "commit"
+          ],
+          "value": "ffffffffffffffffffffffffffffffffffffffff"
+        },
+        {
+          "id": "wrong-oidc-issuer",
+          "path": [
+            "signer",
+            "oidcIssuer"
+          ],
+          "value": "https://issuer.invalid"
+        },
+        {
+          "id": "wrong-workflow-trigger",
+          "path": [
+            "signer",
+            "eventName"
+          ],
+          "value": "pull_request_target"
+        },
+        {
+          "id": "wrong-subject-digest",
+          "path": [
+            "subject",
+            "sha256"
+          ],
+          "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        },
+        {
+          "id": "stale-policy",
+          "path": [
+            "policyDigest"
+          ],
+          "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        },
+        {
+          "id": "wrong-policy-id",
+          "path": [
+            "policyId"
+          ],
+          "value": "unregistered-artifact-v1"
+        },
+        {
+          "id": "unpinned-verifier",
+          "path": [
+            "verifier",
+            "sha256"
+          ],
+          "value": ""
+        },
+        {
+          "id": "unpinned-trusted-root",
+          "path": [
+            "verifier",
+            "trustedRootSha256"
+          ],
+          "value": ""
+        },
+        {
+          "id": "missing-rekor-inclusion-proof",
+          "path": [
+            "rekor",
+            "inclusionProofVerified"
+          ],
+          "value": false
+        },
+        {
+          "id": "malformed-rekor-uuid",
+          "path": [
+            "rekor",
+            "uuid"
+          ],
+          "value": "not-a-uuid"
+        },
+        {
+          "id": "stale-rekor-evidence",
+          "path": [
+            "rekor",
+            "integratedTime"
+          ],
+          "value": 1788332770
+        },
+        {
+          "id": "unverified-sigstore-bundle",
+          "path": [
+            "cryptographicVerification",
+            "bundleVerified"
+          ],
+          "value": false
+        },
+        {
+          "id": "unverified-workflow-sha",
+          "path": [
+            "cryptographicVerification",
+            "workflowShaVerified"
+          ],
+          "value": false
+        },
+        {
+          "id": "missing-immutable-release-attestation",
+          "path": [
+            "immutableReleaseAttestation"
+          ],
+          "remove": true
+        },
+        {
+          "id": "stale-immutable-release-attestation",
+          "path": [
+            "immutableReleaseAttestation",
+            "attestedAt"
+          ],
+          "value": "2026-09-01T08:06:10Z"
+        },
+        {
+          "id": "post-dated-immutable-release-attestation",
+          "path": [
+            "immutableReleaseAttestation",
+            "attestedAt"
+          ],
+          "value": "2026-09-02T09:21:10Z"
+        },
+        {
+          "id": "immutable-release-attestation-for-another-tag",
+          "path": [
+            "immutableReleaseAttestation",
+            "tag"
+          ],
+          "value": "console-contract-v2.0"
+        },
+        {
+          "id": "immutable-release-attestation-denies-immutability",
+          "path": [
+            "immutableReleaseAttestation",
+            "immutableReleasesEnabled"
+          ],
+          "value": false
+        },
+        {
+          "id": "immutable-release-attestation-for-another-repository",
+          "path": [
+            "immutableReleaseAttestation",
+            "repository"
+          ],
+          "value": "Evirion/evirion-engineering-memory-dashboard"
+        }
       ],
-      "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      "policyId": "console-contract-v1",
+      "provenance": "published release console-contract-v1.0; values observed from the live release, its Sigstore bundle, and its Fulcio certificate",
+      "validEvidence": {
+        "cryptographicVerification": {
+          "bundleVerified": true,
+          "certificateIdentity": "https://github.com/Evirion/evirion-engineering-memory/.github/workflows/console-contract-release.yml@refs/tags/console-contract-v1.0",
+          "workflowRefVerified": true,
+          "workflowRepositoryVerified": true,
+          "workflowShaVerified": true,
+          "workflowTriggerVerified": true
+        },
+        "immutableReleaseAttestation": {
+          "attestedAt": "2026-09-02T09:02:52Z",
+          "immutableReleasesEnabled": true,
+          "observedBy": "repository-administrator",
+          "repository": "Evirion/evirion-engineering-memory",
+          "schemaVersion": "1.0",
+          "tag": "console-contract-v1.0"
+        },
+        "policyDigest": "dcf0652af2c96031e3856966c5e25ec8e50e621c432c90f5262ede66712f63f7",
+        "policyId": "console-contract-v1",
+        "rekor": {
+          "inclusionProofVerified": true,
+          "integratedTime": 1788339965,
+          "uuid": "1976b388e983e935177e11dab5c4e58020f79150b9619db38983c787eebe48cc"
+        },
+        "release": {
+          "assetId": 540908882,
+          "assetName": "console-contract-v1.0.tar.gz",
+          "assetSha256": "9d562738bd315aeeb3294c5c30332f7c1155eacf1182d3f493ef804156be1039",
+          "immutable": true,
+          "publishedAt": 1788339970,
+          "tag": "console-contract-v1.0"
+        },
+        "schemaVersion": "1.0",
+        "signer": {
+          "commit": "20cd3b60ba4b067277e960ede99d508cf0bef70a",
+          "eventName": "push",
+          "oidcIssuer": "https://token.actions.githubusercontent.com",
+          "ref": "refs/tags/console-contract-v1.0",
+          "repository": "Evirion/evirion-engineering-memory",
+          "workflowPath": ".github/workflows/console-contract-release.yml"
+        },
+        "subject": {
+          "name": "console-contract-v1.0.tar.gz",
+          "sha256": "9d562738bd315aeeb3294c5c30332f7c1155eacf1182d3f493ef804156be1039"
+        },
+        "verifier": {
+          "name": "cosign",
+          "sha256": "4629c757b7618056f8ddd7e2625ae9fdd94c0372a65049520bc7d9df9efc7f71",
+          "trustedRootSha256": "6494e21ea73fa7ee769f85f57d5a3e6a08725eae1e38c755fc3517c9e6bc0b66",
+          "version": "v3.1.3"
+        }
+      }
     },
     {
-      "id": "mutable-release",
-      "path": [
-        "release",
-        "immutable"
+      "expectedPolicyDigest": "dcf0652af2c96031e3856966c5e25ec8e50e621c432c90f5262ede66712f63f7",
+      "expectedReleaseAssetId": 1234,
+      "expectedReleaseTag": "dashboard-authority-v1.0.0",
+      "expectedSourceCommit": "dddddddddddddddddddddddddddddddddddddddd",
+      "expectedSubjectSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "negativeCases": [
+        {
+          "id": "replaced-asset",
+          "path": [
+            "release",
+            "assetSha256"
+          ],
+          "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        },
+        {
+          "id": "mutable-release",
+          "path": [
+            "release",
+            "immutable"
+          ],
+          "value": false
+        },
+        {
+          "id": "absent-release-immutable-field",
+          "path": [
+            "release",
+            "immutable"
+          ],
+          "remove": true
+        },
+        {
+          "id": "wrong-release-tag",
+          "path": [
+            "release",
+            "tag"
+          ],
+          "value": "dashboard-authority-v2.0.0"
+        },
+        {
+          "id": "wrong-release-asset-id",
+          "path": [
+            "release",
+            "assetId"
+          ],
+          "value": 4321
+        },
+        {
+          "id": "wrong-release-asset-name",
+          "path": [
+            "release",
+            "assetName"
+          ],
+          "value": "other.tar.gz"
+        },
+        {
+          "id": "wrong-repository",
+          "path": [
+            "signer",
+            "repository"
+          ],
+          "value": "Other/repository"
+        },
+        {
+          "id": "wrong-workflow",
+          "path": [
+            "signer",
+            "workflowPath"
+          ],
+          "value": ".github/workflows/untrusted.yml"
+        },
+        {
+          "id": "mutable-ref",
+          "path": [
+            "signer",
+            "ref"
+          ],
+          "value": "refs/heads/main"
+        },
+        {
+          "id": "wrong-source-commit",
+          "path": [
+            "signer",
+            "commit"
+          ],
+          "value": "ffffffffffffffffffffffffffffffffffffffff"
+        },
+        {
+          "id": "wrong-oidc-issuer",
+          "path": [
+            "signer",
+            "oidcIssuer"
+          ],
+          "value": "https://issuer.invalid"
+        },
+        {
+          "id": "wrong-workflow-trigger",
+          "path": [
+            "signer",
+            "eventName"
+          ],
+          "value": "pull_request_target"
+        },
+        {
+          "id": "wrong-subject-digest",
+          "path": [
+            "subject",
+            "sha256"
+          ],
+          "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        },
+        {
+          "id": "stale-policy",
+          "path": [
+            "policyDigest"
+          ],
+          "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        },
+        {
+          "id": "wrong-policy-id",
+          "path": [
+            "policyId"
+          ],
+          "value": "unregistered-artifact-v1"
+        },
+        {
+          "id": "unpinned-verifier",
+          "path": [
+            "verifier",
+            "sha256"
+          ],
+          "value": ""
+        },
+        {
+          "id": "unpinned-trusted-root",
+          "path": [
+            "verifier",
+            "trustedRootSha256"
+          ],
+          "value": ""
+        },
+        {
+          "id": "missing-rekor-inclusion-proof",
+          "path": [
+            "rekor",
+            "inclusionProofVerified"
+          ],
+          "value": false
+        },
+        {
+          "id": "malformed-rekor-uuid",
+          "path": [
+            "rekor",
+            "uuid"
+          ],
+          "value": "not-a-uuid"
+        },
+        {
+          "id": "stale-rekor-evidence",
+          "path": [
+            "rekor",
+            "integratedTime"
+          ],
+          "value": 1787833100
+        },
+        {
+          "id": "unverified-sigstore-bundle",
+          "path": [
+            "cryptographicVerification",
+            "bundleVerified"
+          ],
+          "value": false
+        },
+        {
+          "id": "unverified-workflow-sha",
+          "path": [
+            "cryptographicVerification",
+            "workflowShaVerified"
+          ],
+          "value": false
+        },
+        {
+          "id": "missing-immutable-release-attestation",
+          "path": [
+            "immutableReleaseAttestation"
+          ],
+          "remove": true
+        },
+        {
+          "id": "stale-immutable-release-attestation",
+          "path": [
+            "immutableReleaseAttestation",
+            "attestedAt"
+          ],
+          "value": "2026-08-26T13:18:20Z"
+        },
+        {
+          "id": "post-dated-immutable-release-attestation",
+          "path": [
+            "immutableReleaseAttestation",
+            "attestedAt"
+          ],
+          "value": "2026-08-27T14:33:20Z"
+        },
+        {
+          "id": "immutable-release-attestation-for-another-tag",
+          "path": [
+            "immutableReleaseAttestation",
+            "tag"
+          ],
+          "value": "dashboard-authority-v2.0.0"
+        },
+        {
+          "id": "immutable-release-attestation-denies-immutability",
+          "path": [
+            "immutableReleaseAttestation",
+            "immutableReleasesEnabled"
+          ],
+          "value": false
+        },
+        {
+          "id": "immutable-release-attestation-for-another-repository",
+          "path": [
+            "immutableReleaseAttestation",
+            "repository"
+          ],
+          "value": "Evirion/evirion-engineering-memory"
+        }
       ],
-      "value": false
-    },
-    {
-      "id": "wrong-release-tag",
-      "path": [
-        "release",
-        "tag"
-      ],
-      "value": "dashboard-authority-v2.0.0"
-    },
-    {
-      "id": "wrong-release-asset-id",
-      "path": [
-        "release",
-        "assetId"
-      ],
-      "value": 4321
-    },
-    {
-      "id": "wrong-release-asset-name",
-      "path": [
-        "release",
-        "assetName"
-      ],
-      "value": "other.tar.gz"
-    },
-    {
-      "id": "wrong-repository",
-      "path": [
-        "signer",
-        "repository"
-      ],
-      "value": "Other/repository"
-    },
-    {
-      "id": "wrong-workflow",
-      "path": [
-        "signer",
-        "workflowPath"
-      ],
-      "value": ".github/workflows/untrusted.yml"
-    },
-    {
-      "id": "mutable-ref",
-      "path": [
-        "signer",
-        "ref"
-      ],
-      "value": "refs/heads/main"
-    },
-    {
-      "id": "wrong-source-commit",
-      "path": [
-        "signer",
-        "commit"
-      ],
-      "value": "ffffffffffffffffffffffffffffffffffffffff"
-    },
-    {
-      "id": "wrong-oidc-issuer",
-      "path": [
-        "signer",
-        "oidcIssuer"
-      ],
-      "value": "https://issuer.invalid"
-    },
-    {
-      "id": "wrong-workflow-trigger",
-      "path": [
-        "signer",
-        "eventName"
-      ],
-      "value": "pull_request_target"
-    },
-    {
-      "id": "wrong-subject-digest",
-      "path": [
-        "subject",
-        "sha256"
-      ],
-      "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-    },
-    {
-      "id": "stale-policy",
-      "path": [
-        "policyDigest"
-      ],
-      "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-    },
-    {
-      "id": "unpinned-verifier",
-      "path": [
-        "verifier",
-        "sha256"
-      ],
-      "value": ""
-    },
-    {
-      "id": "missing-rekor-inclusion-proof",
-      "path": [
-        "rekor",
-        "inclusionProofVerified"
-      ],
-      "value": false
-    },
-    {
-      "id": "malformed-rekor-uuid",
-      "path": [
-        "rekor",
-        "uuid"
-      ],
-      "value": "not-a-uuid"
-    },
-    {
-      "id": "stale-rekor-evidence",
-      "path": [
-        "rekor",
-        "integratedTime"
-      ],
-      "value": 1780000000
-    },
-    {
-      "id": "unverified-sigstore-bundle",
-      "path": [
-        "cryptographicVerification",
-        "bundleVerified"
-      ],
-      "value": false
-    },
-    {
-      "id": "unverified-workflow-sha",
-      "path": [
-        "cryptographicVerification",
-        "workflowShaVerified"
-      ],
-      "value": false
+      "policyId": "dashboard-authority-v1",
+      "provenance": "synthetic; no dashboard-authority-v release has been published",
+      "validEvidence": {
+        "cryptographicVerification": {
+          "bundleVerified": true,
+          "certificateIdentity": "https://github.com/Evirion/evirion-engineering-memory-dashboard/.github/workflows/authority-release.yml@refs/tags/dashboard-authority-v1.0.0",
+          "workflowRefVerified": true,
+          "workflowRepositoryVerified": true,
+          "workflowShaVerified": true,
+          "workflowTriggerVerified": true
+        },
+        "immutableReleaseAttestation": {
+          "attestedAt": "2026-08-27T14:08:20Z",
+          "immutableReleasesEnabled": true,
+          "observedBy": "repository-administrator",
+          "repository": "Evirion/evirion-engineering-memory-dashboard",
+          "schemaVersion": "1.0",
+          "tag": "dashboard-authority-v1.0.0"
+        },
+        "policyDigest": "dcf0652af2c96031e3856966c5e25ec8e50e621c432c90f5262ede66712f63f7",
+        "policyId": "dashboard-authority-v1",
+        "rekor": {
+          "inclusionProofVerified": true,
+          "integratedTime": 1787840000,
+          "uuid": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        },
+        "release": {
+          "assetId": 1234,
+          "assetName": "dashboard-authority-v1.0.0.tar.gz",
+          "assetSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "immutable": true,
+          "publishedAt": 1787840300,
+          "tag": "dashboard-authority-v1.0.0"
+        },
+        "schemaVersion": "1.0",
+        "signer": {
+          "commit": "dddddddddddddddddddddddddddddddddddddddd",
+          "eventName": "push",
+          "oidcIssuer": "https://token.actions.githubusercontent.com",
+          "ref": "refs/tags/dashboard-authority-v1.0.0",
+          "repository": "Evirion/evirion-engineering-memory-dashboard",
+          "workflowPath": ".github/workflows/authority-release.yml"
+        },
+        "subject": {
+          "name": "dashboard-authority-v1.0.0.tar.gz",
+          "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "verifier": {
+          "name": "cosign",
+          "sha256": "4629c757b7618056f8ddd7e2625ae9fdd94c0372a65049520bc7d9df9efc7f71",
+          "trustedRootSha256": "6494e21ea73fa7ee769f85f57d5a3e6a08725eae1e38c755fc3517c9e6bc0b66",
+          "version": "v3.1.3"
+        }
+      }
     }
   ],
-  "schemaVersion": "1.0",
-  "validEvidence": {
-    "cryptographicVerification": {
-      "bundleVerified": true,
-      "certificateIdentity": "https://github.com/Evirion/evirion-engineering-memory-dashboard/.github/workflows/authority-release.yml@refs/tags/dashboard-authority-v1.0.0",
-      "workflowRefVerified": true,
-      "workflowRepositoryVerified": true,
-      "workflowShaVerified": true,
-      "workflowTriggerVerified": true
-    },
-    "policyDigest": "7feec887ecc73eed09f48a77186a4113581ba4340155b7011292cd808b936a24",
-    "policyId": "dashboard-authority-v1",
-    "rekor": {
-      "inclusionProofVerified": true,
-      "integratedTime": 1787840000,
-      "uuid": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
-    },
-    "release": {
-      "assetId": 1234,
-      "assetName": "dashboard-authority-v1.0.0.tar.gz",
-      "assetSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-      "immutable": true,
-      "publishedAt": 1787840300,
-      "tag": "dashboard-authority-v1.0.0"
-    },
-    "schemaVersion": "1.0",
-    "signer": {
-      "commit": "dddddddddddddddddddddddddddddddddddddddd",
-      "eventName": "push",
-      "oidcIssuer": "https://token.actions.githubusercontent.com",
-      "ref": "refs/tags/dashboard-authority-v1.0.0",
-      "repository": "Evirion/evirion-engineering-memory-dashboard",
-      "workflowPath": ".github/workflows/authority-release.yml"
-    },
-    "subject": {
-      "name": "dashboard-authority-v1.0.0.tar.gz",
-      "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-    },
-    "verifier": {
-      "name": "cosign",
-      "sha256": "4629c757b7618056f8ddd7e2625ae9fdd94c0372a65049520bc7d9df9efc7f71",
-      "version": "v3.1.3"
-    }
-  }
+  "schemaVersion": "1.0"
 }

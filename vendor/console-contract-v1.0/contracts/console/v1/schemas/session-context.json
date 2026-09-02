@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:session-context",
+  "title": "Live application-session context",
+  "description": "Live server projection. Auth or user metadata is never an authorization source.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "actorId",
+    "organizationId",
+    "role",
+    "capabilities"
+  ],
+  "properties": {
+    "actorId": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "planned:api.console_session_context.actor_id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "organizationId": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "planned:api.console_session_context.organization_id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "owner",
+        "admin",
+        "reviewer",
+        "viewer"
+      ],
+      "x-evirion-storage-role-map": {
+        "owner": "owner",
+        "admin": "admin",
+        "reviewer": "member",
+        "viewer": "viewer"
+      },
+      "x-evirion-backend-projection": "planned:api.console_session_context.external_role",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z]+(?:[.-][a-z]+)*$"
+      },
+      "uniqueItems": true,
+      "x-evirion-backend-projection": "planned:api.console_session_context.live_capabilities",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "session": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "status",
+        "version"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "x-evirion-backend-projection": "api.console_session_context.session_id",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "status": {
+          "type": "string",
+          "const": "ACTIVE",
+          "x-evirion-backend-projection": "api.console_session_context.session_status",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "x-evirion-backend-projection": "api.console_session_context.session_version",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        }
+      },
+      "x-evirion-backend-projection": "api.console_session_context.session",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    }
+  },
+  "examples": [
+    {
+      "actorId": "00000000-0000-4000-8000-000000000101",
+      "organizationId": "00000000-0000-4000-8000-000000000102",
+      "role": "reviewer",
+      "capabilities": [
+        "knowledge.read",
+        "review.submit"
+      ],
+      "session": {
+        "id": "00000000-0000-4000-8000-000000000103",
+        "status": "ACTIVE",
+        "version": 1
+      }
+    }
+  ]
+}

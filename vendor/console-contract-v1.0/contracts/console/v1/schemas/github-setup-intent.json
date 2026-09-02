@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:github-setup-intent",
+  "title": "GitHub App setup intent",
+  "description": "One-time installation handoff. The backend persists only the SHA-256 of the opaque state and never returns App keys or installation tokens.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "status",
+    "expiresAt"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "core.github_setup_intents.id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "CREATED",
+        "CONSUMED",
+        "EXPIRED",
+        "FAILED",
+        "UNSUPPORTED"
+      ],
+      "x-evirion-backend-projection": "core.github_setup_intents.status",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "state": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "Returned exactly once by the start command. A receipt replay returns null because the backend persists only the state digest.",
+      "x-evirion-backend-projection": "api.start_github_installation.state",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time",
+      "x-evirion-backend-projection": "core.github_setup_intents.expires_at",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "resolvedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "x-evirion-backend-projection": "core.github_setup_intents.resolved_at",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "failureCode": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[A-Z][A-Z0-9_]*$",
+      "maxLength": 128,
+      "x-evirion-backend-projection": "core.github_setup_intents.failure_code",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    }
+  },
+  "examples": [
+    {
+      "id": "00000000-0000-4000-8000-000000000502",
+      "status": "CREATED",
+      "state": "5b1f0b7a0e4d4c1f9a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f7081",
+      "expiresAt": "2026-08-30T08:31:39.000000Z",
+      "resolvedAt": null,
+      "failureCode": null
+    }
+  ]
+}

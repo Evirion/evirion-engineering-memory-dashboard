@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:member",
+  "title": "Organization member",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "userId",
+    "email",
+    "role",
+    "status",
+    "version",
+    "createdAt",
+    "disabledAt"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "api.list_organization_members.id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "userId": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "api.list_organization_members.user_id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "maxLength": 254,
+      "x-evirion-backend-projection": "api.list_organization_members.email",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "owner",
+        "admin",
+        "reviewer",
+        "viewer"
+      ],
+      "x-evirion-backend-projection": "api.list_organization_members.role",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "INVITED",
+        "ACTIVE",
+        "DISABLED"
+      ],
+      "x-evirion-backend-projection": "api.list_organization_members.status",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "x-evirion-backend-projection": "api.list_organization_members.version",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "x-evirion-backend-projection": "api.list_organization_members.created_at",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "disabledAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "x-evirion-backend-projection": "api.list_organization_members.disabled_at",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    }
+  },
+  "examples": [
+    {
+      "id": "00000000-0000-4000-8000-000000000201",
+      "userId": "00000000-0000-4000-8000-000000000202",
+      "email": "reviewer@example.test",
+      "role": "reviewer",
+      "status": "ACTIVE",
+      "version": 2,
+      "createdAt": "2026-08-28T12:00:00Z",
+      "disabledAt": null
+    }
+  ]
+}

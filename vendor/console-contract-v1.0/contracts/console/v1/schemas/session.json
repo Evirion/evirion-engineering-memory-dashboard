@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:session",
+  "title": "Application session",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "status",
+    "deviceLabel",
+    "createdAt",
+    "lastSeenAt",
+    "absoluteExpiresAt",
+    "version",
+    "scope"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "api.list_self_sessions.id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "REAUTH_REQUIRED",
+        "REVOKED",
+        "EXPIRED"
+      ],
+      "x-evirion-backend-projection": "api.list_self_sessions.status",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "deviceLabel": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80,
+      "x-evirion-backend-projection": "api.list_self_sessions.device_label",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "x-evirion-backend-projection": "api.list_self_sessions.created_at",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "lastSeenAt": {
+      "type": "string",
+      "format": "date-time",
+      "x-evirion-backend-projection": "api.list_self_sessions.last_seen_at",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "absoluteExpiresAt": {
+      "type": "string",
+      "format": "date-time",
+      "x-evirion-backend-projection": "api.list_self_sessions.absolute_expires_at",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "x-evirion-backend-projection": "api.list_self_sessions.version",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "current",
+        "other"
+      ],
+      "x-evirion-backend-projection": "api.list_self_sessions.scope",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    }
+  },
+  "examples": [
+    {
+      "id": "00000000-0000-4000-8000-000000000401",
+      "status": "ACTIVE",
+      "deviceLabel": "Design partner browser",
+      "createdAt": "2026-08-28T12:00:00Z",
+      "lastSeenAt": "2026-08-28T12:05:00Z",
+      "absoluteExpiresAt": "2026-08-28T20:00:00Z",
+      "version": 1,
+      "scope": "current"
+    }
+  ]
+}

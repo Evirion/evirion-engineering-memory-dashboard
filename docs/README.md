@@ -28,11 +28,20 @@
 - [Stable Console security controls](security/console-security-controls.yaml)
 - [Artifact attestation policy](security/artifact-attestation.md)
 - [Machine-readable trust policy](security/artifact-attestation-policy.json)
+- [Pinned Sigstore trusted root](security/sigstore-trusted-root.json)
+
+## Consumed backend contract
+
+- [Console contract lock](contracts/console-contract-lock.json)
+- [Recorded release evidence](contracts/console-contract-v1.0-evidence.json)
+- [Pinned release bytes](../vendor/console-contract-v1.0/console-contract-v1.0.tar.gz)
+- [Generated client](../generated/console-contract/v1/index.ts)
 
 ## Decisions
 
 - [Decision index](decisions/README.md)
 - [Two-repository contract boundary](decisions/0001-two-repository-contract-boundary.md)
+- [Console contract consumption and immutability evidence](decisions/0002-console-contract-consumption-and-immutability-evidence.md)
 
 Repository copies are source-controlled authorities only at the exact commit
 and package digest pinned by the paired backend EEM-9/01 pointer. Retained

@@ -14,7 +14,7 @@
     "readinessBlocking": true,
     "status": "open"
   },
-  "observedAt": "2026-08-27T17:17:33Z",
+  "observedAt": "2026-09-02T09:47:02Z",
   "observations": {
     "actionsDefaultWorkflowPermissions": {
       "httpStatus": 404,
@@ -26,8 +26,12 @@
     },
     "environments": [],
     "immutableReleases": {
-      "httpStatus": 404,
-      "result": "not-enabled"
+      "enforcedByOwner": false,
+      "httpStatus": 200,
+      "note": "read with an administrator-authenticated token; the Actions permissions surface has no administration scope, so a workflow proves immutability with a tag-scoped administrator attestation before signing and the release object's immutable flag after publication",
+      "observedBy": "repository-administrator",
+      "previousResult": "not-enabled",
+      "result": "enabled"
     },
     "repository": {
       "defaultBranch": "main",

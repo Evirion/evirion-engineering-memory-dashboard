@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:github-installation",
+  "title": "GitHub control-plane status",
+  "description": "Customer-safe projection of installation access, the latest setup intent, and the latest synchronization run. Access is not entitlement.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "organizationId",
+    "installation",
+    "setupIntent",
+    "latestSyncRun",
+    "repositorySummary"
+  ],
+  "properties": {
+    "organizationId": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "core.organizations.id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "installation": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "status",
+            "accountLogin",
+            "connectedAt"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "x-evirion-backend-projection": "core.github_installations.id",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "ACTIVE",
+                "SUSPENDED",
+                "REMOVED"
+              ],
+              "x-evirion-backend-projection": "core.github_installations.status",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            },
+            "accountLogin": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "x-evirion-backend-projection": "core.github_installations.account_login",
+              "x-evirion-sensitivity": "customer-safe-detail"
+            },
+            "connectedAt": {
+              "type": "string",
+              "format": "date-time",
+              "x-evirion-backend-projection": "core.github_installations.created_at",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            }
+          }
+        }
+      ],
+      "x-evirion-backend-projection": "api.get_github_installation.installation",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "setupIntent": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "github-setup-intent.json"
+        }
+      ],
+      "x-evirion-backend-projection": "api.get_github_installation.setup_intent",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "latestSyncRun": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "github-sync-run.json"
+        }
+      ],
+      "x-evirion-backend-projection": "api.get_github_installation.latest_sync_run",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "repositorySummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "accessibleRepositories",
+        "inaccessibleRepositories"
+      ],
+      "properties": {
+        "accessibleRepositories": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "api.get_github_installation.accessible_count",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "inaccessibleRepositories": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "api.get_github_installation.inaccessible_count",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        }
+      },
+      "x-evirion-backend-projection": "api.get_github_installation.repository_summary",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    }
+  },
+  "examples": [
+    {
+      "organizationId": "00000000-0000-4000-8000-000000000503",
+      "installation": {
+        "id": "00000000-0000-4000-8000-000000000504",
+        "status": "ACTIVE",
+        "accountLogin": "evirion",
+        "connectedAt": "2026-08-30T08:16:39.000000Z"
+      },
+      "setupIntent": {
+        "id": "00000000-0000-4000-8000-000000000502",
+        "status": "CONSUMED",
+        "expiresAt": "2026-08-30T08:31:39.000000Z",
+        "resolvedAt": "2026-08-30T08:18:02.000000Z",
+        "failureCode": null
+      },
+      "latestSyncRun": {
+        "id": "00000000-0000-4000-8000-000000000501",
+        "status": "COMPLETED",
+        "generation": 1,
+        "version": 4,
+        "attemptCount": 1,
+        "progress": {
+          "pagesApplied": 1,
+          "repositoriesSeen": 3,
+          "repositoriesMarkedInaccessible": 0
+        },
+        "failureCode": null,
+        "requestedAt": "2026-08-30T08:16:39.000000Z",
+        "startedAt": "2026-08-30T08:16:41.000000Z",
+        "resolvedAt": "2026-08-30T08:16:44.000000Z"
+      },
+      "repositorySummary": {
+        "accessibleRepositories": 3,
+        "inaccessibleRepositories": 0
+      }
+    }
+  ]
+}
