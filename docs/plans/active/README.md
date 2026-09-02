@@ -14,13 +14,19 @@ and
 merged the EEM-9/01 authority package and restored the controlling plan's
 `/02`–`/10` aliases.
 
-EEM-9/01b is in progress. Backend PR
+EEM-9/01b is complete. Backend PR
 [#51](https://github.com/Evirion/evirion-engineering-memory/pull/51) published
-the immutable signed `console-contract-v1.0` release. The Dashboard pull request
-pins and consumes those bytes and corrects the EEM-9/01 immutability evidence
-that consumption proved unexecutable. A backend successor pointer then re-pins
-the corrected Dashboard commit and authority digest. EEM-9/02 and EEM-4/01
-remain blocked until that pointer merges.
+the immutable signed `console-contract-v1.0` release, Dashboard PR
+[#3](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/3)
+consumed those bytes and corrected the EEM-9/01 immutability evidence, and
+backend PR
+[#52](https://github.com/Evirion/evirion-engineering-memory/pull/52) re-pinned
+the corrected Dashboard commit and authority digest.
+
+EEM-9/02 is implemented and locally verified on `EEM-9/02-auth-shell`, and is
+not pushed or merged. Its Definition-of-Done trace is
+[`eem-9-02-acceptance-trace.md`](eem-9-02-acceptance-trace.md). EEM-9/03 stays
+blocked until EEM-6 and this subtask merge.
 
 ## Copy-ready requests
 

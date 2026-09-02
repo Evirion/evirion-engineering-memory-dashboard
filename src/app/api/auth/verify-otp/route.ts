@@ -3,14 +3,19 @@ import { NextResponse, type NextRequest } from "next/server"
 import { createSupabaseAuthProvider } from "@/lib/auth/auth-provider"
 import { admitVerifiedIdentity } from "@/lib/auth/identity-admission"
 import {
+  PRE_AUTH_EMAIL_COOKIE,
   PRE_AUTH_TRANSACTION_COOKIE,
   clearPreAuthCookies,
 } from "@/lib/auth/pre-auth-cookies"
+import { importProofKey, signBootstrapProof } from "@/lib/auth/bootstrap-proof"
 import { writeSession } from "@/lib/auth/session-broker"
 import { SESSION_POLICY } from "@/lib/auth/session-policy"
+import { readServerEnvironment } from "@/lib/env/server"
 import { resolveSafeRedirect } from "@/lib/security/request-origin"
 import { guardMutation } from "@/server/actions/mutation-guard"
+import { hmacEmailIdentity } from "@/server/actions/pre-auth"
 import { canonicalRedirect } from "@/server/actions/redirects"
+import { SESSION_BOOTSTRAP_PATH, bootstrapSession } from "@/server/adapters/console-api"
 
 export const dynamic = "force-dynamic"
 
@@ -48,16 +53,25 @@ const denied = (): NextResponse => {
 export const POST = async (request: NextRequest): Promise<NextResponse> => {
   const guard = await guardMutation(request, (cookies) => {
     const transactionId = cookies[PRE_AUTH_TRANSACTION_COOKIE]
-    return transactionId
-      ? { kind: "pre-auth", transactionId, emailIdentityHmac: "", generation: 1 }
-      : undefined
+    if (!transactionId) return undefined
+    return {
+      kind: "pre-auth",
+      transactionId,
+      emailIdentityHmac: cookies[PRE_AUTH_EMAIL_COOKIE] ?? "",
+      generation: 1,
+    }
   })
 
-  if (!guard.ok) return denied()
+  if (!guard.ok || guard.binding.kind !== "pre-auth") return denied()
 
   const email = guard.form.get("email")
   const code = guard.form.get("code")
   if (typeof email !== "string" || typeof code !== "string") return denied()
+
+  // The proof is bound to the address the code was sent to. Submitting a
+  // different address with a valid proof is refused before any provider call.
+  if ((await hmacEmailIdentity(email)) !== guard.binding.emailIdentityHmac)
+    return denied()
 
   const provider = createSupabaseAuthProvider()
   const verification = await provider.verifyEmailOtp(email, code)
@@ -73,6 +87,42 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
   if (!admission.admitted) return denied()
 
   const now = Math.floor(Date.now() / 1000)
+  const environment = readServerEnvironment()
+  const invitationId = guard.form.get("invitationId")
+  const idempotencyKey = `bootstrap:${user.value.sessionId}`
+  const body = {
+    invitationId: typeof invitationId === "string" ? invitationId : null,
+  }
+
+  const { proof } = await signBootstrapProof(
+    await importProofKey(environment.bootstrapProofSigningKey),
+    {
+      accessToken: verification.value.accessToken,
+      method: "POST",
+      path: SESSION_BOOTSTRAP_PATH,
+      subject: user.value.id,
+      sessionId: user.value.sessionId,
+      preAuthTransactionId:
+        guard.binding.kind === "pre-auth" ? guard.binding.transactionId : "",
+      invitationId: body.invitationId,
+      idempotencyKey,
+      body: JSON.stringify(body),
+      issuedAt: now,
+    },
+  )
+
+  const bootstrap = await bootstrapSession(environment.consoleApiBaseUrl, {
+    accessToken: verification.value.accessToken,
+    correlationId: idempotencyKey,
+    idempotencyKey,
+    body,
+    bootstrapProof: proof,
+  })
+
+  // A terminal refusal registers nothing, so the cookies must not survive it.
+  // A transient failure keeps them, because the contract requires the BFF to
+  // retry bootstrap without consuming another OTP.
+  if (!bootstrap.ok && bootstrap.failure.kind === "error") return denied()
   const target = resolveSafeRedirect(guard.form.get("next") as string | null)
   const response = NextResponse.redirect(
     canonicalRedirect(target === "/" ? "/onboarding" : target),

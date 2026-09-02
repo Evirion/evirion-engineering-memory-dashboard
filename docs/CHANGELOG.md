@@ -1,5 +1,91 @@
 # Dashboard changelog
 
+## 2026-09-02 — EEM-9/02 secure Console shell and invite-only authentication
+
+- Why: EEM-9/02 builds the Console shell and the invite-only email-OTP
+  authentication UX against the frozen EEM-4 contracts. Its C00 phase is an
+  owner-authorized addition taken before any screen, because the scaffold
+  could not land correctly without it.
+- Authority boundary: `package-files.json` and `manifest.json` held the same 84
+  entries, so the authority package was the whole repository and any scaffold
+  file could only enter the reviewed package or break the authority gate. All
+  84 entries stay packaged; `scripts/check_authority.py` now reads a reviewed
+  allowlist of non-package tracked paths in
+  `docs/authority/non-package-paths.json`. A path in both lists fails, a path
+  in neither still fails, and a pattern matching nothing fails. After this,
+  `packageSha256` no longer moves when application source changes, which is the
+  property the backend pointer depends on.
+- Guard: `test_no_dashboard_runtime_scaffold_exists_in_bootstrap` is replaced,
+  not deleted. Six prohibitions expired because this subtask creates the
+  runtime they excluded. `supabase` did not expire and keeps its own named
+  test, because the backend owns persistence and Auth. The replacement checks
+  the URLs the App Router actually resolves against
+  `docs/architecture/console-route-inventory.json`, since `(auth)/sign-in`
+  serves `/sign-in` while still rendering correctly. `/api/*` is not pinned;
+  the one assertion added is that every route handler resolves under `/api/`.
+- Contracts: the frozen EEM-9 plan freezes `/auth/*`, while the accepted
+  implementation plan's C02 file list uses a route group that would serve
+  `/sign-in`. By owner decision the URL contract binds and the file list is
+  layout guidance. `/settings/sessions` is accepted as a reviewed fourteenth
+  path and `/` as a declared owned route. ADR-0003 records all of it; neither
+  frozen plan was edited.
+- Toolchain: the pinned `typescript@7.0.2` is the native compiler whose main
+  entry exports only `version` and `versionMajorMinor`, and
+  `typescript-eslint` requires `typescript >=4.8.4 <6.1.0`, so
+  `eslint-config-next` cannot parse TypeScript here. `tsc --noEmit` and
+  `next build` both work under the pin, so the pin stands and the linter is
+  `oxlint`, which needs no compiler API and enforces the same prohibitions
+  including `react/no-danger`. Prettier carries `semi: false`. ADR-0004
+  records the evidence.
+- Behavior: Next.js App Router under `src` with strict TypeScript, a
+  per-response CSPRNG nonce CSP with no `unsafe-inline` or `unsafe-eval` in
+  production, a server-only `__Host-` session broker, the pre-auth transaction
+  and its bound proof, the session-bound CSRF and origin boundary, server-side
+  `verifyOtp`, invitation selection, the protected shell with capability-driven
+  navigation, and the Auth surfaces the route contract pins.
+- Security: cookie chunking implements the frozen budget exactly, and writing a
+  session now refuses a payload that fits four 3072-byte chunks but not the
+  8192-byte inbound `Cookie` header, because the aggregate binds first and such
+  a session could never be read back.
+- Security: redirects were built from `request.url`, which behind the trusted
+  edge carries the internal upstream host, so every redirect left the canonical
+  origin. The pinned HTTPS harness caught it; testing against Next on localhost
+  would not have. Redirects now derive from the reviewed canonical origin and a
+  contract test forbids the old form.
+- Security: Gitleaks found the bootstrap commit had captured the generated
+  local TLS private keys, because `.gitignore` did not cover `.local/`. They
+  are untracked, `.gitignore` excludes `.local/` and `.venv/`, and the branch
+  history was purged before anything was pushed.
+- Operations: `.github/workflows/ci.yml` pins Actions to full SHAs and runs
+  install, lint, format, typecheck, test, build, audit, Semgrep from
+  `tools/security/uv.lock` and digest-verified Gitleaks. The browser gate runs
+  over the pinned origin `https://console.evirion.test:3443` behind a local TLS
+  terminator that also acts as the single trusted edge hop, with no machine
+  change: Chromium resolves the host with `--host-resolver-rules` and trusts
+  one leaf by SPKI pin, so `ignoreHTTPSErrors` is never set.
+- Parity: `docs/contracts/backend-auth-config-lock.json` pins the backend Auth
+  configuration digests and derived settings at the same commit the
+  attestation-verified contract lock records, so CI proves parity without a
+  cross-repository read. `scripts/check_backend_auth_parity.py` closes the
+  other half locally by re-reading the sibling with `git show`.
+- Verification: lint, format, `tsc --noEmit`, 236 Vitest tests, production
+  build, 45 Playwright tests over the pinned HTTPS origin, Semgrep, Gitleaks
+  over the full history, and 78 Python tests all pass. Every Definition-of-Done
+  row is traced in
+  [`docs/plans/active/eem-9-02-acceptance-trace.md`](plans/active/eem-9-02-acceptance-trace.md).
+- Open decision: the accessibility target is WCAG 2.2 AA per `AGENTS.md`, but
+  the axe ruleset, tag selection and pass threshold have no owner decision, so
+  no configured accessibility gate is claimed. `NFR-ACC-001` places the primary
+  owner at `I01-C`, so the decision is due before EEM-9/07.
+- Deployment state: implemented and locally verified only. Nothing is merged,
+  deployed, observed, staging-certified, paid-certified or
+  production-certified. No hosted Supabase Auth setting was read or changed, no
+  real email was sent, no worker ran, no provider was called, no paid operation
+  was authorized, and the backend repository was only read.
+- Remaining gates: EEM-9/07 owns hosted Auth parity, the synthetic mailbox,
+  the live tenant and capability matrices, authenticated DAST and the
+  deployed cache and header evidence. `SEC-2026-012` remains open.
+
 ## 2026-09-02 — EEM-9/01b Console contract consumed and immutability evidence corrected
 
 - Why: the backend published `console-contract-v1.0` as an immutable signed

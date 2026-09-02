@@ -4,86 +4,97 @@ Updated: 2026-09-02
 
 ## Current state
 
-- Active task: EEM-9/01b, the Dashboard half of a paired three-pull-request
-  subtask.
-- Branch: `EEM-9/01b-console-contract-lock`, based on Dashboard `main` at
-  `773f3af`, which merged PR
-  [#2](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/2).
-- Backend PR 1,
-  [#51](https://github.com/Evirion/evirion-engineering-memory/pull/51), merged
-  at `4004e5837ad1a98cdfa8a07ffea201adf00ce252` and published
-  `console-contract-v1.0` as an immutable signed release.
-- This pull request is PR 2. It consumes those published bytes and corrects the
-  EEM-9/01 artifacts that consumption proved unexecutable. PR 3 is the backend
-  successor pointer that re-pins this repository.
+- Active task: EEM-9/02, the secure Console shell and invite-only Auth UX.
+- Branch: `EEM-9/02-auth-shell`, based on Dashboard `main` at `a6665b5`, which
+  merged PR
+  [#3](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/3).
+- EEM-9/01b is complete. Backend PR 3,
+  [#52](https://github.com/Evirion/evirion-engineering-memory/pull/52), merged
+  and re-pinned this repository. The pointer verifies at commit
+  `a6665b599472e295636382ece4d0071e1cb4492c` and package digest
+  `6897d9661a038a14eee0fd8128e7a3e96d5b191ef41f197f621779cc2e0ec56f`.
+- Prerequisite check: EEM-4/01–04 are merged in the backend as PRs
+  [#26](https://github.com/Evirion/evirion-engineering-memory/pull/26)–[#29](https://github.com/Evirion/evirion-engineering-memory/pull/29).
+  The previous roadmap statement that EEM-4/01 was blocked was stale and is
+  corrected.
+- This work is committed on its branch and not pushed. No pull request exists.
 
 ## What changed here and why
 
-- The frozen `docs/security/artifact-attestation.md` and
-  `.github/workflows/authority-release.yml` both required
-  `repos/{owner}/{repo}/immutable-releases`. That endpoint requires admin read
-  access, the GitHub Actions permissions surface has no `administration` scope,
-  and backend run 33611371573 proved it with `Resource not accessible by
-  integration (HTTP 403)`. A check that can never succeed and must fail closed
-  forbids publication permanently, so `dashboard-authority-v*` could not publish
-  either. Backend ADR 0013 attributes this correction to the successor pointer;
-  both defective files are owned here, so the correction is made here and PR 3
-  re-pins the result.
-- Immutability is now proved by a tracked, tag-scoped administrator attestation
-  checked before signing and by `immutable == true` on the published release.
-  The release workflow attaches assets to a draft and publishes afterwards.
-- Offline verification now uses a pinned Sigstore trusted root, because Cosign
-  v3 deprecates `--offline` and otherwise fetches that root over the network.
-- The trust policy carries a second artifact entry for the backend contract, the
-  contract is pinned by `docs/contracts/console-contract-lock.json`, and the
-  generated client is produced from exactly the pinned asset bytes.
-- Rationale is recorded in
-  [ADR-0002](decisions/0002-console-contract-consumption-and-immutability-evidence.md).
+- **C00 separates the authority package from application source.** The package
+  inventory and the manifest held the same 84 entries, so the package was the
+  whole repository and every scaffold file would either enter the reviewed
+  authority or break the authority gate. All 84 entries stay packaged and the
+  rule changed instead: a reviewed allowlist now names non-package tracked
+  paths, a path in both lists fails, a path in neither still fails, and a
+  pattern matching nothing fails.
+- **C00 inverts the bootstrap guard rather than deleting it.** Six
+  prohibitions expired with the arrival of the runtime. `supabase` did not and
+  keeps its own named test. The replacement asserts the URLs the App Router
+  resolves, because a route group can serve the wrong URL while still
+  rendering.
+- **C01 bootstraps the application.** Pinned Corepack, pnpm, Node and registry
+  with denied install scripts; strict TypeScript under `src`; the environment
+  boundary; the per-response nonce CSP; the supply-chain and release-surface
+  gates; and the local HTTPS harness.
+- **C02 adds authentication.** The server-only `__Host-` session broker, the
+  pre-auth transaction, the CSRF and origin boundary, server-side `verifyOtp`,
+  invitation selection, the protected shell and the Auth surfaces.
+- **C03 records the trace and history.**
+- Rationale is in
+  [ADR-0003](decisions/0003-application-source-boundary-and-route-contract.md)
+  and
+  [ADR-0004](decisions/0004-console-lint-and-format-toolchain.md).
 
-## Fixed delivery order
+## Decisions a reviewer should check first
 
-1. Review and merge this Dashboard pull request.
-2. Update Dashboard `main`.
-3. Prepare backend PR 3, the successor pointer, pinning this merge commit, the
-   corrected artifacts, and the new authority package digest stated in this
-   pull request's body.
-4. Obtain separate user authorization before any backend commit, push, or pull
-   request.
-5. Merge backend PR 3.
-
-EEM-9/01b is complete only after PR 3 merges. EEM-9/02 remains blocked until
-then.
+- The frozen EEM-9 plan freezes `/auth/*`; the accepted implementation plan's
+  C02 file list uses a route group that would serve `/sign-in`. By owner
+  decision the URL contract binds and the file list is layout guidance.
+  `/settings/sessions` is a reviewed fourteenth path and `/` is a declared
+  owned route. Neither frozen plan was edited.
+- The pinned `typescript@7.0.2` is the native compiler and exposes no compiler
+  API, so `eslint-config-next` cannot run. The pin stands; the linter is
+  `oxlint`, which enforces the same prohibitions.
 
 ## Security and release state
 
-- Public Sigstore/Fulcio and Rekor remain the selected keyless attestation trust
-  service.
-- `SEC-2026-012` remains open under the approved GitHub Free bootstrap waiver
-  and remains readiness-blocking. It concerns ruleset-based governance and is
-  unrelated to the immutability correction above.
-- Repository immutable-release policy is enabled on both repositories, observed
-  with an administrator-authenticated read.
-- No Dashboard administrator attestation is committed, because no Dashboard
-  release is authorized or prepared. `authority-release.yml` therefore still
-  fails closed before signing.
-- Technical Design Partner Ready remains blocked until repository-governance
-  enforcement evidence exists.
 - The Auth/session contract remains frozen at JWT 15m, visible-tab human idle
   30m with a 5m warning, touch coalescing 1m, absolute application session 8h,
   maximum three sessions with explicit oldest-session replacement,
   dangerous-operation reauthentication 10m, OTP 10m, and resend cooldown 60s.
+  `src/lib/auth/session-policy.ts` mirrors these and a contract test asserts
+  the mirror stays exact.
+- Two defects were found by the gates and fixed. Redirects were built from
+  `request.url`, which behind the trusted edge carries the internal upstream
+  host, so every redirect left the canonical origin; only the pinned HTTPS
+  harness could see it. Gitleaks found the bootstrap commit had captured the
+  generated local TLS private keys, because `.gitignore` did not cover
+  `.local/`; they were untracked and the branch history was purged before
+  anything was pushed.
+- `SEC-2026-012` remains open under the approved GitHub Free bootstrap waiver
+  and remains readiness-blocking.
+- Technical Design Partner Ready remains blocked.
+- No hosted Supabase Auth setting was read or changed, no real email was sent,
+  no worker ran, no provider was called and no paid operation was authorized.
+  The backend repository was read with `git show` at the pinned commit and
+  never modified.
 
 ## Verification and next action
 
-The published release was verified offline with the pinned
-`cosign-linux-amd64` under network isolation against the exact certificate
-identity, GitHub Actions issuer, repository, tag ref, source commit, and `push`
-trigger, together with Rekor inclusion and the frozen signing-to-release bound.
-Every case in the negative-evidence fixture rejects for both artifact entries.
-The bootstrap and contract suites, documentation, generated authorities,
-authority manifest, secret scan, deterministic packaging, and the Console
-contract lock all pass locally.
+Lint, format, `tsc --noEmit`, 236 Vitest tests, a production build, 45
+Playwright tests over the pinned origin `https://console.evirion.test:3443`,
+Semgrep, digest-verified Gitleaks over the full history, and 78 Python tests
+all pass. Documentation, generated authorities, the authority manifest, the
+Console contract lock and backend Auth parity all verify. Every
+Definition-of-Done row is traced in
+[`plans/active/eem-9-02-acceptance-trace.md`](plans/active/eem-9-02-acceptance-trace.md).
 
-No release, signature, tag, deployment, hosted configuration, provider call,
-paid operation, or customer-data action is authorized. Commit, push, pull
-request, and merge each require separate explicit authorization.
+The next action is review of this branch, then a decision on whether the moved
+authority `packageSha256` warrants a paired backend successor pointer. The
+pointer keeps verifying either way, because it reads the pinned commit rather
+than Dashboard `main`.
+
+Commit, push, pull request, and merge each require separate explicit
+authorization. Accessibility open decision 1 is unresolved and is due before
+EEM-9/07.

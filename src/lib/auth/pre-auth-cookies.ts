@@ -11,9 +11,12 @@ import { SESSION_POLICY } from "./session-policy"
 
 export const PRE_AUTH_CSRF_COOKIE = `${PRE_AUTH_COOKIE_BASE}-csrf`
 export const PRE_AUTH_TRANSACTION_COOKIE = `${PRE_AUTH_COOKIE_BASE}-txn`
+/** HMAC of the email identity the code was sent to, never the address. */
+export const PRE_AUTH_EMAIL_COOKIE = `${PRE_AUTH_COOKIE_BASE}-eid`
 
 export const preAuthCookieNames = [
   PRE_AUTH_CSRF_COOKIE,
+  PRE_AUTH_EMAIL_COOKIE,
   PRE_AUTH_TRANSACTION_COOKIE,
 ] as const
 

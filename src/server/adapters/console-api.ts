@@ -112,6 +112,34 @@ export const callConsoleApi = async <T>(
   return { ok: true, value: payload }
 }
 
+/**
+ * The private session bootstrap.
+ *
+ * It is absent from the customer OpenAPI on purpose, so it has no generated
+ * validator. The exact bearer token alone is not sufficient: the backend also
+ * requires the one-time BFF-signed proof, which no browser can mint.
+ */
+export const SESSION_BOOTSTRAP_PATH = "/internal/console/v1/session/bootstrap"
+
+export type BootstrapReceipt = { readonly registered: true }
+
+const isBootstrapReceipt = (value: unknown): value is BootstrapReceipt =>
+  typeof value === "object" &&
+  value !== null &&
+  (value as { registered?: unknown }).registered === true
+
+export const bootstrapSession = async (
+  baseUrl: string,
+  request: Omit<ConsoleRequest, "method" | "path">,
+  transport?: ConsoleTransport,
+): Promise<ConsoleResult<BootstrapReceipt>> =>
+  callConsoleApi<BootstrapReceipt>(
+    baseUrl,
+    { ...request, method: "POST", path: SESSION_BOOTSTRAP_PATH },
+    isBootstrapReceipt,
+    transport,
+  )
+
 export const fetchSessionContext = async (
   baseUrl: string,
   request: Omit<ConsoleRequest, "method" | "path" | "body">,
