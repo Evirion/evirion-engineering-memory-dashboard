@@ -8,13 +8,12 @@ import type { GithubInstallation, Repository, RepositoryPage } from "@contracts/
 import { readSession } from "@/lib/auth/session-broker"
 import { readServerEnvironment } from "@/lib/env/server"
 import {
-  type ErrorTreatment,
-  type MappedError,
+  type ViewFailure,
   UNKNOWN_ERROR,
   describeTreatment,
   mapConsoleError,
 } from "@/lib/errors/console-errors"
-import { type ConsoleFailure, type ConsoleResult } from "@/server/adapters/console-api"
+import type { ConsoleFailure } from "@/server/adapters/console-api"
 import {
   type RepositoryScope,
   fetchGithubInstallation,
@@ -31,17 +30,6 @@ import { requireSessionContext } from "@/server/queries/session-context"
  * a page or a component, so no render path can put it in the document. Pages
  * receive a view model and nothing else.
  */
-
-export type ViewFailure = {
-  readonly code: MappedError["code"]
-  readonly treatment: ErrorTreatment
-  readonly message: string
-  /** Declared by the backend projection, never derived from the code. */
-  readonly retryable: boolean
-  /** Shown so a customer can quote it to support instead of retrying. */
-  readonly requestId?: string
-  readonly currentVersion?: number
-}
 
 export type RepositoryListView =
   | {
@@ -150,16 +138,6 @@ const resolveScope = async (): Promise<ResolvedScope> => {
   }
 }
 
-const failureOf = <T>(result: ConsoleResult<T>): ViewFailure =>
-  result.ok
-    ? {
-        code: UNKNOWN_ERROR.code,
-        treatment: UNKNOWN_ERROR.treatment,
-        message: describeTreatment(UNKNOWN_ERROR.treatment),
-        retryable: false,
-      }
-    : describeFailure(result.failure)
-
 export const readRepositoryList = async (
   after?: string,
 ): Promise<RepositoryListView> => {
@@ -170,7 +148,7 @@ export const readRepositoryList = async (
     resolved.scope,
     after === undefined ? {} : { after },
   )
-  if (!page.ok) return { status: "unavailable", failure: failureOf(page) }
+  if (!page.ok) return { status: "unavailable", failure: describeFailure(page.failure) }
 
   // The installation banner is a precondition of the list, not a separate
   // journey. A caller without the GitHub capability simply does not get one.
@@ -192,13 +170,13 @@ export const readRepositoryDetail = async (
 
   const repository = await fetchRepository(resolved.scope, repositoryId)
   if (!repository.ok) {
-    return { status: "unavailable", failure: failureOf(repository) }
+    return { status: "unavailable", failure: describeFailure(repository.failure) }
   }
 
   // The capacity and replacement mode live on the list summary, and the
   // detail page needs them to know which entitlement control is even offered.
   const page = await fetchRepositoryPage(resolved.scope, {})
-  if (!page.ok) return { status: "unavailable", failure: failureOf(page) }
+  if (!page.ok) return { status: "unavailable", failure: describeFailure(page.failure) }
 
   return {
     status: "ready",

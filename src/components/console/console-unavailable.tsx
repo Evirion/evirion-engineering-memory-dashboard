@@ -1,4 +1,4 @@
-import type { ViewFailure } from "@/server/queries/repositories"
+import type { ViewFailure } from "@/lib/errors/console-errors"
 
 /**
  * Every state a page can be in other than showing data.

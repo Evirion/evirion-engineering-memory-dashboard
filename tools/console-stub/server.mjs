@@ -519,8 +519,10 @@ async function withCommand(request, response, state, principal, organizationId, 
     return fail(response, outcome.error, extra)
   }
   if (outcome.data) {
-    // A GitHub control-plane response is a projection, not a command receipt.
-    return succeed(response, outcome.data)
+    // A GitHub control-plane response is a projection rather than a command
+    // receipt, and it is still stored against the key: a replayed connect must
+    // return the same setup intent, not mint a second one.
+    return succeed(response, remember(state, previous.slot, body, outcome.data))
   }
 
   return succeed(

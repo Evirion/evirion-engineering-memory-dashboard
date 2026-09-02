@@ -31,6 +31,24 @@ export const ERROR_TREATMENTS = [
 
 export type ErrorTreatment = (typeof ERROR_TREATMENTS)[number]
 
+/**
+ * A mapped failure in the shape a page or component renders.
+ *
+ * It lives beside the mapping rather than beside the query that produces it,
+ * so a component can name the type without depending on a server-only module
+ * even for a type that compiles away.
+ */
+export type ViewFailure = {
+  readonly code: ConsoleErrorCode | "UNSUPPORTED_SERVER_RESPONSE"
+  readonly treatment: ErrorTreatment
+  readonly message: string
+  /** Declared by the backend projection, never derived from the code. */
+  readonly retryable: boolean
+  /** Shown so a customer can quote it to support instead of retrying. */
+  readonly requestId?: string
+  readonly currentVersion?: number
+}
+
 export type MappedError = {
   readonly code: ConsoleErrorCode | "UNSUPPORTED_SERVER_RESPONSE"
   readonly treatment: ErrorTreatment
