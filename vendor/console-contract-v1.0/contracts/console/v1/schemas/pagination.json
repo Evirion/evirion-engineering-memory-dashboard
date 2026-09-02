@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:pagination",
+  "title": "Cursor page",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "items",
+    "nextCursor"
+  ],
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": {},
+      "x-evirion-backend-projection": "owning-list-projection",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    },
+    "nextCursor": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 2048,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "x-evirion-backend-projection": "console-api.pagination-cursor",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    }
+  },
+  "examples": [
+    {
+      "items": [],
+      "nextCursor": null
+    },
+    {
+      "items": [],
+      "nextCursor": "ZXhhbXBsZS1vcGFxdWUtY3Vyc29y"
+    }
+  ]
+}

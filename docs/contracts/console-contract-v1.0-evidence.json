@@ -1,0 +1,56 @@
+{
+  "cryptographicVerification": {
+    "bundleVerified": true,
+    "certificateIdentity": "https://github.com/Evirion/evirion-engineering-memory/.github/workflows/console-contract-release.yml@refs/tags/console-contract-v1.0",
+    "workflowRefVerified": true,
+    "workflowRepositoryVerified": true,
+    "workflowShaVerified": true,
+    "workflowTriggerVerified": true
+  },
+  "immutableReleaseAttestation": {
+    "attestedAt": "2026-09-02T09:02:52Z",
+    "immutableReleasesEnabled": true,
+    "observedBy": "repository-administrator",
+    "repository": "Evirion/evirion-engineering-memory",
+    "schemaVersion": "1.0",
+    "tag": "console-contract-v1.0"
+  },
+  "policyDigest": "dcf0652af2c96031e3856966c5e25ec8e50e621c432c90f5262ede66712f63f7",
+  "policyId": "console-contract-v1",
+  "recordedAt": "2026-09-02",
+  "rekor": {
+    "inclusionProofVerified": true,
+    "integratedTime": 1788339965,
+    "logIndex": 2684449600,
+    "uuid": "1976b388e983e935177e11dab5c4e58020f79150b9619db38983c787eebe48cc"
+  },
+  "release": {
+    "assetId": 540908882,
+    "assetName": "console-contract-v1.0.tar.gz",
+    "assetSha256": "9d562738bd315aeeb3294c5c30332f7c1155eacf1182d3f493ef804156be1039",
+    "immutable": true,
+    "publishedAt": 1788339970,
+    "tag": "console-contract-v1.0"
+  },
+  "schemaVersion": "1.0",
+  "signer": {
+    "commit": "20cd3b60ba4b067277e960ede99d508cf0bef70a",
+    "eventName": "push",
+    "oidcIssuer": "https://token.actions.githubusercontent.com",
+    "ref": "refs/tags/console-contract-v1.0",
+    "repository": "Evirion/evirion-engineering-memory",
+    "workflowPath": ".github/workflows/console-contract-release.yml"
+  },
+  "subject": {
+    "name": "console-contract-v1.0.tar.gz",
+    "sha256": "9d562738bd315aeeb3294c5c30332f7c1155eacf1182d3f493ef804156be1039"
+  },
+  "verifier": {
+    "invocation": "cosign verify-blob --trusted-root <pinned> --bundle <bundle> --certificate-identity <identity> --certificate-oidc-issuer <issuer> --certificate-github-workflow-repository <repository> --certificate-github-workflow-ref <ref> --certificate-github-workflow-sha <commit> --certificate-github-workflow-trigger push",
+    "name": "cosign",
+    "network": "isolated",
+    "sha256": "4629c757b7618056f8ddd7e2625ae9fdd94c0372a65049520bc7d9df9efc7f71",
+    "trustedRootSha256": "6494e21ea73fa7ee769f85f57d5a3e6a08725eae1e38c755fc3517c9e6bc0b66",
+    "version": "v3.1.3"
+  }
+}

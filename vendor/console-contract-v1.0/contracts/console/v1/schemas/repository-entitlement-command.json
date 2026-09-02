@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:repository-entitlement-command",
+  "title": "Repository entitlement command result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "changed",
+    "repositoryId",
+    "entitlement",
+    "policy"
+  ],
+  "properties": {
+    "changed": {
+      "type": "boolean",
+      "x-evirion-backend-projection": "api.repository_entitlement_command.changed",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "repositoryId": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "core.repositories.id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "entitlement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "version",
+        "generation",
+        "source"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "ACTIVE",
+            "DISABLED"
+          ],
+          "x-evirion-backend-projection": "core.repository_entitlements.status",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "x-evirion-backend-projection": "core.repository_entitlements.version",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 1,
+          "x-evirion-backend-projection": "core.repository_entitlements.generation",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "DESIGN_PARTNER",
+            "PLAN",
+            "MANUAL"
+          ],
+          "x-evirion-backend-projection": "core.repository_entitlements.source",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        }
+      },
+      "x-evirion-backend-projection": "api.repository_entitlement_command.entitlement",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "version"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "OFF",
+            "SOURCE_ONLY",
+            "AUTO_EXTRACT"
+          ],
+          "x-evirion-backend-projection": "api.repository_entitlement_command.policy_mode",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "x-evirion-backend-projection": "core.repository_automation_policies.version",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        }
+      },
+      "x-evirion-backend-projection": "api.repository_entitlement_command.policy",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    }
+  },
+  "examples": [
+    {
+      "changed": true,
+      "repositoryId": "00000000-0000-4000-8000-000000000302",
+      "entitlement": {
+        "state": "ACTIVE",
+        "version": 1,
+        "generation": 1,
+        "source": "DESIGN_PARTNER"
+      },
+      "policy": {
+        "mode": "OFF",
+        "version": 1
+      }
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "algorithm": "sha256",
+  "contractVersion": "1.0",
+  "files": [
+    {
+      "path": "contracts/console/v1/openapi.yaml",
+      "sha256": "b87075be564327a76839c0bd02c7cb9f47519a8d5e7d2d7e4f256ea48c04eff8"
+    },
+    {
+      "path": "contracts/console/v1/schemas/command-receipt.json",
+      "sha256": "8fc9f9dbf627257f66b1ddbf6dc6044fbf7edd9392a4b9933d01000cc4789e22"
+    },
+    {
+      "path": "contracts/console/v1/schemas/error.json",
+      "sha256": "3fdb25470948e3166e906403b6e9db6bf68a892d9a0a05d89ea1b8d11af495c9"
+    },
+    {
+      "path": "contracts/console/v1/schemas/github-installation.json",
+      "sha256": "abe30d7dc7588cd484b136957c3e36a10602b47cc5f7116e53cfdc380a32eb91"
+    },
+    {
+      "path": "contracts/console/v1/schemas/github-setup-intent.json",
+      "sha256": "99ed9c587ce7281a35c199c43541679fb535a00cb1eea1b950e5664dae042e38"
+    },
+    {
+      "path": "contracts/console/v1/schemas/github-sync-run.json",
+      "sha256": "138fe30fd963e3e7fe4e93e209d3a538caf4e064e491fc84949ef81c6dd5a98a"
+    },
+    {
+      "path": "contracts/console/v1/schemas/invitation.json",
+      "sha256": "3402ba56cabc9fe3f847de9ebcc8394894096eda194f3050cdbbf375cdf0deb7"
+    },
+    {
+      "path": "contracts/console/v1/schemas/member.json",
+      "sha256": "e5dfdb5e5a9932270ca5fae0a80e58be849a78a361a517316fc9890656376c8a"
+    },
+    {
+      "path": "contracts/console/v1/schemas/organization-offboarding.json",
+      "sha256": "f2e84861ddbba90b12dc0f4c51c3967f4e6d5153a2f397ffcab818db8467aec3"
+    },
+    {
+      "path": "contracts/console/v1/schemas/pagination.json",
+      "sha256": "c8c93571a275bc48f179e007820ab13e94290289b4a81b1acfdd93652da1b039"
+    },
+    {
+      "path": "contracts/console/v1/schemas/repository-entitlement-command.json",
+      "sha256": "0c5c3769cedd8f7e7c4ceb1b14d8ef8e3566c568ba4feb0d3d1bb9a4814f2150"
+    },
+    {
+      "path": "contracts/console/v1/schemas/repository-import-failures.json",
+      "sha256": "96db968ec7e3fe762a5c7b2eb6000056c995c4d49a932ec7543ba6f9b6f79cca"
+    },
+    {
+      "path": "contracts/console/v1/schemas/repository-import.json",
+      "sha256": "4767a51af01c0da4e4d099fc190d24c2b77dbda64251603cb5b64739335d7857"
+    },
+    {
+      "path": "contracts/console/v1/schemas/repository-page.json",
+      "sha256": "2e1bf55ef8913c1a723a44bf86769996bcd2ef32616a94191f7be142c5883351"
+    },
+    {
+      "path": "contracts/console/v1/schemas/repository-policy.json",
+      "sha256": "2eea4803b051be6a38d476347373313875db5c861ea2cef17637c2100ba61561"
+    },
+    {
+      "path": "contracts/console/v1/schemas/repository.json",
+      "sha256": "a031253bf7a65581dc70ade617324ce9196fb10401c03ac0a674033b0fc6b942"
+    },
+    {
+      "path": "contracts/console/v1/schemas/session-context.json",
+      "sha256": "351ae7a55788691f4d6ef3d7c59b91c3edc2515f7cfae0f6919f03a4a8cb863c"
+    },
+    {
+      "path": "contracts/console/v1/schemas/session-revocation.json",
+      "sha256": "6ddc35c7ecd17bd0378a9c4de8b0c405dbfa157f89839abc4233eb30a68b01de"
+    },
+    {
+      "path": "contracts/console/v1/schemas/session.json",
+      "sha256": "969bb36b38558b36be556174fe3cea5d5522991e5ede858465e4371268811b46"
+    },
+    {
+      "path": "contracts/operator/v1/openapi.yaml",
+      "sha256": "94a0b134a959a3ae220150f25fb7ec98f71da1a7a9fa2e7be30295625ca7018f"
+    }
+  ],
+  "packageSha256": "53da9379428d8f34b7e674805019244e85ed89a7cd6f0e1d9b4a2a79b23d6b6c",
+  "schemaVersion": "1.0"
+}

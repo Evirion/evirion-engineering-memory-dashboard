@@ -1,25 +1,55 @@
 {
-  "artifact": {
-    "eventName": "push",
-    "fulcioRoot": "public-good-instance",
-    "oidcIssuer": "https://token.actions.githubusercontent.com",
-    "refPrefix": "refs/tags/dashboard-authority-v",
-    "refPattern": "^refs/tags/dashboard-authority-v[0-9]+\\.[0-9]+\\.[0-9]+$",
-    "rekorLog": "public-good-instance",
-    "repository": "Evirion/evirion-engineering-memory-dashboard",
-    "verifier": {
-      "asset": "cosign-linux-amd64",
-      "installerActionCommit": "6f9f17788090df1f26f669e9d70d6ae9567deba6",
-      "name": "cosign",
-      "releaseChecksumsSha256": "aec2a6f68d307b09ae196e388dc691a146fa8bdba7fcce9ca4ca41b918adfa63",
-      "sha256": "4629c757b7618056f8ddd7e2625ae9fdd94c0372a65049520bc7d9df9efc7f71",
-      "version": "v3.1.3"
+  "amendedDate": "2026-09-02",
+  "artifacts": {
+    "console-contract-v1": {
+      "artifactName": "console-contract-v<major>.<minor>.tar.gz",
+      "bundleName": "console-contract-v<major>.<minor>.sigstore.json",
+      "eventName": "push",
+      "fulcioRoot": "public-good-instance",
+      "manifestPath": "contracts/console/v1/manifest.json",
+      "oidcIssuer": "https://token.actions.githubusercontent.com",
+      "refPattern": "^refs/tags/console-contract-v[0-9]+\\.[0-9]+$",
+      "refPrefix": "refs/tags/console-contract-v",
+      "rekorLog": "public-good-instance",
+      "repository": "Evirion/evirion-engineering-memory",
+      "role": "consumed",
+      "verifier": {
+        "asset": "cosign-linux-amd64",
+        "installerActionCommit": "6f9f17788090df1f26f669e9d70d6ae9567deba6",
+        "name": "cosign",
+        "releaseChecksumsSha256": "aec2a6f68d307b09ae196e388dc691a146fa8bdba7fcce9ca4ca41b918adfa63",
+        "sha256": "4629c757b7618056f8ddd7e2625ae9fdd94c0372a65049520bc7d9df9efc7f71",
+        "version": "v3.1.3"
+      },
+      "workflowPath": ".github/workflows/console-contract-release.yml"
     },
-    "workflowPath": ".github/workflows/authority-release.yml"
+    "dashboard-authority-v1": {
+      "artifactName": "dashboard-authority-v<semver>.tar.gz",
+      "bundleName": "dashboard-authority-v<semver>.sigstore.json",
+      "eventName": "push",
+      "fulcioRoot": "public-good-instance",
+      "manifestPath": "docs/authority/manifest.json",
+      "oidcIssuer": "https://token.actions.githubusercontent.com",
+      "refPattern": "^refs/tags/dashboard-authority-v[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "refPrefix": "refs/tags/dashboard-authority-v",
+      "rekorLog": "public-good-instance",
+      "repository": "Evirion/evirion-engineering-memory-dashboard",
+      "role": "produced",
+      "verifier": {
+        "asset": "cosign-linux-amd64",
+        "installerActionCommit": "6f9f17788090df1f26f669e9d70d6ae9567deba6",
+        "name": "cosign",
+        "releaseChecksumsSha256": "aec2a6f68d307b09ae196e388dc691a146fa8bdba7fcce9ca4ca41b918adfa63",
+        "sha256": "4629c757b7618056f8ddd7e2625ae9fdd94c0372a65049520bc7d9df9efc7f71",
+        "version": "v3.1.3"
+      },
+      "workflowPath": ".github/workflows/authority-release.yml"
+    }
   },
   "decisionDate": "2026-08-27",
   "download": {
     "allowedCredential": "short-lived GitHub App installation token or ephemeral GitHub Actions GITHUB_TOKEN",
+    "credentialStorage": "process environment only; never a file, log, workflow output, or repository artifact",
     "maximumCredentialLifetime": "1h",
     "minimumPermission": "contents:read",
     "mutableMainDownloadForbidden": true
@@ -39,18 +69,31 @@
     "readinessBlocking": true,
     "status": "open"
   },
-  "policyDigest": "7feec887ecc73eed09f48a77186a4113581ba4340155b7011292cd808b936a24",
-  "policyId": "dashboard-authority-v1",
+  "immutableReleaseEvidence": {
+    "administratorAttestationPath": "docs/security/immutable-release-attestation.json",
+    "maximumAttestationAgeSeconds": 86400,
+    "maximumClockSkewSeconds": 300,
+    "postPublicationReleaseImmutableRequired": true,
+    "preSigningAdministratorAttestationRequired": true,
+    "supersededMechanism": "repos/{owner}/{repo}/immutable-releases requires admin read access and the GitHub Actions permissions surface has no administration scope, so an ephemeral workflow token can never satisfy it",
+    "tagScoped": true
+  },
+  "policyDigest": "dcf0652af2c96031e3856966c5e25ec8e50e621c432c90f5262ede66712f63f7",
   "publication": {
-    "artifactName": "dashboard-authority-v<semver>.tar.gz",
-    "bundleName": "dashboard-authority-v<semver>.sigstore.json",
     "contentAddressed": true,
     "githubImmutableReleaseRequired": true,
-    "manifestPath": "docs/authority/manifest.json",
     "maximumSigningToReleaseSeconds": 3600,
     "rekorMetadataIsPublic": true,
+    "releaseCommitReachableFromDefaultBranchRequired": false,
     "replacementBehavior": "reject and open a security incident; never rewrite a pointer",
     "secretOrCustomerPayloadAllowed": false
   },
-  "schemaVersion": "1.0"
+  "schemaVersion": "1.0",
+  "trustedRoot": {
+    "materializedAt": "2026-09-02",
+    "path": "docs/security/sigstore-trusted-root.json",
+    "sha256": "6494e21ea73fa7ee769f85f57d5a3e6a08725eae1e38c755fc3517c9e6bc0b66",
+    "source": "sigstore public-good TUF target trusted_root.json",
+    "tufMirror": "https://tuf-repo-cdn.sigstore.dev"
+  }
 }

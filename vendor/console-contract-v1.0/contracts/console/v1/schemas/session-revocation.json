@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:session-revocation",
+  "title": "Application-session revocation result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "scope",
+    "revokedCount",
+    "providerEffect"
+  ],
+  "properties": {
+    "scope": {
+      "type": "string",
+      "enum": [
+        "current",
+        "others",
+        "all",
+        "session"
+      ],
+      "x-evirion-backend-projection": "api.revoke_self_sessions.scope",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "revokedCount": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 3,
+      "x-evirion-backend-projection": "api.revoke_self_sessions.revoked_count",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "providerEffect": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "NOT_APPLICABLE"
+      ],
+      "x-evirion-backend-projection": "api.revoke_self_sessions.provider_effect",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    }
+  },
+  "examples": [
+    {
+      "scope": "others",
+      "revokedCount": 2,
+      "providerEffect": "PENDING"
+    }
+  ]
+}

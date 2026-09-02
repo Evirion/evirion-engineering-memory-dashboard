@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:repository-policy",
+  "title": "Repository processing policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "mode",
+    "version"
+  ],
+  "properties": {
+    "mode": {
+      "type": "string",
+      "enum": [
+        "OFF",
+        "SOURCE_ONLY",
+        "AUTO_EXTRACT"
+      ],
+      "x-evirion-backend-projection": "api.repository_policy.mode",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "x-evirion-backend-projection": "core.repository_automation_policies.version",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    }
+  },
+  "examples": [
+    {
+      "mode": "SOURCE_ONLY",
+      "version": 2
+    }
+  ]
+}

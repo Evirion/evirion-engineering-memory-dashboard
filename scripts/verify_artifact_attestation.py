@@ -5,6 +5,7 @@ import hashlib
 import json
 import re
 import subprocess
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -15,6 +16,7 @@ class AttestationPolicyError(ValueError):
 
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
 COMMIT = re.compile(r"^[0-9a-f]{40}$")
+UTC_INSTANT = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 
 
 def _object(parent: dict[str, Any], key: str) -> dict[str, Any]:
@@ -35,6 +37,22 @@ def _valid_digest(value: Any, field: str) -> str:
     return value
 
 
+def _utc_epoch(value: Any, field: str) -> int:
+    if not isinstance(value, str) or UTC_INSTANT.fullmatch(value) is None:
+        raise AttestationPolicyError(f"{field} must be a UTC RFC 3339 second instant")
+    return int(
+        datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
+        .replace(tzinfo=timezone.utc)
+        .timestamp()
+    )
+
+
+def _positive_int(value: Any, field: str) -> int:
+    if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
+        raise AttestationPolicyError(f"{field} must be a positive integer")
+    return value
+
+
 def compute_policy_digest(policy: dict[str, Any]) -> str:
     digest_input = {key: value for key, value in policy.items() if key != "policyDigest"}
     canonical = (
@@ -49,10 +67,65 @@ def compute_policy_digest(policy: dict[str, Any]) -> str:
     return hashlib.sha256(canonical).hexdigest()
 
 
+def select_artifact_policy(policy: dict[str, Any], policy_id: str) -> dict[str, Any]:
+    artifacts = _object(policy, "artifacts")
+    entry = artifacts.get(policy_id)
+    if not isinstance(entry, dict):
+        raise AttestationPolicyError(f"unknown artifact policy id: {policy_id}")
+    return entry
+
+
+def _validate_immutable_release_evidence(
+    policy: dict[str, Any],
+    evidence: dict[str, Any],
+    *,
+    repository: Any,
+    expected_release_tag: str,
+    published_at: int,
+) -> None:
+    immutability_policy = _object(policy, "immutableReleaseEvidence")
+    if immutability_policy.get("preSigningAdministratorAttestationRequired") is not True:
+        raise AttestationPolicyError(
+            "policy must require a pre-signing administrator attestation"
+        )
+    if immutability_policy.get("postPublicationReleaseImmutableRequired") is not True:
+        raise AttestationPolicyError(
+            "policy must require post-publication release immutability"
+        )
+    if immutability_policy.get("tagScoped") is not True:
+        raise AttestationPolicyError("policy must require a tag-scoped attestation")
+    maximum_age = _positive_int(
+        immutability_policy.get("maximumAttestationAgeSeconds"),
+        "maximumAttestationAgeSeconds",
+    )
+    maximum_skew = _positive_int(
+        immutability_policy.get("maximumClockSkewSeconds"),
+        "maximumClockSkewSeconds",
+    )
+
+    attestation = _object(evidence, "immutableReleaseAttestation")
+    _exact(attestation.get("schemaVersion"), "1.0", "attestation schemaVersion")
+    _exact(attestation.get("repository"), repository, "attestation repository")
+    _exact(attestation.get("tag"), expected_release_tag, "attestation tag")
+    if attestation.get("immutableReleasesEnabled") is not True:
+        raise AttestationPolicyError(
+            "attestation must state that immutable releases are enabled"
+        )
+    attested_at = _utc_epoch(attestation.get("attestedAt"), "attestation attestedAt")
+    age = published_at - attested_at
+    if age > maximum_age:
+        raise AttestationPolicyError("administrator attestation is stale")
+    if age < -maximum_skew:
+        raise AttestationPolicyError(
+            "administrator attestation is post-dated beyond the clock-skew allowance"
+        )
+
+
 def validate_attestation_evidence(
     policy: dict[str, Any],
     evidence: dict[str, Any],
     *,
+    expected_policy_id: str,
     expected_subject_sha256: str,
     expected_source_commit: str,
     expected_policy_digest: str,
@@ -61,7 +134,7 @@ def validate_attestation_evidence(
 ) -> None:
     _exact(policy.get("schemaVersion"), "1.0", "policy schemaVersion")
     _exact(evidence.get("schemaVersion"), "1.0", "evidence schemaVersion")
-    _exact(evidence.get("policyId"), policy.get("policyId"), "policyId")
+    _exact(evidence.get("policyId"), expected_policy_id, "policyId")
     policy_digest = _valid_digest(policy.get("policyDigest"), "policyDigest")
     _exact(policy_digest, compute_policy_digest(policy), "policyDigest")
     _exact(
@@ -80,8 +153,9 @@ def validate_attestation_evidence(
             "expected release asset ID must be a positive integer"
         )
 
-    artifact_policy = _object(policy, "artifact")
+    artifact_policy = select_artifact_policy(policy, expected_policy_id)
     publication_policy = _object(policy, "publication")
+    trusted_root_policy = _object(policy, "trustedRoot")
     subject = _object(evidence, "subject")
     signer = _object(evidence, "signer")
     release = _object(evidence, "release")
@@ -89,6 +163,15 @@ def validate_attestation_evidence(
     verifier = _object(evidence, "verifier")
     cryptographic = _object(evidence, "cryptographicVerification")
     verifier_policy = _object(artifact_policy, "verifier")
+
+    # The signing tag points at the exact commit that was built. An immutable
+    # release keeps that object alive, so no consumer check may require it to be
+    # reachable from the publishing repository's default branch.
+    if publication_policy.get("releaseCommitReachableFromDefaultBranchRequired") is True:
+        raise AttestationPolicyError(
+            "this verifier cannot prove default-branch reachability and must not "
+            "accept a policy that requires it"
+        )
 
     subject_digest = _valid_digest(subject.get("sha256"), "subject.sha256")
     _exact(subject_digest, expected_subject_sha256, "subject.sha256")
@@ -105,13 +188,10 @@ def validate_attestation_evidence(
     _exact(release.get("assetId"), expected_release_asset_id, "release.assetId")
     if publication_policy.get("githubImmutableReleaseRequired") is not True:
         raise AttestationPolicyError("policy must require GitHub immutable releases")
-    maximum_signing_delay = publication_policy.get(
-        "maximumSigningToReleaseSeconds"
+    maximum_signing_delay = _positive_int(
+        publication_policy.get("maximumSigningToReleaseSeconds"),
+        "maximumSigningToReleaseSeconds",
     )
-    if not isinstance(maximum_signing_delay, int) or maximum_signing_delay <= 0:
-        raise AttestationPolicyError(
-            "maximumSigningToReleaseSeconds must be a positive integer"
-        )
 
     repository = artifact_policy.get("repository")
     workflow_path = artifact_policy.get("workflowPath")
@@ -181,6 +261,14 @@ def validate_attestation_evidence(
             "Rekor integration time is stale or later than the release"
         )
 
+    _validate_immutable_release_evidence(
+        policy,
+        evidence,
+        repository=repository,
+        expected_release_tag=expected_release_tag,
+        published_at=published_at,
+    )
+
     _exact(verifier.get("name"), verifier_policy.get("name"), "verifier.name")
     _exact(
         verifier.get("version"),
@@ -189,6 +277,14 @@ def validate_attestation_evidence(
     )
     verifier_digest = _valid_digest(verifier.get("sha256"), "verifier.sha256")
     _exact(verifier_digest, verifier_policy.get("sha256"), "verifier.sha256")
+    trusted_root_digest = _valid_digest(
+        trusted_root_policy.get("sha256"), "trustedRoot.sha256"
+    )
+    _exact(
+        _valid_digest(verifier.get("trustedRootSha256"), "verifier.trustedRootSha256"),
+        trusted_root_digest,
+        "verifier.trustedRootSha256",
+    )
 
 
 def _load_object(path: Path) -> dict[str, Any]:
@@ -208,10 +304,12 @@ def _sha256(path: Path) -> str:
 def _main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--policy", type=Path, required=True)
+    parser.add_argument("--policy-id", required=True)
     parser.add_argument("--evidence", type=Path, required=True)
     parser.add_argument("--artifact", type=Path, required=True)
     parser.add_argument("--bundle", type=Path, required=True)
     parser.add_argument("--cosign", type=Path, required=True)
+    parser.add_argument("--trusted-root", type=Path, required=True)
     parser.add_argument("--source-commit", required=True)
     parser.add_argument("--expected-policy-digest", required=True)
     parser.add_argument("--release-tag", required=True)
@@ -224,6 +322,7 @@ def _main() -> int:
     validate_attestation_evidence(
         policy,
         evidence,
+        expected_policy_id=arguments.policy_id,
         expected_subject_sha256=subject_digest,
         expected_source_commit=arguments.source_commit,
         expected_policy_digest=arguments.expected_policy_digest,
@@ -231,15 +330,23 @@ def _main() -> int:
         expected_release_asset_id=arguments.release_asset_id,
     )
 
-    artifact_policy = _object(policy, "artifact")
+    artifact_policy = select_artifact_policy(policy, arguments.policy_id)
     verifier_policy = _object(artifact_policy, "verifier")
     _exact(_sha256(arguments.cosign), verifier_policy.get("sha256"), "cosign binary")
+    _exact(
+        _sha256(arguments.trusted_root),
+        _object(policy, "trustedRoot").get("sha256"),
+        "Sigstore trusted root",
+    )
     signer = _object(evidence, "signer")
     cryptographic = _object(evidence, "cryptographicVerification")
+    # cosign v3 verifies a v0.3 bundle against a trusted root rather than a live
+    # TUF fetch. Passing the pinned root is what makes the verification offline.
     command = [
         str(arguments.cosign),
         "verify-blob",
-        "--offline",
+        "--trusted-root",
+        str(arguments.trusted_root),
         "--bundle",
         str(arguments.bundle),
         "--certificate-identity",

@@ -1,0 +1,1240 @@
+openapi: "3.1.2"
+info:
+  title: Evirion Operator API
+  version: "1.0"
+  description: >-
+    Internal operator contract. `OPS-001` requires a non-browser control plane,
+    so no operation below has an HTTP route today: each one is reached by the
+    headless operator client as an authenticated PostgREST call to the routine
+    named by its `x-evirion-backend-routine`, with the routine's own `p_*`
+    arguments in the body. The paths, envelopes and headers declared here are the
+    contract a future operator BFF must satisfy, not a surface that answers
+    requests now. `x-evirion-runtime-status` states which of the two a reader is
+    looking at. Operations not declared here have no runtime at all.
+
+    Two families are declared. The paid-authorization operations control budget
+    and paid-operation authority. The lifecycle-correction operations execute or
+    reject a customer's durable correction request; the customer may request and
+    read a correction but never execute one, which is why those three appear here
+    and not on the Console contract.
+x-evirion-contract-version: "1.0"
+x-evirion-runtime-status: operator-routine-only
+x-evirion-transport: database-rpc-pending-bff
+tags:
+  - name: operator-organizations
+    description: Audited organization bootstrap, replacement, and offboarding.
+  - name: operator-paid-authorizations
+    description: Separate Evirion paid-operation authorization control.
+  - name: operator-lifecycle-corrections
+    description: Audited lifecycle correction execution.
+paths:
+  /v1/organizations/{organizationId}/knowledge-corrections/{correctionRequestId}/begin:
+    post:
+      operationId: beginKnowledgeLifecycleCorrection
+      tags:
+        - operator-lifecycle-corrections
+      summary: Take one durable correction request into EXECUTING.
+      description: >-
+        Execution is two commands so that EXECUTING and FAILED are durably
+        observable between transactions and the FAILED to EXECUTING edge is real
+        rather than a fiction no test could enter. The compensating appends
+        happen only on the EXECUTING to EXECUTED edge.
+      x-evirion-versioned: false
+      x-evirion-backend-routine: api.begin_knowledge_lifecycle_correction
+      security:
+        - operatorBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/CorrectionRequestId"
+        - $ref: "#/components/parameters/CorrelationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KnowledgeCorrectionBeginRequest"
+      responses:
+        "200":
+          $ref: "#/components/responses/CommandReceipt"
+        "400":
+          $ref: "#/components/responses/StandardError"
+        "401":
+          $ref: "#/components/responses/StandardError"
+        "403":
+          $ref: "#/components/responses/StandardError"
+        "404":
+          $ref: "#/components/responses/StandardError"
+        "409":
+          $ref: "#/components/responses/VersionConflict"
+        "422":
+          $ref: "#/components/responses/StandardError"
+        "500":
+          $ref: "#/components/responses/StandardError"
+        "503":
+          $ref: "#/components/responses/StandardError"
+  /v1/organizations/{organizationId}/knowledge-corrections/{correctionRequestId}/complete:
+    post:
+      operationId: completeKnowledgeLifecycleCorrection
+      tags:
+        - operator-lifecycle-corrections
+      summary: Close one EXECUTING correction as EXECUTED or FAILED.
+      description: >-
+        EXECUTED appends the compensating relation-state and lifecycle events
+        atomically after rechecking the stored target versions. FAILED appends
+        neither and leaves the request resumable.
+      x-evirion-versioned: false
+      x-evirion-backend-routine: api.complete_knowledge_lifecycle_correction
+      security:
+        - operatorBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/CorrectionRequestId"
+        - $ref: "#/components/parameters/CorrelationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KnowledgeCorrectionCompleteRequest"
+      responses:
+        "200":
+          $ref: "#/components/responses/CommandReceipt"
+        "400":
+          $ref: "#/components/responses/StandardError"
+        "401":
+          $ref: "#/components/responses/StandardError"
+        "403":
+          $ref: "#/components/responses/StandardError"
+        "404":
+          $ref: "#/components/responses/StandardError"
+        "409":
+          $ref: "#/components/responses/VersionConflict"
+        "422":
+          $ref: "#/components/responses/StandardError"
+        "500":
+          $ref: "#/components/responses/StandardError"
+        "503":
+          $ref: "#/components/responses/StandardError"
+  /v1/organizations/{organizationId}/knowledge-corrections/{correctionRequestId}/reject:
+    post:
+      operationId: rejectKnowledgeLifecycleCorrection
+      tags:
+        - operator-lifecycle-corrections
+      summary: Close one correction request without compensating anything.
+      description: >-
+        Reachable from REQUESTED and from FAILED. The FAILED edge exists because
+        a request whose stored target versions have drifted can never pass the
+        execution recheck again, and without a terminal state the object could
+        receive no further correction.
+      x-evirion-versioned: false
+      x-evirion-backend-routine: api.reject_knowledge_lifecycle_correction
+      security:
+        - operatorBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/CorrectionRequestId"
+        - $ref: "#/components/parameters/CorrelationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KnowledgeCorrectionRejectRequest"
+      responses:
+        "200":
+          $ref: "#/components/responses/CommandReceipt"
+        "400":
+          $ref: "#/components/responses/StandardError"
+        "401":
+          $ref: "#/components/responses/StandardError"
+        "403":
+          $ref: "#/components/responses/StandardError"
+        "404":
+          $ref: "#/components/responses/StandardError"
+        "409":
+          $ref: "#/components/responses/VersionConflict"
+        "422":
+          $ref: "#/components/responses/StandardError"
+        "500":
+          $ref: "#/components/responses/StandardError"
+        "503":
+          $ref: "#/components/responses/StandardError"
+  /v1/organizations/{organizationId}/repositories/{repositoryId}/monthly-budget:
+    put:
+      operationId: setRepositoryMonthlyBudget
+      tags:
+        - operator-paid-authorizations
+      summary: Provision or change one repository's monthly budget.
+      description: >-
+        The first step of the live paid provisioning order. Customer activation
+        leaves the budget unset, and no customer route, worker or direct table
+        write may change it.
+      x-evirion-versioned: true
+      x-evirion-backend-routine: api.set_repository_monthly_budget
+      security:
+        - operatorBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/RepositoryId"
+        - $ref: "#/components/parameters/CorrelationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RepositoryMonthlyBudgetRequest"
+      responses:
+        "200":
+          $ref: "#/components/responses/CommandReceipt"
+        "400":
+          $ref: "#/components/responses/StandardError"
+        "401":
+          $ref: "#/components/responses/StandardError"
+        "403":
+          $ref: "#/components/responses/StandardError"
+        "404":
+          $ref: "#/components/responses/StandardError"
+        "409":
+          $ref: "#/components/responses/VersionConflict"
+        "422":
+          $ref: "#/components/responses/StandardError"
+        "500":
+          $ref: "#/components/responses/StandardError"
+        "503":
+          $ref: "#/components/responses/StandardError"
+  /v1/organizations/{organizationId}/paid-operation-authorizations:
+    get:
+      operationId: listPaidOperationAuthorizations
+      tags:
+        - operator-paid-authorizations
+      summary: List one organization's paid-operation authorizations.
+      description: >-
+        Bounded to the most recent hundred grants. It exposes no provider
+        credential and no customer payload.
+      x-evirion-backend-routine: api.list_paid_operation_authorizations
+      security:
+        - operatorBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: Bounded paid-operation authorization page.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaidOperationAuthorizationPageEnvelope"
+        "400":
+          $ref: "#/components/responses/StandardError"
+        "401":
+          $ref: "#/components/responses/StandardError"
+        "403":
+          $ref: "#/components/responses/StandardError"
+        "404":
+          $ref: "#/components/responses/StandardError"
+        "422":
+          $ref: "#/components/responses/StandardError"
+        "500":
+          $ref: "#/components/responses/StandardError"
+        "503":
+          $ref: "#/components/responses/StandardError"
+    post:
+      operationId: grantPaidOperationAuthorization
+      tags:
+        - operator-paid-authorizations
+      summary: Grant one bounded Evirion paid-operation authorization.
+      description: >-
+        The third step of the live paid provisioning order. A repository budget
+        and a live customer consent must already exist, and neither a customer
+        nor a chat instruction can reach this operation.
+      x-evirion-backend-routine: api.grant_paid_operation_authorization
+      security:
+        - operatorBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/CorrelationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaidOperationAuthorizationGrantRequest"
+      responses:
+        "200":
+          $ref: "#/components/responses/CommandReceipt"
+        "400":
+          $ref: "#/components/responses/StandardError"
+        "401":
+          $ref: "#/components/responses/StandardError"
+        "403":
+          $ref: "#/components/responses/StandardError"
+        "404":
+          $ref: "#/components/responses/StandardError"
+        "422":
+          $ref: "#/components/responses/StandardError"
+        "500":
+          $ref: "#/components/responses/StandardError"
+        "503":
+          $ref: "#/components/responses/StandardError"
+  /v1/organizations/{organizationId}/paid-operation-authorizations/{paidOperationAuthorizationId}:
+    get:
+      operationId: getPaidOperationAuthorization
+      tags:
+        - operator-paid-authorizations
+      summary: Read one paid-operation authorization and its provisioning state.
+      x-evirion-backend-routine: api.get_paid_operation_authorization
+      security:
+        - operatorBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/PaidOperationAuthorizationId"
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: One paid-operation authorization with its provisioning state.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaidOperationAuthorizationDetailEnvelope"
+        "400":
+          $ref: "#/components/responses/StandardError"
+        "401":
+          $ref: "#/components/responses/StandardError"
+        "403":
+          $ref: "#/components/responses/StandardError"
+        "404":
+          $ref: "#/components/responses/StandardError"
+        "422":
+          $ref: "#/components/responses/StandardError"
+        "500":
+          $ref: "#/components/responses/StandardError"
+        "503":
+          $ref: "#/components/responses/StandardError"
+  /v1/organizations/{organizationId}/paid-operation-authorizations/{paidOperationAuthorizationId}/revoke:
+    post:
+      operationId: revokePaidOperationAuthorization
+      tags:
+        - operator-paid-authorizations
+      summary: Revoke one active paid-operation authorization.
+      description: >-
+        Revocation blocks every not-yet-started transport dispatch and never
+        deletes dispatch, checkpoint or cost provenance.
+      x-evirion-versioned: true
+      x-evirion-backend-routine: api.revoke_paid_operation_authorization
+      security:
+        - operatorBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/PaidOperationAuthorizationId"
+        - $ref: "#/components/parameters/CorrelationId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaidOperationAuthorizationRevokeRequest"
+      responses:
+        "200":
+          $ref: "#/components/responses/CommandReceipt"
+        "400":
+          $ref: "#/components/responses/StandardError"
+        "401":
+          $ref: "#/components/responses/StandardError"
+        "403":
+          $ref: "#/components/responses/StandardError"
+        "404":
+          $ref: "#/components/responses/StandardError"
+        "409":
+          $ref: "#/components/responses/VersionConflict"
+        "422":
+          $ref: "#/components/responses/StandardError"
+        "500":
+          $ref: "#/components/responses/StandardError"
+        "503":
+          $ref: "#/components/responses/StandardError"
+components:
+  securitySchemes:
+    operatorBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >-
+        Short-lived operator access token. Runtime authorization must revalidate
+        the exact token online and resolve live application-session and
+        platform-operator state at AAL2.
+  schemas:
+    ContractVersion:
+      type: string
+      const: "1.0"
+      x-evirion-backend-projection: console-api.response-envelope
+      x-evirion-sensitivity: customer-safe-summary
+    RequestId:
+      type: string
+      format: uuid
+      x-evirion-backend-projection: console-api.request-context
+      x-evirion-sensitivity: admin-operational
+    CorrelationId:
+      type: string
+      format: uuid
+      x-evirion-backend-projection: console-api.request-context
+      x-evirion-sensitivity: admin-operational
+    ExpectedVersion:
+      type: integer
+      minimum: 1
+      x-evirion-backend-projection: owning-operator-projection
+      x-evirion-sensitivity: admin-operational
+    SuccessEnvelope:
+      type: object
+      additionalProperties: false
+      required:
+        - contractVersion
+        - requestId
+        - data
+      properties:
+        contractVersion:
+          $ref: "#/components/schemas/ContractVersion"
+          x-evirion-backend-projection: console-api.response-envelope
+          x-evirion-sensitivity: customer-safe-summary
+        requestId:
+          $ref: "#/components/schemas/RequestId"
+          x-evirion-backend-projection: console-api.request-context
+          x-evirion-sensitivity: admin-operational
+        data:
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+    ApiErrorCode:
+      type: string
+      enum:
+        - AUTHENTICATION_REQUIRED
+        - ORGANIZATION_MEMBERSHIP_REQUIRED
+        - CAPABILITY_REQUIRED
+        - RESOURCE_NOT_FOUND
+        - IDEMPOTENCY_KEY_REUSED
+        - VERSION_CONFLICT
+        - ORGANIZATION_LIMIT_NOT_PROVISIONED
+        - REPOSITORY_NOT_ENTITLED
+        - REPOSITORY_LIMIT_REACHED
+        - CONSOLE_COMMAND_REQUEST_INVALID
+        - REPOSITORY_POLICY_NOT_PROVISIONED
+        - REPOSITORY_BUDGET_BELOW_SETTLED_SPEND
+        - PAID_OPERATION_AUTHORIZATION_REPOSITORY_BUDGET_MISSING
+        - PAID_OPERATION_AUTHORIZATION_CUSTOMER_CONSENT_MISSING
+        - PAID_OPERATION_AUTHORIZATION_MODEL_PROFILE_NOT_CONSENTED
+        - PAID_OPERATION_AUTHORIZATION_BUDGET_CEILING_EXCEEDS_CONSENT
+        - PAID_OPERATION_AUTHORIZATION_ENTITLEMENT_INACTIVE
+        - PAID_OPERATION_AUTHORIZATION_ORGANIZATION_OFFBOARDING
+        - PAID_OPERATION_AUTHORIZATION_REQUEST_INVALID
+        - PAID_OPERATION_AUTHORIZATION_NOT_ACTIVE
+        - PAID_OPERATION_AUTHORIZATION_NOT_FOUND
+        - REPOSITORY_REPLACEMENT_REQUIRES_OPERATOR
+        - REPOSITORY_ACCESS_CHANGED
+        - ENTITLEMENT_GENERATION_STALE
+        - BACKFILL_NOT_APPROVABLE
+        - NEW_MODEL_CALL_NOT_AUTHORIZED
+        - PAID_OPERATION_NOT_AUTHORIZED
+        - PROVIDER_OUTCOME_UNKNOWN
+        - REVIEW_VERSION_CONFLICT
+        - LIFECYCLE_VERSION_CONFLICT
+        - SUPERSESSION_INVALID
+        - SUPERSESSION_TRAVERSAL_LIMIT
+        - INVITATION_STATE_CONFLICT
+        - GITHUB_SYNC_INCOMPLETE
+        - DEPENDENCY_UNAVAILABLE
+        - UNSUPPORTED_SERVER_RESPONSE
+      x-evirion-unsupported-value: UNSUPPORTED_SERVER_RESPONSE
+      x-evirion-backend-projection: console-api.error-mapper
+      x-evirion-sensitivity: admin-operational
+    ErrorEnvelope:
+      type: object
+      additionalProperties: false
+      required:
+        - contractVersion
+        - requestId
+        - error
+      properties:
+        contractVersion:
+          $ref: "#/components/schemas/ContractVersion"
+          x-evirion-backend-projection: console-api.response-envelope
+          x-evirion-sensitivity: customer-safe-summary
+        requestId:
+          $ref: "#/components/schemas/RequestId"
+          x-evirion-backend-projection: console-api.request-context
+          x-evirion-sensitivity: admin-operational
+        error:
+          type: object
+          additionalProperties: false
+          required:
+            - code
+            - message
+            - retryable
+          properties:
+            code:
+              $ref: "#/components/schemas/ApiErrorCode"
+              x-evirion-backend-projection: console-api.error-mapper
+              x-evirion-sensitivity: admin-operational
+            message:
+              type: string
+              minLength: 1
+              maxLength: 512
+              x-evirion-backend-projection: console-api.error-mapper
+              x-evirion-sensitivity: admin-operational
+            retryable:
+              type: boolean
+              x-evirion-backend-projection: console-api.error-mapper
+              x-evirion-sensitivity: admin-operational
+            currentVersion:
+              type: integer
+              minimum: 1
+              x-evirion-backend-projection: owning-operator-projection
+              x-evirion-sensitivity: admin-operational
+          x-evirion-backend-projection: console-api.error-mapper
+          x-evirion-sensitivity: admin-operational
+    CursorPage:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+        - nextCursor
+      properties:
+        items:
+          type: array
+          items: {}
+          x-evirion-backend-projection: owning-operator-list-projection
+          x-evirion-sensitivity: admin-operational
+        nextCursor:
+          type:
+            - string
+            - "null"
+          maxLength: 2048
+          pattern: "^[A-Za-z0-9_-]+$"
+          x-evirion-backend-projection: console-api.pagination-cursor
+          x-evirion-sensitivity: admin-operational
+    UsdAmount:
+      description: >-
+        Strictly positive with six fractional digits. Both money fields reject a
+        zero amount, so the pattern excludes it rather than leaving the bound to
+        the routine alone.
+      type: string
+      pattern: "^(?!0\\.000000$)(0|[1-9][0-9]{0,11})\\.[0-9]{6}$"
+      x-evirion-backend-projection: owning-operator-projection
+      x-evirion-sensitivity: admin-operational
+    BoundedReason:
+      type: string
+      minLength: 1
+      maxLength: 500
+      x-evirion-backend-projection: console-api.command-receipt
+      x-evirion-sensitivity: admin-operational
+    PaidOperationAuthorizationStatus:
+      type: string
+      enum:
+        - ACTIVE
+        - CONSUMED
+        - REVOKED
+        - EXPIRED
+      x-evirion-backend-projection: owning-operator-projection
+      x-evirion-sensitivity: admin-operational
+    TerminationReasonCategory:
+      type:
+        - string
+        - "null"
+      enum:
+        - OPERATOR_REVOCATION
+        - ORGANIZATION_OFFBOARDING
+        - EXPIRY
+        - ALLOWANCE_CONSUMED
+        - null
+      x-evirion-backend-projection: owning-operator-projection
+      x-evirion-sensitivity: customer-safe-summary
+    PaidAuthorizationStatus:
+      type: string
+      enum:
+        - NOT_REQUIRED
+        - AWAITING_CUSTOMER_CONSENT
+        - AWAITING_OPERATIONAL_AUTHORIZATION
+        - AUTHORIZED
+        - EXPIRED
+        - REVOKED
+      x-evirion-backend-projection: owning-operator-projection
+      x-evirion-sensitivity: customer-safe-summary
+    MissingPaidPrerequisite:
+      type:
+        - string
+        - "null"
+      enum:
+        - REPOSITORY_BUDGET
+        - CUSTOMER_CONSENT
+        - OPERATIONAL_AUTHORIZATION
+        - null
+      x-evirion-backend-projection: owning-operator-projection
+      x-evirion-sensitivity: customer-safe-summary
+    KnowledgeCorrectionRequestVersion:
+      type: integer
+      minimum: 1
+      x-evirion-backend-projection: core.knowledge_lifecycle_correction_requests.version
+      x-evirion-sensitivity: admin-operational
+    KnowledgeCompensatingLifecycleState:
+      type: string
+      enum:
+        - UNRESOLVED
+        - ACTIVE
+      x-evirion-backend-projection: core.knowledge_lifecycle_correction_requests.compensating_lifecycle_state
+      x-evirion-sensitivity: admin-operational
+    KnowledgeCorrectionOutcome:
+      type: string
+      enum:
+        - EXECUTED
+        - FAILED
+      x-evirion-backend-projection: api.complete_knowledge_lifecycle_correction.p_outcome
+      x-evirion-sensitivity: admin-operational
+    KnowledgeCorrectionBeginRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - expectedRequestVersion
+      properties:
+        expectedRequestVersion:
+          $ref: "#/components/schemas/KnowledgeCorrectionRequestVersion"
+          x-evirion-backend-projection: api.begin_knowledge_lifecycle_correction.p_expected_request_version
+          x-evirion-sensitivity: admin-operational
+        compensatingLifecycleState:
+          $ref: "#/components/schemas/KnowledgeCompensatingLifecycleState"
+          x-evirion-backend-projection: api.begin_knowledge_lifecycle_correction.p_compensating_lifecycle_state
+          x-evirion-sensitivity: admin-operational
+        note:
+          $ref: "#/components/schemas/BoundedReason"
+          x-evirion-backend-projection: api.begin_knowledge_lifecycle_correction.p_note
+          x-evirion-sensitivity: admin-operational
+    KnowledgeCorrectionCompleteRequest:
+      type: object
+      additionalProperties: false
+      description: >-
+        `failureCode` is required by the FAILED outcome and forbidden by
+        EXECUTED. It reaches the requesting customer through the correction
+        history, so it must stay a bounded operational code rather than free
+        narrative.
+      required:
+        - expectedRequestVersion
+        - outcome
+      properties:
+        expectedRequestVersion:
+          $ref: "#/components/schemas/KnowledgeCorrectionRequestVersion"
+          x-evirion-backend-projection: api.complete_knowledge_lifecycle_correction.p_expected_request_version
+          x-evirion-sensitivity: admin-operational
+        outcome:
+          $ref: "#/components/schemas/KnowledgeCorrectionOutcome"
+          x-evirion-backend-projection: api.complete_knowledge_lifecycle_correction.p_outcome
+          x-evirion-sensitivity: admin-operational
+        failureCode:
+          type: string
+          minLength: 1
+          maxLength: 200
+          x-evirion-backend-projection: api.complete_knowledge_lifecycle_correction.p_failure_code
+          x-evirion-sensitivity: customer-safe-summary
+    KnowledgeCorrectionRejectRequest:
+      type: object
+      additionalProperties: false
+      description: >-
+        The rejection reason is mandatory and reaches the requesting customer
+        through the correction history, so it is declared customer-safe rather
+        than operator-internal.
+      required:
+        - expectedRequestVersion
+        - reason
+      properties:
+        expectedRequestVersion:
+          $ref: "#/components/schemas/KnowledgeCorrectionRequestVersion"
+          x-evirion-backend-projection: api.reject_knowledge_lifecycle_correction.p_expected_request_version
+          x-evirion-sensitivity: admin-operational
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          x-evirion-backend-projection: api.reject_knowledge_lifecycle_correction.p_reason
+          x-evirion-sensitivity: customer-safe-detail
+    RepositoryMonthlyBudgetRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - expectedVersion
+        - monthlyBudgetUsd
+        - reason
+      properties:
+        expectedVersion:
+          $ref: "#/components/schemas/ExpectedVersion"
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        monthlyBudgetUsd:
+          $ref: "#/components/schemas/UsdAmount"
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        reason:
+          $ref: "#/components/schemas/BoundedReason"
+          x-evirion-backend-projection: console-api.command-receipt
+          x-evirion-sensitivity: admin-operational
+    PaidOperationAuthorizationGrant:
+      type: object
+      additionalProperties: false
+      required:
+        - budgetCeilingUsd
+        - expiresAt
+        - maxLogicalOperations
+        - maxTransportDispatches
+        - maxTransportDispatchesPerOperation
+        - modelProfile
+        - phaseScope
+        - providerAccountScopeDigest
+        - providerId
+        - readinessProfile
+        - retryPolicy
+      properties:
+        providerId:
+          type: string
+          pattern: "^[a-z][a-z0-9_.-]{0,63}$"
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        providerAccountScopeDigest:
+          type: string
+          pattern: "^[0-9a-f]{64}$"
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        modelProfile:
+          type: string
+          pattern: "^[a-z][a-z0-9_.-]{0,63}$"
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        phaseScope:
+          type: string
+          enum:
+            - INITIAL
+            - VALIDATION_REPAIR
+            - ANY
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        maxTransportDispatches:
+          type: integer
+          minimum: 1
+          maximum: 1024
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        maxTransportDispatchesPerOperation:
+          type: integer
+          minimum: 1
+          maximum: 32
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        maxLogicalOperations:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        budgetCeilingUsd:
+          $ref: "#/components/schemas/UsdAmount"
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        retryPolicy:
+          type: string
+          enum:
+            - NO_RETRY
+            - BOUNDED_TRANSPORT_RETRY
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        readinessProfile:
+          type: string
+          pattern: "^[A-Za-z0-9_.:-]{1,128}$"
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        expiresAt:
+          type: string
+          format: date-time
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+      x-evirion-backend-projection: owning-operator-projection
+      x-evirion-sensitivity: admin-operational
+    PaidOperationAuthorizationGrantRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - grant
+        - reason
+        - repositoryId
+      properties:
+        repositoryId:
+          type: string
+          format: uuid
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        grant:
+          $ref: "#/components/schemas/PaidOperationAuthorizationGrant"
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        reason:
+          $ref: "#/components/schemas/BoundedReason"
+          x-evirion-backend-projection: console-api.command-receipt
+          x-evirion-sensitivity: admin-operational
+    PaidOperationAuthorizationRevokeRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - expectedVersion
+        - reason
+      properties:
+        expectedVersion:
+          $ref: "#/components/schemas/ExpectedVersion"
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        reason:
+          $ref: "#/components/schemas/BoundedReason"
+          x-evirion-backend-projection: console-api.command-receipt
+          x-evirion-sensitivity: admin-operational
+    PaidOperationAuthorization:
+      type: object
+      additionalProperties: false
+      required:
+        - budgetCeilingUsd
+        - consumedLogicalOperations
+        - consumedTransportDispatches
+        - entitlementGeneration
+        - expiresAt
+        - grantedAt
+        - grantedByOperatorUserId
+        - id
+        - maxLogicalOperations
+        - maxTransportDispatches
+        - maxTransportDispatchesPerOperation
+        - modelProfile
+        - phaseScope
+        - providerAccountScopeDigest
+        - providerId
+        - providerIdempotencyVerified
+        - readinessProfile
+        - reason
+        - repositoryId
+        - retryPolicy
+        - status
+        - terminatedAt
+        - terminationReasonCategory
+        - version
+      properties:
+        id:
+          type: string
+          format: uuid
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        repositoryId:
+          type: string
+          format: uuid
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        status:
+          $ref: "#/components/schemas/PaidOperationAuthorizationStatus"
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        entitlementGeneration:
+          type: integer
+          minimum: 1
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        providerId:
+          type: string
+          pattern: "^[a-z][a-z0-9_.-]{0,63}$"
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        providerAccountScopeDigest:
+          type: string
+          pattern: "^[0-9a-f]{64}$"
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        providerIdempotencyVerified:
+          type: boolean
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        modelProfile:
+          type: string
+          pattern: "^[a-z][a-z0-9_.-]{0,63}$"
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        phaseScope:
+          type: string
+          enum:
+            - INITIAL
+            - VALIDATION_REPAIR
+            - ANY
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        maxTransportDispatches:
+          type: integer
+          minimum: 1
+          maximum: 1024
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        maxTransportDispatchesPerOperation:
+          type: integer
+          minimum: 1
+          maximum: 32
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        maxLogicalOperations:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        consumedTransportDispatches:
+          type: integer
+          minimum: 0
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        consumedLogicalOperations:
+          type: integer
+          minimum: 0
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        budgetCeilingUsd:
+          $ref: "#/components/schemas/UsdAmount"
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        retryPolicy:
+          type: string
+          enum:
+            - NO_RETRY
+            - BOUNDED_TRANSPORT_RETRY
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        readinessProfile:
+          type: string
+          pattern: "^[A-Za-z0-9_.:-]{1,128}$"
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        reason:
+          $ref: "#/components/schemas/BoundedReason"
+          x-evirion-backend-projection: console-api.command-receipt
+          x-evirion-sensitivity: admin-operational
+        grantedByOperatorUserId:
+          type: string
+          format: uuid
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        version:
+          type: integer
+          minimum: 1
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        grantedAt:
+          type: string
+          format: date-time
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        expiresAt:
+          type: string
+          format: date-time
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        terminatedAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        terminationReasonCategory:
+          $ref: "#/components/schemas/TerminationReasonCategory"
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: customer-safe-summary
+      x-evirion-backend-projection: owning-operator-projection
+      x-evirion-sensitivity: admin-operational
+    RepositoryPaidProvisioning:
+      type: object
+      additionalProperties: false
+      required:
+        - missingPrerequisite
+        - paidAuthorizationStatus
+        - repositoryId
+        - terminationReasonCategory
+      properties:
+        repositoryId:
+          type: string
+          format: uuid
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: customer-safe-summary
+        paidAuthorizationStatus:
+          $ref: "#/components/schemas/PaidAuthorizationStatus"
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: customer-safe-summary
+        missingPrerequisite:
+          $ref: "#/components/schemas/MissingPaidPrerequisite"
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: customer-safe-summary
+        terminationReasonCategory:
+          $ref: "#/components/schemas/TerminationReasonCategory"
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: customer-safe-summary
+      x-evirion-backend-projection: owning-operator-projection
+      x-evirion-sensitivity: customer-safe-summary
+    PaidOperationAuthorizationPage:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+        - nextCursor
+        - organizationId
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        items:
+          type: array
+          maxItems: 100
+          items:
+            $ref: "#/components/schemas/PaidOperationAuthorization"
+          x-evirion-backend-projection: owning-operator-list-projection
+          x-evirion-sensitivity: admin-operational
+        nextCursor:
+          type:
+            - string
+            - "null"
+          maxLength: 2048
+          pattern: "^[A-Za-z0-9_-]+$"
+          x-evirion-backend-projection: console-api.pagination-cursor
+          x-evirion-sensitivity: admin-operational
+      x-evirion-backend-projection: owning-operator-list-projection
+      x-evirion-sensitivity: admin-operational
+    PaidOperationAuthorizationDetail:
+      type: object
+      additionalProperties: false
+      required:
+        - organizationId
+        - paidOperationAuthorization
+        - provisioning
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        paidOperationAuthorization:
+          $ref: "#/components/schemas/PaidOperationAuthorization"
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+        provisioning:
+          $ref: "#/components/schemas/RepositoryPaidProvisioning"
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: customer-safe-summary
+      x-evirion-backend-projection: owning-operator-projection
+      x-evirion-sensitivity: admin-operational
+    CommandReceipt:
+      type: object
+      additionalProperties: false
+      required:
+        - receiptId
+        - responseCode
+        - responsePayload
+        - status
+      properties:
+        receiptId:
+          type: string
+          format: uuid
+          x-evirion-backend-projection: console-api.command-receipt
+          x-evirion-sensitivity: admin-operational
+        status:
+          type: string
+          enum:
+            - completed
+            - failed
+          x-evirion-backend-projection: console-api.command-receipt
+          x-evirion-sensitivity: admin-operational
+        responseCode:
+          type: string
+          minLength: 1
+          maxLength: 128
+          x-evirion-backend-projection: console-api.command-receipt
+          x-evirion-sensitivity: admin-operational
+        responsePayload:
+          type: object
+          x-evirion-backend-projection: console-api.command-receipt
+          x-evirion-sensitivity: admin-operational
+      x-evirion-backend-projection: console-api.command-receipt
+      x-evirion-sensitivity: admin-operational
+    CommandReceiptEnvelope:
+      type: object
+      additionalProperties: false
+      required:
+        - contractVersion
+        - data
+        - requestId
+      properties:
+        contractVersion:
+          $ref: "#/components/schemas/ContractVersion"
+          x-evirion-backend-projection: console-api.response-envelope
+          x-evirion-sensitivity: customer-safe-summary
+        requestId:
+          $ref: "#/components/schemas/RequestId"
+          x-evirion-backend-projection: console-api.request-context
+          x-evirion-sensitivity: admin-operational
+        data:
+          $ref: "#/components/schemas/CommandReceipt"
+          x-evirion-backend-projection: console-api.command-receipt
+          x-evirion-sensitivity: admin-operational
+    PaidOperationAuthorizationPageEnvelope:
+      type: object
+      additionalProperties: false
+      required:
+        - contractVersion
+        - data
+        - requestId
+      properties:
+        contractVersion:
+          $ref: "#/components/schemas/ContractVersion"
+          x-evirion-backend-projection: console-api.response-envelope
+          x-evirion-sensitivity: customer-safe-summary
+        requestId:
+          $ref: "#/components/schemas/RequestId"
+          x-evirion-backend-projection: console-api.request-context
+          x-evirion-sensitivity: admin-operational
+        data:
+          $ref: "#/components/schemas/PaidOperationAuthorizationPage"
+          x-evirion-backend-projection: owning-operator-list-projection
+          x-evirion-sensitivity: admin-operational
+    PaidOperationAuthorizationDetailEnvelope:
+      type: object
+      additionalProperties: false
+      required:
+        - contractVersion
+        - data
+        - requestId
+      properties:
+        contractVersion:
+          $ref: "#/components/schemas/ContractVersion"
+          x-evirion-backend-projection: console-api.response-envelope
+          x-evirion-sensitivity: customer-safe-summary
+        requestId:
+          $ref: "#/components/schemas/RequestId"
+          x-evirion-backend-projection: console-api.request-context
+          x-evirion-sensitivity: admin-operational
+        data:
+          $ref: "#/components/schemas/PaidOperationAuthorizationDetail"
+          x-evirion-backend-projection: owning-operator-projection
+          x-evirion-sensitivity: admin-operational
+  parameters:
+    OrganizationId:
+      name: organizationId
+      in: path
+      required: true
+      description: Target organization identifier.
+      schema:
+        type: string
+        format: uuid
+        x-evirion-backend-projection: owning-operator-projection
+        x-evirion-sensitivity: admin-operational
+      x-evirion-backend-projection: owning-operator-projection
+      x-evirion-sensitivity: admin-operational
+    RepositoryId:
+      name: repositoryId
+      in: path
+      required: true
+      description: Target repository identifier inside the organization.
+      schema:
+        type: string
+        format: uuid
+        x-evirion-backend-projection: owning-operator-projection
+        x-evirion-sensitivity: admin-operational
+      x-evirion-backend-projection: owning-operator-projection
+      x-evirion-sensitivity: admin-operational
+    CorrectionRequestId:
+      name: correctionRequestId
+      in: path
+      required: true
+      description: The durable lifecycle correction request identifier.
+      schema:
+        type: string
+        format: uuid
+        x-evirion-backend-projection: core.knowledge_lifecycle_correction_requests.id
+        x-evirion-sensitivity: customer-safe-summary
+    PaidOperationAuthorizationId:
+      name: paidOperationAuthorizationId
+      in: path
+      required: true
+      description: Target paid-operation authorization identifier.
+      schema:
+        type: string
+        format: uuid
+        x-evirion-backend-projection: owning-operator-projection
+        x-evirion-sensitivity: admin-operational
+      x-evirion-backend-projection: owning-operator-projection
+      x-evirion-sensitivity: admin-operational
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: UUID command identity. It is never duplicated in the JSON body.
+      schema:
+        type: string
+        format: uuid
+        x-evirion-backend-projection: console-api.command-receipt
+        x-evirion-sensitivity: admin-operational
+      x-evirion-backend-projection: console-api.command-receipt
+      x-evirion-sensitivity: admin-operational
+    CorrelationId:
+      name: X-Correlation-ID
+      in: header
+      required: false
+      description: Optional bounded correlation identifier supplied by the operator client.
+      schema:
+        $ref: "#/components/schemas/CorrelationId"
+        x-evirion-backend-projection: console-api.request-context
+        x-evirion-sensitivity: admin-operational
+      x-evirion-backend-projection: console-api.request-context
+      x-evirion-sensitivity: admin-operational
+  headers:
+    RequestId:
+      description: Backend-generated request identifier matching the response body.
+      required: true
+      schema:
+        $ref: "#/components/schemas/RequestId"
+        x-evirion-backend-projection: console-api.request-context
+        x-evirion-sensitivity: admin-operational
+      x-evirion-backend-projection: console-api.request-context
+      x-evirion-sensitivity: admin-operational
+  responses:
+    CommandReceipt:
+      description: Completed operator command receipt.
+      headers:
+        X-Request-ID:
+          $ref: "#/components/headers/RequestId"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CommandReceiptEnvelope"
+    StandardError:
+      description: Stable payload-free operator error.
+      headers:
+        X-Request-ID:
+          $ref: "#/components/headers/RequestId"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    VersionConflict:
+      description: Optimistic version conflict.
+      x-evirion-http-status: 409
+      headers:
+        X-Request-ID:
+          $ref: "#/components/headers/RequestId"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"

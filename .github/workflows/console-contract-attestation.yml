@@ -1,0 +1,70 @@
+name: Console contract attestation
+
+# The offline gate in authority-integrity.yml proves that the vendored bytes,
+# the contract digests, and the generated client all still match the lock. This
+# workflow additionally re-downloads the pinned release asset and re-runs the
+# signature verification, so it needs a credential that can read the backend
+# repository. It is manual because that credential is short-lived by policy.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: console-contract-attestation
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Re-verify the pinned Console contract release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out exact source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Install pinned Cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6
+        with:
+          cosign-release: v3.1.3
+
+      - name: Download the pinned release asset with a short-lived credential
+        env:
+          # A contents:read installation token that expires within one hour. It
+          # only ever reaches the download process environment.
+          CONSOLE_CONTRACT_TOKEN: ${{ secrets.CONSOLE_CONTRACT_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "$CONSOLE_CONTRACT_TOKEN"
+          python3 -m scripts.fetch_console_contract --output "$RUNNER_TEMP/contract"
+
+      - name: Verify the downloaded asset offline against the frozen policy
+        run: |
+          set -euo pipefail
+          lock=docs/contracts/console-contract-lock.json
+          tag="$(jq -r '.artifact.tag' "$lock")"
+          python3 scripts/verify_artifact_attestation.py \
+            --policy docs/security/artifact-attestation-policy.json \
+            --policy-id "$(jq -r '.policyId' "$lock")" \
+            --evidence "$(jq -r '.evidencePath' "$lock")" \
+            --artifact "$RUNNER_TEMP/contract/$tag.tar.gz" \
+            --bundle "$RUNNER_TEMP/contract/$tag.sigstore.json" \
+            --cosign "$(command -v cosign)" \
+            --trusted-root docs/security/sigstore-trusted-root.json \
+            --source-commit "$(jq -r '.sourceCommit' "$lock")" \
+            --expected-policy-digest "$(jq -r '.policyDigest' "$lock")" \
+            --release-tag "$tag" \
+            --release-asset-id "$(jq -r '.artifact.assetId' "$lock")"
+
+      - name: Require the downloaded asset to equal the vendored asset
+        run: |
+          set -euo pipefail
+          tag="$(jq -r '.artifact.tag' docs/contracts/console-contract-lock.json)"
+          cmp \
+            "$RUNNER_TEMP/contract/$tag.tar.gz" \
+            "vendor/$tag/$tag.tar.gz"
+          python3 -m scripts.check_console_contract_lock

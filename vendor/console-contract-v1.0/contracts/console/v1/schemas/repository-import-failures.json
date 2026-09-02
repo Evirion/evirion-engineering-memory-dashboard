@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:repository-import-failures",
+  "title": "RepositoryImportFailureList",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "importId",
+    "failures"
+  ],
+  "properties": {
+    "importId": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "core.backfill_runs.id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "failures": {
+      "type": "array",
+      "maxItems": 500,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "itemId",
+          "extractionJobId",
+          "pullRequestNumber",
+          "status",
+          "lastErrorCode",
+          "retryable",
+          "retryBlocker",
+          "recoveryAction",
+          "updatedAt"
+        ],
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "x-evirion-backend-projection": "core.backfill_items.id",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "extractionJobId": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string",
+                "format": "uuid"
+              }
+            ],
+            "x-evirion-backend-projection": "core.backfill_items.extraction_job_id",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "pullRequestNumber": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "minimum": 1
+              }
+            ],
+            "x-evirion-backend-projection": "core.pull_requests.pr_number",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "status": {
+            "type": "string",
+            "const": "FAILED",
+            "x-evirion-backend-projection": "core.backfill_items.status",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "lastErrorCode": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string",
+                "maxLength": 120
+              }
+            ],
+            "x-evirion-backend-projection": "core.backfill_items.last_error_code",
+            "x-evirion-sensitivity": "customer-safe-detail"
+          },
+          "retryable": {
+            "type": "boolean",
+            "x-evirion-backend-projection": "import-retry-eligibility-projection",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "retryBlocker": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "RESOURCE_NOT_FOUND",
+                  "REPOSITORY_IMPORT_JOB_NOT_RETRYABLE"
+                ]
+              }
+            ],
+            "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+            "x-evirion-backend-projection": "import-retry-eligibility-projection",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "recoveryAction": {
+            "type": "string",
+            "enum": [
+              "AWAIT_DISCOVERY",
+              "APPROVE_IMPORT",
+              "GRANT_CUSTOMER_CONSENT",
+              "AWAIT_EVIRION_AUTHORIZATION",
+              "PAUSE_IMPORT_TO_RETRY",
+              "RETRY_JOB",
+              "CONTACT_SUPPORT",
+              "NONE"
+            ],
+            "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+            "x-evirion-backend-projection": "import-recovery-action-projection",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "x-evirion-backend-projection": "core.backfill_items.updated_at",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          }
+        }
+      },
+      "x-evirion-backend-projection": "core.backfill_items",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    }
+  },
+  "examples": [
+    {
+      "importId": "00000000-0000-4000-8000-000000000701",
+      "failures": [
+        {
+          "itemId": "4218",
+          "extractionJobId": "00000000-0000-4000-8000-000000000703",
+          "pullRequestNumber": 481,
+          "status": "FAILED",
+          "lastErrorCode": "KNOWLEDGE_DELIVERY_EXHAUSTED",
+          "retryable": false,
+          "retryBlocker": "REPOSITORY_IMPORT_JOB_NOT_RETRYABLE",
+          "recoveryAction": "PAUSE_IMPORT_TO_RETRY",
+          "updatedAt": "2026-08-31T11:52:07.000000Z"
+        }
+      ]
+    }
+  ]
+}

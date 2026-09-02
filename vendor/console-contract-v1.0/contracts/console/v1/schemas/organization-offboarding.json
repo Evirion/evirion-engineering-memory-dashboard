@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:organization-offboarding",
+  "title": "Organization offboarding state",
+  "description": "Customer-safe projection. Operator identity and internal effect state are excluded.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "state",
+    "version",
+    "requestedAt"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "core.organization_offboardings.id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "REQUESTED",
+        "EXECUTING",
+        "FAILED",
+        "COMPLETED",
+        "REJECTED",
+        "UNSUPPORTED"
+      ],
+      "x-evirion-backend-projection": "core.organization_offboardings.status",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "origin": {
+      "description": "Who started the offboarding. OPERATOR means Evirion initiated termination; the operator identity and internal reason are never projected.",
+      "type": "string",
+      "enum": [
+        "CUSTOMER",
+        "OPERATOR",
+        "UNSUPPORTED"
+      ],
+      "x-evirion-unsupported-value": "UNSUPPORTED",
+      "x-evirion-backend-projection": "core.organization_offboardings.origin",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "x-evirion-backend-projection": "core.organization_offboardings.version",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "reason": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 500,
+      "x-evirion-backend-projection": "core.organization_offboardings.reason",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    },
+    "requestedAt": {
+      "type": "string",
+      "format": "date-time",
+      "x-evirion-backend-projection": "core.organization_offboardings.created_at",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "resolvedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "x-evirion-backend-projection": "core.organization_offboardings.resolved_at",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "failureCode": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[A-Z][A-Z0-9_]*$",
+      "maxLength": 128,
+      "x-evirion-backend-projection": "core.organization_offboardings.failure_code",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    }
+  },
+  "examples": [
+    {
+      "id": "00000000-0000-4000-8000-000000000401",
+      "state": "REQUESTED",
+      "origin": "CUSTOMER",
+      "version": 1,
+      "reason": "partner exit",
+      "requestedAt": "2026-08-29T19:06:37Z",
+      "resolvedAt": null,
+      "failureCode": null
+    }
+  ]
+}

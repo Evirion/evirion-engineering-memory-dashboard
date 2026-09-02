@@ -1,0 +1,312 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:repository",
+  "title": "Customer-safe repository state",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "nameWithOwner",
+    "archived",
+    "accessible",
+    "productState",
+    "entitlement",
+    "policy",
+    "effectiveConsent",
+    "changeRequest"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "core.repositories.id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "nameWithOwner": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 201,
+      "x-evirion-backend-projection": "api.get_console_repository.name_with_owner",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    },
+    "archived": {
+      "type": "boolean",
+      "x-evirion-backend-projection": "core.repositories.archived_at",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "accessible": {
+      "type": "boolean",
+      "x-evirion-backend-projection": "api.get_console_repository.accessible",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "access": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "lastSeenSyncGeneration",
+        "lastSuccessfulSyncAt"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "ACCESSIBLE",
+            "INACCESSIBLE"
+          ],
+          "x-evirion-backend-projection": "core.github_repository_access_states.status",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "lastSeenSyncGeneration": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "x-evirion-backend-projection": "core.github_repository_access_states.last_seen_sync_generation",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "lastSuccessfulSyncAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "x-evirion-backend-projection": "core.github_repository_access_states.last_successful_sync_at",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        }
+      },
+      "x-evirion-backend-projection": "api.get_console_repository.access",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "productState": {
+      "type": "string",
+      "enum": [
+        "ARCHIVED",
+        "INACCESSIBLE",
+        "AVAILABLE_LOCKED",
+        "ENTITLEMENT_DISABLED",
+        "ACTIVE_LIVE_OFF",
+        "ACTIVE_SOURCE_ONLY",
+        "ACTIVE_AUTO_EXTRACT",
+        "CHANGE_REQUESTED"
+      ],
+      "x-evirion-backend-projection": "api.get_console_repository.product_state",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "entitlement": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "version",
+            "generation",
+            "source"
+          ],
+          "properties": {
+            "state": {
+              "type": "string",
+              "enum": [
+                "ACTIVE",
+                "DISABLED"
+              ],
+              "x-evirion-backend-projection": "core.repository_entitlements.status",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            },
+            "version": {
+              "type": "integer",
+              "minimum": 1,
+              "x-evirion-backend-projection": "core.repository_entitlements.version",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            },
+            "generation": {
+              "type": "integer",
+              "minimum": 1,
+              "x-evirion-backend-projection": "core.repository_entitlements.generation",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            },
+            "source": {
+              "type": "string",
+              "enum": [
+                "DESIGN_PARTNER",
+                "PLAN",
+                "MANUAL"
+              ],
+              "x-evirion-backend-projection": "core.repository_entitlements.source",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            }
+          }
+        }
+      ],
+      "x-evirion-backend-projection": "api.get_console_repository.entitlement",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "policy": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mode",
+            "version"
+          ],
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": [
+                "OFF",
+                "SOURCE_ONLY",
+                "AUTO_EXTRACT"
+              ],
+              "x-evirion-backend-projection": "api.get_console_repository.policy_mode",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            },
+            "version": {
+              "type": "integer",
+              "minimum": 1,
+              "x-evirion-backend-projection": "core.repository_automation_policies.version",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            }
+          }
+        }
+      ],
+      "x-evirion-backend-projection": "api.get_console_repository.policy",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "effectiveConsent": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scope",
+            "allowedModelProfiles",
+            "callCeiling",
+            "budgetCeilingUsd",
+            "retryPolicy",
+            "expiresAt"
+          ],
+          "properties": {
+            "scope": {
+              "type": "string",
+              "const": "LIVE_REPOSITORY",
+              "x-evirion-backend-projection": "core.customer_paid_operation_consents.scope",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            },
+            "allowedModelProfiles": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 16,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_.-]{0,63}$"
+              },
+              "x-evirion-backend-projection": "core.customer_paid_operation_consents.allowed_model_profiles",
+              "x-evirion-sensitivity": "customer-safe-detail"
+            },
+            "callCeiling": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000000000,
+              "x-evirion-backend-projection": "core.customer_paid_operation_consents.call_ceiling",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            },
+            "budgetCeilingUsd": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]{0,11})\\.[0-9]{6}$",
+              "x-evirion-backend-projection": "core.customer_paid_operation_consents.budget_ceiling_usd",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            },
+            "retryPolicy": {
+              "type": "string",
+              "enum": [
+                "NO_RETRY",
+                "BOUNDED_TRANSPORT_RETRY"
+              ],
+              "x-evirion-backend-projection": "core.customer_paid_operation_consents.retry_policy",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            },
+            "expiresAt": {
+              "type": "string",
+              "format": "date-time",
+              "x-evirion-backend-projection": "core.customer_paid_operation_consents.expires_at",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            }
+          }
+        }
+      ],
+      "x-evirion-backend-projection": "api.get_console_repository.effective_consent",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    },
+    "changeRequest": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "requestedRepositoryId",
+            "state",
+            "version"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "x-evirion-backend-projection": "core.repository_entitlement_change_requests.id",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            },
+            "requestedRepositoryId": {
+              "type": "string",
+              "format": "uuid",
+              "x-evirion-backend-projection": "core.repository_entitlement_change_requests.requested_repository_id",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            },
+            "state": {
+              "type": "string",
+              "const": "REQUESTED",
+              "x-evirion-backend-projection": "core.repository_entitlement_change_requests.status",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            },
+            "version": {
+              "type": "integer",
+              "minimum": 1,
+              "x-evirion-backend-projection": "core.repository_entitlement_change_requests.version",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            }
+          }
+        }
+      ],
+      "x-evirion-backend-projection": "api.get_console_repository.change_request",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    }
+  },
+  "examples": [
+    {
+      "id": "00000000-0000-4000-8000-000000000302",
+      "nameWithOwner": "evirion/repository",
+      "archived": false,
+      "accessible": true,
+      "productState": "AVAILABLE_LOCKED",
+      "entitlement": null,
+      "policy": null,
+      "effectiveConsent": null,
+      "changeRequest": null
+    }
+  ]
+}

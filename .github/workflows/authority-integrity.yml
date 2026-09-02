@@ -37,6 +37,17 @@ jobs:
           python3 scripts/check_authority.py
           python3 scripts/scan_tracked_secrets.py
 
+      # Fails on pinned-archive digest drift, contract packageSha256 drift,
+      # generated-client drift, and any change to the generated export surface,
+      # which is how a breaking backend change reaches this repository.
+      - name: Verify the pinned Console contract and its generated client
+        run: python3 -m scripts.check_console_contract_lock
+
+      - name: Reproduce the generated client from the pinned contract
+        run: |
+          python3 -m scripts.generate_console_client
+          git diff --exit-code -- generated
+
       - name: Validate machine-readable JSON-compatible YAML
         run: |
           python3 -m json.tool docs/architecture/toolchain-baseline.json >/dev/null

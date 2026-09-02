@@ -1,0 +1,452 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:error",
+  "title": "API error envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion",
+    "requestId",
+    "error"
+  ],
+  "properties": {
+    "contractVersion": {
+      "type": "string",
+      "const": "1.0",
+      "x-evirion-backend-projection": "console-api.response-envelope",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "requestId": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "console-api.request-context",
+      "x-evirion-sensitivity": "admin-operational"
+    },
+    "error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "message",
+        "retryable"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "enum": [
+            "AUTHENTICATION_REQUIRED",
+            "ORGANIZATION_MEMBERSHIP_REQUIRED",
+            "CAPABILITY_REQUIRED",
+            "RESOURCE_NOT_FOUND",
+            "IDEMPOTENCY_KEY_REUSED",
+            "VERSION_CONFLICT",
+            "ORGANIZATION_LIMIT_NOT_PROVISIONED",
+            "REPOSITORY_NOT_ENTITLED",
+            "REPOSITORY_LIMIT_REACHED",
+            "REPOSITORY_REPLACEMENT_REQUIRES_OPERATOR",
+            "REPOSITORY_ACCESS_CHANGED",
+            "ENTITLEMENT_GENERATION_STALE",
+            "BACKFILL_NOT_APPROVABLE",
+            "NEW_MODEL_CALL_NOT_AUTHORIZED",
+            "PAID_OPERATION_NOT_AUTHORIZED",
+            "PROVIDER_OUTCOME_UNKNOWN",
+            "REVIEW_VERSION_CONFLICT",
+            "LIFECYCLE_VERSION_CONFLICT",
+            "SUPERSESSION_INVALID",
+            "SUPERSESSION_TRAVERSAL_LIMIT",
+            "KNOWLEDGE_ACTION_NOT_ALLOWED",
+            "INVITATION_STATE_CONFLICT",
+            "ORGANIZATION_CONTROL_CONFLICT",
+            "GITHUB_SYNC_INCOMPLETE",
+            "REPOSITORY_IMPORT_FILTERS_INVALID",
+            "REPOSITORY_IMPORT_JOB_NOT_RETRYABLE",
+            "REPOSITORY_IMPORT_NOT_CANCELLABLE",
+            "REPOSITORY_IMPORT_NOT_RESUMABLE",
+            "REPOSITORY_IMPORT_NOT_PAUSABLE",
+            "REPOSITORY_IMPORT_NOT_APPROVABLE",
+            "REPOSITORY_IMPORT_ALREADY_ACTIVE",
+            "REPOSITORY_IMPORT_NOT_FOUND",
+            "INTERNAL_ERROR",
+            "RATE_LIMITED",
+            "REQUEST_INVALID",
+            "REQUEST_TOO_LARGE",
+            "DEPENDENCY_UNAVAILABLE",
+            "UNSUPPORTED_SERVER_RESPONSE"
+          ],
+          "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+          "x-evirion-backend-projection": "console-api.error-mapper",
+          "x-evirion-sensitivity": "admin-operational"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "x-evirion-backend-projection": "console-api.error-mapper",
+          "x-evirion-sensitivity": "admin-operational"
+        },
+        "retryable": {
+          "type": "boolean",
+          "x-evirion-backend-projection": "console-api.error-mapper",
+          "x-evirion-sensitivity": "admin-operational"
+        },
+        "currentVersion": {
+          "type": "integer",
+          "minimum": 1,
+          "x-evirion-backend-projection": "owning-operation-projection",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        }
+      },
+      "x-evirion-backend-projection": "console-api.error-mapper",
+      "x-evirion-sensitivity": "admin-operational"
+    }
+  },
+  "examples": [
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000001",
+      "error": {
+        "code": "AUTHENTICATION_REQUIRED",
+        "message": "Authentication is required.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000002",
+      "error": {
+        "code": "ORGANIZATION_MEMBERSHIP_REQUIRED",
+        "message": "Active organization membership is required.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000003",
+      "error": {
+        "code": "CAPABILITY_REQUIRED",
+        "message": "The required capability is unavailable.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000004",
+      "error": {
+        "code": "RESOURCE_NOT_FOUND",
+        "message": "The requested resource was not found.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000005",
+      "error": {
+        "code": "IDEMPOTENCY_KEY_REUSED",
+        "message": "The idempotency key was used for a different request.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000006",
+      "error": {
+        "code": "VERSION_CONFLICT",
+        "message": "The resource version changed.",
+        "retryable": false,
+        "currentVersion": 2
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000007",
+      "error": {
+        "code": "ORGANIZATION_LIMIT_NOT_PROVISIONED",
+        "message": "The organization limit is not provisioned.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000008",
+      "error": {
+        "code": "REPOSITORY_NOT_ENTITLED",
+        "message": "The repository is not entitled.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000009",
+      "error": {
+        "code": "REPOSITORY_LIMIT_REACHED",
+        "message": "No active repository slot is available.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000010",
+      "error": {
+        "code": "REPOSITORY_REPLACEMENT_REQUIRES_OPERATOR",
+        "message": "Repository replacement requires an operator.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000011",
+      "error": {
+        "code": "REPOSITORY_ACCESS_CHANGED",
+        "message": "Repository access changed.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000012",
+      "error": {
+        "code": "ENTITLEMENT_GENERATION_STALE",
+        "message": "The entitlement generation is stale.",
+        "retryable": false,
+        "currentVersion": 2
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000013",
+      "error": {
+        "code": "BACKFILL_NOT_APPROVABLE",
+        "message": "The import is not approvable.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000014",
+      "error": {
+        "code": "NEW_MODEL_CALL_NOT_AUTHORIZED",
+        "message": "A new model call is not authorized.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000015",
+      "error": {
+        "code": "PAID_OPERATION_NOT_AUTHORIZED",
+        "message": "The paid operation is not authorized.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000016",
+      "error": {
+        "code": "PROVIDER_OUTCOME_UNKNOWN",
+        "message": "The provider outcome is unknown.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000017",
+      "error": {
+        "code": "REVIEW_VERSION_CONFLICT",
+        "message": "The review version changed.",
+        "retryable": false,
+        "currentVersion": 2
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000018",
+      "error": {
+        "code": "LIFECYCLE_VERSION_CONFLICT",
+        "message": "The lifecycle version changed.",
+        "retryable": false,
+        "currentVersion": 2
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000019",
+      "error": {
+        "code": "SUPERSESSION_INVALID",
+        "message": "The supersession request is invalid.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000020",
+      "error": {
+        "code": "SUPERSESSION_TRAVERSAL_LIMIT",
+        "message": "The supersession traversal limit was reached.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000030",
+      "error": {
+        "code": "KNOWLEDGE_ACTION_NOT_ALLOWED",
+        "message": "The review or lifecycle action is not allowed in the current state.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000021",
+      "error": {
+        "code": "INVITATION_STATE_CONFLICT",
+        "message": "The invitation state changed.",
+        "retryable": false,
+        "currentVersion": 2
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000029",
+      "error": {
+        "code": "ORGANIZATION_CONTROL_CONFLICT",
+        "message": "Another organization control operation is in progress.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000022",
+      "error": {
+        "code": "GITHUB_SYNC_INCOMPLETE",
+        "message": "GitHub synchronization is incomplete.",
+        "retryable": true
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000023",
+      "error": {
+        "code": "DEPENDENCY_UNAVAILABLE",
+        "message": "A required dependency is unavailable.",
+        "retryable": true
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000024",
+      "error": {
+        "code": "UNSUPPORTED_SERVER_RESPONSE",
+        "message": "The server response is unsupported by this client.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000025",
+      "error": {
+        "code": "INTERNAL_ERROR",
+        "message": "The request could not be completed.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000026",
+      "error": {
+        "code": "RATE_LIMITED",
+        "message": "The request rate limit was exceeded.",
+        "retryable": true
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000027",
+      "error": {
+        "code": "REQUEST_INVALID",
+        "message": "The request is invalid.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000028",
+      "error": {
+        "code": "REQUEST_TOO_LARGE",
+        "message": "The request is too large.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000001",
+      "error": {
+        "code": "REPOSITORY_IMPORT_NOT_FOUND",
+        "message": "No historical import exists for this repository.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000001",
+      "error": {
+        "code": "REPOSITORY_IMPORT_ALREADY_ACTIVE",
+        "message": "This repository already has an active historical import.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000001",
+      "error": {
+        "code": "REPOSITORY_IMPORT_NOT_APPROVABLE",
+        "message": "This historical import cannot be approved in its current state.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000001",
+      "error": {
+        "code": "REPOSITORY_IMPORT_NOT_PAUSABLE",
+        "message": "This historical import cannot be paused in its current state.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000001",
+      "error": {
+        "code": "REPOSITORY_IMPORT_NOT_RESUMABLE",
+        "message": "This historical import is not paused.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000001",
+      "error": {
+        "code": "REPOSITORY_IMPORT_NOT_CANCELLABLE",
+        "message": "This historical import cannot be cancelled in its current state.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000001",
+      "error": {
+        "code": "REPOSITORY_IMPORT_JOB_NOT_RETRYABLE",
+        "message": "The backend does not declare this failed work retryable.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-000000000001",
+      "error": {
+        "code": "REPOSITORY_IMPORT_FILTERS_INVALID",
+        "message": "The requested import filter is not a bounded merge window.",
+        "retryable": false
+      }
+    }
+  ]
+}

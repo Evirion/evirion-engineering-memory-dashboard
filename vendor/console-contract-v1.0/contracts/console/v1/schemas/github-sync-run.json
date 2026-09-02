@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:github-sync-run",
+  "title": "GitHub repository synchronization run",
+  "description": "Customer-safe projection. GitHub credentials, cursors, and private provider payload are excluded.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "status",
+    "generation",
+    "version",
+    "attemptCount",
+    "progress",
+    "requestedAt"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "core.github_repository_sync_runs.id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "QUEUED",
+        "RUNNING",
+        "COMPLETED",
+        "FAILED",
+        "UNSUPPORTED"
+      ],
+      "x-evirion-backend-projection": "core.github_repository_sync_runs.status",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "generation": {
+      "type": "integer",
+      "minimum": 1,
+      "x-evirion-backend-projection": "core.github_repository_sync_runs.generation",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "x-evirion-backend-projection": "core.github_repository_sync_runs.version",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "attemptCount": {
+      "type": "integer",
+      "minimum": 0,
+      "x-evirion-backend-projection": "core.github_repository_sync_runs.attempt_count",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "progress": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pagesApplied",
+        "repositoriesSeen",
+        "repositoriesMarkedInaccessible"
+      ],
+      "properties": {
+        "pagesApplied": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "core.github_repository_sync_runs.page_count",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "repositoriesSeen": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "core.github_repository_sync_runs.repository_seen_count",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "repositoriesMarkedInaccessible": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "core.github_repository_sync_runs.repository_archived_count",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        }
+      },
+      "x-evirion-backend-projection": "api.get_github_repository_sync.progress",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "failureCode": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[A-Z][A-Z0-9_]*$",
+      "maxLength": 128,
+      "x-evirion-backend-projection": "core.github_repository_sync_runs.failure_code",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "requestedAt": {
+      "type": "string",
+      "format": "date-time",
+      "x-evirion-backend-projection": "core.github_repository_sync_runs.created_at",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "startedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "x-evirion-backend-projection": "core.github_repository_sync_runs.started_at",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "resolvedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "x-evirion-backend-projection": "core.github_repository_sync_runs.resolved_at",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    }
+  },
+  "examples": [
+    {
+      "id": "00000000-0000-4000-8000-000000000501",
+      "status": "COMPLETED",
+      "generation": 1,
+      "version": 4,
+      "attemptCount": 1,
+      "progress": {
+        "pagesApplied": 1,
+        "repositoriesSeen": 3,
+        "repositoriesMarkedInaccessible": 0
+      },
+      "failureCode": null,
+      "requestedAt": "2026-08-30T08:16:39.000000Z",
+      "startedAt": "2026-08-30T08:16:41.000000Z",
+      "resolvedAt": "2026-08-30T08:16:44.000000Z"
+    }
+  ]
+}

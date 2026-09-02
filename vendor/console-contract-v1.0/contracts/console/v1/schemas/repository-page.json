@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:repository-page",
+  "title": "Repository page",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "items",
+    "page",
+    "summary"
+  ],
+  "properties": {
+    "items": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "$ref": "repository.json"
+      },
+      "x-evirion-backend-projection": "api.list_console_repositories.items",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    },
+    "page": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "nextCursor"
+      ],
+      "properties": {
+        "nextCursor": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "x-evirion-backend-projection": "api.list_console_repositories.next_cursor",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        }
+      },
+      "x-evirion-backend-projection": "api.list_console_repositories.page",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "accessibleRepositories",
+        "activeRepositories",
+        "limit"
+      ],
+      "properties": {
+        "accessibleRepositories": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "api.list_console_repositories.accessible_count",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "activeRepositories": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "api.list_console_repositories.active_count",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "limit": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "mode",
+                "maxActiveRepositories",
+                "replacementMode"
+              ],
+              "properties": {
+                "mode": {
+                  "type": "string",
+                  "enum": [
+                    "FIXED",
+                    "UNLIMITED"
+                  ],
+                  "x-evirion-backend-projection": "core.organization_limits.limit_mode",
+                  "x-evirion-sensitivity": "customer-safe-summary"
+                },
+                "maxActiveRepositories": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 1,
+                  "x-evirion-backend-projection": "core.organization_limits.max_active_repositories",
+                  "x-evirion-sensitivity": "customer-safe-summary"
+                },
+                "replacementMode": {
+                  "type": "string",
+                  "enum": [
+                    "SELF_SERVICE",
+                    "OPERATOR_ONLY"
+                  ],
+                  "x-evirion-backend-projection": "core.organization_limits.replacement_mode",
+                  "x-evirion-sensitivity": "customer-safe-summary"
+                }
+              }
+            }
+          ],
+          "x-evirion-backend-projection": "api.list_console_repositories.limit",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        }
+      },
+      "x-evirion-backend-projection": "api.list_console_repositories.summary",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    }
+  },
+  "examples": [
+    {
+      "items": [
+        {
+          "id": "00000000-0000-4000-8000-000000000302",
+          "nameWithOwner": "evirion/repository",
+          "archived": false,
+          "accessible": true,
+          "productState": "AVAILABLE_LOCKED",
+          "entitlement": null,
+          "policy": null,
+          "effectiveConsent": null,
+          "changeRequest": null
+        }
+      ],
+      "page": {
+        "nextCursor": null
+      },
+      "summary": {
+        "accessibleRepositories": 1,
+        "activeRepositories": 0,
+        "limit": {
+          "mode": "FIXED",
+          "maxActiveRepositories": 1,
+          "replacementMode": "SELF_SERVICE"
+        }
+      }
+    }
+  ]
+}

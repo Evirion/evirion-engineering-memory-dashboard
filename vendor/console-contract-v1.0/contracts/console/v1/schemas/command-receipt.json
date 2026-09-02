@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:command-receipt",
+  "title": "Completed command receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "receiptId",
+    "status",
+    "responseCode",
+    "responsePayload"
+  ],
+  "properties": {
+    "receiptId": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "core.console_command_receipts.id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "status": {
+      "type": "string",
+      "const": "completed",
+      "x-evirion-backend-projection": "core.console_command_receipts.status",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "responseCode": {
+      "type": "string",
+      "enum": [
+        "REPOSITORY_ENTITLEMENT_ACTIVE",
+        "REPOSITORY_ENTITLEMENT_DISABLED",
+        "REPOSITORY_ENTITLEMENT_CHANGE_REQUESTED",
+        "REPOSITORY_POLICY_UPDATED"
+      ],
+      "x-evirion-backend-projection": "core.console_command_receipts.response_code",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "responsePayload": {
+      "type": "object",
+      "x-evirion-backend-projection": "core.console_command_receipts.response_payload",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    }
+  },
+  "examples": [
+    {
+      "receiptId": "00000000-0000-4000-8000-000000000301",
+      "status": "completed",
+      "responseCode": "REPOSITORY_ENTITLEMENT_ACTIVE",
+      "responsePayload": {
+        "changed": true,
+        "repositoryId": "00000000-0000-4000-8000-000000000302"
+      }
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:invitation",
+  "title": "Organization invitation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "organizationId",
+    "role",
+    "state",
+    "generation",
+    "version",
+    "expiresAt"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "core.organization_invitations.id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "organizationId": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "core.organization_invitations.organization_id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "reviewer",
+        "viewer"
+      ],
+      "x-evirion-backend-projection": "api.console_api_role",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "REQUESTED",
+        "AUTH_USER_CREATED",
+        "SENT",
+        "ACCEPTED",
+        "REVOKED",
+        "EXPIRED",
+        "FAILED"
+      ],
+      "x-evirion-backend-projection": "core.organization_invitations.state",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "generation": {
+      "type": "integer",
+      "minimum": 1,
+      "x-evirion-backend-projection": "core.organization_invitations.current_generation",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "x-evirion-backend-projection": "core.organization_invitations.version",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time",
+      "x-evirion-backend-projection": "core.organization_invitations.expires_at",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    }
+  },
+  "examples": [
+    {
+      "id": "00000000-0000-4000-8000-000000000301",
+      "organizationId": "00000000-0000-4000-8000-000000000302",
+      "role": "reviewer",
+      "state": "SENT",
+      "generation": 1,
+      "version": 3,
+      "expiresAt": "2026-08-29T12:00:00Z"
+    }
+  ]
+}
