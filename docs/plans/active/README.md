@@ -7,12 +7,20 @@ do not start an adjacent task.
 
 ## Current authority state
 
-Dashboard PR
+Dashboard PRs
 [#1](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/1)
-merged the EEM-9/01 authority package. Its first catalog did not preserve the
-controlling plan's `/02`–`/10` aliases, so the paired backend pointer is paused
-until the Dashboard catalog-remediation PR merges and the corrected authority
-digest is pinned. EEM-9/02 and EEM-4/01 remain blocked.
+and
+[#2](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/2)
+merged the EEM-9/01 authority package and restored the controlling plan's
+`/02`–`/10` aliases.
+
+EEM-9/01b is in progress. Backend PR
+[#51](https://github.com/Evirion/evirion-engineering-memory/pull/51) published
+the immutable signed `console-contract-v1.0` release. The Dashboard pull request
+pins and consumes those bytes and corrects the EEM-9/01 immutability evidence
+that consumption proved unexecutable. A backend successor pointer then re-pins
+the corrected Dashboard commit and authority digest. EEM-9/02 and EEM-4/01
+remain blocked until that pointer merges.
 
 ## Copy-ready requests
 

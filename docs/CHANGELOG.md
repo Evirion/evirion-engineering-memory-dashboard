@@ -1,5 +1,60 @@
 # Dashboard changelog
 
+## 2026-09-02 — EEM-9/01b Console contract consumed and immutability evidence corrected
+
+- Why: the backend published `console-contract-v1.0` as an immutable signed
+  release, and consuming it proved that three EEM-9/01 artifacts could not
+  execute as frozen.
+- Security: the frozen attestation text and `authority-release.yml` both
+  required `repos/{owner}/{repo}/immutable-releases`, which needs admin read
+  access that no GitHub Actions token can hold. Backend run 33611371573 proved
+  it with `Resource not accessible by integration (HTTP 403)`. Taken literally
+  the frozen text forbade publication permanently, including
+  `dashboard-authority-v*`. Backend ADR 0013 attributed this correction to the
+  successor pointer; both defective files are owned here, so they are corrected
+  here and the pointer re-pins the result. A tracked, tag-scoped administrator
+  attestation bounded at 24 hours with a 300-second clock-skew allowance now
+  gates signing, and `immutable == true` is asserted on the published release
+  with `contents` permission.
+- Security: `authority-release.yml` now creates a draft, attaches both assets,
+  matches the uploaded archive digest while the release is still mutable, and
+  only then publishes, because publication is what freezes an immutable
+  release's asset set. `softprops/action-gh-release` is no longer used.
+- Security: offline `cosign verify-blob` needs a trusted root under Cosign v3,
+  which deprecates `--offline` and otherwise fetches the root over the network.
+  The Sigstore public-good trusted root is pinned by digest and committed.
+- Security: the trust policy became a map of artifact entries. The
+  `dashboard-authority-v1` entry keeps its values; a `console-contract-v1` entry
+  names `Evirion/evirion-engineering-memory`, its tag prefix, its workflow path,
+  and the same verifier pins. The negative-evidence fixture now covers both
+  entries with 28 executable cases each, including a missing, stale, post-dated,
+  wrong-tag, or wrong-repository administrator attestation and a release whose
+  `immutable` field is false or absent.
+- Behavior: the pinned release asset and its extracted members are vendored, and
+  TypeScript types plus runtime validators are generated from exactly those
+  bytes. CI fails on archive digest drift, contract `packageSha256` drift,
+  generated-client drift, and any change to the generated export surface.
+- Verification: the published release verifies offline with the pinned
+  `cosign-linux-amd64` under network isolation against the exact certificate
+  identity, GitHub Actions issuer, repository, tag ref, source commit, and
+  `push` trigger, with Rekor inclusion and a 5-second signing-to-release
+  interval inside the frozen one-hour bound. 64 bootstrap and contract tests,
+  392 acceptance rows, 212 ASVS rows, 12 `SEC-WEB` rows, documentation,
+  authority, secret, and deterministic-packaging checks pass.
+- Console contract `1.0` content is unchanged at
+  `53da9379428d8f34b7e674805019244e85ed89a7cd6f0e1d9b4a2a79b23d6b6c`, because
+  this consumes published bytes rather than producing them.
+- Governance: repository immutable-release policy is now enabled and observed.
+  `SEC-2026-012` concerns ruleset governance on GitHub Free, remains open under
+  its approved waiver, remains readiness-blocking, and is unrelated to this
+  correction.
+- Deployment state: no Dashboard release, signature, tag, deployment, hosted
+  configuration, provider call, paid operation, or customer data was used. No
+  Dashboard administrator attestation is committed, so `authority-release.yml`
+  still fails closed until one is recorded for an exact tag.
+- Remaining delivery: the paired backend successor pointer re-pins this merged
+  commit, the corrected artifacts, and the new authority package digest.
+
 ## 2026-08-27 — EEM-9/01 catalog authority corrected
 
 - Why: post-merge backend pointer preparation proved that the PR #1 copy-ready
