@@ -1,9 +1,19 @@
 import { ConsoleUnavailable } from "@/components/console/console-unavailable"
 import {
+  CommandOutcomeNotice,
+  readCommandResult,
+} from "@/components/repositories/command-outcome"
+import {
+  GithubConnection,
+  SyncPoll,
+  isSyncInProgress,
+} from "@/components/repositories/github-connection"
+import {
   RepositoryCapacity,
   RepositoryList,
   RepositoryPagination,
 } from "@/components/repositories/repository-list"
+import { readSessionCsrfToken } from "@/server/actions/session-csrf-read"
 import { readRepositoryList, validRepositoryId } from "@/server/queries/repositories"
 
 export const dynamic = "force-dynamic"
@@ -28,8 +38,13 @@ const RepositoriesPage = async ({
   // A cursor is a repository identifier. Anything else is dropped rather than
   // forwarded, so a caller cannot steer the path the adapter builds.
   const after = validRepositoryId(typeof requested === "string" ? requested : undefined)
+  const outcomeParameter = parameters["result"]
+  const outcome = readCommandResult(
+    typeof outcomeParameter === "string" ? outcomeParameter : undefined,
+  )
 
   const view = await readRepositoryList(after)
+  const csrfToken = await readSessionCsrfToken()
 
   return (
     <section className="flex flex-col gap-6">
@@ -41,6 +56,8 @@ const RepositoriesPage = async ({
         </p>
       </div>
 
+      {outcome ? <CommandOutcomeNotice result={outcome} /> : null}
+
       {view.status === "unavailable" ? (
         <ConsoleUnavailable
           failure={view.failure}
@@ -48,6 +65,13 @@ const RepositoriesPage = async ({
         />
       ) : (
         <>
+          {isSyncInProgress(view.installation) ? <SyncPoll /> : null}
+          <GithubConnection
+            installation={view.installation}
+            csrfToken={csrfToken}
+            connectKey={crypto.randomUUID()}
+            syncKey={crypto.randomUUID()}
+          />
           <RepositoryCapacity summary={view.page.summary} />
           <RepositoryList page={view.page} />
           <RepositoryPagination page={view.page} />

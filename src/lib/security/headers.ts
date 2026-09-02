@@ -21,13 +21,38 @@ export const createNonce = (): string => {
  * Development needs `unsafe-eval` for the React refresh runtime. Production
  * must never carry it, and the release-surface suite asserts that.
  */
+/**
+ * A form target beyond the Console's own origin.
+ *
+ * Chrome applies `form-action` to the entire redirect chain, so a form that
+ * posts same-origin and is then redirected off-origin is refused unless the
+ * destination is named here. Exactly one such destination exists: the GitHub
+ * App installation handoff. It is passed in from reviewed configuration rather
+ * than hardcoded, so the policy names the deployment's real destination and
+ * still refuses every other.
+ */
+export type CspOptions = {
+  readonly isProduction: boolean
+  readonly formActionOrigins?: readonly string[]
+}
+
+const originList = (origins: readonly string[]): string =>
+  origins
+    .map((origin) => new URL(origin).origin)
+    .filter((origin) => origin.startsWith("https://"))
+    .join(" ")
+
 export const buildContentSecurityPolicy = (
   nonce: string,
-  { isProduction }: { isProduction: boolean },
+  { isProduction, formActionOrigins = [] }: CspOptions,
 ): string => {
   const scriptSource = isProduction
     ? `'nonce-${nonce}' 'strict-dynamic'`
     : `'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval'`
+
+  const formAction = [`'self'`, originList(formActionOrigins)]
+    .filter((part) => part !== "")
+    .join(" ")
 
   return [
     "default-src 'none'",
@@ -36,7 +61,7 @@ export const buildContentSecurityPolicy = (
     "img-src 'self' data:",
     "font-src 'self'",
     "connect-src 'self'",
-    "form-action 'self'",
+    `form-action ${formAction}`,
     "base-uri 'none'",
     "frame-ancestors 'none'",
     "object-src 'none'",
@@ -45,9 +70,8 @@ export const buildContentSecurityPolicy = (
   ].join("; ")
 }
 
-export type SecurityHeaderOptions = {
+export type SecurityHeaderOptions = CspOptions & {
   readonly nonce: string
-  readonly isProduction: boolean
 }
 
 /**
@@ -57,8 +81,12 @@ export type SecurityHeaderOptions = {
 export const buildSecurityHeaders = ({
   nonce,
   isProduction,
+  formActionOrigins,
 }: SecurityHeaderOptions): Record<string, string> => ({
-  "Content-Security-Policy": buildContentSecurityPolicy(nonce, { isProduction }),
+  "Content-Security-Policy": buildContentSecurityPolicy(nonce, {
+    isProduction,
+    ...(formActionOrigins === undefined ? {} : { formActionOrigins }),
+  }),
   "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
   "X-Content-Type-Options": "nosniff",
   "X-Frame-Options": "DENY",

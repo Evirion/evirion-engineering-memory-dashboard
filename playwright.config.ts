@@ -15,6 +15,19 @@ const LOCAL_ORIGIN = `https://${LOCAL_HOSTNAME}:${LOCAL_PORT}`
 const STUB_PORT = 3444
 const STUB_ORIGIN = `https://127.0.0.1:${STUB_PORT}`
 
+/**
+ * The Console hostname resolves locally, and GitHub deliberately does not
+ * resolve anywhere. The Console legitimately redirects to GitHub to hand off
+ * an App installation; this subtask connects no real App and calls no GitHub
+ * API, so that navigation must die on loopback rather than leave the machine.
+ */
+const HOST_RESOLVER_RULES = [
+  `MAP ${LOCAL_HOSTNAME} 127.0.0.1`,
+  "MAP github.com 127.0.0.1",
+  "MAP *.github.com 127.0.0.1",
+  "MAP *.githubassets.com 127.0.0.1",
+].join(", ")
+
 const spkiPinPath = new URL("./tools/local-tls/.local/spki-pin.txt", import.meta.url)
 const authorityPath = new URL("./tools/local-tls/.local/authority.pem", import.meta.url)
 
@@ -55,7 +68,7 @@ export default defineConfig({
         ...devices["Desktop Chrome"],
         launchOptions: {
           args: [
-            `--host-resolver-rules=MAP ${LOCAL_HOSTNAME} 127.0.0.1`,
+            `--host-resolver-rules=${HOST_RESOLVER_RULES}`,
             `--ignore-certificate-errors-spki-list=${readSpkiPin()}`,
           ],
         },
@@ -88,6 +101,8 @@ export default defineConfig({
         SUPABASE_URL: "https://project.supabase.test",
         SUPABASE_PUBLISHABLE_KEY: "sb_publishable_local_fixture",
         CONSOLE_API_BASE_URL: STUB_ORIGIN,
+        CONSOLE_GITHUB_APP_INSTALL_URL:
+          "https://github.com/apps/evirion-local/installations/new",
         // Documented public test fixtures. They sign nothing outside this
         // harness and are not credentials for any real environment.
         CONSOLE_CSRF_SIGNING_KEY: "console-local-test-csrf-signing-key-0001",
