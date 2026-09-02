@@ -16,6 +16,7 @@
   "tests/security/**",
   "tests/support/**",
   "tests/unit/**",
+  "tools/console-stub/**",
   "tools/local-tls/**",
   "tools/verify/**",
   "tsconfig.json",
