@@ -617,8 +617,6 @@ Merge order:
 
 **Branch:** `EEM-9/01-dashboard-repo-bootstrap`
 
-**Estimated effort:** 28–44 focused hours across the paired repository PRs
-
 **Files:**
 
 - Create: `AGENTS.md`
@@ -815,8 +813,6 @@ EEM-9: Establish accepted Console specification governance
 
 **Branch:** `EEM-4/01-contract-baseline`
 
-**Estimated effort:** 12–18 focused hours
-
 **Files:**
 
 - Create: `contracts/console/v1/openapi.yaml`
@@ -925,8 +921,6 @@ EEM-4: Establish the Console API contract
 **Repository:** `evirion-engineering-memory`
 
 **Branch:** `EEM-4/02-control-foundation`
-
-**Estimated effort:** 30–46 focused hours
 
 **Files:**
 
@@ -1038,8 +1032,6 @@ EEM-4: Add the Console command and operator boundary
 **Repository:** `evirion-engineering-memory-dashboard`
 
 **Branch:** `EEM-9/02-auth-shell`
-
-**Estimated effort:** 24–36 focused hours
 
 **Files:**
 
@@ -1186,8 +1178,6 @@ EEM-9: Bootstrap the secure Console application
 **Repository:** `evirion-engineering-memory`
 
 **Branch:** `EEM-4/03-membership-capabilities`
-
-**Estimated effort:** 60–92 focused hours
 
 **Files:**
 
@@ -1439,8 +1429,6 @@ EEM-4: Add live membership capabilities and invitations
 
 **Branch:** `EEM-9/02-auth-shell`
 
-**Estimated effort:** 52–80 focused hours
-
 Re-estimated after explicitly naming OTP-verify/sign-out/factor-reset unknown
 outcomes and first TOTP enrollment: unchanged because response-loss and
 MFA/recovery adversarial cases were already included.
@@ -1644,8 +1632,6 @@ EEM-9: Add invite-only Console authentication
 
 **Branch:** `EEM-6/01-repository-entitlements`
 
-**Estimated effort:** 34–50 focused hours
-
 **Files:**
 
 - Generate migration suffix: `repository_entitlements`
@@ -1790,8 +1776,6 @@ EEM-6: Add tenant-safe repository entitlement
 
 **Branch:** `EEM-6/02-operator-organization-control`
 
-**Estimated effort:** 36–58 focused hours
-
 **Files:**
 
 - Generate migration suffix: `operator_organization_control`
@@ -1925,8 +1909,6 @@ EEM-6: Add audited Design Partner provisioning
 
 **Branch:** `EEM-6/03-github-control-plane`
 
-**Estimated effort:** 30–46 focused hours
-
 **Files:**
 
 - Create: `supabase/functions/github-installation-control/index.ts`
@@ -2023,8 +2005,6 @@ EEM-6: Add the GitHub installation control plane
 
 **Branch:** `EEM-9/03-repository-control`
 
-**Estimated effort:** 24–38 focused hours
-
 **Files:**
 
 - Create onboarding GitHub components/routes.
@@ -2097,8 +2077,6 @@ EEM-9: Add GitHub onboarding and repository management
 **Repository:** `evirion-engineering-memory`
 
 **Branch:** `EEM-6/04-entitlement-free-paths`
-
-**Estimated effort:** 32–48 focused hours
 
 **Files:**
 
@@ -2215,8 +2193,6 @@ EEM-6: Enforce entitlement before source work
 **Repository:** `evirion-engineering-memory`
 
 **Branch:** `EEM-7/01-entitlement-paid-boundary`
-
-**Estimated effort:** 34–52 focused hours
 
 **Files:**
 
@@ -2371,8 +2347,6 @@ EEM-7: Gate new model calls by repository entitlement
 
 **Branch:** `EEM-7/02-operator-paid-authorization`
 
-**Estimated effort:** 20–32 focused hours
-
 **Files:**
 
 - Generate migration suffix: `operator_paid_authorization` extending the closed
@@ -2489,8 +2463,6 @@ EEM-7: Add durable operator paid authorization
 
 **Branch:** `EEM-7/03-customer-operations-api`
 
-**Estimated effort:** 24–38 focused hours
-
 **Files:**
 
 - Generate migration suffix: `console_customer_operations`
@@ -2590,8 +2562,6 @@ EEM-7: Expose guarded customer processing commands
 
 **Branch:** `EEM-9/04-import-operations`
 
-**Estimated effort:** 24–38 focused hours
-
 **Files:**
 
 - Create import route, range form, approval panel and progress components.
@@ -2674,8 +2644,6 @@ EEM-9: Add guarded historical import
 **Repository:** `evirion-engineering-memory`
 
 **Branch:** `EEM-8/01-human-review`
-
-**Estimated effort:** 28–42 focused hours
 
 **Files:**
 
@@ -2761,8 +2729,6 @@ EEM-8: Add immutable human knowledge review
 **Repository:** `evirion-engineering-memory`
 
 **Branch:** `EEM-8/02-knowledge-lifecycle`
-
-**Estimated effort:** 28–42 focused hours
 
 **Files:**
 
@@ -2909,8 +2875,6 @@ EEM-8: Add reviewed knowledge lifecycle
 
 **Branch:** `EEM-8/03-console-read-api`
 
-**Estimated effort:** 32–48 focused hours
-
 **Files:**
 
 - Generate migration suffix: `console_read_api`
@@ -3021,8 +2985,6 @@ EEM-8: Expose the customer-safe Console read model
 
 **Branch:** `EEM-9/05-memory-review-lifecycle`
 
-**Estimated effort:** 34–50 focused hours
-
 **Files:**
 
 - Create memory queue/filter/pagination routes.
@@ -3103,8 +3065,6 @@ EEM-9: Add evidence-backed knowledge review
 **Repository:** `evirion-engineering-memory-dashboard`
 
 **Branch:** `EEM-9/06-processing-settings-metrics`
-
-**Estimated effort:** 34–50 focused hours
 
 **Files:**
 
@@ -3196,8 +3156,6 @@ EEM-9: Add processing visibility and Console settings
 Traceability identifiers are `I01-B` for the backend PR and `I01-C` for the
 Console PR. They are separate reviewable/mergeable owners; combined gate name
 I01 never serves as a primary-owner shortcut.
-
-**Estimated effort:** 56–88 focused hours plus independent pentest scheduling
 
 **Files:**
 
@@ -3431,8 +3389,6 @@ requires a separate owning-repository PR and full invalidated-gate rerun.
 
 **Branch:** `EEM-9/08-paid-certification`
 
-**Estimated effort:** 12–24 focused hours plus approval/provider wait
-
 **Hard approval gate:**
 
 User provides:
@@ -3521,9 +3477,6 @@ authorization can be dispatched.
 1. backend `EEM-9/09-design-partner-ready`;
 2. Console `EEM-9/09-design-partner-ready`.
 
-**Estimated effort:** 12–20 focused hours plus independent
-security/operations evidence waits
-
 **Hard prerequisites:**
 
 - post-B05 (and, when shared-image-invalidated, post-B06) EEM-5 or equivalent
@@ -3575,9 +3528,6 @@ I01/I02 evidence. I03-A never inherits or reuses paid approval.
 ### Task I03-B: Execute first design partner outcome
 
 **Repository branch:** `EEM-9/10-first-design-partner-outcome`
-
-**Estimated effort:** 20–40 focused engineering/operations hours plus partner,
-legal, paid-run, review and interview calendar time
 
 **Hard prerequisites:**
 
