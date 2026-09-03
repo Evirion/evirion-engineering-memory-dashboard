@@ -771,16 +771,26 @@ const knowledgePage = (state, params) => {
   }
 }
 
+/**
+ * A conflict carrying the current value, when the schema can express it.
+ *
+ * `error.json` constrains `currentVersion` to a minimum of one, while both
+ * knowledge tokens legitimately reach zero: review sequence zero is `PENDING`
+ * and lifecycle version zero is `UNRESOLVED`. A conflict against a zero
+ * therefore has to omit the field rather than send a value the generated
+ * validator would reject, which would turn a published refusal into an
+ * unsupported response.
+ */
+const conflict = (code, current) =>
+  current >= 1 ? { error: code, currentVersion: current } : { error: code }
+
 /** Both tokens, checked in a fixed order so each can go stale on its own. */
 const checkTokens = (object, body) => {
   if (body?.expectedReviewSequence !== sequenceOf(object)) {
-    return { error: "REVIEW_VERSION_CONFLICT", currentVersion: sequenceOf(object) }
+    return conflict("REVIEW_VERSION_CONFLICT", sequenceOf(object))
   }
   if (body?.expectedLifecycleVersion !== object.lifecycleVersion) {
-    return {
-      error: "LIFECYCLE_VERSION_CONFLICT",
-      currentVersion: object.lifecycleVersion,
-    }
+    return conflict("LIFECYCLE_VERSION_CONFLICT", object.lifecycleVersion)
   }
   return undefined
 }
@@ -1009,28 +1019,16 @@ async function handleKnowledge(request, response, scope) {
         // Four tokens, each able to go stale on its own. The old object's
         // pair is checked first so a stale old review is reported as such.
         if (body?.expectedOldReviewSequence !== sequenceOf(object)) {
-          return {
-            error: "REVIEW_VERSION_CONFLICT",
-            currentVersion: sequenceOf(object),
-          }
+          return conflict("REVIEW_VERSION_CONFLICT", sequenceOf(object))
         }
         if (body?.expectedOldLifecycleVersion !== object.lifecycleVersion) {
-          return {
-            error: "LIFECYCLE_VERSION_CONFLICT",
-            currentVersion: object.lifecycleVersion,
-          }
+          return conflict("LIFECYCLE_VERSION_CONFLICT", object.lifecycleVersion)
         }
         if (body?.expectedNewReviewSequence !== sequenceOf(newer)) {
-          return {
-            error: "REVIEW_VERSION_CONFLICT",
-            currentVersion: sequenceOf(newer),
-          }
+          return conflict("REVIEW_VERSION_CONFLICT", sequenceOf(newer))
         }
         if (body?.expectedNewLifecycleVersion !== newer.lifecycleVersion) {
-          return {
-            error: "LIFECYCLE_VERSION_CONFLICT",
-            currentVersion: newer.lifecycleVersion,
-          }
+          return conflict("LIFECYCLE_VERSION_CONFLICT", newer.lifecycleVersion)
         }
 
         if (!allowedLifecycleActions(object).includes("MARK_SUPERSEDED")) {

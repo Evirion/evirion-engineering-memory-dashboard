@@ -8,12 +8,25 @@ import {
   KnowledgeStates,
   KnowledgeTechnicalDetails,
 } from "@/components/memory/knowledge-detail"
+import { KnowledgeOutcomeNotice } from "@/components/memory/knowledge-outcome"
 import { KnowledgePayloads } from "@/components/memory/knowledge-payload"
+import { ReviewActions } from "@/components/memory/review-actions"
+import { ReviewHistory } from "@/components/memory/review-history"
+import { readSessionCsrfToken } from "@/server/actions/session-csrf-read"
 import { readKnowledgeDetail } from "@/server/queries/knowledge"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 export const fetchCache = "force-no-store"
+
+/** One key per rendered form, so a duplicate click replays instead of repeating. */
+const mintIdempotencyKeys = (): Record<string, string> =>
+  Object.fromEntries(
+    ["approve", "revert", "edit", "reject"].map((action) => [
+      action,
+      crypto.randomUUID(),
+    ]),
+  )
 
 /**
  * One Knowledge Object with its evidence and provenance.
@@ -25,10 +38,14 @@ export const fetchCache = "force-no-store"
  */
 const KnowledgeDetailPage = async ({
   params,
+  searchParams,
 }: {
   params: Promise<{ knowledgeObjectId: string }>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
 }) => {
   const { knowledgeObjectId } = await params
+  const requested = (await searchParams)["result"]
+  const outcome = typeof requested === "string" ? requested : undefined
   const view = await readKnowledgeDetail(knowledgeObjectId)
 
   if (view.status === "not-found") notFound()
@@ -45,7 +62,9 @@ const KnowledgeDetailPage = async ({
     )
   }
 
-  const { detail } = view
+  const { detail, controls } = view
+  const csrfToken = await readSessionCsrfToken()
+  const idempotencyKeys = mintIdempotencyKeys()
 
   return (
     <section className="flex flex-col gap-6">
@@ -66,12 +85,21 @@ const KnowledgeDetailPage = async ({
         </Link>
       </nav>
 
+      <KnowledgeOutcomeNotice result={outcome} />
+
       <KnowledgeStates detail={detail} />
       <KnowledgeSourceContext detail={detail} />
       <KnowledgePayloads detail={detail} />
       {/* Evidence sits above every control. `KD-002` requires the attribution
           to be readable before a review decision is taken. */}
       <KnowledgeEvidenceList view={view.evidence} />
+      <ReviewActions
+        detail={detail}
+        controls={controls}
+        csrfToken={csrfToken}
+        idempotencyKeys={idempotencyKeys}
+      />
+      <ReviewHistory view={view.history} />
       <KnowledgeTechnicalDetails detail={detail} />
     </section>
   )
