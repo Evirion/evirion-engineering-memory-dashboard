@@ -4,15 +4,14 @@ Updated: 2026-09-02
 
 ## Current state
 
-- Active task: EEM-9/03, repository control.
-- Branch: `EEM-9/03-repository-control`, based on Dashboard `main` at
-  `8aa5418`. It was developed stacked on `EEM-9/02b-response-envelope` with
-  explicit owner authorization, because EEM-9/03 cannot read a repository
-  without the envelope correction, and was rebased onto updated `main` once
-  that merged. It carries nine commits of its own.
-- EEM-9/02 is merged as PR
-  [#4](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/4)
-  at `5ff0c0c`.
+- Active task: none. EEM-9/03 is merged as PR
+  [#6](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/6)
+  at `961001d`, and EEM-9/02b before it as PR
+  [#5](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/5).
+- Branch: `EEM-9/03c-link-recorded-gaps`, a documentation-only follow-up. The
+  commit that pointed the recorded gaps at their backend issues was written
+  after PR #6 was already merged, so it never reached `main`. It carries the
+  correction plus this delivery-state update.
 - The backend pointer verifies at commit
   `a6665b599472e295636382ece4d0071e1cb4492c` and package digest
   `6897d9661a038a14eee0fd8128e7a3e96d5b191ef41f197f621779cc2e0ec56f`. It reads
@@ -92,9 +91,16 @@ contract-fidelity findings are fixed and pinned by test. Local Node is 22.18.0 a
 24.20.0, which affects installation rather than these gates; CI runs the pinned
 runtime.
 
-The gate above was rerun on the rebased tree, so it describes the bytes this
-branch actually proposes rather than the pre-rebase ones. The next action is
-review of `EEM-9/03-repository-control`.
+That gate describes the EEM-9/03 tree that merged. This follow-up changes only
+documentation, so it reruns the documentation, authority and contract-lock
+checks rather than the runtime ones.
+
+The next action is EEM-9/04. Its prerequisites are met, with one caveat that is
+naming rather than work: the EEM-9 plan requires "all EEM-7 subtasks are
+merged", and the model-profile registry has been assigned `EEM-7/05`, which
+would draw EEM-9/04 into waiting for a task unrelated to imports. Resolve that
+before starting, either by numbering the registry outside EEM-7 or by recording
+that the prerequisite means the subtasks that existed when the plan was frozen.
 
 Commit, push, pull request, and merge each require separate explicit
 authorization.
@@ -109,8 +115,15 @@ neither EEM-9/03 nor EEM-9/06 can validate such a response. Answering yes
 requires a backend contract change and a new frozen digest.
 
 In the same conversation: no endpoint enumerates the model profiles an
-organization may name in an `AUTO_EXTRACT` consent, so the consent form can
-only prefill from an existing consent and otherwise rely on the backend to
-refuse an unknown one.
+`AUTO_EXTRACT` consent may name, and the format the contract admits cannot
+express the identifier the worker builds, so the paid gate could never match.
+
+Both are raised as backend issues
+[#53](https://github.com/Evirion/evirion-engineering-memory/issues/53), assigned
+`EEM-8/07-repository-overview-contract`, and
+[#54](https://github.com/Evirion/evirion-engineering-memory/issues/54), assigned
+`EEM-7/05-model-profile-registry`. They are tracked there rather than only here,
+because the work belongs to the backend and a record in this repository would
+not reach it.
 
 Accessibility open decision 1 is unresolved and is due before EEM-9/07.

@@ -91,9 +91,12 @@
   authorized.
 - Remaining gates: open decision 6 is blocked on a contract gap, because no
   repository-overview schema exists for either this subtask or EEM-9/06 to
-  validate; the same conversation owns the absence of any endpoint listing
-  allowed model profiles. Open decisions 1, 3, 4 and 5 remain unanswered.
-  `SEC-2026-012` remains open and readiness-blocking.
+  validate, and the model profiles a consent may name are neither enumerated nor
+  expressible in the format the worker builds. Both are raised as backend issues
+  [#53](https://github.com/Evirion/evirion-engineering-memory/issues/53) and
+  [#54](https://github.com/Evirion/evirion-engineering-memory/issues/54). Open
+  decisions 1, 3, 4 and 5 remain unanswered. `SEC-2026-012` remains open and
+  readiness-blocking.
 
 ## 2026-09-02 — EEM-9/02b Console response envelope
 

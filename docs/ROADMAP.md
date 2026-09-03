@@ -31,12 +31,9 @@ the [controlling EEM-9 plan](plans/active/eem-9-design-partner-console-dashboard
    [#5](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/5)
    at `8aa5418`. It corrected the response-envelope handling every later
    subtask depends on.
-6. `EEM-9/03-repository-control` is implemented and locally verified on its
-   branch, based on updated `main` after `EEM-9/02b` merged. It was developed
-   stacked on that branch with explicit owner authorization, because it cannot
-   read a repository without the correction, and has since been rebased. It is
-   not pushed, has no pull request and is not merged. Its Definition-of-Done
-   trace is
+6. `EEM-9/03-repository-control` is merged as PR
+   [#6](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/6)
+   at `961001d`. Its Definition-of-Done trace is
    [`eem-9-03-acceptance-trace.md`](plans/active/eem-9-03-acceptance-trace.md).
 
 All EEM-4 subtasks are merged in the backend as PRs
@@ -69,10 +66,13 @@ is a continuing release invariant for every later backend mutation.
 
 Two contract gaps found during `EEM-9/03` block work that `EEM-9/06` owns. The
 contract publishes no repository-overview schema, so the counters open decision
-6 asks about cannot be validated by either subtask, and no endpoint enumerates
-the model profiles an `AUTO_EXTRACT` consent may name. Both need a backend
-contract change and a new frozen digest, and both should be resolved before
-`EEM-9/06` starts.
+6 asks about cannot be validated by either subtask, and the model profiles an
+`AUTO_EXTRACT` consent may name are neither enumerated nor expressible in the
+format the worker uses. Both need a backend contract change and a new frozen
+digest. They are tracked as backend issues
+[#53](https://github.com/Evirion/evirion-engineering-memory/issues/53) and
+[#54](https://github.com/Evirion/evirion-engineering-memory/issues/54), and both
+should be resolved before `EEM-9/06` starts.
 
 Technical Design Partner Ready and paid readiness remain false. In particular,
 `SEC-2026-012`, staging evidence, external manual verification, paid
