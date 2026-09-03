@@ -1,5 +1,113 @@
 # Dashboard changelog
 
+## 2026-09-03 — EEM-9/03e Console contract revision consumed
+
+- Why: the backend published `console-contract-v1.0.1`, a revision of contract
+  `1.0` carrying the two schemas that closed backend issues
+  [#53](https://github.com/Evirion/evirion-engineering-memory/issues/53) and
+  [#54](https://github.com/Evirion/evirion-engineering-memory/issues/54). The
+  Dashboard consumes both in one subtask rather than two, which `ROADMAP.md`
+  records, because the ceremony is identical either way.
+- Security: **the frozen trust policy could not verify the release at all.**
+  `docs/security/artifact-attestation-policy.json` pinned
+  `^refs/tags/console-contract-v[0-9]+\.[0-9]+$` and
+  `verify_artifact_attestation.py` requires `signer.ref` to match in full, so
+  the offline gate refused a signed, immutable, additively compatible release
+  before any consumption question arose. The `console-contract-v1` entry now
+  mirrors backend ADR 0014's grammar,
+  `^refs/tags/console-contract-v[0-9]+\.[0-9]+(\.[1-9][0-9]*)?$`, widened by
+  exactly the optional revision component. `v1.0.0`, `v1.0.1.1`, `v1`,
+  `v1.0-rc1`, `v1.0.`, `v.1`, a leading-zero revision and a foreign namespace
+  all stay refused, and every other refusal is untouched. Recorded as
+  [ADR-0005](decisions/0005-console-contract-release-revisions.md), with a test
+  comparing the mirrored pattern against the backend literal so the two cannot
+  drift silently.
+- Security: widening moved `policyDigest` from `dcf0652a` to `0b5b0e93`, which
+  the lock and the recorded evidence both pin. The evidence value was
+  re-observed rather than edited: `console-contract-v1.0` was downloaded again
+  and re-verified against the amended policy before its digest changed, which is
+  also the proof that the widening did not weaken the existing release.
+- Contracts: `console-contract-v1.0.1` is vendored and the client regenerated
+  from exactly those bytes. Archive `a116ae5c`, `packageSha256` `29ff7b73`,
+  source commit `2458f333`, release asset `542665268`. `contractVersion` stays
+  `1.0`, which is the point of a revision tag, so the generated `isConsoleError`
+  const and the envelope guard in `src/server/adapters/console-api.ts` are
+  untouched and no Console read breaks. A test now pins that explicitly.
+- Contracts: `generatedClientSurfaceSha256` moved from `b5a6facb` to `08178d2f`.
+  The lock check reports any surface change as a breaking backend change,
+  because the digest is over sorted export names and cannot tell additive from
+  breaking. This one is additive: four exports added, none removed or renamed.
+- Contracts: the published error vocabulary is now 39 codes.
+  `MODEL_PROFILE_NOT_OFFERED` is treated as field level rather than state final,
+  because the action is available and the named value is not. Customer wording
+  stays open decision 2.
+- Behavior: `/repositories/:repositoryId` renders the `REPO-003` counters,
+  answering open decision 6. Seventeen counters, not the sixteen the requirement
+  names; the extra is `withdrawn`, the discrepancy issue #53 resolved
+  deliberately. Rejected and quarantined runs stay in the processing group and
+  never near the admitted Knowledge Object count. The rendered `asOf` is shown,
+  because figures at different cutoffs are not comparable.
+- Behavior: an unavailable aggregate never renders as zero, and here that is
+  structural. Every counter is required by the schema, so one the backend could
+  not compute cannot be represented: the document fails validation and the block
+  states it is unavailable. A rendered zero is therefore always a real zero, and
+  both halves are asserted.
+- Behavior: the `AUTO_EXTRACT` consent field is a choice from the published
+  catalogue instead of free text. The value posted is the registry's canonical
+  identifier, never composed from provider and model, which is the format defect
+  issue #54 found underneath the missing catalogue. Validation now requires
+  membership of the offered set **in addition to** the contract pattern; a test
+  offers a malformed identifier on purpose so the pattern is provably still
+  enforced.
+- Behavior: a catalogue that cannot be read withholds the consent form rather
+  than falling back to free text, and records nothing if a submission is crafted
+  anyway. An unreadable catalogue is not an empty one. A readable empty
+  catalogue says so plainly, because being offered nothing is a fact.
+- Behavior: a recorded consent naming a profile the organization no longer
+  offers renders as its own state with no control, since withdrawing an offer
+  does not revoke consent and the customer cannot resolve it. The full-diff
+  self-audit found that `namedByActiveConsent` is organization-wide, so the
+  notice is scoped to the repository whose own consent names the profile.
+- Behavior: the overview and the catalogue resolve as independent sub-views, so
+  neither can take the repository detail page down.
+- Important files: `docs/security/artifact-attestation-policy.json`,
+  `docs/contracts/console-contract-lock.json`,
+  `docs/contracts/console-contract-v1.0.1-evidence.json`,
+  `docs/decisions/0005-console-contract-release-revisions.md`,
+  `vendor/console-contract-v1.0.1/`, `generated/console-contract/v1/`,
+  `src/components/repositories/repository-counters.tsx`,
+  `src/app/api/repositories/policy/route.ts`,
+  `src/lib/repositories/presentation.ts`.
+- Verification: lint, format, `tsc --noEmit`, 613 Vitest tests, a production
+  build, 126 Playwright tests over the pinned origin
+  `https://console.evirion.test:3443`, 98 Python tests, the Console contract
+  lock, the authority package, the documentation tree, backend Auth parity at
+  `2458f333`, Semgrep with 0 findings on 107 files, and digest-verified Gitleaks
+  over 45 commits with no leaks. The generated client reproduces byte for byte
+  from the pinned contract. Local Node is 22.18.0 against a baseline pin of
+  24.20.0, which affects installation rather than these gates.
+- Verification: both releases were verified with the pinned `cosign-linux-amd64`
+  at `4629c757` against the pinned trusted root at `6494e21e`, offline in a
+  network-isolated `linux/amd64` container. A control run without the trusted
+  root fails at TUF refresh on the unreachable network, so the pinned root is
+  proved load-bearing rather than assumed. Rekor inclusion holds at log index
+  `2698606271`, four seconds before publication against a 3600-second bound, and
+  the tag-scoped administrator attestation precedes publication by 206 seconds.
+- Deviation recorded: the release assets were downloaded with the operator's own
+  `gh` credential rather than the short-lived minimum-scope credential
+  `download.allowedCredential` names. The credential gates read access only; the
+  independently pinned digest and the signature verification are what establish
+  trust, and both were checked. It lived only in the process environment.
+- Deployment state: implemented and locally verified. Not merged, not deployed,
+  not observed, not staging-certified, not paid-certified, not
+  production-certified. No provider call, paid operation, worker run, hosted
+  Supabase read or change, or customer data.
+- Remaining gates: consuming this release moved the Dashboard authority
+  `packageSha256`, so whether a paired backend successor pointer follows is an
+  owner decision on that value. `SEC-2026-012` remains open under its approved
+  waiver and remains readiness blocking. Accessibility open decision 1 is still
+  unresolved and is due before EEM-9/07.
+
 ## 2026-09-03 — EEM-9/04 import operations
 
 - Why: EEM-9/04 exposes guarded historical import after the EEM-7 contract

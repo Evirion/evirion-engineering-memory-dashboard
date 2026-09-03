@@ -38,7 +38,15 @@ EEM-9/03 is merged as PR
 [#6](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/6).
 Its Definition-of-Done trace is
 [`eem-9-03-acceptance-trace.md`](eem-9-03-acceptance-trace.md), which also
-records two contract gaps that block work EEM-9/06 owns.
+recorded two contract gaps that blocked work EEM-9/06 owns. Both are closed:
+`console-contract-v1.0.1` publishes their schemas and `EEM-9/03e` consumes them.
+
+EEM-9/04 is merged as PR
+[#9](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/9).
+
+`EEM-9/03e-console-contract-revision` is implemented and locally verified on its
+branch, not merged, with no pull request. Its trace is
+[`eem-9-03e-acceptance-trace.md`](eem-9-03e-acceptance-trace.md).
 
 The EEM-9/03 request below names "the attestation-verified EEM-6 contract lock".
 No such artifact exists and none is required: the single
@@ -89,6 +97,20 @@ authorized.`
 evirion-engineering-memory-dashboard with a read-only sibling
 evirion-engineering-memory checkout at the source commit recorded by the
 attestation-verified EEM-6 contract lock. Work only on this subtask.`
+
+### EEM-9/03e — Console contract revision
+
+Not in the accepted plan, which was frozen before either contract gap existed.
+Its scope is fixed by [`ROADMAP.md`](../../ROADMAP.md), "The next Dashboard
+contract consumption is one subtask, not two".
+
+`Start EEM-9/03e-console-contract-revision in
+evirion-engineering-memory-dashboard, with a read-only sibling checkout of
+evirion-engineering-memory. Work only on this subtask. Do not deploy remotely,
+call a provider, or run any paid operation. Verify the Dashboard authority
+pointer from the backend sibling first and report the value you observe. Consume
+only published, attestation-verified release assets; never source bytes from
+backend main.`
 
 ### EEM-9/04 — Import operations
 
