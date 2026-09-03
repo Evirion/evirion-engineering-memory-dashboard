@@ -1,0 +1,325 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:knowledge-corrections",
+  "title": "Lifecycle correction requests",
+  "description": "The durable correction requests of one Knowledge Object with their append-only transition history. A customer may request and read a correction but never execute one; execution and rejection are operator commands. The backend strips nulls, so the six optional request keys and the two optional history keys are absent rather than null.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "knowledgeObjectId",
+    "correctionRequests"
+  ],
+  "properties": {
+    "knowledgeObjectId": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "core.knowledge_objects.id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "correctionRequests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "correctionRequestId",
+          "knowledgeObjectId",
+          "requestType",
+          "status",
+          "requestVersion",
+          "attemptCount",
+          "requestedReviewSequence",
+          "requestedLifecycleVersion",
+          "reasonCode",
+          "requestedByUserId",
+          "requestedByRole",
+          "requestedAt",
+          "history"
+        ],
+        "properties": {
+          "correctionRequestId": {
+            "type": "string",
+            "format": "uuid",
+            "x-evirion-backend-projection": "core.knowledge_lifecycle_correction_requests.id",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "knowledgeObjectId": {
+            "type": "string",
+            "format": "uuid",
+            "x-evirion-backend-projection": "core.knowledge_lifecycle_correction_requests.knowledge_object_id",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "knowledgeRelationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Present only for RETRACT_SUPERSESSION.",
+            "x-evirion-backend-projection": "core.knowledge_lifecycle_correction_requests.knowledge_relation_id",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "requestType": {
+            "type": "string",
+            "enum": [
+              "RETRACT_SUPERSESSION",
+              "WITHDRAW_ACTIVE_KNOWLEDGE",
+              "RESTORE_UNRESOLVED",
+              "UNSUPPORTED_SERVER_RESPONSE"
+            ],
+            "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+            "x-evirion-backend-projection": "core.knowledge_lifecycle_correction_requests.request_type",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "REQUESTED",
+              "EXECUTING",
+              "EXECUTED",
+              "FAILED",
+              "REJECTED",
+              "UNSUPPORTED_SERVER_RESPONSE"
+            ],
+            "description": "REQUESTED, EXECUTING and FAILED are the open states that populate openCorrectionRequestId.",
+            "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+            "x-evirion-backend-projection": "core.knowledge_lifecycle_correction_requests.status",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "requestVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "x-evirion-backend-projection": "core.knowledge_lifecycle_correction_requests.version",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "attemptCount": {
+            "type": "integer",
+            "minimum": 0,
+            "x-evirion-backend-projection": "core.knowledge_lifecycle_correction_requests.attempt_count",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "requestedReviewSequence": {
+            "type": "integer",
+            "minimum": 0,
+            "x-evirion-backend-projection": "core.knowledge_lifecycle_correction_requests.requested_review_sequence",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "requestedLifecycleVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "x-evirion-backend-projection": "core.knowledge_lifecycle_correction_requests.requested_lifecycle_version",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "requestedRelationVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Accompanies knowledgeRelationId.",
+            "x-evirion-backend-projection": "core.knowledge_lifecycle_correction_requests.requested_relation_version",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "compensatingLifecycleState": {
+            "type": "string",
+            "enum": [
+              "UNRESOLVED",
+              "ACTIVE",
+              "WITHDRAWN",
+              "UNSUPPORTED_SERVER_RESPONSE"
+            ],
+            "description": "The state an executed correction restores. The operator supplies it only for RETRACT_SUPERSESSION, where the argument is checked against UNRESOLVED and ACTIVE; for the other two request types the routine derives it, and WITHDRAW_ACTIVE_KNOWLEDGE derives WITHDRAWN. Absent while the request is still REQUESTED.",
+            "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+            "x-evirion-backend-projection": "core.knowledge_lifecycle_correction_requests.compensating_lifecycle_state",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "reasonCode": {
+            "type": "string",
+            "enum": [
+              "SUPERSESSION_ERRONEOUS",
+              "KNOWLEDGE_NO_LONGER_TRUE",
+              "KNOWLEDGE_MISATTRIBUTED",
+              "OTHER",
+              "UNSUPPORTED_SERVER_RESPONSE"
+            ],
+            "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+            "x-evirion-backend-projection": "core.knowledge_lifecycle_correction_requests.reason_code",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "note": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Required by the backend when reasonCode is OTHER.",
+            "x-evirion-backend-projection": "core.knowledge_lifecycle_correction_requests.note",
+            "x-evirion-sensitivity": "customer-safe-detail"
+          },
+          "requestedByUserId": {
+            "type": "string",
+            "format": "uuid",
+            "x-evirion-backend-projection": "core.knowledge_lifecycle_correction_requests.requester_user_id",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "requestedByRole": {
+            "type": "string",
+            "enum": [
+              "owner",
+              "admin",
+              "reviewer",
+              "viewer",
+              "UNSUPPORTED_SERVER_RESPONSE"
+            ],
+            "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+            "x-evirion-backend-projection": "core.knowledge_lifecycle_correction_requests.requester_membership_role",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "failureCode": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "The operator's failure code. With history[].reason this is the only channel through which an operator's outcome reaches the requesting customer.",
+            "x-evirion-backend-projection": "core.knowledge_lifecycle_correction_requests.failure_code",
+            "x-evirion-sensitivity": "customer-safe-detail"
+          },
+          "requestedAt": {
+            "type": "string",
+            "format": "date-time",
+            "x-evirion-backend-projection": "core.knowledge_lifecycle_correction_requests.created_at",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Absent until the request leaves REQUESTED.",
+            "x-evirion-backend-projection": "core.knowledge_lifecycle_correction_requests.updated_at",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "toStatus",
+                "requestVersion",
+                "actorKind",
+                "recordedAt"
+              ],
+              "properties": {
+                "fromStatus": {
+                  "type": "string",
+                  "enum": [
+                    "REQUESTED",
+                    "EXECUTING",
+                    "EXECUTED",
+                    "FAILED",
+                    "REJECTED",
+                    "UNSUPPORTED_SERVER_RESPONSE"
+                  ],
+                  "description": "Absent on the first transition, which has no prior status.",
+                  "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+                  "x-evirion-backend-projection": "core.knowledge_correction_request_events.from_status",
+                  "x-evirion-sensitivity": "customer-safe-summary"
+                },
+                "toStatus": {
+                  "type": "string",
+                  "enum": [
+                    "REQUESTED",
+                    "EXECUTING",
+                    "EXECUTED",
+                    "FAILED",
+                    "REJECTED",
+                    "UNSUPPORTED_SERVER_RESPONSE"
+                  ],
+                  "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+                  "x-evirion-backend-projection": "core.knowledge_correction_request_events.to_status",
+                  "x-evirion-sensitivity": "customer-safe-summary"
+                },
+                "requestVersion": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "x-evirion-backend-projection": "core.knowledge_correction_request_events.request_version",
+                  "x-evirion-sensitivity": "customer-safe-summary"
+                },
+                "actorKind": {
+                  "type": "string",
+                  "enum": [
+                    "customer",
+                    "platform_operator",
+                    "UNSUPPORTED_SERVER_RESPONSE"
+                  ],
+                  "description": "Who caused the transition. The operator's identity itself is never published.",
+                  "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+                  "x-evirion-backend-projection": "core.knowledge_correction_request_events.actor_kind",
+                  "x-evirion-sensitivity": "customer-safe-summary"
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000,
+                  "description": "An operator's rejection text or failure explanation.",
+                  "x-evirion-backend-projection": "core.knowledge_correction_request_events.reason",
+                  "x-evirion-sensitivity": "customer-safe-detail"
+                },
+                "recordedAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "x-evirion-backend-projection": "core.knowledge_correction_request_events.created_at",
+                  "x-evirion-sensitivity": "customer-safe-summary"
+                }
+              },
+              "x-evirion-backend-projection": "api.list_knowledge_lifecycle_corrections.history",
+              "x-evirion-sensitivity": "customer-safe-detail"
+            },
+            "x-evirion-backend-projection": "api.list_knowledge_lifecycle_corrections.history",
+            "x-evirion-sensitivity": "customer-safe-detail"
+          }
+        },
+        "x-evirion-backend-projection": "api.list_knowledge_lifecycle_corrections.correction_requests",
+        "x-evirion-sensitivity": "customer-safe-detail"
+      },
+      "x-evirion-backend-projection": "api.list_knowledge_lifecycle_corrections.correction_requests",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    }
+  },
+  "examples": [
+    {
+      "knowledgeObjectId": "00000000-0000-4000-8000-000000000401",
+      "correctionRequests": []
+    },
+    {
+      "knowledgeObjectId": "00000000-0000-4000-8000-000000000402",
+      "correctionRequests": [
+        {
+          "correctionRequestId": "00000000-0000-4000-8000-000000000441",
+          "knowledgeObjectId": "00000000-0000-4000-8000-000000000402",
+          "knowledgeRelationId": "00000000-0000-4000-8000-000000000431",
+          "requestType": "RETRACT_SUPERSESSION",
+          "status": "REJECTED",
+          "requestVersion": 2,
+          "attemptCount": 1,
+          "requestedReviewSequence": 1,
+          "requestedLifecycleVersion": 2,
+          "requestedRelationVersion": 0,
+          "compensatingLifecycleState": "ACTIVE",
+          "reasonCode": "SUPERSESSION_ERRONEOUS",
+          "note": "The newer object documents a different subsystem.",
+          "requestedByUserId": "00000000-0000-4000-8000-000000000201",
+          "requestedByRole": "reviewer",
+          "requestedAt": "2026-09-02T18:33:41.123456Z",
+          "updatedAt": "2026-09-02T19:10:00.000000Z",
+          "history": [
+            {
+              "toStatus": "REQUESTED",
+              "requestVersion": 1,
+              "actorKind": "customer",
+              "recordedAt": "2026-09-02T18:33:41.123456Z"
+            },
+            {
+              "fromStatus": "REQUESTED",
+              "toStatus": "REJECTED",
+              "requestVersion": 2,
+              "actorKind": "platform_operator",
+              "reason": "The supersession matches the merged pull request.",
+              "recordedAt": "2026-09-02T19:10:00.000000Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -4,7 +4,7 @@
   "files": [
     {
       "path": "contracts/console/v1/openapi.yaml",
-      "sha256": "775bde95ff11d2ddb78644833fd8eee46dbc45e9a3f6c8ac6a7b03e254c649d7"
+      "sha256": "541013783d578daaf8babbf417cbdf4a3199de00ddebec048044fe3f4456b1f0"
     },
     {
       "path": "contracts/console/v1/schemas/command-receipt.json",
@@ -29,6 +29,50 @@
     {
       "path": "contracts/console/v1/schemas/invitation.json",
       "sha256": "3402ba56cabc9fe3f847de9ebcc8394894096eda194f3050cdbbf375cdf0deb7"
+    },
+    {
+      "path": "contracts/console/v1/schemas/knowledge-corrections.json",
+      "sha256": "c597c173e8a4116d8e227701a90519ddd24f35a56d986b42022ef02bce3ab5d1"
+    },
+    {
+      "path": "contracts/console/v1/schemas/knowledge-detail.json",
+      "sha256": "28211840e68f351ae0c130b808116037e5b7a9159b817c7c34e6203836b0b76b"
+    },
+    {
+      "path": "contracts/console/v1/schemas/knowledge-evidence.json",
+      "sha256": "89c35c27e0fea580fbe95dbca59d268da449c3fa69ec016d33898b0bb322f31d"
+    },
+    {
+      "path": "contracts/console/v1/schemas/knowledge-lifecycle-state.json",
+      "sha256": "2734de3d32ac95ee914618e94a912414d7867f16ba6248f619fbeab8f46714c0"
+    },
+    {
+      "path": "contracts/console/v1/schemas/knowledge-page.json",
+      "sha256": "9ee4778129f933c82717ea8e53c4895f033e930e047edc5bd051a6694e0a82fe"
+    },
+    {
+      "path": "contracts/console/v1/schemas/knowledge-receipt.json",
+      "sha256": "bc99852c1b2fad2cdbe7f0d45b0bc73946c481edfa46fcd0b20302c20cb226ee"
+    },
+    {
+      "path": "contracts/console/v1/schemas/knowledge-relation-edge.json",
+      "sha256": "3b0585ecd9fd513d40f0209aff219ae44e4bc681c3bd49ceb49e56d42d779021"
+    },
+    {
+      "path": "contracts/console/v1/schemas/knowledge-review-history.json",
+      "sha256": "bf53afad09eed1270a01c45acd8846516e29552b090382c64036509de5092d8d"
+    },
+    {
+      "path": "contracts/console/v1/schemas/knowledge-review-state.json",
+      "sha256": "e0069ba97a0ba2fc418c8b48d1abcf61a7ae79c6f2ec476999039c132bf18e1a"
+    },
+    {
+      "path": "contracts/console/v1/schemas/knowledge-review.json",
+      "sha256": "f2351384b13051e406119982b2de9d462b8a814fb3dcb7ace04086076e693d6e"
+    },
+    {
+      "path": "contracts/console/v1/schemas/knowledge-summary.json",
+      "sha256": "a1c1bd6979b93409ebaef18b90fce28935c559d56aff559d11f1f44903ab7532"
     },
     {
       "path": "contracts/console/v1/schemas/member.json",
@@ -91,6 +135,6 @@
       "sha256": "94a0b134a959a3ae220150f25fb7ec98f71da1a7a9fa2e7be30295625ca7018f"
     }
   ],
-  "packageSha256": "29ff7b73e8a9e38850ef55e1c5b1e596a41c31f529329aca70a094087afbd713",
+  "packageSha256": "1ba7e1f87bd1b4c44e5571cd96ada8563b186c8b45b3122dfef456463582b105",
   "schemaVersion": "1.0"
 }

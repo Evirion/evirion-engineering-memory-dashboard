@@ -1,49 +1,49 @@
 {
   "cryptographicVerification": {
     "bundleVerified": true,
-    "certificateIdentity": "https://github.com/Evirion/evirion-engineering-memory/.github/workflows/console-contract-release.yml@refs/tags/console-contract-v1.0.1",
+    "certificateIdentity": "https://github.com/Evirion/evirion-engineering-memory/.github/workflows/console-contract-release.yml@refs/tags/console-contract-v1.0.2",
     "workflowRefVerified": true,
     "workflowRepositoryVerified": true,
     "workflowShaVerified": true,
     "workflowTriggerVerified": true
   },
   "immutableReleaseAttestation": {
-    "attestedAt": "2026-09-03T11:19:59Z",
+    "attestedAt": "2026-09-03T16:40:11Z",
     "immutableReleasesEnabled": true,
     "observedBy": "repository-administrator",
     "repository": "Evirion/evirion-engineering-memory",
     "schemaVersion": "1.0",
-    "tag": "console-contract-v1.0.1"
+    "tag": "console-contract-v1.0.2"
   },
   "policyDigest": "0b5b0e938ffeb298fefc6d95ac6b5dd3bf2b0306ed7ec68b54e492a8a091f39d",
   "policyId": "console-contract-v1",
   "recordedAt": "2026-09-03",
   "rekor": {
     "inclusionProofVerified": true,
-    "integratedTime": 1788434601,
-    "logIndex": 2698606271,
-    "uuid": "dd4c53ea85e113f28f01b23464c19063f6906382b7839731da3d1d421bb53ecf"
+    "integratedTime": 1788453961,
+    "logIndex": 2701440752,
+    "uuid": "ca3bc499f8a1d3c59a0c69d3d361850e777d64f0724fce774a06117080fdbdbf"
   },
   "release": {
-    "assetId": 542665268,
-    "assetName": "console-contract-v1.0.1.tar.gz",
-    "assetSha256": "a116ae5c6d8c31ab5a25be81489fb82218461ef738b653a50ca8a824784b7542",
+    "assetId": 543053165,
+    "assetName": "console-contract-v1.0.2.tar.gz",
+    "assetSha256": "4bff72ff77882c406331483d27ef4f78bbca0f0b142196da6e5f1c85a4d3658c",
     "immutable": true,
-    "publishedAt": 1788434605,
-    "tag": "console-contract-v1.0.1"
+    "publishedAt": 1788453965,
+    "tag": "console-contract-v1.0.2"
   },
   "schemaVersion": "1.0",
   "signer": {
-    "commit": "2458f33319b6a5b5abbe032482531ee7bf050ea7",
+    "commit": "cfd930a4fb5894cb3cd3d1d196e1ca9ca8157010",
     "eventName": "push",
     "oidcIssuer": "https://token.actions.githubusercontent.com",
-    "ref": "refs/tags/console-contract-v1.0.1",
+    "ref": "refs/tags/console-contract-v1.0.2",
     "repository": "Evirion/evirion-engineering-memory",
     "workflowPath": ".github/workflows/console-contract-release.yml"
   },
   "subject": {
-    "name": "console-contract-v1.0.1.tar.gz",
-    "sha256": "a116ae5c6d8c31ab5a25be81489fb82218461ef738b653a50ca8a824784b7542"
+    "name": "console-contract-v1.0.2.tar.gz",
+    "sha256": "4bff72ff77882c406331483d27ef4f78bbca0f0b142196da6e5f1c85a4d3658c"
   },
   "verifier": {
     "invocation": "cosign verify-blob --trusted-root <pinned> --bundle <bundle> --certificate-identity <identity> --certificate-oidc-issuer <issuer> --certificate-github-workflow-repository <repository> --certificate-github-workflow-ref <ref> --certificate-github-workflow-sha <commit> --certificate-github-workflow-trigger push",

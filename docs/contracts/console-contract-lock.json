@@ -1,44 +1,46 @@
 {
   "artifact": {
-    "assetId": 542665268,
-    "assetName": "console-contract-v1.0.1.tar.gz",
-    "assetSha256": "a116ae5c6d8c31ab5a25be81489fb82218461ef738b653a50ca8a824784b7542",
-    "bundleAssetId": 542665267,
-    "bundleName": "console-contract-v1.0.1.sigstore.json",
-    "bundleSha256": "5acb5972ced5edccb44b4b6f0f9ee8d6f23d9cf143fb6383aabb214849764939",
-    "releaseId": 381960363,
-    "tag": "console-contract-v1.0.1"
+    "assetId": 543053165,
+    "assetName": "console-contract-v1.0.2.tar.gz",
+    "assetSha256": "4bff72ff77882c406331483d27ef4f78bbca0f0b142196da6e5f1c85a4d3658c",
+    "bundleAssetId": 543053166,
+    "bundleName": "console-contract-v1.0.2.sigstore.json",
+    "bundleSha256": "60a15279d70c796a979a362e6472c30ac1cd9e8a09cc5723fcc5dba907ac6609",
+    "releaseId": 382183774,
+    "tag": "console-contract-v1.0.2"
   },
-  "certificateIdentity": "https://github.com/Evirion/evirion-engineering-memory/.github/workflows/console-contract-release.yml@refs/tags/console-contract-v1.0.1",
+  "certificateIdentity": "https://github.com/Evirion/evirion-engineering-memory/.github/workflows/console-contract-release.yml@refs/tags/console-contract-v1.0.2",
   "consumption": {
     "consumedContractRoot": "contracts/console/v1",
     "generatedClientRoot": "generated/console-contract/v1",
-    "generatedClientSurfaceSha256": "08178d2f81410dc88ab35253c3954988f51e7f57df52370de230dda56cebfb0f",
-    "notConsumed": ["contracts/operator/v1"],
-    "vendoredRoot": "vendor/console-contract-v1.0.1"
+    "generatedClientSurfaceSha256": "d7c34b6d9af3a8ae5dba717daddafc903c3e04c7d3e0fc7e8b0ba602ed2f520f",
+    "notConsumed": [
+      "contracts/operator/v1"
+    ],
+    "vendoredRoot": "vendor/console-contract-v1.0.2"
   },
   "contract": {
     "contractVersion": "1.0",
     "manifestPath": "contracts/console/v1/manifest.json",
-    "packageSha256": "29ff7b73e8a9e38850ef55e1c5b1e596a41c31f529329aca70a094087afbd713"
+    "packageSha256": "1ba7e1f87bd1b4c44e5571cd96ada8563b186c8b45b3122dfef456463582b105"
   },
   "eventName": "push",
-  "evidencePath": "docs/contracts/console-contract-v1.0.1-evidence.json",
+  "evidencePath": "docs/contracts/console-contract-v1.0.2-evidence.json",
   "oidcIssuer": "https://token.actions.githubusercontent.com",
   "policyDigest": "0b5b0e938ffeb298fefc6d95ac6b5dd3bf2b0306ed7ec68b54e492a8a091f39d",
   "policyId": "console-contract-v1",
   "recordedAt": "2026-09-03",
   "release": {
-    "createdAt": "2026-09-03T11:22:14Z",
+    "createdAt": "2026-09-03T16:42:45Z",
     "immutable": true,
-    "publishedAt": "2026-09-03T11:23:25Z"
+    "publishedAt": "2026-09-03T16:46:05Z"
   },
-  "releaseCommitReachabilityNote": "console-contract-v1.0.1 tags a branch commit that the squash merge did not place on backend main, exactly as console-contract-v1.0 did. The immutable release keeps the tag and its object alive, so default-branch reachability is deliberately not asserted and must not be added as a check.",
+  "releaseCommitReachabilityNote": "console-contract-v1.0.2 tags cfd930a, which is on backend main, unlike console-contract-v1.0 and v1.0.1 which tagged branch commits a squash merge never placed there. The field stays false regardless, because it records what this lock relies on rather than what happens to be true: the tag and its object survive because the release is immutable, not because the commit stayed reachable. Reachability must not become a check.",
   "releaseCommitReachableFromDefaultBranch": false,
   "releaseRevisionNote": "The third tag component is a release revision, not an API version. Backend ADR 0014 defines the grammar and the publishing workflow proves the bytes additive against the published predecessor before signing. contractVersion stays 1.0, so the generated isConsoleError const and the success-envelope guard in src/server/adapters/console-api.ts are unchanged. This lock names one exact tag, asset ID and digest; it never tracks the latest revision of a version.",
   "repository": "Evirion/evirion-engineering-memory",
   "schemaVersion": "1.0",
-  "sourceCommit": "2458f33319b6a5b5abbe032482531ee7bf050ea7",
+  "sourceCommit": "cfd930a4fb5894cb3cd3d1d196e1ca9ca8157010",
   "trustedRootSha256": "6494e21ea73fa7ee769f85f57d5a3e6a08725eae1e38c755fc3517c9e6bc0b66",
   "verifier": {
     "asset": "cosign-linux-amd64",
