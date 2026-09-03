@@ -30,6 +30,7 @@ export declare const REPOSITORIES: {
 }
 
 export declare const IMPORTS: {
+  readonly resumeBlocked: string
   readonly planning: string
   readonly discovering: string
   readonly awaitingApproval: string
@@ -111,6 +112,7 @@ export declare const SCENARIOS: {
   readonly importCompleted: () => StubScenario
   readonly importFailed: () => StubScenario
   readonly importCancelled: () => StubScenario
+  readonly importResumeBlocked: () => StubScenario
 }
 
 export type StubScenarioName = keyof typeof SCENARIOS

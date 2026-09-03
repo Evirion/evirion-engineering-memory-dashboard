@@ -58,6 +58,16 @@
   one states the blocker instead. The generic processing-job `PROC-002` control
   remains EEM-9/06's. A failure list that cannot be read says so rather than
   rendering an empty list, which would claim there is nothing to recover.
+- Behavior: a resume the backend forces back to `PAUSED` is explained as the
+  completed command it is. Its receipt response code is not one of the 38
+  published error codes, so the shared outcome reader would have failed closed
+  and reported an unknown outcome for a command that committed and changed
+  state. The import surface reads its own outcome and delegates the rest.
+- Behavior: a `NOT_APPLICABLE` cost renders no breakdown at all. Its three
+  component amounts are all `0.000000`, so showing them would put zero-dollar
+  measurements on screen for a state that has nothing to measure. `UNRESOLVED`
+  keeps its breakdown, because there the components are real and only the single
+  total is withheld.
 - Behavior: polling is a bounded client component. It doubles to a ceiling, caps
   its refreshes, stops entirely while the tab is not visible, and refreshes the
   server route rather than reading anything itself, so the caller token stays
@@ -75,7 +85,7 @@
   as an assumption in the acceptance trace. Hiding a control remains a
   convenience: the backend refuses the request either way, and the browser suite
   proves the refusal rather than assuming the control's absence.
-- Verification: lint, format, `tsc --noEmit`, 555 Vitest tests, a production
+- Verification: lint, format, `tsc --noEmit`, 565 Vitest tests, a production
   build, 121 Playwright tests over the pinned origin
   `https://console.evirion.test:3443`, 94 Python tests, Semgrep with no
   findings, digest-verified Gitleaks over 37 commits with no leaks, the

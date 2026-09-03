@@ -344,7 +344,10 @@ export const costView = (cost: RepositoryImport["cost"]): CostView => {
           amount: null,
           detail: "No paid work has contributed to this import.",
         },
-        figures,
+        // No breakdown at all. With no contributing job the three components
+        // are all `0.000000`, and rendering them would put zero-dollar
+        // measurements on screen for a state that has nothing to measure.
+        figures: [],
         budget,
       }
     default: {

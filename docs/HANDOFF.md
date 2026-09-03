@@ -64,6 +64,15 @@ Updated: 2026-09-03
   Section 21.1 permits a client component for polling. It refreshes the server
   route and reads nothing itself, so the caller token stays server-side.
 
+## Independent review
+
+One bounded review wave ran: a security reviewer and a correctness reviewer in
+parallel. The security reviewer found nothing at medium severity or above. The
+correctness reviewer found two defects, both accepted and both fixed in one
+remediation wave: a blocked resume rendered as an unknown outcome, and a
+not-applicable cost rendered zero-dollar figures beside a correctly blank
+headline. Both are recorded in the acceptance trace with the reasoning.
+
 ## Security and release state
 
 - The Auth and session contract is unchanged.
@@ -78,7 +87,7 @@ Updated: 2026-09-03
 
 ## Verification and next action
 
-Lint, format, `tsc --noEmit`, 555 Vitest tests, a production build, 121
+Lint, format, `tsc --noEmit`, 565 Vitest tests, a production build, 121
 Playwright tests over the pinned origin `https://console.evirion.test:3443`, 94
 Python tests, Semgrep with no findings, digest-verified Gitleaks over 37 commits
 with no leaks, the authority package, the documentation tree and the Console

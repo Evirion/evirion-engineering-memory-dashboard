@@ -9,6 +9,7 @@ import {
   PrepareForm,
   RunStateForms,
 } from "@/components/imports/import-actions"
+import { ImportOutcomeNotice } from "@/components/imports/import-outcome"
 import { ImportCost, ImportProgress } from "@/components/imports/import-progress"
 import {
   AuthorizationPanel,
@@ -158,6 +159,17 @@ describe("cost completeness", () => {
     expect(rendered).toContain("USD 2.100000")
     expect(rendered).toMatch(/not an invoice/)
   })
+
+  it("puts no zero-dollar figure on screen when no paid work contributed", () => {
+    // The published projection carries `0.000000` for all three components in
+    // this state, so rendering the breakdown would show measurements nobody
+    // made. Zero is a measurement; not-applicable has none.
+    const rendered = markup(<ImportCost current={IMPORT_RUNS.planning()} />)
+
+    expect(rendered).toContain('data-cost-completeness="NOT_APPLICABLE"')
+    expect(rendered).not.toContain("USD 0.000000")
+    expect(rendered).toMatch(/No paid work has contributed/)
+  })
 })
 
 describe("controls follow the backend capability", () => {
@@ -262,6 +274,40 @@ describe("recovery is only what the projection declared", () => {
     expect(rendered).toMatch(/could not be read/)
     expect(rendered).toMatch(/does not mean there is none/)
     expect(rendered).not.toContain('action="/api/imports/retry"')
+  })
+})
+
+describe("the outcome of the command just sent", () => {
+  it("explains a blocked resume rather than calling the outcome unknown", () => {
+    // The backend answers a forced-back resume with a receipt response code,
+    // not a published error code. The shared reader knows only error codes, so
+    // routing it there would report an unknown outcome for a command that
+    // committed and changed state.
+    const rendered = markup(
+      <ImportOutcomeNotice result="REPOSITORY_IMPORT_RESUME_BLOCKED" />,
+    )
+
+    expect(rendered).toContain("Resume was applied")
+    expect(rendered).toMatch(/source work is still held back/)
+    expect(rendered).not.toMatch(/outcome is not known yet/)
+  })
+
+  it("still reports a plain success and a published refusal as before", () => {
+    expect(markup(<ImportOutcomeNotice result="applied" />)).toContain("Done.")
+    expect(markup(<ImportOutcomeNotice result="VERSION_CONFLICT" />)).toContain(
+      "VERSION_CONFLICT",
+    )
+  })
+
+  it("still fails closed on a code the contract never published", () => {
+    const rendered = markup(<ImportOutcomeNotice result="MADE_UP_CODE" />)
+
+    expect(rendered).toMatch(/outcome is not known yet/)
+    expect(rendered).not.toContain("MADE_UP_CODE")
+  })
+
+  it("renders nothing when no command was sent", () => {
+    expect(markup(<ImportOutcomeNotice result={undefined} />)).toBe("")
   })
 })
 

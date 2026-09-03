@@ -15,10 +15,7 @@ import {
   AuthorizationPanel,
   ImportStatusPanel,
 } from "@/components/imports/import-status"
-import {
-  CommandOutcomeNotice,
-  readCommandResult,
-} from "@/components/repositories/command-outcome"
+import { ImportOutcomeNotice } from "@/components/imports/import-outcome"
 import { importControls, isProgressing } from "@/lib/imports/presentation"
 import { readSessionCsrfToken } from "@/server/actions/session-csrf-read"
 import { readRepositoryImport } from "@/server/queries/imports"
@@ -51,9 +48,7 @@ const RepositoryImportPage = async ({
   const { repositoryId } = await params
   const identifier = validRepositoryId(repositoryId)
   const requested = (await searchParams)["result"]
-  const outcome = readCommandResult(
-    typeof requested === "string" ? requested : undefined,
-  )
+  const outcome = typeof requested === "string" ? requested : undefined
 
   // A malformed identifier gets the same answer as a foreign one. Anything
   // else would tell the caller which identifiers are well formed.
@@ -108,7 +103,7 @@ const RepositoryImportPage = async ({
         <p className="text-sm text-slate-600">{repository.nameWithOwner}</p>
       </div>
 
-      {outcome ? <CommandOutcomeNotice result={outcome} /> : null}
+      <ImportOutcomeNotice result={outcome} />
 
       {current === null ? (
         <EmptyImport repository={repository} />

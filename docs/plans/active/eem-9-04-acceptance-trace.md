@@ -80,6 +80,47 @@ for security: hiding a control is a convenience, the backend refuses the
 request either way, and `tests/security/import-boundary.spec.ts` proves the
 refusal rather than assuming the control's absence.
 
+## Independent review
+
+One bounded review wave ran against this tree: a security reviewer and a
+correctness reviewer in parallel.
+
+The security reviewer found nothing at medium severity or above. It confirmed
+that the mutation guard settles before any form field is read, that the
+organization comes from the session-backed context and never from a form, that
+every adapter path identifier is UUID-validated, and that the new client
+component receives no token, organization identifier or payload and only calls
+`router.refresh()`. Below its threshold it noted the resume-blocked rendering
+recorded next, and two things left deliberately: the read-only browser case
+proves CSRF refusal before any backend call rather than capability-with-valid-
+CSRF, which `EEM-9/07` certifies against live fixtures; and the BFF does not
+pre-check session capability before forwarding, which is deliberate parity with
+the repository commands, where the backend is the authority.
+
+The correctness reviewer found two defects, both accepted and both fixed in one
+remediation wave.
+
+- **A blocked resume rendered as an unknown outcome.** The backend answers a
+  resume it forced back to `PAUSED` with its own receipt response code, and this
+  subtask deliberately routed that code home so the surface could explain it.
+  But `readCommandResult` knows the thirty-eight published error codes and the
+  word `applied`, and nothing else, so a receipt code fell through to the
+  fail-closed unknown state. The customer was told the outcome was not known for
+  a command that had committed and changed state, which is worse than the plain
+  success the distinction was introduced to improve on. The import surface now
+  reads its own outcome and delegates everything else to the shared reader,
+  which stays EEM-9/03's and unchanged. `tests/e2e/import.spec.ts` drives a real
+  blocked resume through the browser rather than asserting an absence, and
+  `tests/component/imports/import-surface.test.tsx` pins that an unpublished
+  code still fails closed.
+- **A not-applicable cost rendered zero-dollar figures.** The headline correctly
+  showed no amount, but the breakdown beside it still formatted `measuredUsd`,
+  `reservedUsd` and `unresolvedUsd`, all of which are `0.000000` in that state.
+  Zero is a measurement and not-applicable has none, so the breakdown is now
+  omitted entirely and the headline carries the explanation. Unresolved keeps
+  its breakdown, because there the component amounts are real and only the
+  single total is withheld.
+
 ## Two defects the browser gate found in this subtask's own work
 
 Both were found against the running BFF and fixed before the gate was frozen.

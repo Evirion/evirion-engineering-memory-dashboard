@@ -237,6 +237,7 @@ const baseRepositories = () => [
  * has no fixture.
  */
 export const IMPORTS = {
+  resumeBlocked: "00000000-0000-4000-8000-000000009010",
   planning: "00000000-0000-4000-8000-000000009001",
   discovering: "00000000-0000-4000-8000-000000009002",
   awaitingApproval: "00000000-0000-4000-8000-000000009003",
@@ -490,6 +491,42 @@ export const IMPORT_RUNS = {
       recoveryAction: "RETRY_JOB",
     }),
 
+  /**
+   * Paused with source work still held back, so a resume is forced back to
+   * paused. That answer is a completed command with its own response code, and
+   * the surface has to be able to explain it rather than call it unknown.
+   */
+  resumeBlocked: () =>
+    importRun({
+      importId: IMPORTS.resumeBlocked,
+      status: "PAUSED",
+      capabilities: {
+        canApprove: false,
+        canCancel: true,
+        canPause: false,
+        canResume: true,
+      },
+      cost: {
+        budgetUsd: "30.000000",
+        completeness: "RESERVED",
+        measuredUsd: "5.000000",
+        reservedUsd: "3.000000",
+        unresolvedUsd: "0.000000",
+      },
+      counts: {
+        completed: 14,
+        discovered: 24,
+        enqueued: 21,
+        failed: 2,
+        skipped: 3,
+        sourceReady: 21,
+      },
+      dispositions: { accepted: 12, quarantined: 1, rejected: 1 },
+      modelCallsApproved: true,
+      paidAuthorizationStatus: "AUTHORIZED",
+      recoveryAction: "RETRY_JOB",
+    }),
+
   cancelled: () =>
     importRun({
       importId: IMPORTS.cancelled,
@@ -522,7 +559,33 @@ export const IMPORT_RUNS = {
  * One entry the backend declares retryable and one it blocks, so the surface
  * has to read the projection rather than infer a control from the failure.
  */
+const failedWork = (first, second) => [
+  {
+    extractionJobId: EXTRACTION_JOBS.retryable,
+    itemId: first,
+    lastErrorCode: "SOURCE_FETCH_FAILED",
+    pullRequestNumber: 118,
+    recoveryAction: "RETRY_JOB",
+    retryBlocker: null,
+    retryable: true,
+    status: "FAILED",
+    updatedAt: "2026-09-01T11:00:00Z",
+  },
+  {
+    extractionJobId: EXTRACTION_JOBS.blocked,
+    itemId: second,
+    lastErrorCode: "PROVIDER_OUTCOME_UNKNOWN",
+    pullRequestNumber: 119,
+    recoveryAction: "CONTACT_SUPPORT",
+    retryBlocker: "REPOSITORY_IMPORT_JOB_NOT_RETRYABLE",
+    retryable: false,
+    status: "FAILED",
+    updatedAt: "2026-09-01T11:05:00Z",
+  },
+]
+
 export const IMPORT_FAILURES = () => ({
+  [IMPORTS.resumeBlocked]: failedWork("51", "52"),
   [IMPORTS.failed]: [
     {
       extractionJobId: EXTRACTION_JOBS.retryable,
@@ -766,4 +829,6 @@ export const SCENARIOS = {
   importFailed: () => withImport(IMPORT_RUNS.failed),
   /** Cancelled by an operator revocation, with authorization revoked. */
   importCancelled: () => withImport(IMPORT_RUNS.cancelled),
+  /** Paused with held-back source work, so resuming is forced back to paused. */
+  importResumeBlocked: () => withImport(IMPORT_RUNS.resumeBlocked),
 }

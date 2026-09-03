@@ -199,6 +199,29 @@ describe("the four cost states", () => {
     expect(amounts).toEqual(["USD 3.000000", "USD 1.000000", "USD 2.000000"])
   })
 
+  it("shows no breakdown at all when no paid work contributed", () => {
+    // With no contributing job the three components are all `0.000000`, so a
+    // breakdown would put zero-dollar measurements on screen for a state that
+    // has nothing to measure. The headline carries the explanation instead.
+    const view = costView(
+      cost("NOT_APPLICABLE", {
+        measuredUsd: "0.000000",
+        reservedUsd: "0.000000",
+        unresolvedUsd: "0.000000",
+      }),
+    )
+
+    expect(view.figures).toEqual([])
+    expect(view.headline.amount).toBeNull()
+    expect(view.headline.detail).toMatch(/No paid work has contributed/)
+  })
+
+  it("keeps the breakdown for an unresolved cost, whose parts are real", () => {
+    // Unlike not-applicable, an unresolved cost has genuine amounts. Only the
+    // single total is withheld, because none of them can stand for it.
+    expect(costView(cost("UNRESOLVED")).figures).toHaveLength(3)
+  })
+
   it("distinguishes an absent budget from a zero one", () => {
     expect(costView(cost("MEASURED", { budgetUsd: null })).budget.amount).toBeNull()
     expect(costView(cost("MEASURED", { budgetUsd: "0.000000" })).budget.amount).toBe(

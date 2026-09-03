@@ -417,17 +417,25 @@ test.describe("import recovery is only what the projection declares", () => {
     await expect(page.locator('form[action="/api/imports/retry"]')).toHaveCount(0)
   })
 
-  test("reports a blocked resume as a completed command, not a failure", async ({
+  test("reports a blocked resume as a completed command, not an unknown one", async ({
     context,
     page,
   }) => {
-    await signIn(context, { scenario: "importFailed" })
+    await signIn(context, { scenario: "importResumeBlocked" })
     await page.goto(surface)
 
-    // The failed run has dead-letter work, so the backend forces a resume back
-    // to paused. That is its own response code rather than an error.
-    const pause = page.locator('form[action="/api/imports/state"]')
-    await expect(pause).toHaveCount(0)
+    await page.getByRole("button", { name: "Resume import" }).click()
+
+    // Source work is still held back, so the backend forces the run back to
+    // paused and answers with its own receipt code. State changed, so calling
+    // it unknown would tell the customer nothing happened when something did.
+    await expect(page.getByTestId("import-outcome-resume-blocked")).toBeVisible()
+    await expect(page.getByTestId("import-outcome-resume-blocked")).toContainText(
+      "Resume was applied",
+    )
+    await expect(page.getByText("The outcome is not known yet.")).toHaveCount(0)
+    await expect(page.getByTestId("import-status")).toContainText("Import paused")
+    await expect(page.getByRole("button", { name: "Resume import" })).toBeVisible()
   })
 
   test("pauses and resumes only where the projection permits", async ({
