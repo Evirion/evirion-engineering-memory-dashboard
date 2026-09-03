@@ -52,7 +52,7 @@ These are unresolved. Do not invent an answer; carry the TODO and ask.
 | # | Decision | Owner | Blocks |
 |---|---|---|---|
 | 1 | Accessibility level. The plan and requirements say only "accessibility checks", with no WCAG level and no axe ruleset, while security names ASVS v5.0.0 Level 2 explicitly | product owner | every a11y gate in /02–/06 |
-| 2 | Customer-facing copy for the 38 published error codes | product owner | [the error vocabulary](#published-error-vocabulary-and-its-ui-treatment) |
+| 2 | Customer-facing copy for the 39 published error codes | product owner | [the error vocabulary](#published-error-vocabulary-and-its-ui-treatment) |
 | 3 | Customer-facing wording for the four confusable terms: source work, customer consent, operational authorization, paid execution | product owner | /03, /04, /06 |
 | 4 | List primitive: table or card, filter placement, pagination control | design | the four list surfaces |
 | 5 | Loading and error treatment: skeleton or spinner, banner or toast, inline or page level | design | every screen |
@@ -378,7 +378,7 @@ pending request. After success, revalidate the exact organization resource.
 
 ## Published error vocabulary and its UI treatment
 
-The backend publishes exactly 38 stable codes in
+The backend publishes exactly 39 stable codes in
 `contracts/console/v1/schemas/error.json`. The BFF maps a stable code to safe UI
 copy and status. It never forwards a raw SQL, Supabase, GitHub, worker or
 provider error, and it never invents a code.
@@ -389,7 +389,7 @@ digest moves:
 ```bash
 python3 -c "
 import json, pathlib
-root = 'vendor/console-contract-v1.0/contracts/console/v1/schemas/error.json'
+root = 'vendor/console-contract-v1.0.1/contracts/console/v1/schemas/error.json'
 d = json.loads(pathlib.Path(root).read_text())
 def find(o):
     if isinstance(o, dict):
@@ -463,6 +463,7 @@ retry.
 | `SUPERSESSION_TRAVERSAL_LIMIT` | inline, bounded chain | TODO |
 | `GITHUB_SYNC_INCOMPLETE` | inline, sync in progress | TODO |
 | `REPOSITORY_IMPORT_FILTERS_INVALID` | field level | TODO |
+| `MODEL_PROFILE_NOT_OFFERED` | field level on the profile choice, never a retry | TODO |
 | `REPOSITORY_IMPORT_JOB_NOT_RETRYABLE` | inline, no Retry control | TODO |
 | `REPOSITORY_IMPORT_NOT_CANCELLABLE` | inline | TODO |
 | `REPOSITORY_IMPORT_NOT_RESUMABLE` | inline | TODO |

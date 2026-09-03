@@ -67,35 +67,55 @@ class ConsoleContractLockTests(unittest.TestCase):
         )
         self.assertEqual(
             self.lock["sourceCommit"],
-            "20cd3b60ba4b067277e960ede99d508cf0bef70a",
+            "2458f33319b6a5b5abbe032482531ee7bf050ea7",
         )
-        self.assertEqual(self.lock["artifact"]["tag"], "console-contract-v1.0")
+        self.assertEqual(self.lock["artifact"]["tag"], "console-contract-v1.0.1")
         self.assertEqual(
-            self.lock["artifact"]["assetName"], "console-contract-v1.0.tar.gz"
+            self.lock["artifact"]["assetName"], "console-contract-v1.0.1.tar.gz"
         )
-        self.assertEqual(self.lock["artifact"]["assetId"], 540908882)
+        self.assertEqual(self.lock["artifact"]["assetId"], 542665268)
         self.assertEqual(
             self.lock["artifact"]["assetSha256"],
-            "9d562738bd315aeeb3294c5c30332f7c1155eacf1182d3f493ef804156be1039",
+            "a116ae5c6d8c31ab5a25be81489fb82218461ef738b653a50ca8a824784b7542",
         )
-        self.assertEqual(self.lock["artifact"]["bundleAssetId"], 540908884)
+        self.assertEqual(self.lock["artifact"]["bundleAssetId"], 542665267)
         self.assertEqual(
             self.lock["artifact"]["bundleSha256"],
-            "146dea292b98c9b0302ea6191a2cf27d45f9c72b66ea2027f2e129f51a7488f7",
+            "5acb5972ced5edccb44b4b6f0f9ee8d6f23d9cf143fb6383aabb214849764939",
         )
         self.assertEqual(
             self.lock["certificateIdentity"],
             "https://github.com/Evirion/evirion-engineering-memory/"
             ".github/workflows/console-contract-release.yml"
-            "@refs/tags/console-contract-v1.0",
+            "@refs/tags/console-contract-v1.0.1",
         )
         self.assertTrue(self.lock["release"]["immutable"])
 
-    def test_console_contract_content_is_unchanged(self) -> None:
+    def test_the_revision_did_not_move_the_api_version(self) -> None:
+        # The whole point of a revision tag. If this ever fails, the envelope
+        # guard in `src/server/adapters/console-api.ts` and the generated
+        # `isConsoleError` const must move with it, and every Console read
+        # breaks until the Dashboard is redeployed.
         self.assertEqual(self.lock["contract"]["contractVersion"], "1.0")
+        manifest = json.loads(
+            (
+                ROOT
+                / self.lock["consumption"]["vendoredRoot"]
+                / self.lock["contract"]["manifestPath"]
+            ).read_text(encoding="utf-8")
+        )
+        self.assertEqual(manifest["contractVersion"], "1.0")
+        self.assertIn(
+            '"1.0"',
+            (ROOT / "generated/console-contract/v1/validators.ts").read_text(
+                encoding="utf-8"
+            ),
+        )
+
+    def test_console_contract_content_is_the_consumed_revision(self) -> None:
         self.assertEqual(
             self.lock["contract"]["packageSha256"],
-            "53da9379428d8f34b7e674805019244e85ed89a7cd6f0e1d9b4a2a79b23d6b6c",
+            "29ff7b73e8a9e38850ef55e1c5b1e596a41c31f529329aca70a094087afbd713",
         )
         verify_contract_bytes(
             ROOT / self.lock["consumption"]["vendoredRoot"],

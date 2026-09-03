@@ -1,12 +1,13 @@
 {
   "schemaVersion": "1.0",
-  "recordedAt": "2026-09-02",
-  "recordedBy": "EEM-9/02 C02",
+  "recordedAt": "2026-09-03",
+  "recordedBy": "EEM-9/02 C02, re-pinned by EEM-9/03e",
   "note": "Derived, non-secret Auth settings read from the backend repository at the exact source commit the attestation-verified Console contract lock records. The values are pinned here so CI verifies Dashboard/backend Auth parity without a cross-repository read, which no Dashboard workflow token could perform. A local check re-verifies these values against the sibling bytes.",
   "source": {
     "repository": "Evirion/evirion-engineering-memory",
-    "commit": "20cd3b60ba4b067277e960ede99d508cf0bef70a",
+    "commit": "2458f33319b6a5b5abbe032482531ee7bf050ea7",
     "commitSource": "docs/contracts/console-contract-lock.json sourceCommit",
+    "commitMoveNote": "Re-pinned from 20cd3b60 when the Console contract lock moved to the console-contract-v1.0.1 revision. Both recorded files are byte-identical at the two commits, so every derived Auth value below is unchanged and no parity claim is restated on weaker evidence.",
     "files": [
       {
         "path": "supabase/config.toml",

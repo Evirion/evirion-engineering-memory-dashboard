@@ -42,6 +42,7 @@
             "VERSION_CONFLICT",
             "ORGANIZATION_LIMIT_NOT_PROVISIONED",
             "REPOSITORY_NOT_ENTITLED",
+            "MODEL_PROFILE_NOT_OFFERED",
             "REPOSITORY_LIMIT_REACHED",
             "REPOSITORY_REPLACEMENT_REQUIRES_OPERATOR",
             "REPOSITORY_ACCESS_CHANGED",
@@ -171,6 +172,15 @@
       "error": {
         "code": "REPOSITORY_NOT_ENTITLED",
         "message": "The repository is not entitled.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-00000000002b",
+      "error": {
+        "code": "MODEL_PROFILE_NOT_OFFERED",
+        "message": "A named model profile is not offered to this organization. Read the organization model profiles to see what may be consented to.",
         "retryable": false
       }
     },

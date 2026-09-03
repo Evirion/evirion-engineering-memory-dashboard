@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:organization-model-profiles",
+  "title": "Model profiles offered to one organization",
+  "description": "The model profiles an organization may name in an AUTO_EXTRACT consent, and any profile a recorded consent already names that is no longer offered. Offering a profile is not paying for it: the operator paid operation authorization remains the runtime gate.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "organizationId",
+    "modelProfiles"
+  ],
+  "properties": {
+    "organizationId": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "core.organizations.id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "modelProfiles": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "canonicalIdentifier",
+          "provider",
+          "modelId",
+          "offeringState",
+          "availability",
+          "namedByActiveConsent"
+        ],
+        "properties": {
+          "canonicalIdentifier": {
+            "type": "string",
+            "description": "The exact value to place in allowedModelProfiles and the exact value the worker presents at the paid boundary. It is stored by the registry, never composed from provider and modelId.",
+            "pattern": "^[a-z][a-z0-9_.-]{0,63}$",
+            "x-evirion-backend-projection": "core.model_profiles.canonical_identifier",
+            "x-evirion-sensitivity": "customer-safe-detail"
+          },
+          "provider": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "x-evirion-backend-projection": "core.model_profiles.provider",
+            "x-evirion-sensitivity": "customer-safe-detail"
+          },
+          "modelId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "x-evirion-backend-projection": "core.model_profiles.model_id",
+            "x-evirion-sensitivity": "customer-safe-detail"
+          },
+          "offeringState": {
+            "type": "string",
+            "description": "The platform-wide state of the model itself, independent of any organization.",
+            "enum": [
+              "AVAILABLE",
+              "DEPRECATED",
+              "RETIRED",
+              "UNSUPPORTED_SERVER_RESPONSE"
+            ],
+            "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+            "x-evirion-backend-projection": "core.model_profiles.offering_state",
+            "x-evirion-sensitivity": "customer-safe-detail"
+          },
+          "availability": {
+            "type": "string",
+            "description": "Whether this organization may name the profile in a new consent. NO_LONGER_OFFERED means the operator withdrew the grant or the platform deprecated or retired the model. Withdrawing an offer does not revoke a consent already given, so a NO_LONGER_OFFERED profile can still appear with namedByActiveConsent true.",
+            "enum": [
+              "OFFERED",
+              "NO_LONGER_OFFERED",
+              "UNSUPPORTED_SERVER_RESPONSE"
+            ],
+            "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+            "x-evirion-backend-projection": "api.list_organization_model_profiles.availability",
+            "x-evirion-sensitivity": "customer-safe-detail"
+          },
+          "namedByActiveConsent": {
+            "type": "boolean",
+            "description": "True when the organization's active live-repository consent names this profile. Combined with NO_LONGER_OFFERED it is the explicit state the Console renders instead of silently dropping the row.",
+            "x-evirion-backend-projection": "core.customer_paid_operation_consents.allowed_model_profiles",
+            "x-evirion-sensitivity": "customer-safe-detail"
+          }
+        }
+      },
+      "x-evirion-backend-projection": "api.list_organization_model_profiles.model_profiles",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    }
+  },
+  "examples": [
+    {
+      "organizationId": "00000000-0000-4000-8000-000000000301",
+      "modelProfiles": [
+        {
+          "canonicalIdentifier": "anthropic-claude-sonnet-4",
+          "provider": "anthropic",
+          "modelId": "claude-sonnet-4",
+          "offeringState": "AVAILABLE",
+          "availability": "OFFERED",
+          "namedByActiveConsent": false
+        },
+        {
+          "canonicalIdentifier": "openai-gpt-5-mini",
+          "provider": "openai",
+          "modelId": "gpt-5-mini",
+          "offeringState": "RETIRED",
+          "availability": "NO_LONGER_OFFERED",
+          "namedByActiveConsent": true
+        }
+      ]
+    },
+    {
+      "organizationId": "00000000-0000-4000-8000-000000000302",
+      "modelProfiles": []
+    }
+  ]
+}

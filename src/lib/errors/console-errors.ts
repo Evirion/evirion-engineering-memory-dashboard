@@ -3,7 +3,7 @@ import type { ConsoleError } from "@contracts/console"
 /**
  * Map a published stable error code to a safe UI treatment.
  *
- * The backend publishes 38 stable codes and declares retryability itself. The
+ * The backend publishes 39 stable codes and declares retryability itself. The
  * UI never derives retryability, and it never forwards a raw SQL, Supabase,
  * GitHub, worker or provider error. `error.message` is deliberately unused:
  * only the code decides what the customer sees.
@@ -96,6 +96,10 @@ const TREATMENTS: Readonly<Record<ConsoleErrorCode, ErrorTreatment>> = {
   IDEMPOTENCY_KEY_REUSED: "state-final",
   REPOSITORY_IMPORT_NOT_FOUND: "not-permitted",
   REPOSITORY_IMPORT_FILTERS_INVALID: "field-level",
+  // Field level rather than state final: the action is available, the named
+  // value is not, and the customer fixes it by naming a profile the
+  // organization is offered.
+  MODEL_PROFILE_NOT_OFFERED: "field-level",
 
   NEW_MODEL_CALL_NOT_AUTHORIZED: "waiting-on-evirion",
   PAID_OPERATION_NOT_AUTHORIZED: "waiting-on-evirion",

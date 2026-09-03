@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:repository-overview",
+  "title": "Repository processing and Engineering Memory overview",
+  "description": "Customer-safe counters at one cutoff. Every counter is required and is a count the backend computed at asOf, so a zero always means zero; an unavailable counter cannot be represented and fails validation instead.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "repositoryId",
+    "nameWithOwner",
+    "asOf",
+    "processing",
+    "engineeringMemory"
+  ],
+  "properties": {
+    "repositoryId": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "core.repositories.id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "nameWithOwner": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 201,
+      "x-evirion-backend-projection": "api.get_repository_overview.name_with_owner",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    },
+    "asOf": {
+      "type": "string",
+      "format": "date-time",
+      "x-evirion-backend-projection": "api.get_repository_overview.as_of",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "processing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mergedPullRequestsDiscovered",
+        "sourceEnvelopesPrepared",
+        "awaitingApproval",
+        "processing",
+        "completedRuns",
+        "rejectedRuns",
+        "quarantinedRuns",
+        "failedJobs"
+      ],
+      "properties": {
+        "mergedPullRequestsDiscovered": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "core.extraction_jobs.pull_request_id",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "sourceEnvelopesPrepared": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "core.extraction_jobs.source_status",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "awaitingApproval": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "core.extraction_jobs.model_gate_status",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "processing": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "core.extraction_jobs.status",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "completedRuns": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "core.extraction_runs.disposition",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "rejectedRuns": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "core.extraction_runs.disposition",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "quarantinedRuns": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "core.extraction_runs.disposition",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "failedJobs": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "core.extraction_jobs.status",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        }
+      },
+      "x-evirion-backend-projection": "api.get_repository_overview.processing",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "engineeringMemory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "admittedKnowledgeObjects",
+        "awaitingReview",
+        "approved",
+        "edited",
+        "userRejected",
+        "unresolved",
+        "active",
+        "superseded",
+        "withdrawn"
+      ],
+      "properties": {
+        "admittedKnowledgeObjects": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "core.admission_records.disposition",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "awaitingReview": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "core.knowledge_reviews.decision",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "approved": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "core.knowledge_reviews.decision",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "edited": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "core.knowledge_reviews.decision",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "userRejected": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "core.knowledge_reviews.decision",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "unresolved": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "core.knowledge_state_events.state",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "active": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "core.knowledge_state_events.state",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "superseded": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "core.knowledge_state_events.state",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "withdrawn": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "core.knowledge_state_events.state",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        }
+      },
+      "x-evirion-backend-projection": "api.get_repository_overview.engineering_memory",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    }
+  },
+  "examples": [
+    {
+      "repositoryId": "00000000-0000-4000-8000-000000000302",
+      "nameWithOwner": "evirion/repository",
+      "asOf": "2026-09-02T18:33:41.123456Z",
+      "processing": {
+        "mergedPullRequestsDiscovered": 12,
+        "sourceEnvelopesPrepared": 12,
+        "awaitingApproval": 1,
+        "processing": 2,
+        "completedRuns": 8,
+        "rejectedRuns": 1,
+        "quarantinedRuns": 0,
+        "failedJobs": 0
+      },
+      "engineeringMemory": {
+        "admittedKnowledgeObjects": 30,
+        "awaitingReview": 4,
+        "approved": 22,
+        "edited": 3,
+        "userRejected": 1,
+        "unresolved": 0,
+        "active": 25,
+        "superseded": 4,
+        "withdrawn": 1
+      }
+    }
+  ]
+}
