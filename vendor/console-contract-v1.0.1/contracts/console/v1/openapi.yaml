@@ -1778,6 +1778,7 @@ paths:
       responses:
         "200":
           description: Read the repository processing and Engineering Memory overview.
+          x-evirion-response-schema: "#/components/schemas/RepositoryOverview"
           headers:
             X-Request-ID:
               $ref: "#/components/headers/RequestId"
@@ -1975,6 +1976,47 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/FoundationError"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/FoundationError"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/organizations/{organizationId}/model-profiles:
+    get:
+      operationId: listOrganizationModelProfiles
+      tags:
+        - settings
+      summary: Read the model profiles this organization may consent to.
+      description: >-
+        The catalogue that populates the AUTO_EXTRACT consent envelope. Gated on
+        repository.policy.manage, the capability that writes that envelope. A
+        profile a recorded consent names but the organization may no longer pick
+        is returned with availability NO_LONGER_OFFERED rather than omitted.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationId"
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: Read the model profiles this organization may consent to.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+          x-evirion-response-schema: "#/components/schemas/OrganizationModelProfiles"
         "400":
           $ref: "#/components/responses/FoundationError"
         "401":
@@ -2491,6 +2533,8 @@ components:
       $ref: "./schemas/session-revocation.json"
     CommandReceipt:
       $ref: "./schemas/command-receipt.json"
+    OrganizationModelProfiles:
+      $ref: "./schemas/organization-model-profiles.json"
     OrganizationOffboarding:
       $ref: "./schemas/organization-offboarding.json"
     OrganizationOffboardingRequest:
@@ -2553,6 +2597,8 @@ components:
       $ref: "./schemas/repository.json"
     RepositoryEntitlementCommand:
       $ref: "./schemas/repository-entitlement-command.json"
+    RepositoryOverview:
+      $ref: "./schemas/repository-overview.json"
     RepositoryPage:
       $ref: "./schemas/repository-page.json"
     RepositoryPolicy:

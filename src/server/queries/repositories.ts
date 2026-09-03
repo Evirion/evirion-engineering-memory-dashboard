@@ -3,7 +3,13 @@ import "server-only"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 
-import type { GithubInstallation, Repository, RepositoryPage } from "@contracts/console"
+import type {
+  GithubInstallation,
+  OrganizationModelProfiles,
+  Repository,
+  RepositoryOverview,
+  RepositoryPage,
+} from "@contracts/console"
 
 import { readSession } from "@/lib/auth/session-broker"
 import { readServerEnvironment } from "@/lib/env/server"
@@ -17,7 +23,9 @@ import type { ConsoleFailure } from "@/server/adapters/console-api"
 import {
   type RepositoryScope,
   fetchGithubInstallation,
+  fetchOrganizationModelProfiles,
   fetchRepository,
+  fetchRepositoryOverview,
   fetchRepositoryPage,
   isUuid,
 } from "@/server/adapters/repositories"
@@ -40,6 +48,31 @@ export type RepositoryListView =
     }
   | { readonly status: "unavailable"; readonly failure: ViewFailure }
 
+/**
+ * The counters, resolved separately from the repository they describe.
+ *
+ * They are an EEM-9/06 block on an EEM-9/03 page, so they are the page's
+ * subordinate concern and never its precondition: a refused or unrecognised
+ * overview leaves the entitlement and policy controls fully usable and states
+ * that the counters are unavailable, which is the only honest alternative to
+ * rendering an aggregate nobody sent.
+ */
+export type RepositoryOverviewView =
+  | { readonly status: "ready"; readonly overview: RepositoryOverview }
+  | { readonly status: "unavailable"; readonly failure: ViewFailure }
+
+/**
+ * The consent catalogue, resolved separately for the same reason.
+ *
+ * When it cannot be read the consent form is withheld rather than falling back
+ * to free text. Free text is what made a typo indistinguishable from an
+ * unavailable model, and reintroducing it on a failure path would put the worst
+ * version of the feature behind the least visible condition.
+ */
+export type ModelProfileCatalogueView =
+  | { readonly status: "ready"; readonly catalogue: OrganizationModelProfiles }
+  | { readonly status: "unavailable"; readonly failure: ViewFailure }
+
 export type RepositoryDetailView =
   | {
       readonly status: "ready"
@@ -50,6 +83,8 @@ export type RepositoryDetailView =
       readonly candidates: readonly Repository[]
       /** True when the backend has more repositories than one page carries. */
       readonly candidatesTruncated: boolean
+      readonly overview: RepositoryOverviewView
+      readonly modelProfiles: ModelProfileCatalogueView
     }
   | { readonly status: "unavailable"; readonly failure: ViewFailure }
 
@@ -180,7 +215,14 @@ export const readRepositoryDetail = async (
   // The contract maximum is requested because the same response supplies the
   // change-request candidates; walking every cursor to render one page would
   // be an unbounded read, so a remaining cursor is disclosed instead.
-  const page = await fetchRepositoryPage(resolved.scope, { pageSize: 100 })
+  //
+  // Neither the overview nor the catalogue depends on the page or gates it, so
+  // all three travel together and only the page can fail the whole view.
+  const [page, overview, profiles] = await Promise.all([
+    fetchRepositoryPage(resolved.scope, { pageSize: 100 }),
+    fetchRepositoryOverview(resolved.scope, repositoryId),
+    fetchOrganizationModelProfiles(resolved.scope),
+  ])
   if (!page.ok) return { status: "unavailable", failure: describeFailure(page.failure) }
 
   return {
@@ -196,6 +238,12 @@ export const readRepositoryDetail = async (
         candidate.entitlement === null,
     ),
     candidatesTruncated: page.value.page.nextCursor !== null,
+    overview: overview.ok
+      ? { status: "ready", overview: overview.value }
+      : { status: "unavailable", failure: describeFailure(overview.failure) },
+    modelProfiles: profiles.ok
+      ? { status: "ready", catalogue: profiles.value }
+      : { status: "unavailable", failure: describeFailure(profiles.failure) },
   }
 }
 

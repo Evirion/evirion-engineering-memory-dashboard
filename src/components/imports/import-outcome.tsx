@@ -11,7 +11,7 @@ import {
  * the run back to `PAUSED` and returning its own receipt response code. That is
  * a completed command: state changed and the page below has re-read it.
  *
- * The shared reader knows the thirty-eight published error codes and the word
+ * The shared reader knows the thirty-nine published error codes and the word
  * `applied`, and nothing else, so routing a receipt code through it would fail
  * closed and tell the customer the outcome is unknown when it is not. It is
  * handled here rather than there because the shared reader is EEM-9/03's and

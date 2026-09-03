@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 import tempfile
@@ -14,6 +15,10 @@ from scripts.check_console_contract_lock import (
     verify_lock_against_policy,
     verify_recorded_evidence,
     verify_vendored_archive,
+)
+from scripts.verify_artifact_attestation import (
+    AttestationPolicyError,
+    validate_attestation_evidence,
 )
 from scripts.fetch_console_contract import (
     CREDENTIAL_VARIABLE,
@@ -62,35 +67,55 @@ class ConsoleContractLockTests(unittest.TestCase):
         )
         self.assertEqual(
             self.lock["sourceCommit"],
-            "20cd3b60ba4b067277e960ede99d508cf0bef70a",
+            "2458f33319b6a5b5abbe032482531ee7bf050ea7",
         )
-        self.assertEqual(self.lock["artifact"]["tag"], "console-contract-v1.0")
+        self.assertEqual(self.lock["artifact"]["tag"], "console-contract-v1.0.1")
         self.assertEqual(
-            self.lock["artifact"]["assetName"], "console-contract-v1.0.tar.gz"
+            self.lock["artifact"]["assetName"], "console-contract-v1.0.1.tar.gz"
         )
-        self.assertEqual(self.lock["artifact"]["assetId"], 540908882)
+        self.assertEqual(self.lock["artifact"]["assetId"], 542665268)
         self.assertEqual(
             self.lock["artifact"]["assetSha256"],
-            "9d562738bd315aeeb3294c5c30332f7c1155eacf1182d3f493ef804156be1039",
+            "a116ae5c6d8c31ab5a25be81489fb82218461ef738b653a50ca8a824784b7542",
         )
-        self.assertEqual(self.lock["artifact"]["bundleAssetId"], 540908884)
+        self.assertEqual(self.lock["artifact"]["bundleAssetId"], 542665267)
         self.assertEqual(
             self.lock["artifact"]["bundleSha256"],
-            "146dea292b98c9b0302ea6191a2cf27d45f9c72b66ea2027f2e129f51a7488f7",
+            "5acb5972ced5edccb44b4b6f0f9ee8d6f23d9cf143fb6383aabb214849764939",
         )
         self.assertEqual(
             self.lock["certificateIdentity"],
             "https://github.com/Evirion/evirion-engineering-memory/"
             ".github/workflows/console-contract-release.yml"
-            "@refs/tags/console-contract-v1.0",
+            "@refs/tags/console-contract-v1.0.1",
         )
         self.assertTrue(self.lock["release"]["immutable"])
 
-    def test_console_contract_content_is_unchanged(self) -> None:
+    def test_the_revision_did_not_move_the_api_version(self) -> None:
+        # The whole point of a revision tag. If this ever fails, the envelope
+        # guard in `src/server/adapters/console-api.ts` and the generated
+        # `isConsoleError` const must move with it, and every Console read
+        # breaks until the Dashboard is redeployed.
         self.assertEqual(self.lock["contract"]["contractVersion"], "1.0")
+        manifest = json.loads(
+            (
+                ROOT
+                / self.lock["consumption"]["vendoredRoot"]
+                / self.lock["contract"]["manifestPath"]
+            ).read_text(encoding="utf-8")
+        )
+        self.assertEqual(manifest["contractVersion"], "1.0")
+        self.assertIn(
+            '"1.0"',
+            (ROOT / "generated/console-contract/v1/validators.ts").read_text(
+                encoding="utf-8"
+            ),
+        )
+
+    def test_console_contract_content_is_the_consumed_revision(self) -> None:
         self.assertEqual(
             self.lock["contract"]["packageSha256"],
-            "53da9379428d8f34b7e674805019244e85ed89a7cd6f0e1d9b4a2a79b23d6b6c",
+            "29ff7b73e8a9e38850ef55e1c5b1e596a41c31f529329aca70a094087afbd713",
         )
         verify_contract_bytes(
             ROOT / self.lock["consumption"]["vendoredRoot"],
@@ -166,6 +191,102 @@ class ConsoleContractLockTests(unittest.TestCase):
 
             with self.assertRaisesRegex(ContractLockError, "digest drift"):
                 verify_vendored_archive(root, self.lock)
+
+
+class ContractRevisionTagGrammarTests(unittest.TestCase):
+    """The tag grammar the frozen policy admits, isolated from every other check.
+
+    Mutating only `signer.ref` would prove nothing: the exact-tag comparison
+    that runs after the pattern refuses a wrong tag anyway, so the case would
+    pass whatever the pattern said. Each candidate therefore rewrites every
+    tag-bearing field and the expectation together, leaving the grammar as the
+    only thing that can still refuse it.
+    """
+
+    TAG_BEARING = (
+        ("signer", "ref"),
+        ("release", "tag"),
+        ("release", "assetName"),
+        ("subject", "name"),
+        ("immutableReleaseAttestation", "tag"),
+        ("cryptographicVerification", "certificateIdentity"),
+    )
+
+    def setUp(self) -> None:
+        self.policy = _load("docs/security/artifact-attestation-policy.json")
+        fixture = _load("docs/security/fixtures/artifact-attestation-negative-cases.json")
+        self.artifact = next(
+            entry
+            for entry in fixture["artifacts"]
+            if entry["policyId"] == "console-contract-v1"
+        )
+        entry = self.policy["artifacts"]["console-contract-v1"]
+        self.repository = entry["repository"]
+        self.workflow_path = entry["workflowPath"]
+
+    def _validate_as(self, tag: str) -> None:
+        evidence = copy.deepcopy(self.artifact["validEvidence"])
+        reference = f"refs/tags/{tag}"
+        replacements = {
+            ("signer", "ref"): reference,
+            ("release", "tag"): tag,
+            ("release", "assetName"): f"{tag}.tar.gz",
+            ("subject", "name"): f"{tag}.tar.gz",
+            ("immutableReleaseAttestation", "tag"): tag,
+            ("cryptographicVerification", "certificateIdentity"): (
+                f"https://github.com/{self.repository}/{self.workflow_path}@{reference}"
+            ),
+        }
+        for (section, field) in self.TAG_BEARING:
+            evidence[section][field] = replacements[(section, field)]
+
+        validate_attestation_evidence(
+            self.policy,
+            evidence,
+            expected_policy_id=self.artifact["policyId"],
+            expected_subject_sha256=self.artifact["expectedSubjectSha256"],
+            expected_source_commit=self.artifact["expectedSourceCommit"],
+            expected_policy_digest=self.artifact["expectedPolicyDigest"],
+            expected_release_tag=tag,
+            expected_release_asset_id=self.artifact["expectedReleaseAssetId"],
+        )
+
+    def test_a_version_or_a_revision_tag_is_admitted(self) -> None:
+        for tag in (
+            "console-contract-v1.0",
+            "console-contract-v1.0.1",
+            "console-contract-v2.3.17",
+        ):
+            with self.subTest(tag=tag):
+                self._validate_as(tag)
+
+    def test_every_other_tag_shape_stays_refused(self) -> None:
+        # `v1.0.0` stays refused because a first release is spelled without a
+        # revision, so one set of bytes keeps exactly one tag. The rest are
+        # malformed. A foreign namespace is refused by the prefix before the
+        # pattern ever runs.
+        for tag in (
+            "console-contract-v1.0.0",
+            "console-contract-v1.0.1.1",
+            "console-contract-v1",
+            "console-contract-v1.0-rc1",
+            "console-contract-v1.0.",
+            "console-contract-v.1",
+            "console-contract-v1.0.01",
+            "other-contract-v1.0",
+        ):
+            with self.subTest(tag=tag):
+                with self.assertRaises(AttestationPolicyError):
+                    self._validate_as(tag)
+
+    def test_the_grammar_mirrors_the_backend_release_workflow(self) -> None:
+        # Backend ADR 0014 owns this grammar; this repository only mirrors it.
+        # The two are written separately, so a literal comparison is what stops
+        # them drifting into two different notions of a valid release tag.
+        self.assertEqual(
+            self.policy["artifacts"]["console-contract-v1"]["refPattern"],
+            r"^refs/tags/console-contract-v[0-9]+\.[0-9]+(\.[1-9][0-9]*)?$",
+        )
 
 
 class ConsoleClientGenerationTests(unittest.TestCase):

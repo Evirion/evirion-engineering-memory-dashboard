@@ -12,8 +12,19 @@ import {
   RequestChangeForm,
 } from "@/components/repositories/repository-actions"
 import { repositoryControls } from "@/lib/repositories/presentation"
+import type { ModelProfileCatalogueView } from "@/server/queries/repositories"
 
-import { REPOSITORIES, SCENARIOS } from "../../../tools/console-stub/fixtures.mjs"
+import {
+  MODEL_PROFILES,
+  MODEL_PROFILES_EMPTY,
+  REPOSITORIES,
+  SCENARIOS,
+} from "../../../tools/console-stub/fixtures.mjs"
+
+const offered = (): ModelProfileCatalogueView => ({
+  status: "ready",
+  catalogue: MODEL_PROFILES(),
+})
 
 /**
  * EEM-9/03 C03-5, the rendered half.
@@ -193,7 +204,7 @@ describe("the policy controls", () => {
   })
 
   it("collects every consent field automatic extraction needs", () => {
-    const rendered = markup(<ConsentForm {...context} />)
+    const rendered = markup(<ConsentForm {...context} modelProfiles={offered()} />)
 
     for (const name of [
       "allowedModelProfiles",
@@ -208,21 +219,89 @@ describe("the policy controls", () => {
   })
 
   it("says that recording consent does not authorize a paid call", () => {
-    expect(markup(<ConsentForm {...context} />)).toMatch(/consent never grants this/i)
+    expect(markup(<ConsentForm {...context} modelProfiles={offered()} />)).toMatch(
+      /consent never grants this/i,
+    )
   })
 
-  it("prefills an existing consent rather than inventing model profiles", () => {
+  it("offers the catalogue as a choice rather than as free text", () => {
+    const rendered = markup(<ConsentForm {...context} modelProfiles={offered()} />)
+
+    // Free text is what made a typo indistinguishable from an unavailable
+    // model, which is the defect this surface exists to remove.
+    expect(rendered).not.toContain('type="text" name="allowedModelProfiles"')
+    expect(rendered).toContain(
+      'type="checkbox" name="allowedModelProfiles" value="anthropic-claude-sonnet-4"',
+    )
+    expect(rendered).toContain("anthropic claude-sonnet-4")
+  })
+
+  it("posts the registry identifier, never a label composed from the parts", () => {
+    const rendered = markup(<ConsentForm {...context} modelProfiles={offered()} />)
+
+    expect(rendered).toContain('value="openai-gpt-5"')
+    expect(rendered).not.toContain('value="openai gpt-5"')
+  })
+
+  it("offers nothing the organization may no longer name", () => {
+    const rendered = markup(<ConsentForm {...context} modelProfiles={offered()} />)
+
+    expect(rendered).not.toContain("anthropic-claude-haiku-3")
+  })
+
+  it("prefills an existing consent by checking what it already names", () => {
     const rendered = markup(
-      <ConsentForm {...contextFor(find(REPOSITORIES.activeAutoExtract), OWNER)} />,
+      <ConsentForm
+        {...contextFor(find(REPOSITORIES.activeAutoExtract), OWNER)}
+        modelProfiles={offered()}
+      />,
     )
 
-    expect(rendered).toContain("standard-extraction")
+    expect(rendered).toMatch(
+      /value="anthropic-claude-sonnet-4"[^>]*checked|checked[^>]*value="anthropic-claude-sonnet-4"/,
+    )
+  })
+
+  it("withholds the form entirely when the catalogue cannot be read", () => {
+    const rendered = markup(
+      <ConsentForm
+        {...context}
+        modelProfiles={{
+          status: "unavailable",
+          failure: {
+            code: "DEPENDENCY_UNAVAILABLE",
+            treatment: "retry-bounded",
+            message: "The service is busy. Try again shortly.",
+            retryable: true,
+          },
+        }}
+      />,
+    )
+
+    // Falling back to free text here would put the worst version of the
+    // feature behind the least visible condition.
+    expect(rendered).not.toContain("<form")
+    expect(rendered).not.toContain('name="allowedModelProfiles"')
+    expect(rendered).toMatch(/cannot be read right now/i)
+    expect(rendered).toMatch(/Nothing has changed/i)
+  })
+
+  it("states plainly when nothing is offered, rather than showing an empty form", () => {
+    const rendered = markup(
+      <ConsentForm
+        {...context}
+        modelProfiles={{ status: "ready", catalogue: MODEL_PROFILES_EMPTY() }}
+      />,
+    )
+
+    expect(rendered).not.toContain("<form")
+    expect(rendered).toMatch(/No model profiles are currently offered/i)
   })
 
   it("renders no policy control for a caller without the capability", () => {
     const viewer = contextFor(find(REPOSITORIES.activeSourceOnly), VIEWER)
 
     expect(markup(<PolicyForm {...viewer} />)).toBe("")
-    expect(markup(<ConsentForm {...viewer} />)).toBe("")
+    expect(markup(<ConsentForm {...viewer} modelProfiles={offered()} />)).toBe("")
   })
 })

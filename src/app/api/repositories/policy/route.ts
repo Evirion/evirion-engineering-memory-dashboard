@@ -8,6 +8,7 @@ import {
 import {
   type LiveRepositoryConsent,
   type RepositoryPolicyMode,
+  fetchOrganizationModelProfiles,
   updateRepositoryProcessingPolicy,
 } from "@/server/adapters/repositories"
 
@@ -41,13 +42,20 @@ const expiry = (raw: string): string | undefined => {
 /**
  * Exported so the contract's edges are provable without a running server.
  * Every rule here mirrors the consent schema; nothing is a house preference.
+ *
+ * `offered` is the set of canonical identifiers the organization may name,
+ * read from the published catalogue. Membership is checked in addition to the
+ * contract pattern, not instead of it: the pattern bounds the shape of a value
+ * and the catalogue bounds which values exist. An unoffered profile refused
+ * here never becomes a consent the paid gate would later refuse anyway.
  */
 export const readConsentFields = (
   form: FormData,
+  offered: ReadonlySet<string>,
 ): LiveRepositoryConsent | undefined => {
-  const profiles = String(form.get("allowedModelProfiles") ?? "")
-    .split(",")
-    .map((profile) => profile.trim())
+  const profiles = form
+    .getAll("allowedModelProfiles")
+    .map((profile) => String(profile).trim())
     .filter((profile) => profile !== "")
 
   const callCeiling = Number(form.get("callCeiling"))
@@ -62,6 +70,7 @@ export const readConsentFields = (
     // rather than a stronger consent, and it is refused rather than collapsed.
     new Set(profiles).size !== profiles.length ||
     !profiles.every((profile) => MODEL_PROFILE.test(profile)) ||
+    !profiles.every((profile) => offered.has(profile)) ||
     !Number.isInteger(callCeiling) ||
     callCeiling < 1 ||
     callCeiling > 1000000000 ||
@@ -105,9 +114,30 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
     return refuseRepositoryCommand(fields.repositoryId, "REQUEST_INVALID")
   }
 
-  const consent = mode === "AUTO_EXTRACT" ? readConsentFields(fields.form) : null
-  if (mode === "AUTO_EXTRACT" && consent === undefined) {
-    return refuseRepositoryCommand(fields.repositoryId, "REQUEST_INVALID")
+  let consent: LiveRepositoryConsent | null = null
+  if (mode === "AUTO_EXTRACT") {
+    // Read the catalogue before validating, so an unoffered profile is refused
+    // against the published set rather than against the shape of the string.
+    // A catalogue that cannot be read is not an empty catalogue: consenting to
+    // nothing and being unable to check are different answers, and only the
+    // second is a dependency failure.
+    const catalogue = await fetchOrganizationModelProfiles(scope)
+    if (!catalogue.ok) {
+      // A real backend failure, so it travels back as the code the backend
+      // actually produced rather than as a locally invented refusal.
+      return finishRepositoryCommand(fields.repositoryId, catalogue)
+    }
+
+    const offered = new Set(
+      catalogue.value.modelProfiles
+        .filter((profile) => profile.availability === "OFFERED")
+        .map((profile) => profile.canonicalIdentifier),
+    )
+    const parsed = readConsentFields(fields.form, offered)
+    if (parsed === undefined) {
+      return refuseRepositoryCommand(fields.repositoryId, "REQUEST_INVALID")
+    }
+    consent = parsed
   }
 
   return finishRepositoryCommand(
@@ -116,7 +146,7 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
       repositoryId: fields.repositoryId,
       expectedVersion: fields.expectedVersion,
       mode,
-      consent: consent ?? null,
+      consent,
       idempotencyKey: fields.idempotencyKey,
     }),
   )

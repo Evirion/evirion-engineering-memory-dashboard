@@ -1,6 +1,6 @@
 # Dashboard roadmap
 
-Updated: 2026-09-02
+Updated: 2026-09-03
 
 The accepted Console program is delivered as sequential numbered PRs in each
 repository. Every branch starts from updated `main`; branches are not stacked.
@@ -39,10 +39,14 @@ the [controlling EEM-9 plan](plans/active/eem-9-design-partner-console-dashboard
    [#7](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/7)
    and
    [#8](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/8).
-7. `EEM-9/04-import-operations` is implemented and locally verified on its
-   branch. It is not merged and no pull request exists. Its Definition-of-Done
-   trace is
+7. `EEM-9/04-import-operations` is merged as PR
+   [#9](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/9)
+   at `6467a74`. Its Definition-of-Done trace is
    [`eem-9-04-acceptance-trace.md`](plans/active/eem-9-04-acceptance-trace.md).
+8. `EEM-9/03e-console-contract-revision` is implemented and locally verified on
+   its branch. It is not merged and no pull request exists. It consumes
+   `console-contract-v1.0.1` and closes both contract gaps below. Its trace is
+   [`eem-9-03e-acceptance-trace.md`](plans/active/eem-9-03e-acceptance-trace.md).
 
 All EEM-4 subtasks are merged in the backend as PRs
 [#26](https://github.com/Evirion/evirion-engineering-memory/pull/26)–[#29](https://github.com/Evirion/evirion-engineering-memory/pull/29),
@@ -72,15 +76,12 @@ exists.
 Backend EEM-3/13 is merged and locally reverified. Its EEM-3 global lock graph
 is a continuing release invariant for every later backend mutation.
 
-Two contract gaps found during `EEM-9/03` block work that `EEM-9/06` owns. The
-contract publishes no repository-overview schema, so the counters open decision
-6 asks about cannot be validated by either subtask, and the model profiles an
-`AUTO_EXTRACT` consent may name are neither enumerated nor expressible in the
-format the worker uses. Both need a backend contract change and a new frozen
-digest. They are tracked as backend issues
+The two contract gaps found during `EEM-9/03` are closed. Backend issues
 [#53](https://github.com/Evirion/evirion-engineering-memory/issues/53) and
-[#54](https://github.com/Evirion/evirion-engineering-memory/issues/54), and both
-should be resolved before `EEM-9/06` starts.
+[#54](https://github.com/Evirion/evirion-engineering-memory/issues/54) published
+`repository-overview.json` and `organization-model-profiles.json` in
+`console-contract-v1.0.1`, and `EEM-9/03e` consumes both. `EEM-9/06` no longer
+inherits either gap.
 
 ## EEM-9/04 is not blocked by `EEM-7/05`
 
@@ -122,6 +123,39 @@ That subtask carries three UI changes beyond the consumption itself:
   validation in the policy route;
 - a recorded consent naming a profile no longer in the organization's allowlist
   rendered as an explicit state rather than as an ordinary row.
+
+It is delivered as `EEM-9/03e-console-contract-revision`, and it carried a
+fourth change nobody anticipated. The frozen trust policy admitted only a
+two-component release tag, so it could not verify a revision at all. Amending it
+to mirror backend ADR 0014 is the first commit on that branch and is recorded as
+[ADR-0005](decisions/0005-console-contract-release-revisions.md). It could not
+be a separate earlier pull request: the lock and the recorded evidence both pin
+`policyDigest`, so a policy-only change would land a default branch whose own
+gate fails.
+
+### No successor pointer follows EEM-9/03e
+
+Owner decision of 2026-09-03, taken on the authority digest this subtask
+produces. It is recorded because the absence of a paired backend pull request
+should read as a decision rather than as an omission.
+
+The backend pointer reads the Dashboard commit it pins rather than Dashboard
+`main`, so it keeps verifying as this repository moves, and it was reverified
+after this subtask's changes. Fifteen commits have landed on Dashboard `main`
+since the pointer was set at `a6665b5` by backend PR
+[#52](https://github.com/Evirion/evirion-engineering-memory/pull/52), spanning
+`EEM-9/02` through `EEM-9/04`, and none was followed by a successor pointer. The
+pointer is re-pinned when the controlling EEM-9 authority moves, not on every
+merge, and this subtask leaves the controlling plan untouched.
+
+No digest is quoted here on purpose. Recording one would be stale the moment
+this paragraph changed the authority package it names.
+
+The consequence accepted with the decision: a reader arriving from the backend
+pointer lands on the EEM-9/01b tree, so they see neither the amended trust
+policy nor the `EEM-9/03e` catalog entry until a later subtask re-pins. That
+costs discoverability and nothing else; every gate in both repositories passes
+either way.
 
 Technical Design Partner Ready and paid readiness remain false. In particular,
 `SEC-2026-012`, staging evidence, external manual verification, paid

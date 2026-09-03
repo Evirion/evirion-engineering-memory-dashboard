@@ -139,7 +139,7 @@ test.describe("journey_open_one_repository", () => {
       "Active",
     )
     await expect(page.getByRole("region", { name: "Recorded consent" })).toContainText(
-      "standard-extraction",
+      "anthropic-claude-sonnet-4",
     )
   })
 
@@ -175,7 +175,15 @@ test.describe("journey_open_one_repository", () => {
     await expect(notice.getByRole("button")).toHaveCount(0)
   })
 
-  test("shows no repository counters, because the contract publishes none", async ({
+  /**
+   * Replaces the EEM-9/03 test that asserted counters were absent.
+   *
+   * That test was right while the contract published no schema for them. Now
+   * that `repository-overview.json` exists, absence would be the defect, so the
+   * assertion is inverted rather than dropped: the counters render, they come
+   * from the backend, and the state where they cannot be read is still not zero.
+   */
+  test("shows the repository counters the contract now publishes", async ({
     context,
     page,
   }) => {
@@ -184,10 +192,49 @@ test.describe("journey_open_one_repository", () => {
     await page.goto("/repositories")
     await page.getByRole("link", { name: "acme/console" }).click()
 
-    // Open decision 6 is blocked on a contract gap. Nothing here may invent a
-    // count, and an unavailable aggregate must never render as zero.
-    await expect(page.getByText(/merged pull requests discovered/i)).toHaveCount(0)
-    await expect(page.getByText(/knowledge objects/i)).toHaveCount(0)
+    const counters = page.getByRole("region", { name: "Repository counters" })
+    await expect(counters).toContainText("Merged pull requests discovered")
+    await expect(counters).toContainText("Knowledge Objects admitted")
+    // The cutoff is part of the figure: two taken at different times are not
+    // comparable, so the page states the one it rendered.
+    await expect(counters).toContainText("2026-09-02T18:33:41.123456Z")
+  })
+
+  test("keeps machine dispositions out of the Knowledge Object count", async ({
+    context,
+    page,
+  }) => {
+    await signIn(context)
+
+    await page.goto("/repositories")
+    await page.getByRole("link", { name: "acme/console" }).click()
+
+    const processing = page.getByRole("region", { name: "Processing" })
+    const memory = page.getByRole("region", { name: "Engineering Memory" })
+
+    await expect(processing).toContainText("Runs the model rejected")
+    await expect(processing).toContainText("Runs quarantined as invalid")
+    await expect(processing).toContainText("never become Knowledge Objects")
+    await expect(memory).not.toContainText("quarantined")
+  })
+
+  test("renders an unreadable overview as an explicit state, never as zero", async ({
+    context,
+    page,
+  }) => {
+    await signIn(context, { scenario: "overviewUnavailable" })
+
+    await page.goto("/repositories")
+    await page.getByRole("link", { name: "acme/console" }).click()
+
+    const counters = page.getByRole("region", { name: "Repository counters" })
+    await expect(counters).toContainText("unavailable count is not a count of zero")
+    await expect(counters).not.toContainText("Knowledge Objects admitted")
+
+    // The counters failing must not take the page's own controls with them.
+    await expect(
+      page.getByRole("region", { name: "What each step means" }),
+    ).toContainText("Source work")
   })
 })
 

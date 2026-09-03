@@ -6,7 +6,9 @@ import {
   disableRepositoryEntitlement,
   fetchGithubInstallation,
   fetchGithubSyncRun,
+  fetchOrganizationModelProfiles,
   fetchRepository,
+  fetchRepositoryOverview,
   fetchRepositoryPage,
   isUuid,
   requestRepositoryEntitlementChange,
@@ -105,6 +107,33 @@ const setupIntent = {
   status: "CREATED",
 }
 
+const overview = {
+  repositoryId: REPOSITORY,
+  nameWithOwner: "acme/console",
+  asOf: "2026-09-02T18:33:41.123456Z",
+  processing: {
+    mergedPullRequestsDiscovered: 12,
+    sourceEnvelopesPrepared: 12,
+    awaitingApproval: 1,
+    processing: 2,
+    completedRuns: 8,
+    rejectedRuns: 1,
+    quarantinedRuns: 0,
+    failedJobs: 0,
+  },
+  engineeringMemory: {
+    admittedKnowledgeObjects: 30,
+    awaitingReview: 4,
+    approved: 22,
+    edited: 3,
+    userRejected: 1,
+    unresolved: 0,
+    active: 25,
+    superseded: 4,
+    withdrawn: 1,
+  },
+}
+
 const recordingTransport = (
   payload: unknown,
 ): { transport: ConsoleTransport; calls: { url: string; init: RequestInit }[] } => {
@@ -175,6 +204,92 @@ describe("repository reads", () => {
     })
 
     const result = await fetchRepository(scope, REPOSITORY, transport)
+
+    expect(result).toEqual({ ok: false, failure: { kind: "unsupported", status: 200 } })
+  })
+
+  it("reads the repository overview at the backend's own cutoff", async () => {
+    const { transport, calls } = recordingTransport(overview)
+
+    const result = await fetchRepositoryOverview(scope, REPOSITORY, transport)
+
+    expect(result).toEqual({ ok: true, value: overview, requestId: REQUEST_ID })
+    // `asOf` is an optional contract parameter and the Console never sends one.
+    // Asking for a cutoff would make the page assert a consistency the backend
+    // is the only party able to establish.
+    expect(calls[0]?.url).toBe(
+      `https://api.evirion.test/v1/organizations/${ORGANIZATION}` +
+        `/repositories/${REPOSITORY}/overview`,
+    )
+    expect(calls[0]?.init.method).toBe("GET")
+  })
+
+  it("fails closed on an overview missing a counter rather than reading it as zero", async () => {
+    // The schema requires all seventeen, so an unavailable counter cannot be
+    // represented. That is what makes a rendered zero always a real zero.
+    const incomplete = {
+      ...overview,
+      engineeringMemory: { ...overview.engineeringMemory, withdrawn: undefined },
+    }
+    const { transport } = recordingTransport(incomplete)
+
+    const result = await fetchRepositoryOverview(scope, REPOSITORY, transport)
+
+    expect(result).toEqual({ ok: false, failure: { kind: "unsupported", status: 200 } })
+  })
+
+  it("fails closed on a null counter rather than coercing it", async () => {
+    const { transport } = recordingTransport({
+      ...overview,
+      processing: { ...overview.processing, failedJobs: null },
+    })
+
+    const result = await fetchRepositoryOverview(scope, REPOSITORY, transport)
+
+    expect(result).toEqual({ ok: false, failure: { kind: "unsupported", status: 200 } })
+  })
+
+  it("reads the organization model profile catalogue", async () => {
+    const catalogue = {
+      organizationId: ORGANIZATION,
+      modelProfiles: [
+        {
+          canonicalIdentifier: "anthropic-claude-sonnet-4",
+          provider: "anthropic",
+          modelId: "claude-sonnet-4",
+          offeringState: "AVAILABLE",
+          availability: "OFFERED",
+          namedByActiveConsent: false,
+        },
+      ],
+    }
+    const { transport, calls } = recordingTransport(catalogue)
+
+    const result = await fetchOrganizationModelProfiles(scope, transport)
+
+    expect(result).toEqual({ ok: true, value: catalogue, requestId: REQUEST_ID })
+    expect(calls[0]?.url).toBe(
+      `https://api.evirion.test/v1/organizations/${ORGANIZATION}/model-profiles`,
+    )
+    expect(calls[0]?.init.method).toBe("GET")
+  })
+
+  it("fails closed on an availability the contract does not publish", async () => {
+    const { transport } = recordingTransport({
+      organizationId: ORGANIZATION,
+      modelProfiles: [
+        {
+          canonicalIdentifier: "anthropic-claude-sonnet-4",
+          provider: "anthropic",
+          modelId: "claude-sonnet-4",
+          offeringState: "AVAILABLE",
+          availability: "PROBABLY",
+          namedByActiveConsent: false,
+        },
+      ],
+    })
+
+    const result = await fetchOrganizationModelProfiles(scope, transport)
 
     expect(result).toEqual({ ok: false, failure: { kind: "unsupported", status: 200 } })
   })

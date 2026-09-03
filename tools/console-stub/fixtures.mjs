@@ -195,7 +195,9 @@ const baseRepositories = () => [
     },
     policy: { mode: "AUTO_EXTRACT", version: 6 },
     effectiveConsent: {
-      allowedModelProfiles: ["standard-extraction"],
+      // A registry canonical identifier, which is what the catalogue offers
+      // and what the worker presents at the paid boundary.
+      allowedModelProfiles: ["anthropic-claude-sonnet-4"],
       budgetCeilingUsd: "40.000000",
       callCeiling: 250,
       expiresAt: "2026-12-31T23:59:59Z",
@@ -640,6 +642,136 @@ const installationConnected = () => ({
   setupIntent: null,
 })
 
+/**
+ * Counters for one repository at one cutoff.
+ *
+ * Every counter is required by the schema, so there is no "unavailable" value
+ * to fixture. A backend that cannot compute one produces a document the
+ * validator refuses, which the `overviewError` scenario drives instead.
+ */
+const repositoryOverview = (repositoryId, nameWithOwner, overrides = {}) => ({
+  repositoryId,
+  nameWithOwner,
+  asOf: "2026-09-02T18:33:41.123456Z",
+  processing: {
+    mergedPullRequestsDiscovered: 12,
+    sourceEnvelopesPrepared: 12,
+    awaitingApproval: 1,
+    processing: 2,
+    completedRuns: 8,
+    rejectedRuns: 1,
+    // A real zero, so the browser gate can tell a genuine count of none from a
+    // blank and from an unavailable aggregate rendered as zero.
+    quarantinedRuns: 0,
+    failedJobs: 0,
+    ...overrides.processing,
+  },
+  engineeringMemory: {
+    admittedKnowledgeObjects: 30,
+    awaitingReview: 4,
+    approved: 22,
+    edited: 3,
+    userRejected: 1,
+    unresolved: 0,
+    active: 25,
+    superseded: 4,
+    withdrawn: 1,
+    ...overrides.engineeringMemory,
+  },
+})
+
+const modelProfile = (
+  canonicalIdentifier,
+  provider,
+  modelId,
+  offeringState,
+  availability,
+  namedByActiveConsent,
+) => ({
+  canonicalIdentifier,
+  provider,
+  modelId,
+  offeringState,
+  availability,
+  namedByActiveConsent,
+})
+
+/**
+ * The catalogue an `AUTO_EXTRACT` consent may name.
+ *
+ * The identifier is the registry's and is never composed from provider and
+ * model. `acme/analytics` consents to `anthropic-claude-sonnet-4`, so the
+ * default catalogue marks that one as named by an active consent.
+ */
+export const MODEL_PROFILES = () => ({
+  organizationId: ORGANIZATION,
+  modelProfiles: [
+    modelProfile(
+      "anthropic-claude-sonnet-4",
+      "anthropic",
+      "claude-sonnet-4",
+      "AVAILABLE",
+      "OFFERED",
+      true,
+    ),
+    modelProfile("openai-gpt-5", "openai", "gpt-5", "AVAILABLE", "OFFERED", false),
+    modelProfile(
+      "openai-gpt-5-mini",
+      "openai",
+      "gpt-5-mini",
+      "DEPRECATED",
+      "OFFERED",
+      false,
+    ),
+    // Withdrawn and named by nobody: simply not offered, and not surfaced.
+    modelProfile(
+      "anthropic-claude-haiku-3",
+      "anthropic",
+      "claude-haiku-3",
+      "RETIRED",
+      "NO_LONGER_OFFERED",
+      false,
+    ),
+  ],
+})
+
+/**
+ * The same catalogue where a live consent names a profile that was withdrawn.
+ *
+ * Withdrawing an offer does not revoke consent, so this pairs
+ * `NO_LONGER_OFFERED` with `namedByActiveConsent`, which is the combination the
+ * Console must render as its own state.
+ */
+export const MODEL_PROFILES_WITH_RETIRED = () => ({
+  organizationId: ORGANIZATION,
+  modelProfiles: [
+    modelProfile("openai-gpt-5", "openai", "gpt-5", "AVAILABLE", "OFFERED", false),
+    modelProfile(
+      "anthropic-claude-sonnet-4",
+      "anthropic",
+      "claude-sonnet-4",
+      "RETIRED",
+      "NO_LONGER_OFFERED",
+      true,
+    ),
+  ],
+})
+
+/** An organization offered nothing at all: a fact, not a failure. */
+export const MODEL_PROFILES_EMPTY = () => ({
+  organizationId: ORGANIZATION,
+  modelProfiles: [],
+})
+
+/** One overview per repository the inventory carries. */
+export const OVERVIEWS = () =>
+  Object.fromEntries(
+    baseRepositories().map((repository) => [
+      repository.id,
+      repositoryOverview(repository.id, repository.nameWithOwner),
+    ]),
+  )
+
 /** A connected organization whose one active repository carries `run`. */
 const withImport = (run) => ({
   repositories: baseRepositories(),
@@ -810,6 +942,61 @@ export const SCENARIOS = {
     },
     installation: installationConnected(),
     pageSize: 50,
+  }),
+
+  /** A live consent names a profile the organization may no longer pick. */
+  retiredModelProfile: () => ({
+    repositories: baseRepositories(),
+    limit: {
+      maxActiveRepositories: 5,
+      mode: "FIXED",
+      replacementMode: "SELF_SERVICE",
+    },
+    installation: installationConnected(),
+    pageSize: 50,
+    modelProfiles: MODEL_PROFILES_WITH_RETIRED(),
+  }),
+
+  /** Nothing is offered, so there is nothing to consent to. */
+  noModelProfiles: () => ({
+    repositories: baseRepositories(),
+    limit: {
+      maxActiveRepositories: 5,
+      mode: "FIXED",
+      replacementMode: "SELF_SERVICE",
+    },
+    installation: installationConnected(),
+    pageSize: 50,
+    modelProfiles: MODEL_PROFILES_EMPTY(),
+  }),
+
+  /** The catalogue cannot be read, so no consent may be offered at all. */
+  modelProfilesUnavailable: () => ({
+    repositories: baseRepositories(),
+    limit: {
+      maxActiveRepositories: 5,
+      mode: "FIXED",
+      replacementMode: "SELF_SERVICE",
+    },
+    installation: installationConnected(),
+    pageSize: 50,
+    modelProfilesError: "DEPENDENCY_UNAVAILABLE",
+  }),
+
+  /**
+   * The counters cannot be read. The rest of the repository page must stay
+   * fully usable, and nothing may appear as zero.
+   */
+  overviewUnavailable: () => ({
+    repositories: baseRepositories(),
+    limit: {
+      maxActiveRepositories: 5,
+      mode: "FIXED",
+      replacementMode: "SELF_SERVICE",
+    },
+    installation: installationConnected(),
+    pageSize: 50,
+    overviewError: "DEPENDENCY_UNAVAILABLE",
   }),
 
   /** No import prepared yet, which is the empty state and not a refusal. */

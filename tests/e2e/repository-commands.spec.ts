@@ -151,7 +151,7 @@ test.describe("policy and consent", () => {
     await page.goto(detail(REPOSITORIES.activeSourceOnly))
 
     await page.getByText("Turn on automatic extraction", { exact: true }).click()
-    await page.getByLabel("Model profiles, comma separated").fill("standard-extraction")
+    await page.getByLabel("anthropic claude-sonnet-4").check()
     await page.getByLabel("Maximum model calls").fill("50")
     await page.getByLabel("Maximum budget in USD").fill("12.5")
     await page.getByLabel("Expires").fill("2027-01-01T00:00")
@@ -178,7 +178,7 @@ test.describe("policy and consent", () => {
 
     await page.getByText("Turn on automatic extraction", { exact: true }).click()
     // An expiry in the past is not a consent the backend could honour.
-    await page.getByLabel("Model profiles, comma separated").fill("standard-extraction")
+    await page.getByLabel("anthropic claude-sonnet-4").check()
     await page.getByLabel("Expires").fill("2020-01-01T00:00")
     await page
       .getByRole("button", { name: "Record consent and turn on automatic extraction" })
@@ -186,6 +186,113 @@ test.describe("policy and consent", () => {
 
     await expect(page.getByText("REQUEST_INVALID")).toBeVisible()
     await expect(page.getByText("Active, source only")).toBeVisible()
+  })
+
+  test("refuses a profile the organization is not offered", async ({
+    context,
+    page,
+  }) => {
+    await signIn(context)
+    await page.goto(detail(REPOSITORIES.activeSourceOnly))
+
+    await page.getByText("Turn on automatic extraction", { exact: true }).click()
+
+    // The withdrawn profile is not offered, so the form cannot express it. It
+    // is injected into the real form and submitted through the real browser
+    // path, because hiding a choice is a convenience and the BFF is the
+    // control. Anyone can post this; what matters is that it is refused.
+    await expect(page.getByLabel("anthropic claude-haiku-3")).toHaveCount(0)
+    await page.getByLabel("Maximum model calls").fill("50")
+    await page.getByLabel("Maximum budget in USD").fill("12.5")
+    await page.getByLabel("Expires").fill("2027-01-01T00:00")
+    await page.evaluate(() => {
+      const form = document.querySelector<HTMLFormElement>(
+        'form[action="/api/repositories/policy"]',
+      )
+      const injected = document.createElement("input")
+      injected.type = "hidden"
+      injected.name = "allowedModelProfiles"
+      injected.value = "anthropic-claude-haiku-3"
+      form?.append(injected)
+    })
+    await page
+      .getByRole("button", { name: "Record consent and turn on automatic extraction" })
+      .click()
+
+    await expect(page.getByText("REQUEST_INVALID")).toBeVisible()
+    await expect(page.getByText("Active, source only")).toBeVisible()
+  })
+
+  test("shows a withdrawn profile a live consent names as its own state", async ({
+    context,
+    page,
+  }) => {
+    await signIn(context, { scenario: "retiredModelProfile" })
+    await page.goto(detail(REPOSITORIES.activeAutoExtract))
+
+    const consent = page.getByRole("region", { name: "Recorded consent" })
+    await expect(consent).toContainText("no longer offers")
+    await expect(consent).toContainText("anthropic claude-sonnet-4")
+    // A state the customer cannot fix, so it offers no control that pretends
+    // the withdrawn profile is still selectable.
+    await expect(consent).toContainText("nothing to fix here")
+    await expect(consent.getByRole("button")).toHaveCount(0)
+  })
+
+  test("withholds the consent form when the catalogue cannot be read", async ({
+    context,
+    page,
+  }) => {
+    await signIn(context, { scenario: "modelProfilesUnavailable" })
+    await page.goto(detail(REPOSITORIES.activeSourceOnly))
+
+    const section = page.getByRole("region", { name: "Turn on automatic extraction" })
+    await expect(section).toContainText("cannot be read right now")
+    await expect(page.getByLabel("Maximum model calls")).toHaveCount(0)
+
+    // The rest of the page is untouched by a catalogue that will not load.
+    await expect(page.getByText("Active, source only")).toBeVisible()
+  })
+
+  test("records no consent at all while the catalogue cannot be read", async ({
+    context,
+    page,
+  }) => {
+    await signIn(context, { scenario: "modelProfilesUnavailable" })
+    await page.goto(detail(REPOSITORIES.activeSourceOnly))
+
+    // Withholding the form is a convenience. This crafts the submission the
+    // form will not make, so the refusal is proved to come from the BFF: an
+    // unreadable catalogue is not an empty one, and consent recorded without a
+    // membership check is exactly what this surface exists to prevent.
+    await page.evaluate(() => {
+      const form = document.querySelector<HTMLFormElement>(
+        'form[action="/api/repositories/policy"]',
+      )
+      const fields: Record<string, string> = {
+        mode: "AUTO_EXTRACT",
+        allowedModelProfiles: "anthropic-claude-sonnet-4",
+        callCeiling: "50",
+        budgetCeilingUsd: "12.500000",
+        retryPolicy: "NO_RETRY",
+        expiresAt: "2027-01-01T00:00",
+      }
+      form?.querySelector('[name="mode"]')?.remove()
+      for (const [name, value] of Object.entries(fields)) {
+        const input = document.createElement("input")
+        input.type = "hidden"
+        input.name = name
+        input.value = value
+        form?.append(input)
+      }
+      form?.requestSubmit()
+    })
+
+    await expect(page.getByText("DEPENDENCY_UNAVAILABLE")).toBeVisible()
+    await expect(page.getByText("Active, source only")).toBeVisible()
+    await expect(page.getByRole("region", { name: "Recorded consent" })).toContainText(
+      "No consent is recorded",
+    )
   })
 })
 

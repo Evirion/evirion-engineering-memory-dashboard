@@ -5,13 +5,17 @@ import {
   type GithubInstallation,
   type GithubSetupIntent,
   type GithubSyncRun,
+  type OrganizationModelProfiles,
   type Repository,
+  type RepositoryOverview,
   type RepositoryPage,
   isCommandReceipt,
   isGithubInstallation,
   isGithubSetupIntent,
   isGithubSyncRun,
+  isOrganizationModelProfiles,
   isRepository,
+  isRepositoryOverview,
   isRepositoryPage,
 } from "@contracts/console"
 
@@ -159,6 +163,44 @@ export const fetchRepository = (
   transport?: ConsoleTransport,
 ): Promise<ConsoleResult<Repository>> =>
   read(scope, repositoryPath(scope, repositoryId), isRepository, transport)
+
+/**
+ * Repository processing and Engineering Memory counters at one cutoff.
+ *
+ * The contract publishes an optional `asOf` and the Console never sends one.
+ * The backend picks the cutoff, returns it, and the page renders the value it
+ * was given; supplying one would make the Console assert a consistency only
+ * the backend can establish.
+ */
+export const fetchRepositoryOverview = (
+  scope: RepositoryScope,
+  repositoryId: string,
+  transport?: ConsoleTransport,
+): Promise<ConsoleResult<RepositoryOverview>> =>
+  read(
+    scope,
+    repositoryPath(scope, repositoryId, "/overview"),
+    isRepositoryOverview,
+    transport,
+  )
+
+/**
+ * The model profiles this organization may name in an `AUTO_EXTRACT` consent.
+ *
+ * The contract gates this on `repository.policy.manage`, the same capability
+ * that writes the consent envelope, and returns a profile a recorded consent
+ * still names even once the organization may no longer pick it.
+ */
+export const fetchOrganizationModelProfiles = (
+  scope: RepositoryScope,
+  transport?: ConsoleTransport,
+): Promise<ConsoleResult<OrganizationModelProfiles>> =>
+  read(
+    scope,
+    organizationPath(scope, "/model-profiles"),
+    isOrganizationModelProfiles,
+    transport,
+  )
 
 export const fetchGithubInstallation = (
   scope: RepositoryScope,

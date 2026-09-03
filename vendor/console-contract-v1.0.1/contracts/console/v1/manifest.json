@@ -4,7 +4,7 @@
   "files": [
     {
       "path": "contracts/console/v1/openapi.yaml",
-      "sha256": "b87075be564327a76839c0bd02c7cb9f47519a8d5e7d2d7e4f256ea48c04eff8"
+      "sha256": "775bde95ff11d2ddb78644833fd8eee46dbc45e9a3f6c8ac6a7b03e254c649d7"
     },
     {
       "path": "contracts/console/v1/schemas/command-receipt.json",
@@ -12,7 +12,7 @@
     },
     {
       "path": "contracts/console/v1/schemas/error.json",
-      "sha256": "3fdb25470948e3166e906403b6e9db6bf68a892d9a0a05d89ea1b8d11af495c9"
+      "sha256": "229c1e1a00791c37e8db9e12ccc2507342d395043735c4d031278adcbc051a20"
     },
     {
       "path": "contracts/console/v1/schemas/github-installation.json",
@@ -35,6 +35,10 @@
       "sha256": "e5dfdb5e5a9932270ca5fae0a80e58be849a78a361a517316fc9890656376c8a"
     },
     {
+      "path": "contracts/console/v1/schemas/organization-model-profiles.json",
+      "sha256": "51fe3aed6f61323736a32f92c09a69e715133a701f3f4ec052fb01512668e041"
+    },
+    {
       "path": "contracts/console/v1/schemas/organization-offboarding.json",
       "sha256": "f2e84861ddbba90b12dc0f4c51c3967f4e6d5153a2f397ffcab818db8467aec3"
     },
@@ -53,6 +57,10 @@
     {
       "path": "contracts/console/v1/schemas/repository-import.json",
       "sha256": "4767a51af01c0da4e4d099fc190d24c2b77dbda64251603cb5b64739335d7857"
+    },
+    {
+      "path": "contracts/console/v1/schemas/repository-overview.json",
+      "sha256": "df84d298f6f2b1e2bc2483a8295871decab164875ae4bcbc0b489a6c4a5f5734"
     },
     {
       "path": "contracts/console/v1/schemas/repository-page.json",
@@ -83,6 +91,6 @@
       "sha256": "94a0b134a959a3ae220150f25fb7ec98f71da1a7a9fa2e7be30295625ca7018f"
     }
   ],
-  "packageSha256": "53da9379428d8f34b7e674805019244e85ed89a7cd6f0e1d9b4a2a79b23d6b6c",
+  "packageSha256": "29ff7b73e8a9e38850ef55e1c5b1e596a41c31f529329aca70a094087afbd713",
   "schemaVersion": "1.0"
 }

@@ -12,6 +12,7 @@ import {
   RequestChangeForm,
 } from "@/components/repositories/repository-actions"
 import { RepositoryAxisList } from "@/components/repositories/repository-axes"
+import { RepositoryCounters } from "@/components/repositories/repository-counters"
 import {
   BackToRepositories,
   ChangeRequestNotice,
@@ -39,10 +40,12 @@ const mintIdempotencyKeys = (): Record<string, string> =>
 /**
  * One repository: access versus entitlement versus policy.
  *
- * Repository counters are deliberately absent. Open decision 6 asks whether
- * they belong here, and it cannot be answered yet: the contract publishes no
- * schema for them, so neither this subtask nor EEM-9/06 can validate such a
- * response. That gap is recorded in the EEM-9/03 acceptance trace.
+ * The repository counters are EEM-9/06 content on an EEM-9/03 page, which is
+ * open decision 6 answered: `repository-overview.json` arrived in
+ * `console-contract-v1.0.1` and requirements Section 10 gives the overview no
+ * route of its own, so this is the only route that could carry it. They resolve
+ * separately from the repository, so they can be unavailable without taking the
+ * entitlement and policy controls with them.
  */
 const RepositoryDetailPage = async ({
   params,
@@ -111,12 +114,13 @@ const RepositoryDetailPage = async ({
       <RepositoryAxisList repository={repository} />
       <ChangeRequestNotice repository={repository} />
       <EntitlementFacts repository={repository} />
-      <ConsentFacts repository={repository} />
+      <ConsentFacts repository={repository} modelProfiles={view.modelProfiles} />
+      <RepositoryCounters view={view.overview} />
 
       <div className="flex flex-col gap-3">
         <ActivateForm {...context} />
         <PolicyForm {...context} />
-        <ConsentForm {...context} />
+        <ConsentForm {...context} modelProfiles={view.modelProfiles} />
         <DisableForm {...context} />
         <RequestChangeForm
           {...context}

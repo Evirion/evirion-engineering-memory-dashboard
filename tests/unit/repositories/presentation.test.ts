@@ -6,9 +6,12 @@ import {
   accessAxis,
   capacitySummary,
   entitlementAxis,
+  offeredProfiles,
+  overviewGroups,
   policyAxis,
   productStateLabel,
   repositoryControls,
+  retiredNamedByConsent,
 } from "@/lib/repositories/presentation"
 import { POLICY_TERMS, policyTerm } from "@/lib/repositories/vocabulary"
 
@@ -313,5 +316,177 @@ describe("the four confusable terms", () => {
 
   it("states that source work calls no model", () => {
     expect(policyTerm("source-work").meaning).toMatch(/no model is called/i)
+  })
+})
+
+/**
+ * EEM-9/03e. The counters `REPO-003` describes and the contract publishes.
+ *
+ * `REPO-003` names sixteen; `repository-overview.json` publishes seventeen. The
+ * extra is `withdrawn`, the discrepancy backend issue #53 recorded and resolved
+ * deliberately, so the published schema is what these assertions follow.
+ */
+describe("repository overview counters", () => {
+  const overview = {
+    repositoryId: "00000000-0000-4000-8000-000000000302",
+    nameWithOwner: "evirion/repository",
+    asOf: "2026-09-02T18:33:41.123456Z",
+    processing: {
+      mergedPullRequestsDiscovered: 12,
+      sourceEnvelopesPrepared: 12,
+      awaitingApproval: 1,
+      processing: 2,
+      completedRuns: 8,
+      rejectedRuns: 1,
+      quarantinedRuns: 0,
+      failedJobs: 0,
+    },
+    engineeringMemory: {
+      admittedKnowledgeObjects: 30,
+      awaitingReview: 4,
+      approved: 22,
+      edited: 3,
+      userRejected: 1,
+      unresolved: 0,
+      active: 25,
+      superseded: 4,
+      withdrawn: 1,
+    },
+  } as const
+
+  const groups = () => overviewGroups(overview)
+
+  it("renders every published counter and invents none", () => {
+    const rendered = groups().flatMap((group) => group.counters)
+
+    expect(rendered).toHaveLength(17)
+    expect(rendered.map((counter) => counter.key)).toEqual([
+      ...Object.keys(overview.processing),
+      ...Object.keys(overview.engineeringMemory),
+    ])
+  })
+
+  it("keeps machine dispositions out of the Engineering Memory group", () => {
+    const [processing, memory] = groups()
+
+    expect(processing?.counters.map((counter) => counter.key)).toContain("rejectedRuns")
+    expect(processing?.counters.map((counter) => counter.key)).toContain(
+      "quarantinedRuns",
+    )
+    expect(memory?.counters.map((counter) => counter.key)).not.toContain("rejectedRuns")
+    expect(memory?.counters.map((counter) => counter.key)).not.toContain(
+      "quarantinedRuns",
+    )
+  })
+
+  it("never labels a machine rejection and a reviewer rejection the same way", () => {
+    const labels = groups().flatMap((group) =>
+      group.counters.map((counter) => counter.label),
+    )
+
+    expect(new Set(labels).size).toBe(labels.length)
+  })
+
+  it("carries a real zero through as a number rather than blanking it", () => {
+    const zero = groups()
+      .flatMap((group) => group.counters)
+      .find((counter) => counter.key === "quarantinedRuns")
+
+    expect(zero?.value).toBe(0)
+  })
+
+  it("states that rejected and quarantined runs are not Knowledge Objects", () => {
+    expect(groups()[0]?.note).toMatch(/never become Knowledge Objects/i)
+  })
+})
+
+/**
+ * EEM-9/03e. The consent catalogue, and the state a customer cannot fix.
+ *
+ * Withdrawing an offer does not revoke a consent already given, so a recorded
+ * consent can name a profile the organization may no longer pick. Dropping that
+ * row would hide a live consent; showing it as an ordinary choice would invite
+ * a re-selection the backend refuses. It gets its own state.
+ */
+/**
+ * The registry stores identifier, provider and model separately. The identifier
+ * is never recomposed from the other two, so the fixture keeps them distinct.
+ */
+const profile = (
+  canonicalIdentifier: string,
+  availability: "OFFERED" | "NO_LONGER_OFFERED",
+  namedByActiveConsent: boolean,
+  offeringState: "AVAILABLE" | "DEPRECATED" | "RETIRED" = "AVAILABLE",
+) => {
+  const [provider, ...model] = canonicalIdentifier.split("-")
+  return {
+    canonicalIdentifier,
+    provider: provider as string,
+    modelId: model.join("-"),
+    offeringState,
+    availability,
+    namedByActiveConsent,
+  }
+}
+
+describe("model profile catalogue", () => {
+  const catalogue = {
+    organizationId: "00000000-0000-4000-8000-000000000301",
+    modelProfiles: [
+      profile("anthropic-claude-sonnet-4", "OFFERED", true),
+      profile("openai-gpt-5-mini", "NO_LONGER_OFFERED", true, "RETIRED"),
+      profile("openai-gpt-5", "OFFERED", false),
+      profile("anthropic-claude-haiku-4", "NO_LONGER_OFFERED", false, "DEPRECATED"),
+    ],
+  }
+
+  it("offers only what the organization may still name", () => {
+    expect(
+      offeredProfiles(catalogue).map((entry) => entry.canonicalIdentifier),
+    ).toEqual(["anthropic-claude-sonnet-4", "openai-gpt-5"])
+  })
+
+  it("surfaces a withdrawn profile this repository's consent still names", () => {
+    // A withdrawn profile nobody consented to is not the customer's problem and
+    // is simply not offered. One a live consent names is a state they cannot fix.
+    expect(
+      retiredNamedByConsent(catalogue, ["openai-gpt-5-mini"]).map(
+        (entry) => entry.canonicalIdentifier,
+      ),
+    ).toEqual(["openai-gpt-5-mini"])
+  })
+
+  it("says nothing about a withdrawal this repository's consent does not name", () => {
+    // `namedByActiveConsent` is true across the organization, so filtering on
+    // it alone would report one repository's withdrawn profile on every other
+    // repository's page, where it names nothing.
+    expect(retiredNamedByConsent(catalogue, ["openai-gpt-5"])).toEqual([])
+    expect(retiredNamedByConsent(catalogue, [])).toEqual([])
+  })
+
+  it("finds nothing to surface when every named profile is still offered", () => {
+    expect(
+      retiredNamedByConsent(
+        {
+          organizationId: catalogue.organizationId,
+          modelProfiles: [profile("openai-gpt-5", "OFFERED", true)],
+        },
+        ["openai-gpt-5"],
+      ),
+    ).toEqual([])
+  })
+
+  it("labels a choice by provider and model rather than by identifier alone", () => {
+    const [first] = offeredProfiles(catalogue)
+
+    expect(first?.label).toBe("anthropic claude-sonnet-4")
+    expect(first?.canonicalIdentifier).toBe("anthropic-claude-sonnet-4")
+  })
+
+  it("treats an empty catalogue as nothing to offer rather than as an error", () => {
+    const empty = { organizationId: catalogue.organizationId, modelProfiles: [] }
+
+    expect(offeredProfiles(empty)).toEqual([])
+    expect(retiredNamedByConsent(empty, ["openai-gpt-5-mini"])).toEqual([])
   })
 })

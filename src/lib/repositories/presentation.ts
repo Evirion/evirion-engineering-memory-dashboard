@@ -1,4 +1,9 @@
-import type { Repository, RepositoryPage } from "@contracts/console"
+import type {
+  OrganizationModelProfiles,
+  Repository,
+  RepositoryOverview,
+  RepositoryPage,
+} from "@contracts/console"
 
 /**
  * How a repository reads on screen.
@@ -33,6 +38,146 @@ export type RepositoryAxis = {
 }
 
 export type OrganizationLimit = RepositoryPage["summary"]["limit"]
+
+export type OverviewCounter = {
+  readonly key: string
+  readonly label: string
+  readonly value: number
+}
+
+export type OverviewGroup = {
+  readonly id: "processing" | "engineering-memory"
+  readonly heading: string
+  readonly note: string
+  readonly counters: readonly OverviewCounter[]
+}
+
+/**
+ * Both label tables are keyed by the published field set, so a counter the
+ * backend adds fails the build here instead of being dropped from the page.
+ * Their declaration order is the render order, which is why they are read with
+ * `Object.entries` rather than paired with a separate ordering array that could
+ * silently omit one.
+ */
+const PROCESSING_LABELS: Readonly<
+  Record<keyof RepositoryOverview["processing"], string>
+> = {
+  mergedPullRequestsDiscovered: "Merged pull requests discovered",
+  sourceEnvelopesPrepared: "Source envelopes prepared",
+  awaitingApproval: "Awaiting approval",
+  processing: "Processing now",
+  completedRuns: "Completed runs",
+  rejectedRuns: "Runs the model rejected",
+  quarantinedRuns: "Runs quarantined as invalid",
+  failedJobs: "Failed jobs",
+}
+
+const MEMORY_LABELS: Readonly<
+  Record<keyof RepositoryOverview["engineeringMemory"], string>
+> = {
+  admittedKnowledgeObjects: "Knowledge Objects admitted",
+  awaitingReview: "Awaiting review",
+  approved: "Approved by a reviewer",
+  edited: "Edited by a reviewer",
+  userRejected: "Rejected by a reviewer",
+  unresolved: "Unresolved",
+  active: "Active",
+  superseded: "Superseded",
+  withdrawn: "Withdrawn",
+}
+
+export type ModelProfileChoice = {
+  readonly canonicalIdentifier: string
+  /** Provider and model, because an identifier alone is not a product name. */
+  readonly label: string
+  readonly offeringState: OrganizationModelProfiles["modelProfiles"][number]["offeringState"]
+}
+
+type CataloguedProfile = OrganizationModelProfiles["modelProfiles"][number]
+
+const asChoice = (profile: CataloguedProfile): ModelProfileChoice => ({
+  canonicalIdentifier: profile.canonicalIdentifier,
+  label: `${profile.provider} ${profile.modelId}`,
+  offeringState: profile.offeringState,
+})
+
+/**
+ * What the organization may name in a new consent.
+ *
+ * The canonical identifier is the registry's, never composed here from provider
+ * and model: composing it is exactly the defect backend issue #54 recorded,
+ * where the two ends disagreed on the format and no consent could ever match.
+ */
+export const offeredProfiles = (
+  catalogue: OrganizationModelProfiles,
+): readonly ModelProfileChoice[] =>
+  catalogue.modelProfiles
+    .filter((profile) => profile.availability === "OFFERED")
+    .map(asChoice)
+
+/**
+ * Profiles this repository's recorded consent names that are no longer offered.
+ *
+ * Withdrawing an offer does not revoke a consent already given, so this is a
+ * state the backend can produce and the customer cannot resolve alone. A
+ * withdrawn profile no consent names is not surfaced: it is simply not offered.
+ *
+ * The scope is the repository's own consent rather than the catalogue's
+ * `namedByActiveConsent`, which the contract defines across the organization.
+ * Filtering on that flag alone would report one repository's withdrawn profile
+ * on every other repository's page, where it names nothing.
+ */
+export const retiredNamedByConsent = (
+  catalogue: OrganizationModelProfiles,
+  consented: readonly string[],
+): readonly ModelProfileChoice[] => {
+  const named = new Set(consented)
+  return catalogue.modelProfiles
+    .filter(
+      (profile) =>
+        profile.availability === "NO_LONGER_OFFERED" &&
+        named.has(profile.canonicalIdentifier),
+    )
+    .map(asChoice)
+}
+
+const counters = (
+  labels: Readonly<Record<string, string>>,
+  values: Readonly<Record<string, number>>,
+): readonly OverviewCounter[] =>
+  Object.entries(labels).map(([key, label]) => ({
+    key,
+    label,
+    value: values[key] as number,
+  }))
+
+/**
+ * The counters, split the way the contract splits them.
+ *
+ * A rejected or quarantined run is a legitimate machine outcome, not an
+ * infrastructure failure and not a Knowledge Object, so it stays in the
+ * processing group and never near the admitted count.
+ */
+export const overviewGroups = (
+  overview: RepositoryOverview,
+): readonly OverviewGroup[] => [
+  {
+    id: "processing",
+    heading: "Processing",
+    note:
+      "Rejected and quarantined runs are decisions about the source work, not " +
+      "failures, and they never become Knowledge Objects.",
+    counters: counters(PROCESSING_LABELS, overview.processing),
+  },
+  {
+    id: "engineering-memory",
+    heading: "Engineering Memory",
+    note:
+      "Only admitted Knowledge Objects are counted here. Review and lifecycle " +
+      "are separate axes, so an object appears under both.",
+    counters: counters(MEMORY_LABELS, overview.engineeringMemory),
+  },
+]
 
 export const accessAxis = (repository: Repository): RepositoryAxis => {
   if (repository.archived) {
