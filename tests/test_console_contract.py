@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -27,6 +28,7 @@ from scripts.fetch_console_contract import (
     _credential,
 )
 from scripts.generate_console_client import (
+    SUPPORTED_FORMATS,
     ConsoleClientError,
     generate,
     load_inline_payload_schemas,
@@ -337,6 +339,60 @@ class ConsoleClientGenerationTests(unittest.TestCase):
         self.assertIn(
             '"Example/status": "UNSUPPORTED",', rendered["unsupported-states.ts"]
         )
+
+    def test_a_uri_is_validated_as_a_safe_scheme_not_as_rfc_3986(self) -> None:
+        rendered = self._render(
+            {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["url"],
+                "properties": {"url": {"type": "string", "format": "uri"}},
+            }
+        )
+
+        self.assertIn(
+            r"const URI_PATTERN = /^https:\/\/[^\s]+$/;", rendered["validators.ts"]
+        )
+
+        # The emitted literal is what a JS engine compiles, so the assertion
+        # that matters is behavioural. Every URI the contract publishes is
+        # rendered as an `href`, and a faithful RFC 3986 reading would admit the
+        # one construct this exists to stop.
+        pattern = re.compile(
+            SUPPORTED_FORMATS["uri"].replace("\\\\", "\\").replace(r"\/", "/")
+        )
+        for accepted in ("https://github.com/acme/x/pull/1", "https://example.test/a"):
+            self.assertRegex(accepted, pattern)
+        for refused in (
+            "javascript:alert(1)",
+            "data:text/html;base64,PHN2Zz4=",
+            "http://github.com/insecure",
+            "//github.com/protocol-relative",
+            "https://has space",
+        ):
+            self.assertIsNone(pattern.match(refused), refused)
+
+    def test_a_contract_pattern_narrows_a_format_rather_than_replacing_it(self) -> None:
+        # `pullRequestUrl` and `sourceUrl` carry both, and the generator applies
+        # both, so the format is a floor and the contract keeps the ceiling.
+        rendered = self._render(
+            {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["url"],
+                "properties": {
+                    "url": {
+                        "type": "string",
+                        "format": "uri",
+                        "pattern": r"^https://github\.com/",
+                    }
+                },
+            }
+        )
+
+        validators = rendered["validators.ts"]
+        self.assertIn("URI_PATTERN.test", validators)
+        self.assertIn("PATTERN_1.test", validators)
 
     def test_unreviewed_contract_constructs_fail_closed(self) -> None:
         cases = {
