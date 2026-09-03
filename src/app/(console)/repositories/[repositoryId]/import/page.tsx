@@ -17,7 +17,7 @@ import {
   CommandOutcomeNotice,
   readCommandResult,
 } from "@/components/repositories/command-outcome"
-import { isTerminal } from "@/lib/imports/presentation"
+import { importControls, isTerminal } from "@/lib/imports/presentation"
 import { readSessionCsrfToken } from "@/server/actions/session-csrf-read"
 import { readRepositoryImport } from "@/server/queries/imports"
 import { validRepositoryId } from "@/server/queries/repositories"
@@ -85,6 +85,7 @@ const RepositoryImportPage = async ({
   const context = {
     repository,
     current,
+    controls: importControls(repository, current, view.capabilities),
     csrfToken: await readSessionCsrfToken(),
     idempotencyKeys: mintIdempotencyKeys([
       "prepare",
@@ -99,7 +100,7 @@ const RepositoryImportPage = async ({
   }
 
   return (
-    <section className="flex flex-col gap-6">
+    <section data-testid="import-surface" className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
         <h1 className="text-xl font-semibold tracking-tight">Historical import</h1>
         <p className="text-sm text-slate-600">{repository.nameWithOwner}</p>

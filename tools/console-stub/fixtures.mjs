@@ -309,8 +309,13 @@ export const IMPORT_RUNS = {
         skipped: 3,
         sourceReady: 0,
       },
+      capabilities: {
+        canApprove: false,
+        canCancel: true,
+        canPause: false,
+        canResume: false,
+      },
       recoveryAction: "AWAIT_DISCOVERY",
-      canCancel: true,
     }),
 
   /** The one authorization state with something for the customer to do. */

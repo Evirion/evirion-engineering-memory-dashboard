@@ -1,11 +1,12 @@
 import type { Repository, RepositoryImport } from "@contracts/console"
 
-import type { ImportFailuresView } from "@/server/queries/imports"
+import type { ImportControls } from "@/lib/imports/presentation"
 import {
   authorizationView,
-  retryBlockerLabel,
   recoveryActionLabel,
+  retryBlockerLabel,
 } from "@/lib/imports/presentation"
+import type { ImportFailuresView } from "@/server/queries/imports"
 
 /**
  * The import controls.
@@ -25,6 +26,7 @@ import {
 export type ImportActionContext = {
   readonly repository: Repository
   readonly current: RepositoryImport | null
+  readonly controls: ImportControls
   readonly csrfToken: string
   /** One per rendered form, so a double submit cannot become two commands. */
   readonly idempotencyKeys: Readonly<Record<string, string>>
@@ -74,12 +76,11 @@ const ImportIdentity = ({ current }: { current: RepositoryImport }) => (
  */
 export const PrepareForm = ({
   repository,
-  current,
+  controls,
   csrfToken,
   idempotencyKeys,
 }: ImportActionContext) => {
-  if (current !== null) return null
-  if (repository.entitlement?.state !== "ACTIVE") return null
+  if (!controls.canPrepare) return null
 
   return (
     <form
@@ -142,10 +143,11 @@ export const PrepareForm = ({
 export const ApproveForm = ({
   repository,
   current,
+  controls,
   csrfToken,
   idempotencyKeys,
 }: ImportActionContext) => {
-  if (current === null || !current.capabilities.canApprove) return null
+  if (current === null || !controls.canApprove) return null
   const view = authorizationView(current.paidAuthorizationStatus)
 
   return (
@@ -221,23 +223,24 @@ export const ApproveForm = ({
 export const RunStateForms = ({
   repository,
   current,
+  controls,
   csrfToken,
   idempotencyKeys,
 }: ImportActionContext) => {
   if (current === null) return null
 
-  const controls = [
+  const offered = [
     {
       state: "PAUSED",
       key: "pause",
-      permitted: current.capabilities.canPause,
+      permitted: controls.canPause,
       label: "Pause import",
       detail: "Stops claiming new work. Work already in flight finishes.",
     },
     {
       state: "RESUMED",
       key: "resume",
-      permitted: current.capabilities.canResume,
+      permitted: controls.canResume,
       label: "Resume import",
       detail:
         "Continues from where it stopped. If source work is still held back, the backend keeps it paused and says so.",
@@ -245,17 +248,17 @@ export const RunStateForms = ({
     {
       state: "CANCELLED",
       key: "cancel",
-      permitted: current.capabilities.canCancel,
+      permitted: controls.canCancel,
       label: "Cancel import",
       detail: "Ends this run. Everything already recorded is kept.",
     },
   ].filter((control) => control.permitted)
 
-  if (controls.length === 0) return null
+  if (offered.length === 0) return null
 
   return (
     <div data-testid="import-run-controls" className="flex flex-col gap-3">
-      {controls.map((control) => (
+      {offered.map((control) => (
         <form
           key={control.state}
           action="/api/imports/state"
@@ -294,6 +297,7 @@ export const RunStateForms = ({
 export const ImportFailureList = ({
   repository,
   current,
+  controls,
   csrfToken,
   idempotencyKeys,
   failures,
@@ -368,7 +372,9 @@ export const ImportFailureList = ({
               </dl>
               {recovery ? <p className="text-sm text-slate-700">{recovery}</p> : null}
               {blocker ? <p className="text-sm text-slate-700">{blocker}</p> : null}
-              {failure.retryable && failure.extractionJobId !== null ? (
+              {controls.canRetry &&
+              failure.retryable &&
+              failure.extractionJobId !== null ? (
                 <form action="/api/imports/retry" method="post">
                   <Hidden
                     repositoryId={repository.id}

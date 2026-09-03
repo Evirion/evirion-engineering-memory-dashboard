@@ -14,6 +14,7 @@ import {
   AuthorizationPanel,
   ImportStatusPanel,
 } from "@/components/imports/import-status"
+import { IMPORT_CAPABILITY, importControls } from "@/lib/imports/presentation"
 
 import {
   IMPORTS,
@@ -42,9 +43,15 @@ const locked = find(REPOSITORIES.availableLocked)
 
 const markup = (element: React.ReactElement): string => renderToStaticMarkup(element)
 
-const context = (current: RepositoryImport | null) => ({
+const PERMITTED = [IMPORT_CAPABILITY]
+
+const context = (
+  current: RepositoryImport | null,
+  capabilities: readonly string[] = PERMITTED,
+) => ({
   repository,
   current,
+  controls: importControls(repository, current, capabilities),
   csrfToken: "csrf-token",
   idempotencyKeys: {
     prepare: "00000000-0000-4000-8000-00000000b001",
@@ -179,8 +186,26 @@ describe("controls follow the backend capability", () => {
     // A run already exists, so a second one would be refused as already active.
     expect(markup(<PrepareForm {...context(IMPORT_RUNS.processing())} />)).toBe("")
     expect(
-      markup(<PrepareForm {...context(null)} repository={locked} current={null} />),
+      markup(
+        <PrepareForm
+          {...context(null)}
+          repository={locked}
+          controls={importControls(locked, null, PERMITTED)}
+        />,
+      ),
     ).toBe("")
+  })
+
+  it("offers nothing at all to a principal without the capability", () => {
+    // Hiding is a convenience. The backend refuses the same request either
+    // way, which the browser suite proves by sending one.
+    const readOnly = (current: RepositoryImport | null) => context(current, [])
+
+    expect(markup(<PrepareForm {...readOnly(null)} />)).toBe("")
+    expect(markup(<ApproveForm {...readOnly(IMPORT_RUNS.awaitingApproval())} />)).toBe(
+      "",
+    )
+    expect(markup(<RunStateForms {...readOnly(IMPORT_RUNS.processing())} />)).toBe("")
   })
 })
 

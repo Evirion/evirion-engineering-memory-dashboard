@@ -1,4 +1,8 @@
-import type { RepositoryImport, RepositoryImportFailures } from "@contracts/console"
+import type {
+  Repository,
+  RepositoryImport,
+  RepositoryImportFailures,
+} from "@contracts/console"
 
 /**
  * How one historical import reads on screen.
@@ -14,6 +18,18 @@ import type { RepositoryImport, RepositoryImportFailures } from "@contracts/cons
  * open decision 3 owns the customer-facing wording for the four confusable
  * terms and is recorded in `docs/architecture/console-ui-conventions.md`.
  */
+
+/**
+ * The capability an import control needs from the session.
+ *
+ * The contract publishes no capability name for the import operations and no
+ * closed capability enum, so this is the nearest published one: consenting to
+ * paid extraction for one repository is the same class of decision as setting
+ * its live processing policy. It is a convenience only. Hiding a control is
+ * never authorization, the backend refuses the request either way, and every
+ * refusal path is rendered even for a control that is also hidden.
+ */
+export const IMPORT_CAPABILITY = "repository.policy.manage"
 
 export type ImportStatus = RepositoryImport["status"]
 export type PaidAuthorizationStatus = RepositoryImport["paidAuthorizationStatus"]
@@ -350,6 +366,45 @@ export const costCompletenessLabel = (completeness: CostCompleteness): string =>
       const exhaustive: never = completeness
       throw new Error(`unhandled cost completeness: ${String(exhaustive)}`)
     }
+  }
+}
+
+export type ImportControls = {
+  readonly canPrepare: boolean
+  readonly canApprove: boolean
+  readonly canPause: boolean
+  readonly canResume: boolean
+  readonly canCancel: boolean
+  /** Per failed job the backend declared retryable, never derived from one. */
+  readonly canRetry: boolean
+}
+
+/**
+ * Which controls to render.
+ *
+ * The four run controls come from the backend's own per-caller `capabilities`
+ * projection and are only narrowed here, never widened. Preparing and retrying
+ * have no such projection — one has no run yet and the other carries the work's
+ * retryability rather than the caller's — so those two are the only places the
+ * session capability decides on its own.
+ */
+export const importControls = (
+  repository: Repository,
+  current: RepositoryImport | null,
+  capabilities: readonly string[],
+): ImportControls => {
+  const permitted = capabilities.includes(IMPORT_CAPABILITY)
+  const entitled = repository.entitlement?.state === "ACTIVE"
+  const run = current?.capabilities
+
+  return {
+    // A second run would be refused as already active, so it is not offered.
+    canPrepare: permitted && entitled && current === null,
+    canApprove: permitted && (run?.canApprove ?? false),
+    canPause: permitted && (run?.canPause ?? false),
+    canResume: permitted && (run?.canResume ?? false),
+    canCancel: permitted && (run?.canCancel ?? false),
+    canRetry: permitted,
   }
 }
 
