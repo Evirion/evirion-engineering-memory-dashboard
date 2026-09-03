@@ -34,8 +34,9 @@ subtask left latent and is merged as PR
 All EEM-6 subtasks are merged in the backend, so every EEM-9/03 prerequisite is
 satisfied.
 
-EEM-9/03 is implemented and locally verified on `EEM-9/03-repository-control`,
-now based on updated `main`. Its Definition-of-Done trace is
+EEM-9/03 is merged as PR
+[#6](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/6).
+Its Definition-of-Done trace is
 [`eem-9-03-acceptance-trace.md`](eem-9-03-acceptance-trace.md), which also
 records two contract gaps that block work EEM-9/06 owns.
 

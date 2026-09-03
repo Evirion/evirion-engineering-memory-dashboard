@@ -31,12 +31,9 @@ the [controlling EEM-9 plan](plans/active/eem-9-design-partner-console-dashboard
    [#5](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/5)
    at `8aa5418`. It corrected the response-envelope handling every later
    subtask depends on.
-6. `EEM-9/03-repository-control` is implemented and locally verified on its
-   branch, based on updated `main` after `EEM-9/02b` merged. It was developed
-   stacked on that branch with explicit owner authorization, because it cannot
-   read a repository without the correction, and has since been rebased. It is
-   not pushed, has no pull request and is not merged. Its Definition-of-Done
-   trace is
+6. `EEM-9/03-repository-control` is merged as PR
+   [#6](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/6)
+   at `961001d`. Its Definition-of-Done trace is
    [`eem-9-03-acceptance-trace.md`](plans/active/eem-9-03-acceptance-trace.md).
 
 All EEM-4 subtasks are merged in the backend as PRs
