@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:knowledge-review-history",
+  "title": "Append-only review history",
+  "description": "Every review decision recorded against one Knowledge Object, oldest sequence first. A review is never updated or deleted, so this list only grows.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "knowledgeObjectId",
+    "reviews"
+  ],
+  "properties": {
+    "knowledgeObjectId": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "core.knowledge_objects.id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "reviews": {
+      "type": "array",
+      "items": {
+        "$ref": "knowledge-review.json"
+      },
+      "description": "Empty while the object is still PENDING.",
+      "x-evirion-backend-projection": "api.list_knowledge_reviews.reviews",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    }
+  },
+  "examples": [
+    {
+      "knowledgeObjectId": "00000000-0000-4000-8000-000000000401",
+      "reviews": []
+    },
+    {
+      "knowledgeObjectId": "00000000-0000-4000-8000-000000000401",
+      "reviews": [
+        {
+          "reviewId": "00000000-0000-4000-8000-000000000411",
+          "reviewSequence": 1,
+          "action": "APPROVE",
+          "decision": "APPROVED",
+          "reviewerUserId": "00000000-0000-4000-8000-000000000201",
+          "reviewerRole": "reviewer",
+          "originalPayloadSha256": "3d2f1c0b9a8776655443322110ffeeddccbbaa99887766554433221100ffeedd",
+          "acknowledgedEvidenceIds": [],
+          "observedLifecycleVersion": 0,
+          "observedLifecycleState": "UNRESOLVED",
+          "recordedAt": "2026-09-02T18:33:41.123456Z"
+        }
+      ]
+    }
+  ]
+}

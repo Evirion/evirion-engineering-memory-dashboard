@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:knowledge-evidence",
+  "title": "Knowledge Object evidence",
+  "description": "The exact quotes supporting one Knowledge Object, ordered by ordinal. The private evidence document is deliberately absent: only the persisted quote and its attribution are published.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "knowledgeObjectId",
+    "evidence"
+  ],
+  "properties": {
+    "knowledgeObjectId": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "core.knowledge_objects.id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "evidenceId",
+          "ordinal",
+          "sourceId",
+          "sourceType",
+          "source",
+          "author",
+          "quote",
+          "sourceUrl"
+        ],
+        "properties": {
+          "evidenceId": {
+            "type": "string",
+            "format": "uuid",
+            "x-evirion-backend-projection": "core.evidence.id",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "ordinal": {
+            "type": "integer",
+            "minimum": 0,
+            "x-evirion-backend-projection": "core.evidence.ordinal",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "sourceId": {
+            "type": "string",
+            "x-evirion-backend-projection": "core.evidence.source_id",
+            "x-evirion-sensitivity": "customer-safe-summary",
+            "description": "The database places no length or character constraint on this column, so the contract places none either: a bound the backend does not guarantee would reject a real response."
+          },
+          "sourceType": {
+            "type": "string",
+            "x-evirion-backend-projection": "core.evidence.source_type",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "source": {
+            "type": "string",
+            "x-evirion-backend-projection": "core.evidence.source",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "author": {
+            "type": "string",
+            "x-evirion-backend-projection": "core.evidence.author",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "quote": {
+            "type": "string",
+            "x-evirion-backend-projection": "core.evidence.quote",
+            "x-evirion-sensitivity": "customer-safe-detail"
+          },
+          "sourceUrl": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string",
+                "format": "uri",
+                "pattern": "^https://github\\.com/"
+              }
+            ],
+            "description": "Server-generated and resolved beside the rows it labels. Null when either name segment fails GitHub's character set, so a stored name the backend cannot validate yields no link rather than an escaped or forged one.",
+            "x-evirion-backend-projection": "api.list_knowledge_evidence.source_url",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          }
+        },
+        "x-evirion-backend-projection": "api.list_knowledge_evidence.evidence",
+        "x-evirion-sensitivity": "customer-safe-detail"
+      },
+      "x-evirion-backend-projection": "api.list_knowledge_evidence.evidence",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    }
+  },
+  "examples": [
+    {
+      "knowledgeObjectId": "00000000-0000-4000-8000-000000000401",
+      "evidence": []
+    },
+    {
+      "knowledgeObjectId": "00000000-0000-4000-8000-000000000401",
+      "evidence": [
+        {
+          "evidenceId": "00000000-0000-4000-8000-000000000421",
+          "ordinal": 0,
+          "sourceId": "PR_kwDOABCD1234",
+          "sourceType": "pull_request_body",
+          "source": "evirion/repository#128",
+          "author": "octocat",
+          "quote": "We keep runs append-only so a retry can never rewrite provenance.",
+          "sourceUrl": "https://github.com/evirion/repository/pull/128"
+        },
+        {
+          "evidenceId": "00000000-0000-4000-8000-000000000422",
+          "ordinal": 1,
+          "sourceId": "IC_kwDOABCD5678",
+          "sourceType": "review_comment",
+          "source": "evirion/repository#128",
+          "author": "octocat",
+          "quote": "Agreed, the checkpoint has to land before validation runs.",
+          "sourceUrl": null
+        }
+      ]
+    }
+  ]
+}

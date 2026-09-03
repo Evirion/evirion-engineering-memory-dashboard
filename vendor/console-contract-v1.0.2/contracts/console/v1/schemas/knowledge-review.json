@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:knowledge-review",
+  "title": "Immutable human review decision",
+  "description": "One append-only review row. The backend strips nulls, so the seven optional keys are absent rather than null whenever the review carried no edit, no reason code, no severity or no note. Requiring any of them would turn an ordinary APPROVE into an unsupported response.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "reviewId",
+    "reviewSequence",
+    "action",
+    "decision",
+    "reviewerUserId",
+    "reviewerRole",
+    "originalPayloadSha256",
+    "acknowledgedEvidenceIds",
+    "observedLifecycleVersion",
+    "observedLifecycleState",
+    "recordedAt"
+  ],
+  "properties": {
+    "reviewId": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "core.knowledge_reviews.id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "reviewSequence": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "The stored sequence starts at one. Zero is reserved for the PENDING projection and never appears on a row.",
+      "x-evirion-backend-projection": "core.knowledge_reviews.review_sequence",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "APPROVE",
+        "EDIT",
+        "USER_REJECT",
+        "REVERT_TO_ORIGINAL_AND_APPROVE",
+        "UNSUPPORTED_SERVER_RESPONSE"
+      ],
+      "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+      "x-evirion-backend-projection": "core.knowledge_reviews.action",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "APPROVED",
+        "EDITED",
+        "USER_REJECTED",
+        "UNSUPPORTED_SERVER_RESPONSE"
+      ],
+      "description": "A stored row never carries PENDING; the action determines the decision.",
+      "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+      "x-evirion-backend-projection": "core.knowledge_reviews.decision",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "reviewerUserId": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "core.knowledge_reviews.reviewer_user_id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "reviewerRole": {
+      "type": "string",
+      "enum": [
+        "owner",
+        "admin",
+        "reviewer",
+        "viewer",
+        "UNSUPPORTED_SERVER_RESPONSE"
+      ],
+      "description": "The Console role vocabulary, which names the stored `member` role `reviewer`.",
+      "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+      "x-evirion-backend-projection": "core.knowledge_reviews.reviewer_membership_role",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "originalPayloadSha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "Binds the review to the exact machine payload the reviewer saw.",
+      "x-evirion-backend-projection": "core.knowledge_reviews.original_payload_sha256",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "editSchemaVersion": {
+      "type": "string",
+      "const": "1",
+      "description": "Present only for an EDIT, together with the other three edit keys.",
+      "x-evirion-backend-projection": "core.knowledge_reviews.edit_schema_version",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "editSchemaSha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "x-evirion-backend-projection": "core.knowledge_reviews.edit_schema_sha256",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "editedPayload": {
+      "type": "object",
+      "description": "The complete reviewed derivative. Its interior is the edit schema the backend validates on write and is deliberately not restated here, so one definition cannot drift from the other.",
+      "x-evirion-backend-projection": "core.knowledge_reviews.edited_payload",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    },
+    "editedPayloadSha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "x-evirion-backend-projection": "core.knowledge_reviews.edited_payload_sha256",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "rejectReasonCode": {
+      "type": "string",
+      "enum": [
+        "INCORRECT",
+        "NOT_DURABLE",
+        "UNSUPPORTED",
+        "TOO_VAGUE",
+        "DUPLICATE",
+        "OUTDATED",
+        "OTHER",
+        "UNSUPPORTED_SERVER_RESPONSE"
+      ],
+      "description": "Present only for a USER_REJECT.",
+      "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+      "x-evirion-backend-projection": "core.knowledge_reviews.reject_reason_code",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "issueSeverity": {
+      "type": "string",
+      "enum": [
+        "NONE",
+        "MINOR",
+        "MAJOR",
+        "CRITICAL",
+        "UNSUPPORTED_SERVER_RESPONSE"
+      ],
+      "description": "Present for an EDIT and a USER_REJECT.",
+      "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+      "x-evirion-backend-projection": "core.knowledge_reviews.issue_severity",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "note": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000,
+      "x-evirion-backend-projection": "core.knowledge_reviews.note",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    },
+    "acknowledgedEvidenceIds": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "description": "Always present and empty rather than absent, because the column is not null and defaults to the empty array.",
+      "x-evirion-backend-projection": "core.knowledge_reviews.acknowledged_evidence_ids",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "observedLifecycleVersion": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The lifecycle version the reviewer observed. Zero is legitimate and means UNRESOLVED.",
+      "x-evirion-backend-projection": "core.knowledge_reviews.observed_lifecycle_version",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "observedLifecycleState": {
+      "type": "string",
+      "enum": [
+        "UNRESOLVED",
+        "ACTIVE",
+        "SUPERSEDED",
+        "WITHDRAWN",
+        "UNSUPPORTED_SERVER_RESPONSE"
+      ],
+      "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+      "x-evirion-backend-projection": "core.knowledge_reviews.observed_lifecycle_state",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "recordedAt": {
+      "type": "string",
+      "format": "date-time",
+      "x-evirion-backend-projection": "core.knowledge_reviews.created_at",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    }
+  },
+  "examples": [
+    {
+      "reviewId": "00000000-0000-4000-8000-000000000411",
+      "reviewSequence": 1,
+      "action": "APPROVE",
+      "decision": "APPROVED",
+      "reviewerUserId": "00000000-0000-4000-8000-000000000201",
+      "reviewerRole": "reviewer",
+      "originalPayloadSha256": "3d2f1c0b9a8776655443322110ffeeddccbbaa99887766554433221100ffeedd",
+      "acknowledgedEvidenceIds": [],
+      "observedLifecycleVersion": 0,
+      "observedLifecycleState": "UNRESOLVED",
+      "recordedAt": "2026-09-02T18:33:41.123456Z"
+    },
+    {
+      "reviewId": "00000000-0000-4000-8000-000000000412",
+      "reviewSequence": 2,
+      "action": "USER_REJECT",
+      "decision": "USER_REJECTED",
+      "reviewerUserId": "00000000-0000-4000-8000-000000000201",
+      "reviewerRole": "owner",
+      "originalPayloadSha256": "3d2f1c0b9a8776655443322110ffeeddccbbaa99887766554433221100ffeedd",
+      "rejectReasonCode": "OTHER",
+      "issueSeverity": "MAJOR",
+      "note": "Superseded by the decision recorded in the follow-up pull request.",
+      "acknowledgedEvidenceIds": [
+        "00000000-0000-4000-8000-000000000421"
+      ],
+      "observedLifecycleVersion": 0,
+      "observedLifecycleState": "UNRESOLVED",
+      "recordedAt": "2026-09-02T19:04:02.000001Z"
+    }
+  ]
+}

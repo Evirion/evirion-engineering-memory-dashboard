@@ -1291,6 +1291,7 @@ paths:
       responses:
         "200":
           description: List accepted Knowledge Objects for the review queue.
+          x-evirion-response-schema: "#/components/schemas/KnowledgePage"
           headers:
             X-Request-ID:
               $ref: "#/components/headers/RequestId"
@@ -1327,6 +1328,7 @@ paths:
       responses:
         "200":
           description: Read one Knowledge Object with its evidence-backed detail.
+          x-evirion-response-schema: "#/components/schemas/KnowledgeDetail"
           headers:
             X-Request-ID:
               $ref: "#/components/headers/RequestId"
@@ -1365,6 +1367,7 @@ paths:
       responses:
         "200":
           description: List the exact evidence quotes supporting one Knowledge Object.
+          x-evirion-response-schema: "#/components/schemas/KnowledgeEvidence"
           headers:
             X-Request-ID:
               $ref: "#/components/headers/RequestId"
@@ -1403,6 +1406,7 @@ paths:
       responses:
         "200":
           description: The append-only review history, oldest sequence first.
+          x-evirion-response-schema: "#/components/schemas/KnowledgeReviewHistory"
           headers:
             X-Request-ID:
               $ref: "#/components/headers/RequestId"
@@ -1455,6 +1459,7 @@ paths:
       responses:
         "200":
           description: Completed review receipt.
+          x-evirion-response-schema: "#/components/schemas/KnowledgeReceipt"
           headers:
             X-Request-ID:
               $ref: "#/components/headers/RequestId"
@@ -1498,6 +1503,7 @@ paths:
             The effective review decision, both optimistic tokens and the
             allowed actions. `allowedActions` is the authority for what the
             interface may offer; it is never inferred by the client.
+          x-evirion-response-schema: "#/components/schemas/KnowledgeReviewState"
           headers:
             X-Request-ID:
               $ref: "#/components/headers/RequestId"
@@ -1540,6 +1546,7 @@ paths:
             object is in the active projection, its supersession edges and the
             identifier of any open correction request. Requires only
             `knowledge.read`, so a viewer may read it.
+          x-evirion-response-schema: "#/components/schemas/KnowledgeLifecycleState"
           headers:
             X-Request-ID:
               $ref: "#/components/headers/RequestId"
@@ -1590,6 +1597,7 @@ paths:
       responses:
         "200":
           description: Completed activation receipt.
+          x-evirion-response-schema: "#/components/schemas/KnowledgeReceipt"
           headers:
             X-Request-ID:
               $ref: "#/components/headers/RequestId"
@@ -1642,6 +1650,7 @@ paths:
       responses:
         "200":
           description: Completed supersession receipt.
+          x-evirion-response-schema: "#/components/schemas/KnowledgeReceipt"
           headers:
             X-Request-ID:
               $ref: "#/components/headers/RequestId"
@@ -1687,6 +1696,7 @@ paths:
       responses:
         "200":
           description: The correction requests and their append-only transition history.
+          x-evirion-response-schema: "#/components/schemas/KnowledgeCorrections"
           headers:
             X-Request-ID:
               $ref: "#/components/headers/RequestId"
@@ -1737,6 +1747,7 @@ paths:
       responses:
         "200":
           description: Completed correction-request receipt.
+          x-evirion-response-schema: "#/components/schemas/KnowledgeReceipt"
           headers:
             X-Request-ID:
               $ref: "#/components/headers/RequestId"
@@ -2533,6 +2544,34 @@ components:
       $ref: "./schemas/session-revocation.json"
     CommandReceipt:
       $ref: "./schemas/command-receipt.json"
+    # The knowledge mutations need their own receipt. `CommandReceipt` fixes
+    # `responseCode` to four entitlement codes and declares no usable fallback,
+    # so widening it is refused by the published-bytes comparison. See ADR 0016.
+    KnowledgeReceipt:
+      $ref: "./schemas/knowledge-receipt.json"
+    KnowledgePage:
+      $ref: "./schemas/knowledge-page.json"
+    # Three row shapes that more than one payload uses. They are not bound to an
+    # operation, but every other cross-file reference target is also a component,
+    # so they are declared here too rather than being reachable only file to file.
+    KnowledgeSummary:
+      $ref: "./schemas/knowledge-summary.json"
+    KnowledgeReview:
+      $ref: "./schemas/knowledge-review.json"
+    KnowledgeRelationEdge:
+      $ref: "./schemas/knowledge-relation-edge.json"
+    KnowledgeDetail:
+      $ref: "./schemas/knowledge-detail.json"
+    KnowledgeEvidence:
+      $ref: "./schemas/knowledge-evidence.json"
+    KnowledgeReviewHistory:
+      $ref: "./schemas/knowledge-review-history.json"
+    KnowledgeReviewState:
+      $ref: "./schemas/knowledge-review-state.json"
+    KnowledgeLifecycleState:
+      $ref: "./schemas/knowledge-lifecycle-state.json"
+    KnowledgeCorrections:
+      $ref: "./schemas/knowledge-corrections.json"
     OrganizationModelProfiles:
       $ref: "./schemas/organization-model-profiles.json"
     OrganizationOffboarding:

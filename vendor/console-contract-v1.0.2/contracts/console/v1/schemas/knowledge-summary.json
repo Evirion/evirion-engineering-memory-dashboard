@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:knowledge-summary",
+  "title": "Knowledge Object review-queue row",
+  "description": "One row of the review queue. It carries the summary only: the full payload, the evidence set and every technical detail stay in the detail projection, so a list page never loads provenance per row. The three pull request fields are null for a Knowledge Object whose run carries no job.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "knowledgeObjectId",
+    "shortClaim",
+    "knowledgeType",
+    "pullRequestNumber",
+    "pullRequestTitle",
+    "mergedAt",
+    "confidence",
+    "reviewStatus",
+    "lifecycleState"
+  ],
+  "properties": {
+    "knowledgeObjectId": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "core.knowledge_objects.id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "shortClaim": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "The first 200 characters of the knowledge value, truncated by the backend.",
+      "x-evirion-backend-projection": "core.knowledge_objects.knowledge_value",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    },
+    "knowledgeType": {
+      "type": "string",
+      "description": "The database places no length or character constraint on this column, so the contract places none either: a bound the backend does not guarantee would reject a real response.",
+      "x-evirion-backend-projection": "core.knowledge_objects.knowledge_type",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "pullRequestNumber": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "integer",
+          "minimum": 1
+        }
+      ],
+      "x-evirion-backend-projection": "core.pull_requests.pr_number",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "pullRequestTitle": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "x-evirion-backend-projection": "core.pull_requests.title",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    },
+    "mergedAt": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "format": "date-time"
+        }
+      ],
+      "x-evirion-backend-projection": "core.pull_requests.merged_at",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "confidence": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100,
+      "x-evirion-backend-projection": "core.knowledge_objects.confidence",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "reviewStatus": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "APPROVED",
+        "EDITED",
+        "USER_REJECTED",
+        "UNSUPPORTED_SERVER_RESPONSE"
+      ],
+      "description": "PENDING exists only in the projection and is never stored. UNSUPPORTED_SERVER_RESPONSE is the consumer's representation of a value it does not recognize; the backend never emits it.",
+      "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+      "x-evirion-backend-projection": "api.list_knowledge.review_status",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "lifecycleState": {
+      "type": "string",
+      "enum": [
+        "UNRESOLVED",
+        "ACTIVE",
+        "SUPERSEDED",
+        "WITHDRAWN",
+        "UNSUPPORTED_SERVER_RESPONSE"
+      ],
+      "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+      "x-evirion-backend-projection": "api.list_knowledge.lifecycle_state",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    }
+  },
+  "examples": [
+    {
+      "knowledgeObjectId": "00000000-0000-4000-8000-000000000401",
+      "shortClaim": "Extraction runs are append-only and never rewritten in place.",
+      "knowledgeType": "ArchitectureDecision",
+      "pullRequestNumber": 128,
+      "pullRequestTitle": "Make extraction runs append-only",
+      "mergedAt": "2026-09-02T18:33:41.123456Z",
+      "confidence": 88,
+      "reviewStatus": "PENDING",
+      "lifecycleState": "UNRESOLVED"
+    },
+    {
+      "knowledgeObjectId": "00000000-0000-4000-8000-000000000402",
+      "shortClaim": "Duplicate deliveries resolve to one content-addressed extraction.",
+      "knowledgeType": "Invariant",
+      "pullRequestNumber": null,
+      "pullRequestTitle": null,
+      "mergedAt": null,
+      "confidence": 74,
+      "reviewStatus": "EDITED",
+      "lifecycleState": "ACTIVE"
+    }
+  ]
+}

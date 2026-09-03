@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:knowledge-page",
+  "title": "Knowledge Object page",
+  "description": "One page of the review queue. The cursor is the stable tenant-scoped object identity the backend orders by, so the page is total and the scan is bounded by the page size rather than by the size of the tenant.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "items",
+    "page"
+  ],
+  "properties": {
+    "items": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "$ref": "knowledge-summary.json"
+      },
+      "x-evirion-backend-projection": "api.list_knowledge.items",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    },
+    "page": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "nextCursor"
+      ],
+      "properties": {
+        "nextCursor": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "format": "uuid"
+            }
+          ],
+          "description": "Null on the last page. Otherwise the identity to pass as the `after` parameter.",
+          "x-evirion-backend-projection": "api.list_knowledge.next_cursor",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        }
+      },
+      "x-evirion-backend-projection": "api.list_knowledge.page",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    }
+  },
+  "examples": [
+    {
+      "items": [],
+      "page": {
+        "nextCursor": null
+      }
+    },
+    {
+      "items": [
+        {
+          "knowledgeObjectId": "00000000-0000-4000-8000-000000000401",
+          "shortClaim": "Extraction runs are append-only and never rewritten in place.",
+          "knowledgeType": "ArchitectureDecision",
+          "pullRequestNumber": 128,
+          "pullRequestTitle": "Make extraction runs append-only",
+          "mergedAt": "2026-09-02T18:33:41.123456Z",
+          "confidence": 88,
+          "reviewStatus": "PENDING",
+          "lifecycleState": "UNRESOLVED"
+        }
+      ],
+      "page": {
+        "nextCursor": "00000000-0000-4000-8000-000000000401"
+      }
+    }
+  ]
+}

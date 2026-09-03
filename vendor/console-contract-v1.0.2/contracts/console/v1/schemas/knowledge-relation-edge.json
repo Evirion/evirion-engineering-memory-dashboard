@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:knowledge-relation-edge",
+  "title": "Supersession edge",
+  "description": "One supersession relation and the other Knowledge Object it reaches. This is the only block of the lifecycle document that carries another object's identity.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "knowledgeRelationId",
+    "knowledgeObjectId",
+    "relationVersion",
+    "relationState"
+  ],
+  "properties": {
+    "knowledgeRelationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The optimistic identity to pass as `knowledgeRelationId` when requesting a RETRACT_SUPERSESSION correction.",
+      "x-evirion-backend-projection": "core.knowledge_relations.id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "knowledgeObjectId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The object at the other end of the edge, never the one being read.",
+      "x-evirion-backend-projection": "core.knowledge_relations.to_knowledge_object_id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "relationVersion": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The count of recorded state events. Zero is legitimate and means the edge has never been retracted or reinstated.",
+      "x-evirion-backend-projection": "api.get_knowledge_lifecycle_state.relation_version",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "relationState": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "RETRACTED",
+        "UNSUPPORTED_SERVER_RESPONSE"
+      ],
+      "description": "Two values, not three. REINSTATED is a stored event but not a projected state: the projection maps it, and the absence of any event, to ACTIVE, exactly as PENDING is projected for review.",
+      "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+      "x-evirion-backend-projection": "api.get_knowledge_lifecycle_state.relation_state",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    }
+  },
+  "examples": [
+    {
+      "knowledgeRelationId": "00000000-0000-4000-8000-000000000431",
+      "knowledgeObjectId": "00000000-0000-4000-8000-000000000403",
+      "relationVersion": 0,
+      "relationState": "ACTIVE"
+    },
+    {
+      "knowledgeRelationId": "00000000-0000-4000-8000-000000000432",
+      "knowledgeObjectId": "00000000-0000-4000-8000-000000000404",
+      "relationVersion": 2,
+      "relationState": "RETRACTED"
+    }
+  ]
+}

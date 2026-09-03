@@ -1,0 +1,567 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:knowledge-detail",
+  "title": "Knowledge Object detail",
+  "description": "One Knowledge Object with its lifecycle, source context and technical detail. The original machine payload stays reachable whatever a reviewer later did, and the edited derivative is reported by the review block rather than copied into a second place. The raw model response, the source payload and every credential are absent by construction: none of them is named here.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "knowledgeObjectId",
+    "knowledgeType",
+    "knowledgeValue",
+    "knowledgeStatus",
+    "implementationStatus",
+    "author",
+    "problem",
+    "knowledge",
+    "confidence",
+    "memoryPriority",
+    "createdAt",
+    "originalPayload",
+    "humanEdited",
+    "lifecycle",
+    "sourceContext",
+    "technicalDetails"
+  ],
+  "properties": {
+    "knowledgeObjectId": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "core.knowledge_objects.id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "knowledgeType": {
+      "type": "string",
+      "x-evirion-backend-projection": "core.knowledge_objects.knowledge_type",
+      "x-evirion-sensitivity": "customer-safe-summary",
+      "description": "The database places no length or character constraint on this column, so the contract places none either: a bound the backend does not guarantee would reject a real response."
+    },
+    "knowledgeValue": {
+      "type": "string",
+      "x-evirion-backend-projection": "core.knowledge_objects.knowledge_value",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    },
+    "knowledgeStatus": {
+      "type": "string",
+      "description": "The database places no length or character constraint on this column, so the contract places none either: a bound the backend does not guarantee would reject a real response.",
+      "x-evirion-backend-projection": "core.knowledge_objects.knowledge_status",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "implementationStatus": {
+      "type": "string",
+      "description": "The database places no length or character constraint on this column, so the contract places none either: a bound the backend does not guarantee would reject a real response.",
+      "x-evirion-backend-projection": "core.knowledge_objects.implementation_status",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "author": {
+      "type": "string",
+      "x-evirion-backend-projection": "core.knowledge_objects.author",
+      "x-evirion-sensitivity": "customer-safe-summary",
+      "description": "The database places no length or character constraint on this column, so the contract places none either: a bound the backend does not guarantee would reject a real response."
+    },
+    "problem": {
+      "type": "string",
+      "x-evirion-backend-projection": "core.knowledge_objects.problem",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    },
+    "knowledge": {
+      "type": "string",
+      "x-evirion-backend-projection": "core.knowledge_objects.knowledge",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    },
+    "confidence": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100,
+      "x-evirion-backend-projection": "core.knowledge_objects.confidence",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "memoryPriority": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100,
+      "x-evirion-backend-projection": "core.knowledge_objects.memory_priority",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "x-evirion-backend-projection": "core.knowledge_objects.created_at",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "originalPayload": {
+      "type": "object",
+      "description": "The machine payload as admitted, never rewritten by a review. Its interior is the extraction knowledge schema and is deliberately not restated here.",
+      "x-evirion-backend-projection": "core.knowledge_objects.payload",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    },
+    "humanEdited": {
+      "type": "boolean",
+      "description": "A backend fact, true exactly when the effective review decision is EDITED. The interface must not infer it by comparing the original payload against an edited one.",
+      "x-evirion-backend-projection": "api.get_knowledge_detail.human_edited",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "lifecycle": {
+      "$ref": "knowledge-lifecycle-state.json",
+      "x-evirion-backend-projection": "api.get_knowledge_detail.lifecycle",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "review": {
+      "$ref": "knowledge-review-state.json",
+      "description": "Absent without the knowledge.review capability. It carries the reviewer identity, the reviewer note and the edited derivative, so the whole block is omitted by the backend rather than partially redacted. Its absence is the authorized shape, not a malformed response.",
+      "x-evirion-backend-projection": "api.get_knowledge_detail.review",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    },
+    "sourceContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repositoryId",
+        "nameWithOwner",
+        "pullRequestId",
+        "pullRequestNumber",
+        "pullRequestTitle",
+        "pullRequestAuthorLogin",
+        "mergedAt",
+        "pullRequestUrl"
+      ],
+      "description": "Every field is null together when the run carries no job, so the block is present with null members rather than absent.",
+      "properties": {
+        "repositoryId": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "format": "uuid"
+            }
+          ],
+          "x-evirion-backend-projection": "core.repositories.id",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "nameWithOwner": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 201
+            }
+          ],
+          "x-evirion-backend-projection": "api.get_knowledge_detail.name_with_owner",
+          "x-evirion-sensitivity": "customer-safe-detail"
+        },
+        "pullRequestId": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "format": "uuid"
+            }
+          ],
+          "x-evirion-backend-projection": "core.pull_requests.id",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "pullRequestNumber": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "minimum": 1
+            }
+          ],
+          "x-evirion-backend-projection": "core.pull_requests.pr_number",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "pullRequestTitle": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "x-evirion-backend-projection": "core.pull_requests.title",
+          "x-evirion-sensitivity": "customer-safe-detail"
+        },
+        "pullRequestAuthorLogin": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "x-evirion-backend-projection": "core.pull_requests.author_login",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "mergedAt": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "format": "date-time"
+            }
+          ],
+          "x-evirion-backend-projection": "core.pull_requests.merged_at",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "pullRequestUrl": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^https://github\\.com/"
+            }
+          ],
+          "description": "Server-generated. Null when a stored name segment fails GitHub's character set.",
+          "x-evirion-backend-projection": "api.get_knowledge_detail.pull_request_url",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        }
+      },
+      "x-evirion-backend-projection": "api.get_knowledge_detail.source_context",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    },
+    "technicalDetails": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "extractionRunId",
+        "admissionDisposition",
+        "admissionDecisionOrigin",
+        "validationValid",
+        "resolvedModelId",
+        "componentVersions",
+        "semanticPipelineFingerprint",
+        "extractedAt",
+        "effectiveJobId"
+      ],
+      "description": "The last three keys are merged in only for a caller holding organization.usage.read, so their absence is the authorized shape.",
+      "properties": {
+        "extractionRunId": {
+          "type": "string",
+          "format": "uuid",
+          "x-evirion-backend-projection": "core.extraction_runs.id",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "admissionDisposition": {
+          "type": "string",
+          "enum": [
+            "ACCEPTED",
+            "REJECTED",
+            "QUARANTINED",
+            "UNSUPPORTED_SERVER_RESPONSE"
+          ],
+          "description": "Always ACCEPTED in practice, because a Knowledge Object can only exist for an accepted admission. The other two are published because the column carries them.",
+          "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+          "x-evirion-backend-projection": "core.admission_records.disposition",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "admissionDecisionOrigin": {
+          "type": "string",
+          "enum": [
+            "MODEL",
+            "DETERMINISTIC_POLICY",
+            "VALIDATION",
+            "UNSUPPORTED_SERVER_RESPONSE"
+          ],
+          "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+          "x-evirion-backend-projection": "core.admission_records.decision_origin",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "validationValid": {
+          "type": "boolean",
+          "x-evirion-backend-projection": "core.admission_records.validation_valid",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "resolvedModelId": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "x-evirion-backend-projection": "core.extraction_runs.resolved_model_id",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "componentVersions": {
+          "type": "object",
+          "x-evirion-backend-projection": "core.extraction_runs.component_versions",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "semanticPipelineFingerprint": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          ],
+          "description": "Null when the run carries no job.",
+          "x-evirion-backend-projection": "core.extraction_jobs.semantic_pipeline_fingerprint",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "extractedAt": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "format": "date-time"
+            }
+          ],
+          "x-evirion-backend-projection": "core.extraction_runs.completed_at",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "effectiveJobId": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "format": "uuid"
+            }
+          ],
+          "description": "The deduplication target when one exists, otherwise the job itself. Null when the run carries no job.",
+          "x-evirion-backend-projection": "api.get_knowledge_detail.effective_job_id",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "cost": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "completeness",
+            "measuredUsd",
+            "reservedUsd",
+            "unresolvedUsd"
+          ],
+          "description": "A cost really can be unresolved, so completeness is published rather than inferred from a zero.",
+          "properties": {
+            "completeness": {
+              "type": "string",
+              "enum": [
+                "RESERVED",
+                "MEASURED",
+                "UNRESOLVED",
+                "NOT_APPLICABLE",
+                "UNSUPPORTED_SERVER_RESPONSE"
+              ],
+              "description": "NOT_APPLICABLE is materialised for a Knowledge Object whose run carries no contributing job, so it is never a null beside a measured zero.",
+              "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+              "x-evirion-backend-projection": "core.extraction_jobs.model_cost_accounting_status",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            },
+            "measuredUsd": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]{0,11})\\.[0-9]{6}$",
+              "x-evirion-backend-projection": "core.extraction_jobs.model_cost_accounted_usd",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            },
+            "reservedUsd": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]{0,11})\\.[0-9]{6}$",
+              "x-evirion-backend-projection": "core.extraction_jobs.model_cost_reservation_usd",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            },
+            "unresolvedUsd": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]{0,11})\\.[0-9]{6}$",
+              "x-evirion-backend-projection": "core.extraction_jobs.model_cost_unresolved_usd",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            }
+          },
+          "x-evirion-backend-projection": "api.get_knowledge_detail.cost",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "latencyMs": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "minimum": 0
+            }
+          ],
+          "x-evirion-backend-projection": "api.get_knowledge_detail.latency_ms",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "tokenUsage": {
+          "type": "object",
+          "description": "The aggregate usage counters, or an empty object when the run recorded none. Never null.",
+          "x-evirion-backend-projection": "core.extraction_runs.aggregate_usage",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        }
+      },
+      "x-evirion-backend-projection": "api.get_knowledge_detail.technical_details",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    }
+  },
+  "examples": [
+    {
+      "knowledgeObjectId": "00000000-0000-4000-8000-000000000401",
+      "knowledgeType": "ArchitectureDecision",
+      "knowledgeValue": "Extraction runs are append-only and never rewritten in place.",
+      "knowledgeStatus": "admitted",
+      "implementationStatus": "implemented",
+      "author": "octocat",
+      "problem": "A retry could otherwise overwrite the provenance of an earlier run.",
+      "knowledge": "Every run is appended; a retry produces a new run rather than mutating one.",
+      "confidence": 88,
+      "memoryPriority": 70,
+      "createdAt": "2026-09-02T18:33:41.123456Z",
+      "originalPayload": {
+        "knowledgeType": "ArchitectureDecision"
+      },
+      "humanEdited": false,
+      "lifecycle": {
+        "knowledgeObjectId": "00000000-0000-4000-8000-000000000401",
+        "reviewSequence": 0,
+        "decision": "PENDING",
+        "lifecycleVersion": 0,
+        "lifecycleState": "UNRESOLVED",
+        "inActiveProjection": false,
+        "allowedLifecycleActions": [],
+        "supersededBy": [],
+        "supersedes": [],
+        "openCorrectionRequestId": null
+      },
+      "sourceContext": {
+        "repositoryId": "00000000-0000-4000-8000-000000000302",
+        "nameWithOwner": "evirion/repository",
+        "pullRequestId": "00000000-0000-4000-8000-000000000311",
+        "pullRequestNumber": 128,
+        "pullRequestTitle": "Make extraction runs append-only",
+        "pullRequestAuthorLogin": "octocat",
+        "mergedAt": "2026-09-02T17:00:00.000000Z",
+        "pullRequestUrl": "https://github.com/evirion/repository/pull/128"
+      },
+      "technicalDetails": {
+        "extractionRunId": "00000000-0000-4000-8000-000000000321",
+        "admissionDisposition": "ACCEPTED",
+        "admissionDecisionOrigin": "MODEL",
+        "validationValid": true,
+        "resolvedModelId": "gpt-5-mini",
+        "componentVersions": {
+          "worker": "2"
+        },
+        "semanticPipelineFingerprint": "3d2f1c0b9a8776655443322110ffeeddccbbaa99887766554433221100ffeedd",
+        "extractedAt": "2026-09-02T18:33:40.000000Z",
+        "effectiveJobId": "00000000-0000-4000-8000-000000000331"
+      }
+    },
+    {
+      "knowledgeObjectId": "00000000-0000-4000-8000-000000000402",
+      "knowledgeType": "Invariant",
+      "knowledgeValue": "Duplicate deliveries resolve to one content-addressed extraction.",
+      "knowledgeStatus": "admitted",
+      "implementationStatus": "implemented",
+      "author": "octocat",
+      "problem": "GitHub redelivers a webhook after a timeout.",
+      "knowledge": "Extraction identity is content-addressed, so a redelivery joins the first run.",
+      "confidence": 74,
+      "memoryPriority": 60,
+      "createdAt": "2026-09-02T18:40:00.000000Z",
+      "originalPayload": {
+        "knowledgeType": "Invariant"
+      },
+      "humanEdited": true,
+      "lifecycle": {
+        "knowledgeObjectId": "00000000-0000-4000-8000-000000000402",
+        "reviewSequence": 1,
+        "decision": "EDITED",
+        "lifecycleVersion": 1,
+        "lifecycleState": "ACTIVE",
+        "inActiveProjection": true,
+        "allowedLifecycleActions": [
+          "MARK_SUPERSEDED",
+          "REQUEST_CORRECTION"
+        ],
+        "supersededBy": [],
+        "supersedes": [],
+        "openCorrectionRequestId": null
+      },
+      "review": {
+        "knowledgeObjectId": "00000000-0000-4000-8000-000000000402",
+        "reviewSequence": 1,
+        "decision": "EDITED",
+        "lifecycleVersion": 1,
+        "lifecycleState": "ACTIVE",
+        "allowedActions": [
+          "APPROVE",
+          "EDIT",
+          "REVERT_TO_ORIGINAL_AND_APPROVE"
+        ],
+        "latestReview": {
+          "reviewId": "00000000-0000-4000-8000-000000000413",
+          "reviewSequence": 1,
+          "action": "EDIT",
+          "decision": "EDITED",
+          "reviewerUserId": "00000000-0000-4000-8000-000000000201",
+          "reviewerRole": "reviewer",
+          "originalPayloadSha256": "3d2f1c0b9a8776655443322110ffeeddccbbaa99887766554433221100ffeedd",
+          "editSchemaVersion": "1",
+          "editSchemaSha256": "aa11bb22cc33dd44ee55ff6677889900aabbccddeeff00112233445566778899",
+          "editedPayload": {
+            "knowledgeType": "Invariant"
+          },
+          "editedPayloadSha256": "99887766554433221100ffeeddccbbaa998877665544332211003d2f1c0b9a87",
+          "issueSeverity": "MINOR",
+          "acknowledgedEvidenceIds": [],
+          "observedLifecycleVersion": 0,
+          "observedLifecycleState": "UNRESOLVED",
+          "recordedAt": "2026-09-02T18:45:00.000000Z"
+        }
+      },
+      "sourceContext": {
+        "repositoryId": null,
+        "nameWithOwner": null,
+        "pullRequestId": null,
+        "pullRequestNumber": null,
+        "pullRequestTitle": null,
+        "pullRequestAuthorLogin": null,
+        "mergedAt": null,
+        "pullRequestUrl": null
+      },
+      "technicalDetails": {
+        "extractionRunId": "00000000-0000-4000-8000-000000000322",
+        "admissionDisposition": "ACCEPTED",
+        "admissionDecisionOrigin": "MODEL",
+        "validationValid": true,
+        "resolvedModelId": null,
+        "componentVersions": {},
+        "semanticPipelineFingerprint": null,
+        "extractedAt": null,
+        "effectiveJobId": null,
+        "cost": {
+          "completeness": "NOT_APPLICABLE",
+          "measuredUsd": "0.000000",
+          "reservedUsd": "0.000000",
+          "unresolvedUsd": "0.000000"
+        },
+        "latencyMs": 1450,
+        "tokenUsage": {}
+      }
+    }
+  ]
+}
