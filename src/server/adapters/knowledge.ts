@@ -49,6 +49,12 @@ import { type RepositoryScope, isUuid } from "./repositories"
  *
  * Every token here comes from a backend projection and is forwarded unchanged.
  * Nothing in this module derives, defaults or increments one.
+ *
+ * All eleven are bound because the published surface is what this module is
+ * for, and each one's URL and validator are pinned by its own test. Two are
+ * not yet read by a page: `KnowledgeDetail` embeds both the review state and
+ * the lifecycle state, so a screen that has the detail already has them and a
+ * second round trip would only risk showing two halves taken a moment apart.
  */
 
 export type KnowledgeReviewAction =

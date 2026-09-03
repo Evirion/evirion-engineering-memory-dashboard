@@ -64,6 +64,57 @@ test.describe("original_and_edit", () => {
     await expect(page.getByTestId("knowledge-edited")).toHaveCount(0)
   })
 
+  test("says an edit exists rather than showing only the extraction", async ({
+    context,
+    page,
+  }) => {
+    await signIn(context, { scenario: "memoryPartialProjection" })
+    await page.goto(detailOf(KNOWLEDGE.edited))
+
+    // The backend may legitimately report the object as edited and give no
+    // payload to render, because `editedPayload` is optional. Showing only the
+    // machine extraction would read as though the reviewer's words were lost.
+    await expect(page.getByTestId("knowledge-states")).toContainText(
+      "Edited by a reviewer",
+    )
+    await expect(page.getByTestId("knowledge-edited")).toHaveCount(0)
+    await expect(page.getByTestId("knowledge-edited-unavailable")).toBeVisible()
+    await expect(page.getByTestId("knowledge-original")).toBeVisible()
+  })
+
+  test("warns before a second edit starts from the extraction instead", async ({
+    context,
+    page,
+  }) => {
+    await signIn(context, { scenario: "memoryPartialProjection" })
+    await page.goto(detailOf(KNOWLEDGE.edited))
+
+    // Prefilling from the machine extraction without saying so is the silent
+    // discard the effective-payload prefill exists to prevent.
+    await expect(page.getByTestId("review-edit-derivative-unavailable")).toBeVisible()
+    await expect(page.getByTestId("review-edit")).toContainText(
+      "will not carry their words forward",
+    )
+  })
+
+  test("says so when the available decisions could not be determined", async ({
+    context,
+    page,
+  }) => {
+    await signIn(context, { scenario: "memoryPartialProjection" })
+    await page.goto(detailOf(KNOWLEDGE.pending))
+
+    // `review` is optional and is the only source of `allowedActions`. Its
+    // absence must not be reported as the object's own state permitting
+    // nothing, which is a different and answerable situation.
+    await expect(page.getByTestId("review-actions-undetermined")).toBeVisible()
+    await expect(page.getByTestId("review-actions-none")).toHaveCount(0)
+    await expect(page.getByTestId("review-approve")).toHaveCount(0)
+    // The rest of the page still works.
+    await expect(page.getByTestId("knowledge-original")).toBeVisible()
+    await expect(page.getByTestId("knowledge-evidence-item")).toHaveCount(2)
+  })
+
   test("renders no empty section for a field the payload does not carry", async ({
     context,
     page,
@@ -215,6 +266,23 @@ test.describe("source_context", () => {
 
     // Anything else would tell a caller which identifiers are well formed.
     expect(response?.status()).toBe(404)
+  })
+
+  test("fails closed on a lifecycle state the contract does not publish", async ({
+    context,
+    page,
+  }) => {
+    await signIn(context, { scenario: "memoryUnsupported" })
+    await page.goto(detailOf(KNOWLEDGE.pending))
+
+    // Not a `404`: the object is the caller's and exists. The answer is one
+    // the Console does not understand, and a partial document would let a
+    // reviewer decide against half a projection.
+    await expect(
+      page.getByText("This Knowledge Object is not available right now"),
+    ).toBeVisible()
+    await expect(page.getByTestId("review-approve")).toHaveCount(0)
+    await expect(page.locator("body")).not.toContainText("ARCHIVED_BY_OPERATOR")
   })
 
   test("never renders a machine-rejected or quarantined extraction", async ({

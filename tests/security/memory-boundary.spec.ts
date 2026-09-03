@@ -6,6 +6,7 @@ import {
   FOREIGN_KNOWLEDGE,
   FOREIGN_ORGANIZATION,
   KNOWLEDGE,
+  KNOWLEDGE_OBJECTS,
   RELATIONS,
 } from "../../tools/console-stub/fixtures.mjs"
 import { STUB_ORIGIN, signIn } from "../support/session-fixture"
@@ -25,6 +26,7 @@ import { STUB_ORIGIN, signIn } from "../support/session-fixture"
 
 const ORGANIZATION = "00000000-0000-4000-8000-0000000000a1"
 const ABSENT = "00000000-0000-4000-8000-0000000009ff"
+const objects = KNOWLEDGE_OBJECTS()
 
 const detailOf = (id: string): string => `/memory/${id}`
 
@@ -78,6 +80,42 @@ test.describe("knowledge object identity", () => {
 
     expect(foreign).toEqual(absent)
     expect(foreign.status).toBe(404)
+  })
+
+  test("discloses no machine outcome through the supersession picker", async ({
+    context,
+    page,
+  }) => {
+    await signIn(context, { scenario: "memory" })
+
+    /**
+     * The confirm step reads a second object, so it is a second read path and
+     * needs the same admission gate as the first. A rejected or quarantined
+     * extraction is not a Knowledge Object anywhere, and an identifier that
+     * answers `404` when opened must not become readable by being named as a
+     * replacement.
+     */
+    const observe = async (id: string) => {
+      await page.goto(`${detailOf(KNOWLEDGE.approved)}?supersedeWith=${id}`)
+      // The lifecycle region is where a target that had been read would
+      // appear. Comparing the whole body would compare the per-request CSP
+      // nonce too, which differs every time and discloses nothing.
+      return (await page.getByTestId("lifecycle-actions").textContent()) ?? ""
+    }
+
+    const foreign = await observe(FOREIGN_KNOWLEDGE.knowledgeObject)
+    expect(foreign).not.toBe("")
+
+    for (const id of [KNOWLEDGE.machineRejected, KNOWLEDGE.machineQuarantined]) {
+      const rendered = await observe(id)
+      // `shortClaim` is the one fixture field unique per object, so it is the
+      // only text whose presence would prove the target had been read.
+      expect(rendered).not.toContain(objects[id]?.shortClaim ?? "unreachable")
+      // And it answers exactly as a foreign replacement does, so naming one
+      // discloses nothing that opening it would not.
+      expect(rendered).toBe(foreign)
+      await expect(page.getByTestId("lifecycle-supersede-confirm")).toHaveCount(0)
+    }
   })
 
   test("refuses a direct backend read for another organization", async ({

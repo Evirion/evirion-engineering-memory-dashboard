@@ -161,6 +161,67 @@ test.describe("edit_with_evidence_warning", () => {
     )
   })
 
+  test("accepts an edit whose lists are legitimately empty", async ({
+    context,
+    page,
+  }) => {
+    await signIn(context, { scenario: "memory" })
+    await page.goto(detailOf(KNOWLEDGE.pending))
+
+    // The schema puts no lower bound on the seven arrays, so a claim that
+    // documents no trade-off must be editable exactly like one that does.
+    for (const label of [
+      "Documented trade-offs",
+      "Explicit alternatives",
+      "Constraints",
+      "Invariants",
+      "Failure modes",
+      "Affected systems",
+      "Answerable questions",
+    ]) {
+      await page.getByLabel(label).fill("")
+    }
+    await page.getByRole("button", { name: "Record the edit" }).click()
+
+    await expect(page.getByText("Your review is recorded.")).toBeVisible()
+    await expect(page.getByTestId("knowledge-states")).toContainText(
+      "Edited by a reviewer",
+    )
+  })
+
+  test("starts a second edit from the current derivative, not the original", async ({
+    context,
+    page,
+  }) => {
+    await signIn(context, { scenario: "memory" })
+    await page.goto(detailOf(KNOWLEDGE.edited))
+
+    // Prefilling from the machine extraction would silently discard the words
+    // the previous reviewer chose the moment a second edit is opened.
+    const derivative =
+      objects[KNOWLEDGE.edited]?.reviews.at(-1)?.editedPayload?.["knowledge"]
+    await expect(
+      page.getByTestId("review-edit").getByLabel("Knowledge", { exact: true }),
+    ).toHaveValue(String(derivative))
+  })
+
+  test("lets a reviewer change the classification the contract allows", async ({
+    context,
+    page,
+  }) => {
+    await signIn(context, { scenario: "memory" })
+    await page.goto(detailOf(KNOWLEDGE.pending))
+
+    // `REV-002` lists both enums among the thirteen editable keys, so neither
+    // is carried through as a fixed hidden value.
+    await page.getByLabel("Knowledge type").selectOption("SecurityBehavior")
+    await page.getByLabel("Implementation status").selectOption("proposed")
+    await page.getByRole("button", { name: "Record the edit" }).click()
+
+    await expect(page.getByText("Your review is recorded.")).toBeVisible()
+    await expect(page.getByTestId("knowledge-edited")).toContainText("SecurityBehavior")
+  })
+
   test("refuses an incomplete derivative rather than completing it", async ({
     context,
     page,

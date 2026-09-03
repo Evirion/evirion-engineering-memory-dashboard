@@ -136,18 +136,43 @@ describe("the edited derivative", () => {
   }
 
   it("reads the derivative from the backend fact, not from a comparison", () => {
-    const derivative = editedDerivativeOf(detailFrom(KNOWLEDGE.edited, true))
+    const state = editedDerivativeOf(detailFrom(KNOWLEDGE.edited, true))
 
-    expect(derivative?.reviewSequence).toBe(5)
-    expect(derivative?.schemaVersion).toBe("1")
-    expect(Object.keys(derivative?.payload ?? {})).toHaveLength(13)
+    expect(state.status).toBe("ready")
+    if (state.status !== "ready") throw new Error("expected a ready derivative")
+    expect(state.derivative.reviewSequence).toBe(5)
+    expect(state.derivative.schemaVersion).toBe("1")
+    expect(Object.keys(state.derivative.payload)).toHaveLength(13)
   })
 
   it("reports no derivative when the backend says the object is not edited", () => {
     // Even though this object's history contains an edit, the effective review
     // is not one. Comparing payloads instead would contradict the projection.
-    expect(editedDerivativeOf(detailFrom(KNOWLEDGE.edited, false))).toBeNull()
-    expect(editedDerivativeOf(detailFrom(KNOWLEDGE.approved, false))).toBeNull()
+    expect(editedDerivativeOf(detailFrom(KNOWLEDGE.edited, false)).status).toBe("none")
+    expect(editedDerivativeOf(detailFrom(KNOWLEDGE.approved, false)).status).toBe(
+      "none",
+    )
+  })
+
+  it("separates an edit it cannot show from an object with no edit", () => {
+    // `review` is optional in the contract and `editedPayload` is optional on a
+    // review, so the backend can say an object is edited and give nothing to
+    // render. Folding that into "no edit" would leave the page declaring an
+    // edit that is nowhere on screen.
+    // The key is omitted rather than set to `undefined`, which is what the
+    // backend does and what `exactOptionalPropertyTypes` insists on.
+    const { review: _absent, ...withoutReview } = detailFrom(KNOWLEDGE.edited, true)
+    const latest = objects[KNOWLEDGE.edited]?.reviews.at(-1)
+    if (!latest) throw new Error("no fixture review")
+    const { editedPayload: _withheld, ...withoutPayload } = latest
+
+    const withoutEditedPayload: KnowledgeDetail = {
+      ...detailFrom(KNOWLEDGE.edited, true),
+      review: { ...reviewState([]), latestReview: withoutPayload },
+    }
+
+    expect(editedDerivativeOf(withoutReview).status).toBe("unavailable")
+    expect(editedDerivativeOf(withoutEditedPayload).status).toBe("unavailable")
   })
 })
 

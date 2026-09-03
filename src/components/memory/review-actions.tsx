@@ -1,6 +1,9 @@
 import type { KnowledgeDetail } from "@contracts/console"
 
-import type { KnowledgeControls } from "@/lib/knowledge/presentation"
+import {
+  type KnowledgeControls,
+  editedDerivativeOf,
+} from "@/lib/knowledge/presentation"
 
 /**
  * The four review decisions.
@@ -44,7 +47,14 @@ const SEVERITIES = [
   ["CRITICAL", "Critical"],
 ] as const
 
-/** The thirteen editable keys, in the order `REV-002` lists them. */
+/**
+ * Eleven of the thirteen editable keys. The two enums are rendered as selects
+ * below, because a free-text box cannot express a closed vocabulary.
+ *
+ * A `list` field has no lower bound in the schema, so it is not required: a
+ * claim that documents no trade-off is edited exactly like one that documents
+ * three. The four `text` fields carry a minimum length and are required.
+ */
 const EDIT_FIELDS = [
   ["problem", "Problem", "text"],
   ["knowledge", "Knowledge", "text"],
@@ -57,6 +67,39 @@ const EDIT_FIELDS = [
   ["failureModes", "Failure modes", "list"],
   ["affectedSystems", "Affected systems", "list"],
   ["answerableQuestions", "Answerable questions", "list"],
+] as const
+
+/** The closed vocabulary `REV-002` publishes for the classification. */
+const KNOWLEDGE_TYPES = [
+  "ArchitectureDecision",
+  "APIBehavior",
+  "FeatureBehavior",
+  "Constraint",
+  "Invariant",
+  "FailureMode",
+  "Tradeoff",
+  "MigrationPattern",
+  "LifecycleBehavior",
+  "ConcurrencyBehavior",
+  "OperationalBehavior",
+  "CompatibilityRule",
+  "PerformanceBehavior",
+  "SecurityBehavior",
+  "SystemBehavior",
+  "TechnologyChoice",
+  "InfrastructureDecision",
+  "ProcessDecision",
+  "TeamOwnership",
+  "ExternalDependency",
+  "ProductDecision",
+  "ImplementedTechnicalDetail",
+] as const
+
+const IMPLEMENTATION_STATUSES = [
+  "implemented",
+  "proposed",
+  "partially_implemented",
+  "unknown",
 ] as const
 
 export type ReviewFormProps = {
@@ -273,9 +316,16 @@ export const EditForm = ({
 }: ReviewFormProps) => {
   if (!controls.canEdit) return null
 
-  // Prefilled from the machine extraction. `REV-002` defines an edit as a full
-  // reviewed derivative rather than a patch, so every field is submitted.
-  const payload = detail.originalPayload
+  // Prefilled from the effective payload: the current derivative when a
+  // reviewer already recorded one, and the machine extraction otherwise.
+  // Starting a second edit from the original would silently discard the words
+  // the previous reviewer chose. `REV-002` defines an edit as a full reviewed
+  // derivative rather than a patch, so every field is submitted either way.
+  const derivative = editedDerivativeOf(detail)
+  const payload =
+    derivative.status === "ready"
+      ? derivative.derivative.payload
+      : detail.originalPayload
 
   return (
     <form
@@ -290,18 +340,6 @@ export const EditForm = ({
         idempotencyKey={idempotencyKeys["edit"] ?? ""}
       />
       <input type="hidden" name="action" value="EDIT" />
-      {/* Not editable, and sent so the derivative is complete. Classification
-          and status stay as the machine recorded them. */}
-      <input
-        type="hidden"
-        name="knowledgeType"
-        value={asText(payload["knowledgeType"]) || detail.knowledgeType}
-      />
-      <input
-        type="hidden"
-        name="implementationStatus"
-        value={asText(payload["implementationStatus"]) || detail.implementationStatus}
-      />
       <div className="flex flex-col gap-1">
         <h3 className="text-sm font-semibold text-slate-900">
           Record an edited derivative
@@ -314,6 +352,58 @@ export const EditForm = ({
           The evidence is not re-extracted. It continues to support the machine
           extraction, not your edit.
         </p>
+        {derivative.status === "unavailable" ? (
+          // The alternative to saying this is starting a second edit from the
+          // machine extraction without mentioning that an earlier one exists,
+          // which is the silent discard this warning exists to prevent.
+          <p
+            data-testid="review-edit-derivative-unavailable"
+            className="text-xs font-medium text-amber-900"
+          >
+            An earlier reviewer already edited this claim and their wording is not
+            available right now. These fields start from the machine extraction, so
+            recording an edit now will not carry their words forward. Refresh before
+            editing if you need them.
+          </p>
+        ) : null}
+      </div>
+      <div className={field}>
+        <label htmlFor="edit-knowledgeType" className={labelClass}>
+          Knowledge type
+        </label>
+        <select
+          id="edit-knowledgeType"
+          name="knowledgeType"
+          required
+          defaultValue={asText(payload["knowledgeType"]) || detail.knowledgeType}
+          className={control}
+        >
+          {KNOWLEDGE_TYPES.map((value) => (
+            <option key={value} value={value}>
+              {value}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className={field}>
+        <label htmlFor="edit-implementationStatus" className={labelClass}>
+          Implementation status
+        </label>
+        <select
+          id="edit-implementationStatus"
+          name="implementationStatus"
+          required
+          defaultValue={
+            asText(payload["implementationStatus"]) || detail.implementationStatus
+          }
+          className={control}
+        >
+          {IMPLEMENTATION_STATUSES.map((value) => (
+            <option key={value} value={value}>
+              {value}
+            </option>
+          ))}
+        </select>
       </div>
       {EDIT_FIELDS.map(([key, text, kind]) => (
         <div key={key} className={field}>
@@ -324,14 +414,16 @@ export const EditForm = ({
             id={`edit-${key}`}
             name={key}
             rows={kind === "list" ? 2 : 3}
-            required
+            required={kind === "text"}
             defaultValue={
               kind === "list" ? asLines(payload[key]) : asText(payload[key])
             }
             className={control}
           />
           {kind === "list" ? (
-            <p className="text-xs text-slate-600">One entry per line.</p>
+            <p className="text-xs text-slate-600">
+              One entry per line. Leave empty if there are none.
+            </p>
           ) : null}
         </div>
       ))}
@@ -373,12 +465,18 @@ export const EditForm = ({
 }
 
 export const ReviewActions = (props: ReviewFormProps) => {
-  const { controls } = props
+  const { controls, detail } = props
   const anything =
     controls.canApprove ||
     controls.canEdit ||
     controls.canReject ||
     controls.canRevertToOriginal
+
+  // `review` is optional in the contract, and it is the only source of
+  // `allowedActions`. Its absence and a state that permits nothing produce the
+  // same empty set, so they are told apart here rather than both being
+  // reported as the object's current state.
+  const undetermined = detail.review === undefined
 
   return (
     <section
@@ -389,11 +487,14 @@ export const ReviewActions = (props: ReviewFormProps) => {
       <h2 className="text-sm font-semibold text-slate-900">Review decisions</h2>
       {anything ? null : (
         <p
-          data-testid="review-actions-none"
+          data-testid={
+            undetermined ? "review-actions-undetermined" : "review-actions-none"
+          }
           className="rounded border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-700"
         >
-          No review decision is available to you for this Knowledge Object in its
-          current state.
+          {undetermined
+            ? "Which review decisions are available could not be determined right now. Refresh to check again."
+            : "No review decision is available to you for this Knowledge Object in its current state."}
         </p>
       )}
       <ApproveOriginalForm {...props} />

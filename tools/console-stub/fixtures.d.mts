@@ -189,6 +189,12 @@ export type StubScenario = {
   readonly knowledgeError?: string
   /** A published stable code the evidence read answers with instead. */
   readonly evidenceError?: string
+  /** Injects a lifecycle state no contract publishes, for the fail-closed path. */
+  readonly knowledgeUnsupported?: boolean
+  /** Serves this object's detail without the optional `review` block. */
+  readonly knowledgeWithoutReview?: string
+  /** Serves this object's latest review without its optional `editedPayload`. */
+  readonly knowledgeWithoutEditedPayload?: string
 }
 
 /**
@@ -226,6 +232,8 @@ export declare const SCENARIOS: {
   readonly memoryUnavailable: () => StubScenario
   readonly memoryPaged: () => StubScenario
   readonly memoryEvidenceUnavailable: () => StubScenario
+  readonly memoryUnsupported: () => StubScenario
+  readonly memoryPartialProjection: () => StubScenario
 }
 
 export type StubScenarioName = keyof typeof SCENARIOS

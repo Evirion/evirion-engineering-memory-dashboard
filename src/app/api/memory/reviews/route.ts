@@ -66,9 +66,14 @@ const lines = (form: FormData, key: string): string[] =>
  * The complete editable projection, or nothing.
  *
  * `REV-002` defines an edit as a full reviewed derivative rather than a patch,
- * so all thirteen keys are required. A partial form is refused here rather
- * than sent as a body the backend would bounce, and it is never completed with
- * a value this route invented.
+ * so all thirteen keys are sent. A partial form is refused here rather than
+ * sent as a body the backend would bounce, and it is never completed with a
+ * value this route invented.
+ *
+ * An empty list is a legitimate value and not a partial form. The schema puts
+ * no lower bound on the seven arrays, so a claim that documents no trade-off
+ * is edited exactly like one that documents three. Only the four free-text
+ * fields carry a minimum length, and only those are required here.
  */
 const readEdit = (form: FormData): KnowledgeEditPayload | undefined => {
   const knowledgeType = text(form, "knowledgeType")
@@ -83,7 +88,6 @@ const readEdit = (form: FormData): KnowledgeEditPayload | undefined => {
   const arrays = Object.fromEntries(
     LIST_FIELDS.map((key) => [key, lines(form, key)]),
   ) as Record<(typeof LIST_FIELDS)[number], string[]>
-  if (Object.values(arrays).some((value) => value.length === 0)) return undefined
 
   return { knowledgeType, implementationStatus, ...strings, ...arrays }
 }

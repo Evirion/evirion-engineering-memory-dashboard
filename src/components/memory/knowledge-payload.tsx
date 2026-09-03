@@ -122,6 +122,30 @@ const DerivativePanel = ({ derivative }: { derivative: EditedDerivative }) => (
   </section>
 )
 
+/**
+ * The backend says this object is edited and gave nothing to show.
+ *
+ * Rendering only the machine extraction here would leave the page declaring an
+ * edit that is nowhere on screen, which reads as though the reviewer's words
+ * were lost. Saying so is the honest state.
+ */
+const DerivativeUnavailable = () => (
+  <section
+    aria-label="Reviewer's edited derivative"
+    data-testid="knowledge-edited-unavailable"
+    className="flex flex-col gap-2 rounded border border-amber-400 bg-amber-50 px-4 py-3"
+  >
+    <h2 className="text-sm font-semibold text-slate-900">
+      Reviewer's edited derivative
+    </h2>
+    <p className="text-xs text-slate-700">
+      A reviewer edited this claim, and the edited wording is not available to show
+      right now. The machine extraction beside this is unchanged, as it always is.
+      Refresh to check again.
+    </p>
+  </section>
+)
+
 export const KnowledgePayloads = ({ detail }: { detail: KnowledgeDetail }) => {
   const derivative = editedDerivativeOf(detail)
 
@@ -144,9 +168,13 @@ export const KnowledgePayloads = ({ detail }: { detail: KnowledgeDetail }) => {
         <PayloadFields payload={detail.originalPayload} />
       </section>
 
-      {derivative === null ? null : (
+      {derivative.status === "none" ? null : (
         <div className="flex-1">
-          <DerivativePanel derivative={derivative} />
+          {derivative.status === "ready" ? (
+            <DerivativePanel derivative={derivative.derivative} />
+          ) : (
+            <DerivativeUnavailable />
+          )}
         </div>
       )}
     </div>

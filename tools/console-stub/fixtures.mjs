@@ -1572,6 +1572,35 @@ export const SCENARIOS = {
     evidenceError: "DEPENDENCY_UNAVAILABLE",
   }),
 
+  /**
+   * A lifecycle state the contract does not publish.
+   *
+   * The value is injected at the response rather than stored in the shared
+   * inventory, because the coverage assertions require that inventory to hold
+   * exactly the published set. Every route must fail closed on a response like
+   * this rather than render a partial document.
+   */
+  memoryUnsupported: () => ({
+    ...withKnowledge(),
+    knowledge: KNOWLEDGE_OBJECTS(),
+    knowledgeUnsupported: true,
+  }),
+
+  /**
+   * Contract-legal detail responses with an optional block absent.
+   *
+   * `review` is optional, and it is the only source of `allowedActions`.
+   * `editedPayload` is optional, so the backend can say an object is edited
+   * and give nothing to render. Every other scenario derives both
+   * consistently, which is exactly why these two shapes went untested.
+   */
+  memoryPartialProjection: () => ({
+    ...withKnowledge(),
+    knowledge: KNOWLEDGE_OBJECTS(),
+    knowledgeWithoutReview: KNOWLEDGE.pending,
+    knowledgeWithoutEditedPayload: KNOWLEDGE.edited,
+  }),
+
   /** No import prepared yet, which is the empty state and not a refusal. */
   importAbsent: () => ({ ...withImport(IMPORT_RUNS.planning), imports: {} }),
 

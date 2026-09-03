@@ -13,7 +13,11 @@ import type {
 
 import { readSession } from "@/lib/auth/session-broker"
 import { readServerEnvironment } from "@/lib/env/server"
-import { type ViewFailure, UNKNOWN_ERROR } from "@/lib/errors/console-errors"
+import {
+  type ViewFailure,
+  UNKNOWN_ERROR,
+  describeTreatment,
+} from "@/lib/errors/console-errors"
 import type { KnowledgeFilters } from "@/lib/knowledge/filters"
 import {
   type KnowledgeControls,
@@ -25,7 +29,6 @@ import {
   fetchKnowledgeCorrections,
   fetchKnowledgeDetail,
   fetchKnowledgeEvidence,
-  fetchKnowledgeLifecycleState,
   fetchKnowledgePage,
   fetchKnowledgeReviewHistory,
 } from "@/server/adapters/knowledge"
@@ -296,28 +299,53 @@ const readSupersessionCandidates = async (
     }))
 }
 
+/**
+ * The replacement is not one this reviewer may name.
+ *
+ * A rejected or quarantined extraction is not a Knowledge Object, and an
+ * identifier in another tenant is not readable. Both answer with this, so
+ * naming an object as a replacement discloses exactly as much as opening it
+ * would, which is nothing.
+ */
+const UNAVAILABLE_TARGET: SupersessionTarget = {
+  status: "unavailable",
+  failure: {
+    code: "RESOURCE_NOT_FOUND",
+    treatment: "not-permitted",
+    message: describeTreatment("not-permitted"),
+    retryable: false,
+  },
+}
+
 const readSupersessionTarget = async (
   scope: RepositoryScope,
   knowledgeObjectId: string,
 ): Promise<SupersessionTarget> => {
-  const [lifecycle, detail] = await Promise.all([
-    fetchKnowledgeLifecycleState(scope, knowledgeObjectId),
-    fetchKnowledgeDetail(scope, knowledgeObjectId),
-  ])
-
-  if (!lifecycle.ok) {
-    return { status: "unavailable", failure: describeFailure(lifecycle.failure) }
-  }
+  // One read. The detail projection embeds the same lifecycle document the
+  // standalone operation returns, so reading both would make two round trips
+  // for one answer and could show a claim and a token taken a moment apart.
+  const detail = await fetchKnowledgeDetail(scope, knowledgeObjectId)
   if (!detail.ok) {
-    return { status: "unavailable", failure: describeFailure(detail.failure) }
+    const failure = detail.failure
+    return failure.kind === "error" && failure.error.error.code === "RESOURCE_NOT_FOUND"
+      ? UNAVAILABLE_TARGET
+      : { status: "unavailable", failure: describeFailure(failure) }
+  }
+
+  // The confirm step is a second read path and needs the same admission gate
+  // as the first. Without it an identifier that answers not-found when opened
+  // becomes readable by being named as a replacement, which would put a
+  // machine outcome's claim on screen as a Knowledge Object.
+  if (!isAdmittedKnowledge(detail.value.technicalDetails.admissionDisposition)) {
+    return UNAVAILABLE_TARGET
   }
 
   return {
     status: "ready",
     knowledgeObjectId,
     shortClaim: detail.value.knowledge,
-    reviewSequence: lifecycle.value.reviewSequence,
-    lifecycleVersion: lifecycle.value.lifecycleVersion,
+    reviewSequence: detail.value.lifecycle.reviewSequence,
+    lifecycleVersion: detail.value.lifecycle.lifecycleVersion,
   }
 }
 

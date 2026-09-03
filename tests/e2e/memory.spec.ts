@@ -98,6 +98,24 @@ test.describe("pending_queue_excludes_outcomes", () => {
 
     await expect(page.getByTestId("memory-queue-empty")).toBeVisible()
   })
+
+  test("fails closed on a lifecycle state the contract does not publish", async ({
+    context,
+    page,
+  }) => {
+    await signIn(context, { scenario: "memoryUnsupported" })
+    await page.goto("/memory")
+
+    // The conventions matrix marks `unknown` reachable on every route. A
+    // partial document would be worse than saying the answer is not
+    // understood, because a reviewer would act on half a projection.
+    await expect(
+      page.getByText("The review queue is not available right now"),
+    ).toBeVisible()
+    await expect(page.getByText("The outcome is not known yet")).toBeVisible()
+    await expect(page.getByTestId("memory-queue-row")).toHaveCount(0)
+    await expect(page.locator("body")).not.toContainText("ARCHIVED_BY_OPERATOR")
+  })
 })
 
 test.describe("filters_and_pagination", () => {

@@ -27,9 +27,6 @@ import type {
  * `docs/architecture/console-ui-conventions.md`.
  */
 
-/** Reading the queue and one object. Every role in the matrix holds it. */
-export const KNOWLEDGE_READ_CAPABILITY = "knowledge.read"
-
 /** Recording a review decision. The contract names it on the reviews operation. */
 export const KNOWLEDGE_REVIEW_CAPABILITY = "knowledge.review"
 
@@ -40,7 +37,7 @@ export type ReviewDecision = KnowledgeReviewState["decision"]
 export type LifecycleState = KnowledgeLifecycleState["lifecycleState"]
 export type ReviewAction = KnowledgeReviewState["allowedActions"][number]
 export type LifecycleAction = KnowledgeLifecycleState["allowedLifecycleActions"][number]
-export type CorrectionRequest = KnowledgeCorrections["correctionRequests"][number]
+type CorrectionRequest = KnowledgeCorrections["correctionRequests"][number]
 export type CorrectionStatus = CorrectionRequest["status"]
 export type AdmissionDisposition =
   KnowledgeDetail["technicalDetails"]["admissionDisposition"]
@@ -194,33 +191,39 @@ export type EditedDerivative = {
   readonly schemaVersion?: string
 }
 
-export const editedDerivativeOf = (
-  detail: KnowledgeDetail,
-): EditedDerivative | null => {
+/**
+ * Three outcomes, not two.
+ *
+ * `unavailable` is the one worth naming. `review` is optional in the contract,
+ * `latestReview` is nullable and `editedPayload` is optional, so the backend
+ * can legitimately say an object is edited and give nothing to render. Folding
+ * that into "no edit" would leave the page declaring the object edited while
+ * showing only the machine extraction, with no explanation for the gap, and
+ * would quietly hand the edit form the original to start a second edit from.
+ */
+export type DerivativeState =
+  | { readonly status: "none" }
+  | { readonly status: "unavailable" }
+  | { readonly status: "ready"; readonly derivative: EditedDerivative }
+
+export const editedDerivativeOf = (detail: KnowledgeDetail): DerivativeState => {
+  if (!detail.humanEdited) return { status: "none" }
+
   const latest = detail.review?.latestReview
-  if (!detail.humanEdited || !latest || latest.editedPayload === undefined) return null
+  if (!latest || latest.editedPayload === undefined) return { status: "unavailable" }
 
   return {
-    payload: latest.editedPayload,
-    reviewSequence: latest.reviewSequence,
-    recordedAt: latest.recordedAt,
-    ...(latest.editSchemaVersion === undefined
-      ? {}
-      : { schemaVersion: latest.editSchemaVersion }),
+    status: "ready",
+    derivative: {
+      payload: latest.editedPayload,
+      reviewSequence: latest.reviewSequence,
+      recordedAt: latest.recordedAt,
+      ...(latest.editSchemaVersion === undefined
+        ? {}
+        : { schemaVersion: latest.editSchemaVersion }),
+    },
   }
 }
-
-/**
- * The append-only history, oldest first.
- *
- * The contract already orders it, and the ordering is by explicit monotonic
- * sequence rather than by timestamp. Sorting here would let a client-side
- * comparison disagree with the projection the backend selected the effective
- * review from.
- */
-export const reviewTimeline = (
-  reviews: readonly KnowledgeReview[],
-): readonly KnowledgeReview[] => reviews
 
 /** Neutral text for one recorded review action. */
 export const reviewActionLabel = (action: KnowledgeReview["action"]): string => {

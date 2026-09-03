@@ -649,14 +649,42 @@ const reviewStateOf = (object) => ({
   reviewSequence: sequenceOf(object),
 })
 
-const detailOf = (object) => ({
-  ...object.base,
-  // The backend's own fact, taken from the effective review. It is never a
-  // comparison of two payloads.
-  humanEdited: decisionOf(object) === "EDITED",
-  lifecycle: lifecycleOf(object),
-  review: reviewStateOf(object),
-})
+/**
+ * The detail projection, with the optional blocks a scenario may withhold.
+ *
+ * `review` is optional in the contract and `editedPayload` is optional on a
+ * review, so a backend can legitimately answer with either absent. Both are
+ * withheld per scenario rather than stored, so the shared inventory keeps
+ * deriving consistently for every other test.
+ */
+const detailOf = (state, object) => {
+  const id = object.base.knowledgeObjectId
+  const humanEdited = decisionOf(object) === "EDITED"
+
+  if (state.knowledgeWithoutReview === id) {
+    return { ...object.base, humanEdited, lifecycle: lifecycleOf(object) }
+  }
+
+  const review = reviewStateOf(object)
+  if (state.knowledgeWithoutEditedPayload === id && review.latestReview) {
+    const { editedPayload: _withheld, ...rest } = review.latestReview
+    return {
+      ...object.base,
+      humanEdited,
+      lifecycle: lifecycleOf(object),
+      review: { ...review, latestReview: rest },
+    }
+  }
+
+  return {
+    ...object.base,
+    // The backend's own fact, taken from the effective review. It is never a
+    // comparison of two payloads.
+    humanEdited,
+    lifecycle: lifecycleOf(object),
+    review,
+  }
+}
 
 const summaryOf = (object) => ({
   confidence: object.base.confidence,
@@ -672,6 +700,17 @@ const summaryOf = (object) => ({
 
 const isAdmitted = (object) =>
   object.base.technicalDetails.admissionDisposition === "ACCEPTED"
+
+/**
+ * A lifecycle state no contract publishes, for the fail-closed path.
+ *
+ * Injected at the response rather than stored, so the shared inventory keeps
+ * holding exactly the published set that the coverage assertions require.
+ */
+const unsupported = (state, payload) =>
+  state.knowledgeUnsupported
+    ? { ...payload, lifecycleState: "ARCHIVED_BY_OPERATOR" }
+    : payload
 
 /**
  * One Knowledge Object, or nothing.
@@ -761,7 +800,7 @@ const knowledgePage = (state, params) => {
   const nextIndex = start + items.length
 
   return {
-    items: items.map(summaryOf),
+    items: items.map((object) => unsupported(state, summaryOf(object))),
     page: {
       nextCursor:
         nextIndex < matched.length
@@ -921,7 +960,10 @@ async function handleKnowledge(request, response, scope) {
 
     switch (action) {
       case "":
-        succeed(response, detailOf(object))
+        succeed(response, {
+          ...detailOf(state, object),
+          lifecycle: unsupported(state, lifecycleOf(object)),
+        })
         return true
       case "/evidence":
         if (state.evidenceError) {
