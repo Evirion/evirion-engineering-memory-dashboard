@@ -174,5 +174,14 @@ unaffected: it starts clean and sets `CI`, which disables server reuse.
 Implemented and locally verified only. Nothing is merged, deployed, observed,
 staging-certified, paid-certified or production-certified. No provider was
 called, no paid operation was authorized, no worker ran, no hosted Supabase
-setting was read or changed, and no remote deployment happened. The backend
-repository was read only, and was neither modified nor moved off its own branch.
+setting was read or changed, and no remote deployment happened.
+
+The backend sibling checkout was used read only: its authority pointer was
+verified and its working tree was inspected, and nothing was written to it. It
+was, separately and concurrently, being changed by its own `EEM-7/05` work,
+including `contracts/console/v1/openapi.yaml`. That does not reach this branch.
+The Dashboard consumes the pinned, released `console-contract-v1.0` archive, and
+`scripts/check_console_contract_lock` still verifies it at `packageSha256`
+`53da9379428d8f34b7e674805019244e85ed89a7cd6f0e1d9b4a2a79b23d6b6c`.
+Unreleased backend contract edits become consumable only through a new signed
+release, which `docs/ROADMAP.md` schedules as one later subtask.
