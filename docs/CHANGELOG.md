@@ -83,10 +83,11 @@
   `https://console.evirion.test:3443`, 98 Python tests, the Console contract
   lock, the authority package, the documentation tree, backend Auth parity at
   `2458f333`, Semgrep with 0 findings on 107 files, and digest-verified Gitleaks
-  over 47 commits with no leaks. The generated client reproduces byte for byte
-  from the pinned contract. Every count is from the final tree. Local Node is
-  22.18.0 against a baseline pin of 24.20.0, which affects installation rather
-  than these gates.
+  over the full branch history with no leaks. The generated client reproduces
+  byte for byte from the pinned contract. The Gitleaks figure is deliberately
+  not a commit count: any commit recording one changes it. Local Node is 22.18.0
+  against a baseline pin of 24.20.0, which affects installation rather than
+  these gates.
 - Verification: both releases were verified with the pinned `cosign-linux-amd64`
   at `4629c757` against the pinned trusted root at `6494e21e`, offline in a
   network-isolated `linux/amd64` container. A control run without the trusted

@@ -78,10 +78,11 @@ Updated: 2026-09-03
 Lint, format, `tsc --noEmit`, 613 Vitest tests, a production build, 127
 Playwright tests over the pinned origin `https://console.evirion.test:3443`, 98
 Python tests, Semgrep with no findings on 107 files, digest-verified Gitleaks
-over 47 commits with no leaks, the authority package, the documentation tree,
-backend Auth parity and the Console contract lock all pass, and the generated
-client reproduces byte for byte from the pinned contract. These counts are from
-the final tree, after the self-audit remediation and this documentation.
+over the full branch history with no leaks, the authority package, the
+documentation tree, backend Auth parity and the Console contract lock all pass,
+and the generated client reproduces byte for byte from the pinned contract. The
+test counts are from the final tree; the Gitleaks figure is deliberately not a
+commit count, because any commit recording one changes it.
 
 Both published releases verify offline with the pinned `cosign-linux-amd64`
 against the pinned trusted root, in a network-isolated `linux/amd64` container.

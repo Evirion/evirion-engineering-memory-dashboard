@@ -131,7 +131,7 @@ Final gate evidence, all from this tree: lint, format, `tsc --noEmit`, 613
 Vitest tests, a production build, 127 Playwright tests, 98 Python tests, the
 Console contract lock, the authority package, the documentation tree, backend
 Auth parity at `2458f333`, Semgrep with 0 findings on 107 files, and
-digest-verified Gitleaks over 47 commits with no leaks.
+digest-verified Gitleaks over the full branch history with no leaks.
 
 No provider was called, no paid operation was authorized, no worker ran, no
 hosted Supabase setting was read or changed, and nothing was deployed. The only
