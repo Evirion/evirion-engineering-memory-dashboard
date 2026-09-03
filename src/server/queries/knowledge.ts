@@ -245,7 +245,15 @@ export const readKnowledgeDetail = async (
 
   const detail = await fetchKnowledgeDetail(resolved.scope, knowledgeObjectId)
   if (!detail.ok) {
-    return { status: "unavailable", failure: describeFailure(detail.failure) }
+    const failure = detail.failure
+    // The backend refuses a foreign resource without disclosing whether it
+    // exists, so the Console answers the refusal exactly as it answers an
+    // identifier that is not a UUID. Anything else would let a caller tell a
+    // well-formed identifier from one that is merely not theirs.
+    if (failure.kind === "error" && failure.error.error.code === "RESOURCE_NOT_FOUND") {
+      return { status: "not-found" }
+    }
+    return { status: "unavailable", failure: describeFailure(failure) }
   }
 
   // A rejected or quarantined run is a legitimate machine outcome that

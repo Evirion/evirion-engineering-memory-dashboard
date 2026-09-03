@@ -37,6 +37,7 @@
     { "path": "/auth/verify", "owner": "EEM-9/02" },
     { "path": "/onboarding", "owner": "EEM-9/02" },
     { "path": "/memory", "owner": "EEM-9/05" },
+    { "path": "/memory/:knowledgeObjectId", "owner": "EEM-9/05" },
     { "path": "/repositories", "owner": "EEM-9/03" },
     { "path": "/repositories/:repositoryId", "owner": "EEM-9/03" },
     { "path": "/repositories/:repositoryId/import", "owner": "EEM-9/04" },
