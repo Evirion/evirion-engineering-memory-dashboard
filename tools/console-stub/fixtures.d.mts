@@ -1,4 +1,10 @@
-import type { GithubInstallation, Repository, RepositoryPage } from "@contracts/console"
+import type {
+  GithubInstallation,
+  Repository,
+  RepositoryImport,
+  RepositoryImportFailures,
+  RepositoryPage,
+} from "@contracts/console"
 
 /**
  * Types for the browser-gate fixtures.
@@ -22,6 +28,32 @@ export declare const REPOSITORIES: {
   readonly activeAutoExtract: string
   readonly changeRequested: string
 }
+
+export declare const IMPORTS: {
+  readonly resumeBlocked: string
+  readonly planning: string
+  readonly discovering: string
+  readonly awaitingApproval: string
+  readonly awaitingAuthorization: string
+  readonly processing: string
+  readonly paused: string
+  readonly completed: string
+  readonly failed: string
+  readonly cancelled: string
+}
+
+export declare const EXTRACTION_JOBS: {
+  readonly retryable: string
+  readonly blocked: string
+}
+
+export declare const IMPORT_RUNS: Readonly<
+  Record<keyof typeof IMPORTS, () => RepositoryImport>
+>
+
+export declare const IMPORT_FAILURES: () => Readonly<
+  Record<string, RepositoryImportFailures["failures"]>
+>
 
 export declare const CAPABILITIES: {
   readonly owner: readonly string[]
@@ -47,6 +79,12 @@ export type StubScenario = {
   readonly pageSize: number
   /** A published stable code the repository list answers with instead. */
   readonly listError?: string
+  /** The one current import per repository, keyed by repository identifier. */
+  readonly imports?: Readonly<Record<string, RepositoryImport>>
+  /** Failed work per import identifier. */
+  readonly importFailures?: Readonly<
+    Record<string, RepositoryImportFailures["failures"]>
+  >
 }
 
 /**
@@ -64,6 +102,17 @@ export declare const SCENARIOS: {
   readonly installationSuspended: () => StubScenario
   readonly paged: () => StubScenario
   readonly unlimited: () => StubScenario
+  readonly importAbsent: () => StubScenario
+  readonly importPlanning: () => StubScenario
+  readonly importDiscovering: () => StubScenario
+  readonly importAwaitingApproval: () => StubScenario
+  readonly importAwaitingAuthorization: () => StubScenario
+  readonly importProcessing: () => StubScenario
+  readonly importPaused: () => StubScenario
+  readonly importCompleted: () => StubScenario
+  readonly importFailed: () => StubScenario
+  readonly importCancelled: () => StubScenario
+  readonly importResumeBlocked: () => StubScenario
 }
 
 export type StubScenarioName = keyof typeof SCENARIOS

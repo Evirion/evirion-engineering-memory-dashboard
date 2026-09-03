@@ -233,13 +233,27 @@ customer something to do:
 
 - **TODO, design**: the treatment that separates "we are waiting for you" from
   "we are waiting for us". A shared spinner for both is the defect.
-- Progress reports processed, accepted, rejected, quarantined and failed as five
-  distinct counts. Rejected and quarantined are legitimate machine outcomes, not
+- **Progress is nine counters, not five.** `BF-004` asks for "processed /
+  total" and `repository-import.json` publishes neither field. It publishes
+  `counts` with `discovered`, `enqueued`, `skipped`, `sourceReady`, `completed`
+  and `failed`, and `dispositions` with `accepted`, `rejected` and
+  `quarantined`. Render the published nine and state the processed relationship
+  as the derivation it is; do not synthesise an aggregate the backend never
+  sent. Rejected and quarantined are legitimate machine outcomes, not
   infrastructure failures, and never render as Knowledge Objects.
 - **No generic Retry control.** Import recovery exists only where the EEM-7
   import projection declares it. Response-loss replay reuses the exact
   idempotency key and body. The generic `PROC-002` Retry belongs to /06.
 - Polling is bounded and stops on a terminal state or when the page is inactive.
+  Meta refresh cannot do any of that, so this is the one place a product client
+  component is warranted; architecture Section 21.1 permits it.
+- **The contract names no capability for the import operations** and publishes
+  no closed capability enum. The run projection's own `capabilities` decides
+  approve, pause, resume and cancel per caller. Preparing and retrying have no
+  such projection, so they fall back to `repository.policy.manage` as the
+  nearest published capability. That fallback is an assumption, recorded in the
+  EEM-9/04 acceptance trace, and it is a convenience rather than a control: the
+  backend refuses the request either way.
 
 ### EEM-9/05 — Memory review and lifecycle
 
@@ -516,6 +530,23 @@ discriminated union a `never` default so a new variant fails at compile time.
 Generated contract code under `generated/console-contract/` is digest-pinned
 authority. It is excluded from every formatter and linter write path, and CI
 reproduces it and fails on any diff.
+
+The generator reads two things, not one. Every `schemas/*.json` file becomes a
+payload type, and so does the `data` of any response envelope the contract
+declares completely inline in `openapi.yaml`. The second rule exists because
+`RepositoryImportReceipt` lives only there: without it four import operations
+have no type and every success fails closed. Forty of the contract's forty-one
+success responses reference the bare `SuccessEnvelope`, whose payload the
+contract leaves to the owning operation, so the rule matches exactly one
+component today and a test pins that.
+
+Reading `openapi.yaml` uses `scripts/openapi_components.py`, which accepts the
+exact YAML subset the frozen contract uses and raises on everything else. The
+Python gate is standard-library only by design — the authority workflow names
+its step "standard-library bootstrap tests" and validates every `.yaml` this
+repository owns with `python3 -m json.tool` — so a subset reader was preferred
+to a dependency. A later contract that introduces an unreviewed construct fails
+the generator loudly rather than being parsed into something subtly wrong.
 
 ## Verification before claiming a screen is done
 

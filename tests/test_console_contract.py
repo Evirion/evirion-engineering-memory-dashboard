@@ -24,9 +24,12 @@ from scripts.fetch_console_contract import (
 from scripts.generate_console_client import (
     ConsoleClientError,
     generate,
+    load_inline_payload_schemas,
+    load_schemas,
     render_client,
     verify_contract_bytes,
 )
+from scripts.openapi_components import OpenApiSubsetError, load_component_schemas
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -275,6 +278,313 @@ class ConsoleClientGenerationTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ConsoleClientError, "contract lock"):
             generate(lock, ROOT)
+
+
+def _document(schemas: str) -> str:
+    """A contract-shaped document whose only parsed section is the schemas.
+
+    The prose sections carry constructs the reader deliberately refuses inside
+    a schema, which is how these tests prove it skips rather than parses them.
+    """
+    return (
+        "openapi: 3.1.2\n"
+        "info:\n"
+        "  title: Example API, with a comma\n"
+        "  version: 1.0\n"
+        "paths: {}\n"
+        "components:\n"
+        "  responses: {}\n"
+        "  schemas:\n" + schemas
+    )
+
+
+class OpenApiComponentReaderTests(unittest.TestCase):
+    """The reader that lets an inline component be generated rather than typed.
+
+    It is a subset reader by choice, so the cases that must fail matter as much
+    as the ones that must parse: a construct it silently mis-parsed would become
+    a validator that admits bytes the backend never sends.
+    """
+
+    def setUp(self) -> None:
+        self.contract = (
+            ROOT
+            / _load("docs/contracts/console-contract-lock.json")["consumption"][
+                "vendoredRoot"
+            ]
+            / "contracts/console/v1/openapi.yaml"
+        ).read_text(encoding="utf-8")
+
+    def test_the_pinned_import_receipt_reads_exactly(self) -> None:
+        receipt = load_component_schemas(self.contract)["RepositoryImportReceipt"]
+
+        self.assertEqual(
+            receipt["required"], ["contractVersion", "requestId", "data"]
+        )
+        data = receipt["properties"]["data"]
+        self.assertEqual(data["type"], "object")
+        self.assertIs(data["additionalProperties"], False)
+        self.assertEqual(
+            data["required"],
+            ["receiptId", "status", "responseCode", "responsePayload"],
+        )
+        self.assertEqual(data["properties"]["status"]["const"], "completed")
+        self.assertEqual(
+            data["properties"]["responseCode"]["enum"],
+            [
+                "REPOSITORY_IMPORT_CREATED",
+                "REPOSITORY_IMPORT_APPROVED",
+                "REPOSITORY_IMPORT_JOB_RETRIED",
+                "REPOSITORY_IMPORT_PAUSED",
+                "REPOSITORY_IMPORT_RESUMED",
+                "REPOSITORY_IMPORT_RESUME_BLOCKED",
+                "REPOSITORY_IMPORT_CANCELLED",
+            ],
+        )
+        self.assertEqual(
+            data["properties"]["responseCode"]["x-evirion-unsupported-value"],
+            "UNSUPPORTED_SERVER_RESPONSE",
+        )
+        self.assertEqual(
+            data["properties"]["responsePayload"]["$ref"],
+            "#/components/schemas/RepositoryImport",
+        )
+
+    def test_quoted_scalars_decode_their_escapes(self) -> None:
+        # A pattern read as raw YAML text would keep the doubled backslash and
+        # compile to a regexp that matches a literal backslash.
+        approve = load_component_schemas(self.contract)[
+            "RepositoryImportApproveRequest"
+        ]
+
+        self.assertEqual(
+            approve["properties"]["costBudgetUsd"]["pattern"],
+            r"^(0|[1-9][0-9]{0,11})\.[0-9]{6}$",
+        )
+
+    def test_nested_sequences_and_mappings_read_structurally(self) -> None:
+        consent = load_component_schemas(self.contract)[
+            "RepositoryPolicyUpdateRequest"
+        ]["properties"]["consent"]
+
+        self.assertEqual(consent["oneOf"][0], {"type": "null"})
+        self.assertEqual(consent["oneOf"][1]["properties"]["scope"]["const"], "LIVE_REPOSITORY")
+
+    def test_only_the_schema_subtree_is_parsed(self) -> None:
+        # `info.title` carries a comma and a space, which no schema scalar does.
+        # Reading it would mean the reader is parsing sections it never uses.
+        schemas = load_component_schemas(_document("    Thing:\n      type: string\n"))
+
+        self.assertEqual(schemas, {"Thing": {"type": "string"}})
+
+    def test_comments_and_folded_prose_read_as_the_document_means_them(self) -> None:
+        schemas = load_component_schemas(
+            _document(
+                "    Thing:\n"
+                "      # A full line comment is not a mapping entry.\n"
+                "      type: string\n"
+                "      description: >-\n"
+                "        First paragraph continues\n"
+                "        on the next line.\n"
+                "\n"
+                "        Second paragraph.\n"
+                "      maxLength: 12\n"
+            )
+        )
+
+        self.assertEqual(
+            schemas["Thing"]["description"],
+            "First paragraph continues on the next line.\nSecond paragraph.",
+        )
+        self.assertEqual(schemas["Thing"]["maxLength"], 12)
+
+    def test_unreviewed_yaml_fails_closed(self) -> None:
+        cases = {
+            "tab": "\tThing:\n      type: string\n",
+            "anchor": "    Thing: &anchor\n      type: string\n",
+            "alias": "    Thing:\n      type: *alias\n",
+            "literal block": "    Thing:\n      description: |\n        text\n",
+            "flow sequence": "    Thing:\n      enum: [ONE, TWO]\n",
+            "populated flow mapping": "    Thing:\n      items: {type: string}\n",
+            "plain scalar with a colon": "    Thing:\n      title: a: b\n",
+            "plain scalar with a space": "    Thing:\n      title: two words\n",
+            "duplicate key": "    Thing:\n      type: string\n      type: integer\n",
+            "key with no value": "    Thing:\n      type:\n",
+            "unexpected indentation": "    Thing:\n      type: string\n       x: 1\n",
+            "nested sequence entry": "    Thing:\n      enum:\n        - - ONE\n",
+        }
+
+        for label, schemas in cases.items():
+            with self.subTest(label=label):
+                with self.assertRaises(OpenApiSubsetError):
+                    load_component_schemas(_document(schemas))
+
+    def test_a_document_without_component_schemas_fails_closed(self) -> None:
+        for label, document in {
+            "no components": "openapi: 3.1.2\npaths: {}\n",
+            "no schemas": "openapi: 3.1.2\ncomponents:\n  responses: {}\n",
+        }.items():
+            with self.subTest(label=label):
+                with self.assertRaises(OpenApiSubsetError):
+                    load_component_schemas(document)
+
+
+class InlinePayloadProjectionTests(unittest.TestCase):
+    """The rule that turns a fully declared response envelope into a payload.
+
+    Four import operations answer with a receipt the contract declares only
+    inline, so without this projection the generator emits no type for them and
+    every successful mutation is classified as an unsupported server response.
+    """
+
+    def setUp(self) -> None:
+        self.lock = _load("docs/contracts/console-contract-lock.json")
+        self.contract = (
+            ROOT / self.lock["consumption"]["vendoredRoot"] / "contracts/console/v1"
+        )
+        self.schemas = load_schemas(self.contract)
+
+    def _project(self, schemas: str) -> dict[str, Any]:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            (root / "openapi.yaml").write_text(_document(schemas), encoding="utf-8")
+            return load_inline_payload_schemas(root, self.schemas)
+
+    def test_the_pinned_contract_projects_only_the_import_receipt(self) -> None:
+        projected = load_inline_payload_schemas(self.contract, self.schemas)
+
+        self.assertEqual(list(projected), ["repository-import-receipt.json"])
+        payload = projected["repository-import-receipt.json"]
+        self.assertEqual(
+            payload["required"],
+            ["receiptId", "status", "responseCode", "responsePayload"],
+        )
+        # Rewritten from the component reference, so the generator resolves it
+        # to the generated `RepositoryImport` rather than failing on a pointer.
+        self.assertEqual(
+            payload["properties"]["responsePayload"]["$ref"],
+            "repository-import.json",
+        )
+        self.assertIn("Durable command receipt", payload["description"])
+
+    def test_the_bare_success_envelope_is_not_projected(self) -> None:
+        # Forty of forty-one responses reference it, and the payload belongs to
+        # the owning operation. Generating a type from it would invent one.
+        self.assertIn("SuccessEnvelope", load_component_schemas(
+            (self.contract / "openapi.yaml").read_text(encoding="utf-8")
+        ))
+        self.assertNotIn(
+            "success-envelope.json",
+            load_inline_payload_schemas(self.contract, self.schemas),
+        )
+
+    def test_a_component_that_is_not_an_envelope_is_not_projected(self) -> None:
+        projected = self._project(
+            "    Thing:\n"
+            "      type: object\n"
+            "      additionalProperties: false\n"
+            "      required:\n"
+            "        - id\n"
+            "      properties:\n"
+            "        id:\n"
+            "          type: string\n"
+        )
+
+        self.assertEqual(projected, {})
+
+    def test_a_reference_to_an_inline_component_fails_closed(self) -> None:
+        with self.assertRaisesRegex(ConsoleClientError, "no contract schema file"):
+            self._project(
+                "    Thing:\n"
+                "      type: string\n"
+                "    ThingReceipt:\n"
+                "      type: object\n"
+                "      additionalProperties: false\n"
+                "      required:\n"
+                "        - contractVersion\n"
+                "        - requestId\n"
+                "        - data\n"
+                "      properties:\n"
+                "        contractVersion:\n"
+                "          type: string\n"
+                "        requestId:\n"
+                "          type: string\n"
+                "        data:\n"
+                '          $ref: "#/components/schemas/Thing"\n'
+            )
+
+    def test_a_component_name_that_does_not_round_trip_fails_closed(self) -> None:
+        with self.assertRaisesRegex(ConsoleClientError, "stable schema file name"):
+            self._project(
+                "    thingReceipt:\n"
+                "      type: object\n"
+                "      additionalProperties: false\n"
+                "      required:\n"
+                "        - contractVersion\n"
+                "        - requestId\n"
+                "        - data\n"
+                "      properties:\n"
+                "        contractVersion:\n"
+                "          type: string\n"
+                "        requestId:\n"
+                "          type: string\n"
+                "        data:\n"
+                "          type: string\n"
+            )
+
+    def test_a_component_colliding_with_a_schema_file_fails_closed(self) -> None:
+        with self.assertRaisesRegex(ConsoleClientError, "collides"):
+            self._project(
+                "    CommandReceipt:\n"
+                "      type: object\n"
+                "      additionalProperties: false\n"
+                "      required:\n"
+                "        - contractVersion\n"
+                "        - requestId\n"
+                "        - data\n"
+                "      properties:\n"
+                "        contractVersion:\n"
+                "          type: string\n"
+                "        requestId:\n"
+                "          type: string\n"
+                "        data:\n"
+                "          type: string\n"
+            )
+
+    def test_the_generated_client_carries_the_receipt_and_its_sentinel(self) -> None:
+        client = ROOT / self.lock["consumption"]["generatedClientRoot"]
+        types = (client / "types.ts").read_text(encoding="utf-8")
+        validators = (client / "validators.ts").read_text(encoding="utf-8")
+        unsupported = (client / "unsupported-states.ts").read_text(encoding="utf-8")
+
+        self.assertIn("export type RepositoryImportReceipt = {", types)
+        self.assertIn("responsePayload: RepositoryImport;", types)
+        self.assertIn(
+            "export function isRepositoryImportReceipt(value: unknown):", validators
+        )
+        # The contract annotates this and the generator used to drop it, because
+        # it never read the document the annotation lives in.
+        self.assertIn(
+            '"RepositoryImportReceipt/responseCode": "UNSUPPORTED_SERVER_RESPONSE",',
+            unsupported,
+        )
+
+    def test_the_entitlement_receipt_cannot_validate_an_import_receipt(self) -> None:
+        # The reason a new type was needed: `command-receipt.json` fixes its
+        # response codes to the four entitlement ones, so binding an import
+        # mutation to it would fail closed on every success.
+        entitlement = self.schemas["command-receipt.json"]["properties"]
+        codes = set(entitlement["responseCode"]["enum"])
+
+        self.assertEqual(
+            codes,
+            {
+                "REPOSITORY_ENTITLEMENT_ACTIVE",
+                "REPOSITORY_ENTITLEMENT_DISABLED",
+                "REPOSITORY_ENTITLEMENT_CHANGE_REQUESTED",
+                "REPOSITORY_POLICY_UPDATED",
+            },
+        )
 
 
 class ContractDownloadTests(unittest.TestCase):

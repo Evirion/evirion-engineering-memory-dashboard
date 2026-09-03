@@ -15,7 +15,7 @@ import { createHash, randomUUID } from "node:crypto"
 import { createServer } from "node:https"
 
 import { readMaterial } from "../local-tls/generate-certificate.mjs"
-import { CAPABILITIES, PRINCIPALS, SCENARIOS } from "./fixtures.mjs"
+import { CAPABILITIES, IMPORT_RUNS, PRINCIPALS, SCENARIOS } from "./fixtures.mjs"
 
 const PORT = Number(process.env.CONSOLE_STUB_PORT ?? "3444")
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -38,6 +38,15 @@ const ERRORS = {
   REQUEST_INVALID: [400, false],
   DEPENDENCY_UNAVAILABLE: [503, true],
   INTERNAL_ERROR: [500, false],
+  REPOSITORY_IMPORT_NOT_FOUND: [404, false],
+  REPOSITORY_IMPORT_ALREADY_ACTIVE: [409, false],
+  REPOSITORY_IMPORT_NOT_APPROVABLE: [409, false],
+  REPOSITORY_IMPORT_NOT_PAUSABLE: [409, false],
+  REPOSITORY_IMPORT_NOT_RESUMABLE: [409, false],
+  REPOSITORY_IMPORT_NOT_CANCELLABLE: [409, false],
+  REPOSITORY_IMPORT_JOB_NOT_RETRYABLE: [409, false],
+  REPOSITORY_IMPORT_FILTERS_INVALID: [422, false],
+  PAID_OPERATION_NOT_AUTHORIZED: [403, false],
 }
 
 const MESSAGES = {
@@ -61,6 +70,10 @@ function load(name) {
   if (!build) throw new Error(`unknown scenario: ${name}`)
   return {
     name,
+    // A scenario that names no import has none, which is the empty state and
+    // not a missing key the lookups would have to guard against.
+    imports: {},
+    importFailures: {},
     ...build(),
     // Idempotency is durable for the life of the scenario, exactly as a stored
     // command receipt is: same key and same request returns the same receipt.
@@ -318,6 +331,14 @@ const handle = async (request, response, url) => {
     return succeed(response, page(state, url.searchParams.get("after") ?? undefined))
   }
 
+  const imported = await handleImport(request, response, {
+    state,
+    principal,
+    organizationId,
+    rest,
+  })
+  if (imported) return undefined
+
   const repositoryMatch = /^\/repositories\/([^/]+)(\/[a-z-]+)?$/.exec(rest)
   if (!repositoryMatch) return fail(response, "RESOURCE_NOT_FOUND")
 
@@ -467,6 +488,324 @@ const handle = async (request, response, url) => {
   }
 
   return fail(response, "RESOURCE_NOT_FOUND")
+}
+
+const IMPORT_BUDGET = /^(0|[1-9][0-9]{0,11})\.[0-9]{6}$/
+
+/**
+ * The capability an import mutation needs.
+ *
+ * The contract publishes no capability name for the import operations and no
+ * closed capability enum, so this is the double's approximation rather than a
+ * contract fact: it is the published capability nearest to consenting to paid
+ * processing for one repository, and it separates an owner from a viewer,
+ * which is the boundary these tests exist to exercise. Per-run capability is
+ * the projection's own `capabilities`, which is enforced separately below.
+ */
+const IMPORT_CAPABILITY = "repository.policy.manage"
+
+/**
+ * The projection as this caller sees it.
+ *
+ * `capabilities` is the backend's answer for the calling principal rather than
+ * a property of the run, so a caller who may not act is told so instead of
+ * being shown a control the backend would then refuse.
+ */
+const importFor = (run, principal) =>
+  requireCapability(principal, IMPORT_CAPABILITY)
+    ? run
+    : {
+        ...run,
+        capabilities: {
+          canApprove: false,
+          canCancel: false,
+          canPause: false,
+          canResume: false,
+        },
+      }
+
+/**
+ * The run for one import identifier, with the repository that owns it.
+ *
+ * Answers the refusal itself and returns nothing when there is no such run,
+ * so an import belonging to another tenant is indistinguishable from one that
+ * never existed: `state` is already scoped to this caller's isolation.
+ */
+const resolveImport = (response, state, importId) => {
+  if (!UUID.test(importId)) {
+    fail(response, "REQUEST_INVALID")
+    return undefined
+  }
+  const entry = Object.entries(state.imports).find(
+    ([, run]) => run?.importId === importId,
+  )
+  if (!entry) {
+    fail(response, "REPOSITORY_IMPORT_NOT_FOUND")
+    return undefined
+  }
+  return { repositoryId: entry[0], run: entry[1] }
+}
+
+/**
+ * The six historical-import operations.
+ *
+ * Returns `true` when it answered, so the caller can fall through to the
+ * repository routes when it did not. Two behaviours are the point of the
+ * double: a stale `expectedStatus` conflicts exactly as a stale version does,
+ * and approving records consent without ever producing `AUTHORIZED`, because
+ * Evirion operational authorization is not the customer's to grant.
+ */
+async function handleImport(request, response, scope) {
+  const { state, principal, organizationId, rest } = scope
+
+  const currentMatch = /^\/repositories\/([^/]+)\/imports\/current$/.exec(rest)
+  if (currentMatch && request.method === "GET") {
+    const repositoryId = currentMatch[1]
+    if (!UUID.test(repositoryId)) {
+      fail(response, "REQUEST_INVALID")
+      return true
+    }
+    if (!findRepository(state, principal, repositoryId)) {
+      fail(response, "RESOURCE_NOT_FOUND")
+      return true
+    }
+    const current = state.imports[repositoryId]
+    // Absent is refused the same way a foreign one is. The Console only reads
+    // it as empty because its repository read already succeeded.
+    if (current) {
+      succeed(response, importFor(current, principal))
+    } else {
+      fail(response, "REPOSITORY_IMPORT_NOT_FOUND")
+    }
+    return true
+  }
+
+  const createMatch = /^\/repositories\/([^/]+)\/imports$/.exec(rest)
+  if (createMatch && request.method === "POST") {
+    const repositoryId = createMatch[1]
+    if (!UUID.test(repositoryId)) {
+      fail(response, "REQUEST_INVALID")
+      return true
+    }
+    const repository = findRepository(state, principal, repositoryId)
+    if (!repository) {
+      fail(response, "RESOURCE_NOT_FOUND")
+      return true
+    }
+
+    await withCommand(request, response, state, principal, organizationId, {
+      operation: "import.create",
+      target: repositoryId,
+      capability: IMPORT_CAPABILITY,
+      apply: (body) => {
+        if (body?.confirmationAccepted !== true) return { error: "REQUEST_INVALID" }
+        if (!body?.filters || typeof body.filters !== "object") {
+          return { error: "REPOSITORY_IMPORT_FILTERS_INVALID" }
+        }
+        if (repository.entitlement?.state !== "ACTIVE") {
+          return { error: "REPOSITORY_NOT_ENTITLED" }
+        }
+        if (state.imports[repositoryId]) {
+          return { error: "REPOSITORY_IMPORT_ALREADY_ACTIVE" }
+        }
+
+        const created = {
+          ...IMPORT_RUNS.planning(),
+          importId: randomUUID(),
+          repositoryId,
+          filters: body.filters,
+        }
+        state.imports[repositoryId] = created
+        return { code: "REPOSITORY_IMPORT_CREATED", payload: created }
+      },
+    })
+    return true
+  }
+
+  const approveMatch = /^\/imports\/([^/]+)\/approve$/.exec(rest)
+  if (approveMatch && request.method === "POST") {
+    const found = resolveImport(response, state, approveMatch[1])
+    if (!found) return true
+
+    await withCommand(request, response, state, principal, organizationId, {
+      operation: "import.approve",
+      target: found.run.importId,
+      capability: IMPORT_CAPABILITY,
+      apply: (body) => {
+        if (body?.confirmationAccepted !== true) return { error: "REQUEST_INVALID" }
+        if (
+          typeof body?.costBudgetUsd !== "string" ||
+          !IMPORT_BUDGET.test(body.costBudgetUsd) ||
+          body.costBudgetUsd === "0.000000"
+        ) {
+          return { error: "REQUEST_INVALID" }
+        }
+        // `core.backfill_runs` has no version column, so the status is the
+        // optimistic token and a stale one conflicts the same way.
+        if (body?.expectedStatus !== found.run.status) {
+          return { error: "VERSION_CONFLICT" }
+        }
+        if (!found.run.capabilities.canApprove) {
+          return { error: "REPOSITORY_IMPORT_NOT_APPROVABLE" }
+        }
+
+        // Consent is recorded and the run moves to the Evirion wait. It never
+        // becomes AUTHORIZED here: no customer action can produce that.
+        const approved = {
+          ...found.run,
+          capabilities: {
+            canApprove: false,
+            canCancel: true,
+            canPause: true,
+            canResume: false,
+          },
+          cost: { ...found.run.cost, budgetUsd: body.costBudgetUsd },
+          missingPrerequisite: "OPERATIONAL_AUTHORIZATION",
+          modelCallsApproved: true,
+          paidAuthorizationStatus: "AWAITING_OPERATIONAL_AUTHORIZATION",
+          recoveryAction: "AWAIT_EVIRION_AUTHORIZATION",
+          status: "PROCESSING",
+        }
+        state.imports[found.repositoryId] = approved
+        return { code: "REPOSITORY_IMPORT_APPROVED", payload: approved }
+      },
+    })
+    return true
+  }
+
+  const stateMatch = /^\/imports\/([^/]+)\/state$/.exec(rest)
+  if (stateMatch && request.method === "PATCH") {
+    const found = resolveImport(response, state, stateMatch[1])
+    if (!found) return true
+
+    await withCommand(request, response, state, principal, organizationId, {
+      operation: "import.state",
+      target: found.run.importId,
+      capability: IMPORT_CAPABILITY,
+      apply: (body) => {
+        if (body?.expectedStatus !== found.run.status) {
+          return { error: "VERSION_CONFLICT" }
+        }
+        const transition = importTransition(found.run, body?.state)
+        if (transition.error) return transition
+
+        state.imports[found.repositoryId] = transition.payload
+        return transition
+      },
+    })
+    return true
+  }
+
+  const failuresMatch = /^\/imports\/([^/]+)\/failures$/.exec(rest)
+  if (failuresMatch && request.method === "GET") {
+    const found = resolveImport(response, state, failuresMatch[1])
+    if (!found) return true
+
+    succeed(response, {
+      importId: found.run.importId,
+      failures: state.importFailures[found.run.importId] ?? [],
+    })
+    return true
+  }
+
+  const retryMatch = /^\/imports\/([^/]+)\/failures\/([^/]+)\/retry$/.exec(rest)
+  if (retryMatch && request.method === "POST") {
+    if (!UUID.test(retryMatch[2])) {
+      fail(response, "REQUEST_INVALID")
+      return true
+    }
+    const found = resolveImport(response, state, retryMatch[1])
+    if (!found) return true
+
+    await withCommand(request, response, state, principal, organizationId, {
+      operation: "import.retry",
+      target: retryMatch[2],
+      capability: IMPORT_CAPABILITY,
+      apply: () => {
+        const failures = state.importFailures[found.run.importId] ?? []
+        const failure = failures.find(
+          (entry) => entry.extractionJobId === retryMatch[2],
+        )
+        if (!failure) return { error: "RESOURCE_NOT_FOUND" }
+        // Retryability is the projection's, never inferred from the failure.
+        if (!failure.retryable) {
+          return { error: "REPOSITORY_IMPORT_JOB_NOT_RETRYABLE" }
+        }
+
+        state.importFailures[found.run.importId] = failures.filter(
+          (entry) => entry !== failure,
+        )
+        const retried = {
+          ...found.run,
+          counts: {
+            ...found.run.counts,
+            failed: Math.max(0, found.run.counts.failed - 1),
+          },
+        }
+        state.imports[found.repositoryId] = retried
+        return { code: "REPOSITORY_IMPORT_JOB_RETRIED", payload: retried }
+      },
+    })
+    return true
+  }
+
+  return false
+}
+
+/** The three states a customer may drive an import into. */
+const importTransition = (run, wanted) => {
+  if (wanted === "PAUSED") {
+    if (!run.capabilities.canPause) return { error: "REPOSITORY_IMPORT_NOT_PAUSABLE" }
+    return {
+      code: "REPOSITORY_IMPORT_PAUSED",
+      payload: {
+        ...run,
+        capabilities: { ...run.capabilities, canPause: false, canResume: true },
+        status: "PAUSED",
+      },
+    }
+  }
+
+  if (wanted === "RESUMED") {
+    if (!run.capabilities.canResume) return { error: "REPOSITORY_IMPORT_NOT_RESUMABLE" }
+    // Source dead-letter work still held forces the resume back to paused.
+    // That is a completed command with its own response code, not a failure.
+    const blocked = run.counts.failed > 0
+    return {
+      code: blocked ? "REPOSITORY_IMPORT_RESUME_BLOCKED" : "REPOSITORY_IMPORT_RESUMED",
+      payload: {
+        ...run,
+        capabilities: {
+          ...run.capabilities,
+          canPause: !blocked,
+          canResume: blocked,
+        },
+        recoveryAction: blocked ? "RETRY_JOB" : run.recoveryAction,
+        status: blocked ? "PAUSED" : "PROCESSING",
+      },
+    }
+  }
+
+  if (wanted === "CANCELLED") {
+    if (!run.capabilities.canCancel)
+      return { error: "REPOSITORY_IMPORT_NOT_CANCELLABLE" }
+    return {
+      code: "REPOSITORY_IMPORT_CANCELLED",
+      payload: {
+        ...run,
+        capabilities: {
+          canApprove: false,
+          canCancel: false,
+          canPause: false,
+          canResume: false,
+        },
+        recoveryAction: "NONE",
+        status: "CANCELLED",
+      },
+    }
+  }
+
+  return { error: "REQUEST_INVALID" }
 }
 
 const productStateOf = (repository) => {

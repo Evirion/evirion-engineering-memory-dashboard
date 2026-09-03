@@ -228,6 +228,390 @@ const baseRepositories = () => [
   },
 ]
 
+/**
+ * One import identifier per published run state.
+ *
+ * A repository has at most one current import, so covering eight statuses, six
+ * authorization states and four cost states takes one named run each and a
+ * scenario that attaches it. The contract test fails if any published member
+ * has no fixture.
+ */
+export const IMPORTS = {
+  resumeBlocked: "00000000-0000-4000-8000-000000009010",
+  planning: "00000000-0000-4000-8000-000000009001",
+  discovering: "00000000-0000-4000-8000-000000009002",
+  awaitingApproval: "00000000-0000-4000-8000-000000009003",
+  awaitingAuthorization: "00000000-0000-4000-8000-000000009004",
+  processing: "00000000-0000-4000-8000-000000009005",
+  paused: "00000000-0000-4000-8000-000000009006",
+  completed: "00000000-0000-4000-8000-000000009007",
+  failed: "00000000-0000-4000-8000-000000009008",
+  cancelled: "00000000-0000-4000-8000-000000009009",
+}
+
+export const EXTRACTION_JOBS = {
+  retryable: "00000000-0000-4000-8000-00000000a001",
+  blocked: "00000000-0000-4000-8000-00000000a002",
+}
+
+/** The repository every import fixture is attached to. */
+const IMPORTED_REPOSITORY = REPOSITORIES.activeSourceOnly
+
+const importRun = (overrides) => ({
+  capabilities: {
+    canApprove: false,
+    canCancel: false,
+    canPause: false,
+    canResume: false,
+  },
+  cost: {
+    budgetUsd: null,
+    completeness: "NOT_APPLICABLE",
+    measuredUsd: "0.000000",
+    reservedUsd: "0.000000",
+    unresolvedUsd: "0.000000",
+  },
+  counts: {
+    completed: 0,
+    discovered: 0,
+    enqueued: 0,
+    failed: 0,
+    skipped: 0,
+    sourceReady: 0,
+  },
+  createdAt: "2026-09-01T10:00:00Z",
+  dispositions: { accepted: 0, quarantined: 0, rejected: 0 },
+  filters: {},
+  highWatermark: "2026-09-01T10:00:00Z",
+  missingPrerequisite: null,
+  mode: "MISSING_ONLY",
+  modelCallsApproved: false,
+  paidAuthorizationStatus: "NOT_REQUIRED",
+  recoveryAction: "NONE",
+  repositoryId: IMPORTED_REPOSITORY,
+  terminationReasonCategory: null,
+  updatedAt: "2026-09-01T10:05:00Z",
+  ...overrides,
+})
+
+export const IMPORT_RUNS = {
+  /** Free stages only: nothing paid applies, so no consent state exists yet. */
+  planning: () => importRun({ importId: IMPORTS.planning, status: "PLANNING" }),
+
+  discovering: () =>
+    importRun({
+      importId: IMPORTS.discovering,
+      status: "DISCOVERING",
+      counts: {
+        completed: 0,
+        discovered: 12,
+        enqueued: 0,
+        failed: 0,
+        skipped: 3,
+        sourceReady: 0,
+      },
+      capabilities: {
+        canApprove: false,
+        canCancel: true,
+        canPause: false,
+        canResume: false,
+      },
+      recoveryAction: "AWAIT_DISCOVERY",
+    }),
+
+  /** The one authorization state with something for the customer to do. */
+  awaitingApproval: () =>
+    importRun({
+      importId: IMPORTS.awaitingApproval,
+      status: "AWAITING_APPROVAL",
+      capabilities: {
+        canApprove: true,
+        canCancel: true,
+        canPause: false,
+        canResume: false,
+      },
+      counts: {
+        completed: 0,
+        discovered: 24,
+        enqueued: 21,
+        failed: 0,
+        skipped: 3,
+        sourceReady: 21,
+      },
+      filters: { mergedFrom: "2026-01-01T00:00:00Z", mergedTo: "2026-06-30T23:59:59Z" },
+      missingPrerequisite: "CUSTOMER_CONSENT",
+      paidAuthorizationStatus: "AWAITING_CUSTOMER_CONSENT",
+      recoveryAction: "APPROVE_IMPORT",
+    }),
+
+  /**
+   * The wait the customer cannot end. The run is processing and consent is
+   * recorded, so a surface that read status alone would say "Extracting".
+   */
+  awaitingAuthorization: () =>
+    importRun({
+      importId: IMPORTS.awaitingAuthorization,
+      status: "PROCESSING",
+      capabilities: {
+        canApprove: false,
+        canCancel: true,
+        canPause: true,
+        canResume: false,
+      },
+      cost: {
+        budgetUsd: "30.000000",
+        completeness: "RESERVED",
+        measuredUsd: "0.000000",
+        reservedUsd: "6.250000",
+        unresolvedUsd: "0.000000",
+      },
+      counts: {
+        completed: 0,
+        discovered: 24,
+        enqueued: 21,
+        failed: 0,
+        skipped: 3,
+        sourceReady: 21,
+      },
+      missingPrerequisite: "OPERATIONAL_AUTHORIZATION",
+      modelCallsApproved: true,
+      paidAuthorizationStatus: "AWAITING_OPERATIONAL_AUTHORIZATION",
+      recoveryAction: "AWAIT_EVIRION_AUTHORIZATION",
+    }),
+
+  processing: () =>
+    importRun({
+      importId: IMPORTS.processing,
+      status: "PROCESSING",
+      capabilities: {
+        canApprove: false,
+        canCancel: true,
+        canPause: true,
+        canResume: false,
+      },
+      cost: {
+        budgetUsd: "30.000000",
+        completeness: "RESERVED",
+        measuredUsd: "2.100000",
+        reservedUsd: "9.400000",
+        unresolvedUsd: "0.000000",
+      },
+      counts: {
+        completed: 9,
+        discovered: 24,
+        enqueued: 21,
+        failed: 0,
+        skipped: 3,
+        sourceReady: 21,
+      },
+      dispositions: { accepted: 7, quarantined: 1, rejected: 1 },
+      modelCallsApproved: true,
+      paidAuthorizationStatus: "AUTHORIZED",
+    }),
+
+  /** Expired authorization: a fresh request is the customer's to make. */
+  paused: () =>
+    importRun({
+      importId: IMPORTS.paused,
+      status: "PAUSED",
+      capabilities: {
+        canApprove: true,
+        canCancel: true,
+        canPause: false,
+        canResume: true,
+      },
+      cost: {
+        budgetUsd: "30.000000",
+        completeness: "RESERVED",
+        measuredUsd: "4.000000",
+        reservedUsd: "5.000000",
+        unresolvedUsd: "0.000000",
+      },
+      counts: {
+        completed: 12,
+        discovered: 24,
+        enqueued: 21,
+        failed: 0,
+        skipped: 3,
+        sourceReady: 21,
+      },
+      dispositions: { accepted: 10, quarantined: 1, rejected: 1 },
+      modelCallsApproved: true,
+      paidAuthorizationStatus: "EXPIRED",
+      recoveryAction: "APPROVE_IMPORT",
+    }),
+
+  completed: () =>
+    importRun({
+      importId: IMPORTS.completed,
+      status: "COMPLETED",
+      cost: {
+        budgetUsd: "30.000000",
+        completeness: "MEASURED",
+        measuredUsd: "18.400000",
+        reservedUsd: "0.000000",
+        unresolvedUsd: "0.000000",
+      },
+      counts: {
+        completed: 21,
+        discovered: 24,
+        enqueued: 21,
+        failed: 0,
+        skipped: 3,
+        sourceReady: 21,
+      },
+      dispositions: { accepted: 17, quarantined: 2, rejected: 2 },
+      modelCallsApproved: true,
+      paidAuthorizationStatus: "AUTHORIZED",
+    }),
+
+  /** Unresolved cost beside failed work, which is where a zero would lie. */
+  failed: () =>
+    importRun({
+      importId: IMPORTS.failed,
+      status: "FAILED",
+      cost: {
+        budgetUsd: "30.000000",
+        completeness: "UNRESOLVED",
+        measuredUsd: "3.000000",
+        reservedUsd: "0.000000",
+        unresolvedUsd: "1.750000",
+      },
+      counts: {
+        completed: 16,
+        discovered: 24,
+        enqueued: 21,
+        failed: 2,
+        skipped: 3,
+        sourceReady: 21,
+      },
+      dispositions: { accepted: 14, quarantined: 1, rejected: 1 },
+      modelCallsApproved: true,
+      paidAuthorizationStatus: "AUTHORIZED",
+      recoveryAction: "RETRY_JOB",
+    }),
+
+  /**
+   * Paused with source work still held back, so a resume is forced back to
+   * paused. That answer is a completed command with its own response code, and
+   * the surface has to be able to explain it rather than call it unknown.
+   */
+  resumeBlocked: () =>
+    importRun({
+      importId: IMPORTS.resumeBlocked,
+      status: "PAUSED",
+      capabilities: {
+        canApprove: false,
+        canCancel: true,
+        canPause: false,
+        canResume: true,
+      },
+      cost: {
+        budgetUsd: "30.000000",
+        completeness: "RESERVED",
+        measuredUsd: "5.000000",
+        reservedUsd: "3.000000",
+        unresolvedUsd: "0.000000",
+      },
+      counts: {
+        completed: 14,
+        discovered: 24,
+        enqueued: 21,
+        failed: 2,
+        skipped: 3,
+        sourceReady: 21,
+      },
+      dispositions: { accepted: 12, quarantined: 1, rejected: 1 },
+      modelCallsApproved: true,
+      paidAuthorizationStatus: "AUTHORIZED",
+      recoveryAction: "RETRY_JOB",
+    }),
+
+  cancelled: () =>
+    importRun({
+      importId: IMPORTS.cancelled,
+      status: "CANCELLED",
+      cost: {
+        budgetUsd: "30.000000",
+        completeness: "MEASURED",
+        measuredUsd: "1.200000",
+        reservedUsd: "0.000000",
+        unresolvedUsd: "0.000000",
+      },
+      counts: {
+        completed: 2,
+        discovered: 24,
+        enqueued: 21,
+        failed: 0,
+        skipped: 3,
+        sourceReady: 21,
+      },
+      dispositions: { accepted: 2, quarantined: 0, rejected: 0 },
+      paidAuthorizationStatus: "REVOKED",
+      recoveryAction: "CONTACT_SUPPORT",
+      terminationReasonCategory: "OPERATOR_REVOCATION",
+    }),
+}
+
+/**
+ * Failed work for the failed run.
+ *
+ * One entry the backend declares retryable and one it blocks, so the surface
+ * has to read the projection rather than infer a control from the failure.
+ */
+const failedWork = (first, second) => [
+  {
+    extractionJobId: EXTRACTION_JOBS.retryable,
+    itemId: first,
+    lastErrorCode: "SOURCE_FETCH_FAILED",
+    pullRequestNumber: 118,
+    recoveryAction: "RETRY_JOB",
+    retryBlocker: null,
+    retryable: true,
+    status: "FAILED",
+    updatedAt: "2026-09-01T11:00:00Z",
+  },
+  {
+    extractionJobId: EXTRACTION_JOBS.blocked,
+    itemId: second,
+    lastErrorCode: "PROVIDER_OUTCOME_UNKNOWN",
+    pullRequestNumber: 119,
+    recoveryAction: "CONTACT_SUPPORT",
+    retryBlocker: "REPOSITORY_IMPORT_JOB_NOT_RETRYABLE",
+    retryable: false,
+    status: "FAILED",
+    updatedAt: "2026-09-01T11:05:00Z",
+  },
+]
+
+export const IMPORT_FAILURES = () => ({
+  [IMPORTS.resumeBlocked]: failedWork("51", "52"),
+  [IMPORTS.failed]: [
+    {
+      extractionJobId: EXTRACTION_JOBS.retryable,
+      itemId: "41",
+      lastErrorCode: "SOURCE_FETCH_FAILED",
+      pullRequestNumber: 118,
+      recoveryAction: "RETRY_JOB",
+      retryBlocker: null,
+      retryable: true,
+      status: "FAILED",
+      updatedAt: "2026-09-01T11:00:00Z",
+    },
+    {
+      extractionJobId: EXTRACTION_JOBS.blocked,
+      itemId: "42",
+      lastErrorCode: "PROVIDER_OUTCOME_UNKNOWN",
+      pullRequestNumber: 119,
+      recoveryAction: "CONTACT_SUPPORT",
+      retryBlocker: "REPOSITORY_IMPORT_JOB_NOT_RETRYABLE",
+      retryable: false,
+      status: "FAILED",
+      updatedAt: "2026-09-01T11:05:00Z",
+    },
+  ],
+})
+
 const installationConnected = () => ({
   installation: {
     accountLogin: "acme",
@@ -254,6 +638,20 @@ const installationConnected = () => ({
   organizationId: ORGANIZATION,
   repositorySummary: { accessibleRepositories: 7, inaccessibleRepositories: 1 },
   setupIntent: null,
+})
+
+/** A connected organization whose one active repository carries `run`. */
+const withImport = (run) => ({
+  repositories: baseRepositories(),
+  limit: {
+    maxActiveRepositories: 5,
+    mode: "FIXED",
+    replacementMode: "SELF_SERVICE",
+  },
+  installation: installationConnected(),
+  pageSize: 50,
+  imports: { [IMPORTED_REPOSITORY]: run() },
+  importFailures: IMPORT_FAILURES(),
 })
 
 /**
@@ -413,4 +811,24 @@ export const SCENARIOS = {
     installation: installationConnected(),
     pageSize: 50,
   }),
+
+  /** No import prepared yet, which is the empty state and not a refusal. */
+  importAbsent: () => ({ ...withImport(IMPORT_RUNS.planning), imports: {} }),
+
+  importPlanning: () => withImport(IMPORT_RUNS.planning),
+  importDiscovering: () => withImport(IMPORT_RUNS.discovering),
+  /** The one authorization state that gives the customer something to do. */
+  importAwaitingApproval: () => withImport(IMPORT_RUNS.awaitingApproval),
+  /** Processing, consent recorded, and still waiting on Evirion. */
+  importAwaitingAuthorization: () => withImport(IMPORT_RUNS.awaitingAuthorization),
+  importProcessing: () => withImport(IMPORT_RUNS.processing),
+  /** Paused with an expired authorization, so a fresh request is offered. */
+  importPaused: () => withImport(IMPORT_RUNS.paused),
+  importCompleted: () => withImport(IMPORT_RUNS.completed),
+  /** Failed work beside an unresolved cost, which is where a zero would lie. */
+  importFailed: () => withImport(IMPORT_RUNS.failed),
+  /** Cancelled by an operator revocation, with authorization revoked. */
+  importCancelled: () => withImport(IMPORT_RUNS.cancelled),
+  /** Paused with held-back source work, so resuming is forced back to paused. */
+  importResumeBlocked: () => withImport(IMPORT_RUNS.resumeBlocked),
 }

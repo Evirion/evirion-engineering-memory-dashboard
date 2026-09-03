@@ -13,7 +13,7 @@
   "consumption": {
     "consumedContractRoot": "contracts/console/v1",
     "generatedClientRoot": "generated/console-contract/v1",
-    "generatedClientSurfaceSha256": "27b181b8cb994bb8fac0af9a1552b6318330825cc202840ddc8cf0c21f46a281",
+    "generatedClientSurfaceSha256": "b5a6facb4862323122e4483ee883fad00c1e271003fe5fff18cbff3a5b6c6797",
     "notConsumed": [
       "contracts/operator/v1"
     ],

@@ -1,5 +1,105 @@
 # Dashboard changelog
 
+## 2026-09-03 — EEM-9/04 import operations
+
+- Why: EEM-9/04 exposes guarded historical import after the EEM-7 contract
+  freeze. All six import operations and both import schemas are already
+  published in `console-contract-v1.0`, so no new contract bytes were consumed.
+  `EEM-7/05-model-profile-registry` does not block it: it was created after the
+  plan was frozen, it concerns the live `AUTO_EXTRACT` model-profile catalogue,
+  and historical import reads none of it.
+- Contracts: `scripts/generate_console_client.py` now also generates from the
+  response envelopes the contract declares inline in `openapi.yaml`. Four import
+  operations answer with `RepositoryImportReceipt`, which exists in no schema
+  file, so the generator emitted no type for it and `isCommandReceipt` could not
+  stand in: `command-receipt.json` fixes `responseCode` to the four entitlement
+  codes, so every import receipt would have been classified
+  `UNSUPPORTED_SERVER_RESPONSE` and no import mutation could ever have
+  succeeded. The bytes are signed and digest verified, so the type is generated
+  rather than hand-written.
+- Contracts: `scripts/openapi_components.py` reads the `components.schemas`
+  subtree with the standard library only, accepting the exact YAML subset the
+  frozen contract uses and raising on anything else, so a later contract that
+  introduces an unreviewed construct fails the generator loudly. The Python gate
+  stays dependency free.
+- Contracts: the projection rule takes a fully declared envelope's `data` rather
+  than the envelope, which keeps the generated type parallel to every other one.
+  Forty of the contract's forty-one success responses reference the bare
+  `SuccessEnvelope`, so it matches exactly one component today, and a test pins
+  that. It also recovers the unsupported-value sentinel the contract declares on
+  `RepositoryImportReceipt/responseCode`, which the generated client had been
+  dropping. `generatedClientSurfaceSha256` moves to
+  `b5a6facb4862323122e4483ee883fad00c1e271003fe5fff18cbff3a5b6c6797`.
+- Behavior: `/repositories/:repositoryId/import` renders the current run, its
+  authorization, progress, cost and failed work. The route was frozen by
+  EEM-9/01 and is now present in the reviewed inventory, owned by EEM-9/04.
+- Behavior: the two waits are separate states with separate treatments. Waiting
+  for the customer's approval is the only one of the six authorization states
+  that carries a control; waiting for Evirion operational authorization carries
+  none, states that there is nothing to do, and states that approving again
+  would not grant it. Run status and authorization are rendered as two facts, so
+  a `PROCESSING` run without operational authorization reads as the wait rather
+  than as extraction under way.
+- Behavior: approving records customer consent and never produces `AUTHORIZED`.
+  The API double implements the same transition, so this is asserted against
+  behaviour rather than against copy.
+- Behavior: progress reports the nine counters the contract publishes, in two
+  groups. `BF-004` asks for "processed / total" and the contract publishes
+  neither field, so the page states completed and failed work against what
+  discovery found and names it as the derivation it is. Rejected and quarantined
+  are counted apart from failed, because they are model decisions rather than
+  infrastructure failures, and both state they never become Knowledge Objects.
+- Behavior: the four cost states come from the stored completeness rather than
+  from an amount. Unresolved and not-applicable render no amount at all, because
+  zero is a measurement neither of them has. Reserved, measured and unresolved
+  travel as separately named figures and nothing is presented as an invoice.
+- Behavior: there is no generic Retry. A retry appears beside one failed job
+  only where that failure's own projection declares it retryable, and a blocked
+  one states the blocker instead. The generic processing-job `PROC-002` control
+  remains EEM-9/06's. A failure list that cannot be read says so rather than
+  rendering an empty list, which would claim there is nothing to recover.
+- Behavior: a resume the backend forces back to `PAUSED` is explained as the
+  completed command it is. Its receipt response code is not one of the 38
+  published error codes, so the shared outcome reader would have failed closed
+  and reported an unknown outcome for a command that committed and changed
+  state. The import surface reads its own outcome and delegates the rest.
+- Behavior: a `NOT_APPLICABLE` cost renders no breakdown at all. Its three
+  component amounts are all `0.000000`, so showing them would put zero-dollar
+  measurements on screen for a state that has nothing to measure. `UNRESOLVED`
+  keeps its breakdown, because there the components are real and only the single
+  total is withheld.
+- Behavior: polling is a bounded client component. It doubles to a ceiling, caps
+  its refreshes, stops entirely while the tab is not visible, and refreshes the
+  server route rather than reading anything itself, so the caller token stays
+  server-side. It is the first product client component in the Console;
+  architecture Section 21.1 permits client components for polling.
+- Contracts: approve and state carry `expectedStatus` rather than
+  `expectedVersion`, because `core.backfill_runs` has no version column. A stale
+  status conflicts exactly as a stale version does. The create body admits no
+  mode field at all, so `reextract` cannot be requested from this surface, and a
+  test asserts no request body ever carries one.
+- Security: import controls are narrowed by the session capability as well as by
+  the backend's per-caller `capabilities` projection. The contract names no
+  capability for the import operations and publishes no closed capability enum,
+  so the nearest published one, `repository.policy.manage`, is used and recorded
+  as an assumption in the acceptance trace. Hiding a control remains a
+  convenience: the backend refuses the request either way, and the browser suite
+  proves the refusal rather than assuming the control's absence.
+- Verification: lint, format, `tsc --noEmit`, 565 Vitest tests, a production
+  build, 121 Playwright tests over the pinned origin
+  `https://console.evirion.test:3443`, 94 Python tests, Semgrep with no
+  findings, digest-verified Gitleaks over 37 commits with no leaks, the
+  authority package, the documentation tree and the Console contract lock all
+  pass, and the generated client reproduces byte for byte from the pinned
+  contract.
+- Deployment state: implemented and locally verified only. Nothing is merged,
+  deployed, observed, staging-certified, paid-certified or production-certified.
+  No provider was called, no paid operation was authorized and no worker ran.
+- Remaining gates: `EEM-9/07` owns the integrated free backend and the full
+  per-role matrix against live fixtures; `EEM-9/08` owns paid certification.
+  Accessibility open decision 1 remains unanswered and is due before `EEM-9/07`.
+  `SEC-2026-012` remains open and readiness blocking.
+
 ## 2026-09-02 — EEM-9/03 repository control
 
 - Why: EEM-9/03 exposes GitHub setup, repository entitlement and policy after

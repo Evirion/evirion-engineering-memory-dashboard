@@ -7,6 +7,8 @@ import re
 from pathlib import Path
 from typing import Any
 
+from scripts.openapi_components import OpenApiSubsetError, load_component_schemas
+
 
 class ConsoleClientError(ValueError):
     """Raised when the pinned contract cannot be turned into a client safely."""
@@ -105,6 +107,10 @@ RESERVED_GLOBAL_TYPES = {
     "Worker",
 }
 RENAMED_TYPES = {"Error": "ConsoleError"}
+# The success envelope every response is wrapped in. A component declaring
+# exactly these three properties is a response rather than a payload.
+ENVELOPE_PROPERTIES = frozenset({"contractVersion", "data", "requestId"})
+_COMPONENT_REF_PREFIX = "#/components/schemas/"
 
 
 def _canonical_json(value: Any) -> bytes:
@@ -575,12 +581,111 @@ def load_schemas(contract_root: Path) -> dict[str, dict[str, Any]]:
     return schemas
 
 
+def _schema_file_name(component: str) -> str:
+    """The schema file name a component would carry if the contract wrote one."""
+    return re.sub(r"(?<!^)(?=[A-Z])", "-", component).lower() + ".json"
+
+
+def _rewrite_component_refs(
+    node: Any,
+    schemas: dict[str, dict[str, Any]],
+    pointer: str,
+) -> Any:
+    """Point every component reference at the schema file that defines it.
+
+    The generator resolves a reference by schema file name, which is how every
+    schema file already names its siblings. An inline component may therefore
+    only reference a component that aliases a schema file: a reference to a
+    second inline component would need that one generated too, and failing is
+    better than emitting a type that silently drops it.
+    """
+    if isinstance(node, list):
+        return [
+            _rewrite_component_refs(entry, schemas, f"{pointer}/{index}")
+            for index, entry in enumerate(node)
+        ]
+    if not isinstance(node, dict):
+        return node
+
+    rewritten: dict[str, Any] = {}
+    for key, value in node.items():
+        if key != "$ref":
+            rewritten[key] = _rewrite_component_refs(value, schemas, f"{pointer}/{key}")
+            continue
+        if not isinstance(value, str) or not value.startswith(_COMPONENT_REF_PREFIX):
+            raise ConsoleClientError(f"unresolvable $ref {value!r} at {pointer}")
+        schema_file = _schema_file_name(value.removeprefix(_COMPONENT_REF_PREFIX))
+        if schema_file not in schemas:
+            raise ConsoleClientError(
+                f"$ref {value!r} at {pointer} names no contract schema file"
+            )
+        rewritten[key] = schema_file
+    return rewritten
+
+
+def load_inline_payload_schemas(
+    contract_root: Path,
+    schemas: dict[str, dict[str, Any]],
+) -> dict[str, dict[str, Any]]:
+    """Project every fully declared response envelope onto its data payload.
+
+    Forty of the contract's forty-one success responses reference the bare
+    `SuccessEnvelope`, whose `data` the contract leaves to the owning operation,
+    and the adapter binds a payload schema by convention. The exception is the
+    historical-import receipt, which the contract declares completely and
+    inline. Nothing under `schemas/` describes it, so four import operations
+    would otherwise have no generated type and would fail closed on every
+    success.
+
+    Projecting `data` rather than the envelope keeps the generated type parallel
+    to every other one. Each is the payload a caller receives, so it binds to
+    the existing transport instead of needing a second code path.
+    """
+    document = (contract_root / "openapi.yaml").read_text(encoding="utf-8")
+    try:
+        components = load_component_schemas(document)
+    except OpenApiSubsetError as exc:
+        raise ConsoleClientError(f"cannot read the contract document: {exc}") from exc
+
+    payloads: dict[str, dict[str, Any]] = {}
+    for name in sorted(components):
+        component = components[name]
+        if not isinstance(component, dict):
+            continue
+        properties = component.get("properties")
+        if not isinstance(properties, dict) or set(properties) != ENVELOPE_PROPERTIES:
+            continue
+        payload = properties["data"]
+        if not isinstance(payload, dict) or _is_unconstrained(payload):
+            continue
+
+        schema_file = _schema_file_name(name)
+        if _type_name(schema_file) != name:
+            raise ConsoleClientError(
+                f"inline component {name} has no stable schema file name"
+            )
+        if schema_file in schemas:
+            raise ConsoleClientError(
+                f"inline component {name} collides with contract schema {schema_file}"
+            )
+        projected = _rewrite_component_refs(payload, schemas, name)
+        description = component.get("description")
+        if "description" not in projected and isinstance(description, str):
+            # The envelope's description describes the receipt, and the payload
+            # is that receipt, so carrying it keeps the generated documentation
+            # from dropping bytes the contract signed.
+            projected = {**projected, "description": description}
+        payloads[schema_file] = projected
+    return payloads
+
+
 def generate(lock: dict[str, Any], root: Path) -> dict[str, str]:
     consumption = lock["consumption"]
     archive_root = root / consumption["vendoredRoot"]
     verify_contract_bytes(archive_root, lock["contract"]["packageSha256"])
     contract_root = archive_root / lock["contract"]["manifestPath"]
     schemas = load_schemas(contract_root.parent)
+    schemas.update(load_inline_payload_schemas(contract_root.parent, schemas))
     provenance = {
         "archiveSha256": lock["artifact"]["assetSha256"],
         "assetId": lock["artifact"]["assetId"],

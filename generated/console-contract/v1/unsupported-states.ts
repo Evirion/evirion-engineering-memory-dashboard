@@ -18,4 +18,5 @@ export const CONSOLE_UNSUPPORTED_VALUES = {
   "RepositoryImport/status": "UNSUPPORTED_SERVER_RESPONSE",
   "RepositoryImportFailures/failures/items/recoveryAction": "UNSUPPORTED_SERVER_RESPONSE",
   "RepositoryImportFailures/failures/items/retryBlocker": "UNSUPPORTED_SERVER_RESPONSE",
+  "RepositoryImportReceipt/responseCode": "UNSUPPORTED_SERVER_RESPONSE",
 } as const;
