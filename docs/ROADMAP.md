@@ -54,9 +54,16 @@ the [controlling EEM-9 plan](plans/active/eem-9-design-partner-console-dashboard
    [#12](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/12)
    at `3f8cd88`. The second registers the `uri` format as an https-only check,
    without which the next release could not be consumed.
-10. `EEM-9/03f-console-contract-revision` is implemented and locally verified on
-    its branch. It consumes `console-contract-v1.0.2`, which carries the
+10. `EEM-9/03f-console-contract-revision` is merged as PR
+    [#13](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/13)
+    at `875b446`. It consumes `console-contract-v1.0.2`, which carries the
     knowledge read and receipt contract, and closes the third gap below.
+11. `EEM-9/05-memory-review-lifecycle` is implemented and locally verified on its
+    branch. It delivers the review queue, knowledge detail and evidence, the four
+    review decisions, the append-only history, activation, supersession and
+    correction requests across the three frozen memory routes. Its trace is
+    [`eem-9-05-acceptance-trace.md`](plans/active/eem-9-05-acceptance-trace.md).
+    It consumes no new contract bytes.
 
 All EEM-4 subtasks are merged in the backend as PRs
 [#26](https://github.com/Evirion/evirion-engineering-memory/pull/26)–[#29](https://github.com/Evirion/evirion-engineering-memory/pull/29),
@@ -76,7 +83,8 @@ exists.
 2. `EEM-9/02-auth-shell` while EEM-6 proceeds.
 3. `EEM-9/03-repository-control` after EEM-6, while EEM-7 proceeds.
 4. `EEM-9/04-import-operations` after EEM-7, while EEM-8 proceeds.
-5. `EEM-9/05-memory-review-lifecycle` after EEM-8.
+5. `EEM-9/05-memory-review-lifecycle` after EEM-8. Implemented and locally
+   verified; not merged.
 6. `EEM-9/06-processing-settings-metrics`.
 7. Paired `EEM-9/07-free-integration`.
 8. Separately approved `EEM-9/08-paid-certification`.
@@ -93,10 +101,28 @@ The two contract gaps found during `EEM-9/03` are closed. Backend issues
 `console-contract-v1.0.1`, and `EEM-9/03e` consumes both. `EEM-9/06` no longer
 inherits either gap.
 
+## Two contract limits raised by EEM-9/05
+
+Neither blocks the surface, and both are additive requests rather than gaps
+that stopped work. Both are recorded in
+[`eem-9-05-acceptance-trace.md`](plans/active/eem-9-05-acceptance-trace.md).
+
+Activation, supersession and correction each require recent reauthentication
+per the operation description, and nothing published lets the Console tell a
+customer whether that is satisfied: `session-context.json` pins
+`session.status` to a constant while `session.json` publishes an enum that
+includes `REAUTH_REQUIRED`, and no error code separates stale freshness from
+being signed out. The request is a distinct code plus either widening the
+current-session status or adding a freshness field.
+
+Separately, `error.json` constrains `currentVersion` to a minimum of one, while
+both knowledge tokens legitimately reach zero. A conflict against `PENDING` or
+`UNRESOLVED` therefore cannot report what the state now is.
+
 ## The third contract gap is closed
 
 Found on 2026-09-03 while sequencing the work after `EEM-9/04`, and closed the
-same day. Step 5 of the accepted order is startable again.
+same day. Step 5 of the accepted order was startable again, and is now built.
 
 All eleven knowledge operations answered the bare `SuccessEnvelope`: no payload
 schema file, no `x-evirion-response-schema` binding, and a `CommandReceipt` whose

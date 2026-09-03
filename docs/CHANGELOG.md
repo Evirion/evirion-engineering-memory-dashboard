@@ -1,5 +1,62 @@
 # Dashboard changelog
 
+## 2026-09-03 — EEM-9/05 memory review and lifecycle
+
+- Why: the Console could read repositories and drive imports but had no surface
+  for the knowledge those imports produce. `EEM-9/03f` made the eleven knowledge
+  operations validatable; this builds the review queue, the knowledge detail,
+  the four review decisions, the append-only history, activation, supersession
+  and correction requests on top of them.
+- Contracts: no new contract bytes. The pinned `console-contract-v1.0.2` release
+  and the generated client are unchanged, and the eleven operations were already
+  bound as types. `docs/contracts/console-contract-lock.json` still verifies.
+- Behavior: three frozen routes move from declared to present — `/memory`,
+  `/memory/:knowledgeObjectId` and `/repositories/:repositoryId/memory` — with
+  four new BFF routes under `/api/memory/`. Review and lifecycle render as two
+  independent axes rather than one status. The machine extraction and a
+  reviewer's edited derivative sit side by side, and `humanEdited` is read from
+  the backend rather than inferred by comparing payloads. Review history renders
+  as an append-only timeline with no delete and no amend. The customer creates
+  and reads correction requests and can never execute, decline or retry one.
+- Security: every case that is not a readable admitted Knowledge Object answers
+  identically — a machine `REJECTED` or `QUARANTINED` extraction, an identifier
+  in another tenant, an absent one and a malformed one all reach the same `404`,
+  so none discloses existence. All five identifier kinds the surface accepts are
+  substitution tested through direct BFF calls in
+  `tests/security/memory-boundary.spec.ts`. A correction pairs its relation with
+  that relation's own version as one inseparable value, so a caller cannot
+  combine one relation with another's version.
+- Contracts observed, not changed: two limits are recorded rather than worked
+  around. Activation, supersession and correction each require recent
+  reauthentication, and no published field or error code lets the Console tell a
+  customer whether it is satisfied, because `session-context.json` pins
+  `session.status` to a constant while `session.json` publishes an enum
+  containing `REAUTH_REQUIRED`. Separately, `error.json` bounds `currentVersion`
+  below at one, while review sequence zero is `PENDING` and lifecycle version
+  zero is `UNRESOLVED`, so a conflict against a zero cannot say what the state
+  now is. Both are additive requests; `error.json` declares an unsupported
+  fallback inside its enum, so a new code needs no breaking change.
+- Important files: `src/server/adapters/knowledge.ts` binds all eleven
+  operations; `src/server/queries/knowledge.ts` resolves and spends the caller
+  token so no page sees it; `src/components/memory/knowledge-outcome.tsx` reads
+  the four receipt codes and delegates the rest, leaving EEM-9/03's shared
+  reader unmodified. `tools/console-stub/` gains the eleven operations, five
+  memory scenarios and a knowledge inventory covering every published enum.
+- Verification: lint, `prettier --check`, `tsc --noEmit`, 722 Vitest tests, a
+  production build and 233 Playwright tests over the pinned origin
+  `https://console.evirion.test:3443` all pass as one complete free gate on
+  frozen bytes. One full-diff self-audit found five issues, all fixed in one
+  remediation wave and recorded in the trace.
+- Deployment state: implemented and locally verified only. Not merged, not
+  deployed, not observed, not staging-certified, not paid-certified, not
+  production-certified.
+- Remaining gates: open decision 1 still blocks a configured accessibility gate,
+  so only ruleset-independent assertions ship. Decisions 2 to 5 are carried, not
+  answered. `SEC-2026-012` remains open and Technical Design Partner Ready
+  remains blocked. Adding the three memory routes and the `memory-review` slice
+  moved the Dashboard authority `packageSha256`, so whether a paired backend
+  successor pointer follows is an owner decision on that value.
+
 ## 2026-09-03 — EEM-9/03f console contract v1.0.2
 
 - Why: `EEM-9/05` could not start. All eleven knowledge operations answered the
