@@ -133,6 +133,30 @@ be a separate earlier pull request: the lock and the recorded evidence both pin
 `policyDigest`, so a policy-only change would land a default branch whose own
 gate fails.
 
+### No successor pointer follows EEM-9/03e
+
+Owner decision of 2026-09-03, taken on the authority digest this subtask
+produces. It is recorded because the absence of a paired backend pull request
+should read as a decision rather than as an omission.
+
+The backend pointer reads the Dashboard commit it pins rather than Dashboard
+`main`, so it keeps verifying as this repository moves, and it was reverified
+after this subtask's changes. Fifteen commits have landed on Dashboard `main`
+since the pointer was set at `a6665b5` by backend PR
+[#52](https://github.com/Evirion/evirion-engineering-memory/pull/52), spanning
+`EEM-9/02` through `EEM-9/04`, and none was followed by a successor pointer. The
+pointer is re-pinned when the controlling EEM-9 authority moves, not on every
+merge, and this subtask leaves the controlling plan untouched.
+
+No digest is quoted here on purpose. Recording one would be stale the moment
+this paragraph changed the authority package it names.
+
+The consequence accepted with the decision: a reader arriving from the backend
+pointer lands on the EEM-9/01b tree, so they see neither the amended trust
+policy nor the `EEM-9/03e` catalog entry until a later subtask re-pins. That
+costs discoverability and nothing else; every gate in both repositories passes
+either way.
+
 Technical Design Partner Ready and paid readiness remain false. In particular,
 `SEC-2026-012`, staging evidence, external manual verification, paid
 authorization, and production evidence remain separate future gates.
