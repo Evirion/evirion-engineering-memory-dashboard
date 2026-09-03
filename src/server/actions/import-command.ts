@@ -58,6 +58,14 @@ export type ImportCommandOutcome =
 
 const NO_STORE = "private, no-store, max-age=0, must-revalidate"
 
+/**
+ * Typed against the receipt rather than written as a bare string, so a contract
+ * that renames or drops this response code fails the typecheck instead of
+ * silently sending every blocked resume home as a plain success again.
+ */
+const RESUME_BLOCKED: RepositoryImportReceipt["responseCode"] =
+  "REPOSITORY_IMPORT_RESUME_BLOCKED"
+
 const back = (path: string, result: string): NextResponse => {
   const response = NextResponse.redirect(
     canonicalRedirect(`${path}?result=${encodeURIComponent(result)}`),
@@ -178,9 +186,7 @@ export const finishImportCommand = (
   if (result.ok) {
     return back(
       path,
-      result.value.responseCode === "REPOSITORY_IMPORT_RESUME_BLOCKED"
-        ? "REPOSITORY_IMPORT_RESUME_BLOCKED"
-        : "applied",
+      result.value.responseCode === RESUME_BLOCKED ? RESUME_BLOCKED : "applied",
     )
   }
 
