@@ -35,6 +35,14 @@ the [controlling EEM-9 plan](plans/active/eem-9-design-partner-console-dashboard
    [#6](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/6)
    at `961001d`. Its Definition-of-Done trace is
    [`eem-9-03-acceptance-trace.md`](plans/active/eem-9-03-acceptance-trace.md).
+   Two documentation follow-ups merged after it as PRs
+   [#7](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/7)
+   and
+   [#8](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/8).
+7. `EEM-9/04-import-operations` is implemented and locally verified on its
+   branch. It is not merged and no pull request exists. Its Definition-of-Done
+   trace is
+   [`eem-9-04-acceptance-trace.md`](plans/active/eem-9-04-acceptance-trace.md).
 
 All EEM-4 subtasks are merged in the backend as PRs
 [#26](https://github.com/Evirion/evirion-engineering-memory/pull/26)–[#29](https://github.com/Evirion/evirion-engineering-memory/pull/29),
