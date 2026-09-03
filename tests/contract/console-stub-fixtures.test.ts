@@ -6,6 +6,7 @@ import {
   isRepository,
   isRepositoryImport,
   isRepositoryImportFailures,
+  isRepositoryOverview,
   isRepositoryPage,
 } from "@contracts/console"
 
@@ -13,6 +14,7 @@ import {
   CAPABILITIES,
   IMPORT_FAILURES,
   IMPORT_RUNS,
+  OVERVIEWS,
   SCENARIOS,
   type StubScenario,
 } from "../../tools/console-stub/fixtures.mjs"
@@ -206,6 +208,29 @@ describe("the Console API double serves contract-shaped bytes", () => {
     const failed: RepositoryImport = IMPORT_RUNS.failed()
 
     expect(IMPORT_FAILURES()[failed.importId]).toHaveLength(failed.counts.failed)
+  })
+
+  it("validates every repository overview with the runtime schema", () => {
+    for (const [repositoryId, overview] of Object.entries(OVERVIEWS())) {
+      expect(isRepositoryOverview(overview), repositoryId).toBe(true)
+      expect(overview.repositoryId).toBe(repositoryId)
+    }
+  })
+
+  it("gives every repository in the inventory an overview", () => {
+    // A detail page with no fixture would render the unavailable block, so a
+    // journey asserting counters would pass for the wrong reason.
+    const overviews = OVERVIEWS()
+
+    for (const repository of SCENARIOS.default().repositories) {
+      expect(overviews[repository.id], repository.nameWithOwner).toBeDefined()
+    }
+  })
+
+  it("carries a genuine zero counter, which must not read as unavailable", () => {
+    const overview = Object.values(OVERVIEWS())[0]
+
+    expect(overview?.processing.quarantinedRuns).toBe(0)
   })
 
   it("names only capabilities the backend actually grants", () => {

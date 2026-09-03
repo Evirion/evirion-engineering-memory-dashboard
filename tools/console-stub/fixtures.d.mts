@@ -3,6 +3,7 @@ import type {
   Repository,
   RepositoryImport,
   RepositoryImportFailures,
+  RepositoryOverview,
   RepositoryPage,
 } from "@contracts/console"
 
@@ -55,6 +56,9 @@ export declare const IMPORT_FAILURES: () => Readonly<
   Record<string, RepositoryImportFailures["failures"]>
 >
 
+/** One overview per repository in the inventory, keyed by repository id. */
+export declare const OVERVIEWS: () => Readonly<Record<string, RepositoryOverview>>
+
 export declare const CAPABILITIES: {
   readonly owner: readonly string[]
   readonly viewer: readonly string[]
@@ -85,6 +89,10 @@ export type StubScenario = {
   readonly importFailures?: Readonly<
     Record<string, RepositoryImportFailures["failures"]>
   >
+  /** Counters per repository. Absent means the server serves `OVERVIEWS()`. */
+  readonly overviews?: Readonly<Record<string, RepositoryOverview>>
+  /** A published stable code the overview read answers with instead. */
+  readonly overviewError?: string
 }
 
 /**
@@ -102,6 +110,7 @@ export declare const SCENARIOS: {
   readonly installationSuspended: () => StubScenario
   readonly paged: () => StubScenario
   readonly unlimited: () => StubScenario
+  readonly overviewUnavailable: () => StubScenario
   readonly importAbsent: () => StubScenario
   readonly importPlanning: () => StubScenario
   readonly importDiscovering: () => StubScenario

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 
 import type { Repository } from "@contracts/console"
 
+import { RepositoryCounters } from "@/components/repositories/repository-counters"
 import {
   ChangeRequestNotice,
   ConsentFacts,
@@ -10,15 +11,19 @@ import {
   PolicyVocabulary,
 } from "@/components/repositories/repository-detail"
 
-import { REPOSITORIES, SCENARIOS } from "../../../tools/console-stub/fixtures.mjs"
+import {
+  OVERVIEWS,
+  REPOSITORIES,
+  SCENARIOS,
+} from "../../../tools/console-stub/fixtures.mjs"
 
 /**
- * EEM-9/03 C03-4.
+ * EEM-9/03 C03-4, extended by EEM-9/03e.
  *
  * The detail page states the facts behind the three axes without ever letting
- * the customer select one, and it keeps the four gates apart. Repository
- * counters are deliberately absent: the contract publishes no schema for them,
- * so open decision 6 cannot be answered by either owning subtask yet.
+ * the customer select one, and it keeps the four gates apart. Since
+ * `console-contract-v1.0.1` published `repository-overview.json`, it also
+ * carries the `REPO-003` counters, which is open decision 6 answered.
  */
 
 const repositories = SCENARIOS.default().repositories
@@ -123,5 +128,80 @@ describe("the four gates on screen", () => {
 
   it("states that source work calls no model", () => {
     expect(rendered).toMatch(/No model is called/i)
+  })
+})
+
+describe("repository counters", () => {
+  const overview = OVERVIEWS()[REPOSITORIES.activeSourceOnly]
+  if (overview === undefined) throw new Error("the fixture has no overview to render")
+  const ready = { status: "ready", overview } as const
+
+  it("renders all seventeen published counters", () => {
+    const rendered = markup(<RepositoryCounters view={ready} />)
+
+    for (const label of [
+      "Merged pull requests discovered",
+      "Source envelopes prepared",
+      "Awaiting approval",
+      "Processing now",
+      "Completed runs",
+      "Runs the model rejected",
+      "Runs quarantined as invalid",
+      "Failed jobs",
+      "Knowledge Objects admitted",
+      "Awaiting review",
+      "Approved by a reviewer",
+      "Edited by a reviewer",
+      "Rejected by a reviewer",
+      "Unresolved",
+      "Active",
+      "Superseded",
+      "Withdrawn",
+    ]) {
+      expect(rendered, label).toContain(label)
+    }
+  })
+
+  it("shows the cutoff it rendered, because two cutoffs are not comparable", () => {
+    expect(markup(<RepositoryCounters view={ready} />)).toContain(
+      "2026-09-02T18:33:41.123456Z",
+    )
+  })
+
+  it("keeps rejected and quarantined runs out of the Knowledge Object count", () => {
+    const rendered = markup(<RepositoryCounters view={ready} />)
+
+    expect(rendered).toMatch(/never become Knowledge Objects/)
+    expect(rendered).toMatch(/Only admitted Knowledge Objects are counted here/)
+  })
+
+  it("renders an unavailable overview as an explicit state and never as zero", () => {
+    const rendered = markup(
+      <RepositoryCounters
+        view={{
+          status: "unavailable",
+          failure: {
+            code: "DEPENDENCY_UNAVAILABLE",
+            treatment: "retry-bounded",
+            message: "The service is busy. Try again shortly.",
+            retryable: true,
+          },
+        }}
+      />,
+    )
+
+    expect(rendered).toMatch(/unavailable count is not a count of zero/)
+    expect(rendered).toContain("DEPENDENCY_UNAVAILABLE")
+    // The decisive assertion: no digit may appear where a counter would be.
+    expect(rendered).not.toMatch(/<dd[^>]*>\s*\d/)
+    expect(rendered).not.toContain("Knowledge Objects admitted")
+  })
+
+  it("renders a genuine zero as zero rather than hiding it", () => {
+    // `quarantinedRuns` is 0 in the fixture. A dash or a blank would be
+    // ambiguous with the unavailable state above, which is the whole point.
+    expect(markup(<RepositoryCounters view={ready} />)).toMatch(
+      /Runs quarantined as invalid<\/dt><dd[^>]*>0</,
+    )
   })
 })

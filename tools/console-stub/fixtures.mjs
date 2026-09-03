@@ -640,6 +640,53 @@ const installationConnected = () => ({
   setupIntent: null,
 })
 
+/**
+ * Counters for one repository at one cutoff.
+ *
+ * Every counter is required by the schema, so there is no "unavailable" value
+ * to fixture. A backend that cannot compute one produces a document the
+ * validator refuses, which the `overviewError` scenario drives instead.
+ */
+const repositoryOverview = (repositoryId, nameWithOwner, overrides = {}) => ({
+  repositoryId,
+  nameWithOwner,
+  asOf: "2026-09-02T18:33:41.123456Z",
+  processing: {
+    mergedPullRequestsDiscovered: 12,
+    sourceEnvelopesPrepared: 12,
+    awaitingApproval: 1,
+    processing: 2,
+    completedRuns: 8,
+    rejectedRuns: 1,
+    // A real zero, so the browser gate can tell a genuine count of none from a
+    // blank and from an unavailable aggregate rendered as zero.
+    quarantinedRuns: 0,
+    failedJobs: 0,
+    ...(overrides.processing ?? {}),
+  },
+  engineeringMemory: {
+    admittedKnowledgeObjects: 30,
+    awaitingReview: 4,
+    approved: 22,
+    edited: 3,
+    userRejected: 1,
+    unresolved: 0,
+    active: 25,
+    superseded: 4,
+    withdrawn: 1,
+    ...(overrides.engineeringMemory ?? {}),
+  },
+})
+
+/** One overview per repository the inventory carries. */
+export const OVERVIEWS = () =>
+  Object.fromEntries(
+    baseRepositories().map((repository) => [
+      repository.id,
+      repositoryOverview(repository.id, repository.nameWithOwner),
+    ]),
+  )
+
 /** A connected organization whose one active repository carries `run`. */
 const withImport = (run) => ({
   repositories: baseRepositories(),
@@ -810,6 +857,22 @@ export const SCENARIOS = {
     },
     installation: installationConnected(),
     pageSize: 50,
+  }),
+
+  /**
+   * The counters cannot be read. The rest of the repository page must stay
+   * fully usable, and nothing may appear as zero.
+   */
+  overviewUnavailable: () => ({
+    repositories: baseRepositories(),
+    limit: {
+      maxActiveRepositories: 5,
+      mode: "FIXED",
+      replacementMode: "SELF_SERVICE",
+    },
+    installation: installationConnected(),
+    pageSize: 50,
+    overviewError: "DEPENDENCY_UNAVAILABLE",
   }),
 
   /** No import prepared yet, which is the empty state and not a refusal. */

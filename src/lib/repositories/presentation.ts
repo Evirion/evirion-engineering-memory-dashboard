@@ -1,4 +1,8 @@
-import type { Repository, RepositoryPage } from "@contracts/console"
+import type {
+  Repository,
+  RepositoryOverview,
+  RepositoryPage,
+} from "@contracts/console"
 
 /**
  * How a repository reads on screen.
@@ -33,6 +37,91 @@ export type RepositoryAxis = {
 }
 
 export type OrganizationLimit = RepositoryPage["summary"]["limit"]
+
+export type OverviewCounter = {
+  readonly key: string
+  readonly label: string
+  readonly value: number
+}
+
+export type OverviewGroup = {
+  readonly id: "processing" | "engineering-memory"
+  readonly heading: string
+  readonly note: string
+  readonly counters: readonly OverviewCounter[]
+}
+
+/**
+ * Both label tables are keyed by the published field set, so a counter the
+ * backend adds fails the build here instead of being dropped from the page.
+ * Their declaration order is the render order, which is why they are read with
+ * `Object.entries` rather than paired with a separate ordering array that could
+ * silently omit one.
+ */
+const PROCESSING_LABELS: Readonly<
+  Record<keyof RepositoryOverview["processing"], string>
+> = {
+  mergedPullRequestsDiscovered: "Merged pull requests discovered",
+  sourceEnvelopesPrepared: "Source envelopes prepared",
+  awaitingApproval: "Awaiting approval",
+  processing: "Processing now",
+  completedRuns: "Completed runs",
+  rejectedRuns: "Runs the model rejected",
+  quarantinedRuns: "Runs quarantined as invalid",
+  failedJobs: "Failed jobs",
+}
+
+const MEMORY_LABELS: Readonly<
+  Record<keyof RepositoryOverview["engineeringMemory"], string>
+> = {
+  admittedKnowledgeObjects: "Knowledge Objects admitted",
+  awaitingReview: "Awaiting review",
+  approved: "Approved by a reviewer",
+  edited: "Edited by a reviewer",
+  userRejected: "Rejected by a reviewer",
+  unresolved: "Unresolved",
+  active: "Active",
+  superseded: "Superseded",
+  withdrawn: "Withdrawn",
+}
+
+const counters = (
+  labels: Readonly<Record<string, string>>,
+  values: Readonly<Record<string, number>>,
+): readonly OverviewCounter[] =>
+  Object.entries(labels).map(([key, label]) => ({
+    key,
+    label,
+    value: values[key] as number,
+  }))
+
+/**
+ * The counters, split the way the contract splits them.
+ *
+ * A rejected or quarantined run is a legitimate machine outcome, not an
+ * infrastructure failure and not a Knowledge Object, so it stays in the
+ * processing group and never near the admitted count.
+ */
+export const overviewGroups = (
+  overview: RepositoryOverview,
+): readonly OverviewGroup[] => [
+  {
+    id: "processing",
+    heading: "Processing",
+    note:
+      "Rejected and quarantined runs are decisions about the source work, not " +
+      "failures, and they never become Knowledge Objects.",
+    counters: counters(PROCESSING_LABELS, overview.processing),
+  },
+  {
+    id: "engineering-memory",
+    heading: "Engineering Memory",
+    note:
+      "Only admitted Knowledge Objects are counted here. Review and lifecycle " +
+      "are separate axes, so an object appears under both.",
+    counters: counters(MEMORY_LABELS, overview.engineeringMemory),
+  },
+]
 
 export const accessAxis = (repository: Repository): RepositoryAxis => {
   if (repository.archived) {

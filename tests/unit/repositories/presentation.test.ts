@@ -6,6 +6,7 @@ import {
   accessAxis,
   capacitySummary,
   entitlementAxis,
+  overviewGroups,
   policyAxis,
   productStateLabel,
   repositoryControls,
@@ -313,5 +314,86 @@ describe("the four confusable terms", () => {
 
   it("states that source work calls no model", () => {
     expect(policyTerm("source-work").meaning).toMatch(/no model is called/i)
+  })
+})
+
+/**
+ * EEM-9/03e. The counters `REPO-003` describes and the contract publishes.
+ *
+ * `REPO-003` names sixteen; `repository-overview.json` publishes seventeen. The
+ * extra is `withdrawn`, the discrepancy backend issue #53 recorded and resolved
+ * deliberately, so the published schema is what these assertions follow.
+ */
+describe("repository overview counters", () => {
+  const overview = {
+    repositoryId: "00000000-0000-4000-8000-000000000302",
+    nameWithOwner: "evirion/repository",
+    asOf: "2026-09-02T18:33:41.123456Z",
+    processing: {
+      mergedPullRequestsDiscovered: 12,
+      sourceEnvelopesPrepared: 12,
+      awaitingApproval: 1,
+      processing: 2,
+      completedRuns: 8,
+      rejectedRuns: 1,
+      quarantinedRuns: 0,
+      failedJobs: 0,
+    },
+    engineeringMemory: {
+      admittedKnowledgeObjects: 30,
+      awaitingReview: 4,
+      approved: 22,
+      edited: 3,
+      userRejected: 1,
+      unresolved: 0,
+      active: 25,
+      superseded: 4,
+      withdrawn: 1,
+    },
+  } as const
+
+  const groups = () => overviewGroups(overview)
+
+  it("renders every published counter and invents none", () => {
+    const rendered = groups().flatMap((group) => group.counters)
+
+    expect(rendered).toHaveLength(17)
+    expect(rendered.map((counter) => counter.key)).toEqual([
+      ...Object.keys(overview.processing),
+      ...Object.keys(overview.engineeringMemory),
+    ])
+  })
+
+  it("keeps machine dispositions out of the Engineering Memory group", () => {
+    const [processing, memory] = groups()
+
+    expect(processing?.counters.map((counter) => counter.key)).toContain("rejectedRuns")
+    expect(processing?.counters.map((counter) => counter.key)).toContain(
+      "quarantinedRuns",
+    )
+    expect(memory?.counters.map((counter) => counter.key)).not.toContain("rejectedRuns")
+    expect(memory?.counters.map((counter) => counter.key)).not.toContain(
+      "quarantinedRuns",
+    )
+  })
+
+  it("never labels a machine rejection and a reviewer rejection the same way", () => {
+    const labels = groups().flatMap((group) =>
+      group.counters.map((counter) => counter.label),
+    )
+
+    expect(new Set(labels).size).toBe(labels.length)
+  })
+
+  it("carries a real zero through as a number rather than blanking it", () => {
+    const zero = groups()
+      .flatMap((group) => group.counters)
+      .find((counter) => counter.key === "quarantinedRuns")
+
+    expect(zero?.value).toBe(0)
+  })
+
+  it("states that rejected and quarantined runs are not Knowledge Objects", () => {
+    expect(groups()[0]?.note).toMatch(/never become Knowledge Objects/i)
   })
 })

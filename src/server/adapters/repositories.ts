@@ -6,12 +6,14 @@ import {
   type GithubSetupIntent,
   type GithubSyncRun,
   type Repository,
+  type RepositoryOverview,
   type RepositoryPage,
   isCommandReceipt,
   isGithubInstallation,
   isGithubSetupIntent,
   isGithubSyncRun,
   isRepository,
+  isRepositoryOverview,
   isRepositoryPage,
 } from "@contracts/console"
 
@@ -159,6 +161,26 @@ export const fetchRepository = (
   transport?: ConsoleTransport,
 ): Promise<ConsoleResult<Repository>> =>
   read(scope, repositoryPath(scope, repositoryId), isRepository, transport)
+
+/**
+ * Repository processing and Engineering Memory counters at one cutoff.
+ *
+ * The contract publishes an optional `asOf` and the Console never sends one.
+ * The backend picks the cutoff, returns it, and the page renders the value it
+ * was given; supplying one would make the Console assert a consistency only
+ * the backend can establish.
+ */
+export const fetchRepositoryOverview = (
+  scope: RepositoryScope,
+  repositoryId: string,
+  transport?: ConsoleTransport,
+): Promise<ConsoleResult<RepositoryOverview>> =>
+  read(
+    scope,
+    repositoryPath(scope, repositoryId, "/overview"),
+    isRepositoryOverview,
+    transport,
+  )
 
 export const fetchGithubInstallation = (
   scope: RepositoryScope,

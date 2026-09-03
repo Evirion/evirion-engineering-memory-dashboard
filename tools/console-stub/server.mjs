@@ -15,7 +15,13 @@ import { createHash, randomUUID } from "node:crypto"
 import { createServer } from "node:https"
 
 import { readMaterial } from "../local-tls/generate-certificate.mjs"
-import { CAPABILITIES, IMPORT_RUNS, PRINCIPALS, SCENARIOS } from "./fixtures.mjs"
+import {
+  CAPABILITIES,
+  IMPORT_RUNS,
+  OVERVIEWS,
+  PRINCIPALS,
+  SCENARIOS,
+} from "./fixtures.mjs"
 
 const PORT = Number(process.env.CONSOLE_STUB_PORT ?? "3444")
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -355,6 +361,14 @@ const handle = async (request, response, url) => {
   }
 
   if (!repository) return fail(response, "RESOURCE_NOT_FOUND")
+
+  if (action === "/overview" && request.method === "GET") {
+    if (state.overviewError) return fail(response, state.overviewError)
+    // Every repository has counters unless a scenario says otherwise, so the
+    // twenty-one scenarios that predate them do not each need a line.
+    const overview = (state.overviews ?? OVERVIEWS())[repositoryId]
+    return overview ? succeed(response, overview) : fail(response, "RESOURCE_NOT_FOUND")
+  }
 
   if (action === "/activate" && request.method === "POST") {
     return withCommand(request, response, state, principal, organizationId, {
