@@ -74,6 +74,47 @@ digest. They are tracked as backend issues
 [#54](https://github.com/Evirion/evirion-engineering-memory/issues/54), and both
 should be resolved before `EEM-9/06` starts.
 
+## EEM-9/04 is not blocked by `EEM-7/05`
+
+Owner decision of 2026-09-03. The EEM-9 plan makes `EEM-9/04-import-operations`
+wait until "all EEM-7 subtasks are merged". That sentence was written when EEM-7
+held `/01`-`/04`, all of which are merged.
+
+`EEM-7/05-model-profile-registry` was created afterwards, from a gap found while
+building EEM-9/03. It concerns the model-profile catalogue that live
+`AUTO_EXTRACT` consent needs, and historical import reads none of it: every
+import operation and both import schemas are already published in
+`console-contract-v1.0`, which this repository already vendors.
+
+The prerequisite therefore means the EEM-7 subtasks that existed when the plan
+was frozen. `EEM-9/04` may start now, and it needs no new contract bytes. This
+is recorded rather than inferred, because a reader checking the plan literally
+would find an unmerged EEM-7 subtask and stop.
+
+## The next Dashboard contract consumption is one subtask, not two
+
+Owner decision of 2026-09-03. Both backend gaps publish contract bytes this
+repository must consume, and consuming them is the same ceremony either way:
+vendor the archive, regenerate the client, update the lock and the attestation
+evidence, and move the authority digest. Doing that twice buys nothing, so the
+Dashboard consumes once, after both have merged and a release carries both
+schemas.
+
+The consequence is accepted deliberately: the repository overview counters are
+already merged in the backend as PR
+[#55](https://github.com/Evirion/evirion-engineering-memory/pull/55) and will
+not appear in the Console until the model-profile registry lands with them.
+
+That subtask carries three UI changes beyond the consumption itself:
+
+- the repository counters, which `EEM-9/06` owns, on
+  `/repositories/:repositoryId`, closing open decision 6;
+- the `AUTO_EXTRACT` consent field, today free text because nothing enumerates
+  valid profiles, becoming a choice from the catalogue, with the matching
+  validation in the policy route;
+- a recorded consent naming a profile no longer in the organization's allowlist
+  rendered as an explicit state rather than as an ordinary row.
+
 Technical Design Partner Ready and paid readiness remain false. In particular,
 `SEC-2026-012`, staging evidence, external manual verification, paid
 authorization, and production evidence remain separate future gates.
