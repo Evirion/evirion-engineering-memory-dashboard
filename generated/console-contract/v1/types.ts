@@ -171,6 +171,16 @@ export type RepositoryImportFailures = {
 };
 
 /**
+ * Durable command receipt for a historical import mutation. A replay returns the stored receipt unchanged.
+ */
+export type RepositoryImportReceipt = {
+  receiptId: string;
+  responseCode: "REPOSITORY_IMPORT_CREATED" | "REPOSITORY_IMPORT_APPROVED" | "REPOSITORY_IMPORT_JOB_RETRIED" | "REPOSITORY_IMPORT_PAUSED" | "REPOSITORY_IMPORT_RESUMED" | "REPOSITORY_IMPORT_RESUME_BLOCKED" | "REPOSITORY_IMPORT_CANCELLED";
+  responsePayload: RepositoryImport;
+  status: "completed";
+};
+
+/**
  * RepositoryImport
  */
 export type RepositoryImport = {

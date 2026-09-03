@@ -6,7 +6,7 @@
 // Contract packageSha256: 53da9379428d8f34b7e674805019244e85ed89a7cd6f0e1d9b4a2a79b23d6b6c
 // Source commit: 20cd3b60ba4b067277e960ede99d508cf0bef70a
 
-import type { CommandReceipt, ConsoleError, GithubInstallation, GithubSetupIntent, GithubSyncRun, Invitation, Member, OrganizationOffboarding, Pagination, RepositoryEntitlementCommand, RepositoryImportFailures, RepositoryImport, RepositoryPage, RepositoryPolicy, Repository, SessionContext, SessionRevocation, Session } from "./types";
+import type { CommandReceipt, ConsoleError, GithubInstallation, GithubSetupIntent, GithubSyncRun, Invitation, Member, OrganizationOffboarding, Pagination, RepositoryEntitlementCommand, RepositoryImportFailures, RepositoryImportReceipt, RepositoryImport, RepositoryPage, RepositoryPolicy, Repository, SessionContext, SessionRevocation, Session } from "./types";
 
 const DATE_TIME_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/;
 const EMAIL_PATTERN = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
@@ -210,6 +210,16 @@ export function isRepositoryImportFailures(value: unknown): value is RepositoryI
       && "updatedAt" in object2 && (typeof object2["updatedAt"] === "string" && DATE_TIME_PATTERN.test((object2["updatedAt"] as string)))
     )))
     && "importId" in object0 && (typeof object0["importId"] === "string" && UUID_PATTERN.test((object0["importId"] as string)))
+  );
+}
+
+export function isRepositoryImportReceipt(value: unknown): value is RepositoryImportReceipt {
+  return isObject(value, (object0: Record<string, unknown>) =>
+    hasOnlyKeys(object0, ["receiptId", "responseCode", "responsePayload", "status"])
+    && "receiptId" in object0 && (typeof object0["receiptId"] === "string" && UUID_PATTERN.test((object0["receiptId"] as string)))
+    && "responseCode" in object0 && isOneOf(object0["responseCode"], ["REPOSITORY_IMPORT_CREATED", "REPOSITORY_IMPORT_APPROVED", "REPOSITORY_IMPORT_JOB_RETRIED", "REPOSITORY_IMPORT_PAUSED", "REPOSITORY_IMPORT_RESUMED", "REPOSITORY_IMPORT_RESUME_BLOCKED", "REPOSITORY_IMPORT_CANCELLED"])
+    && "responsePayload" in object0 && isRepositoryImport(object0["responsePayload"])
+    && "status" in object0 && object0["status"] === "completed"
   );
 }
 

@@ -67,6 +67,7 @@
   "scripts/generate_console_client.py",
   "scripts/generate_security_controls.py",
   "scripts/migrate_authority_sources.py",
+  "scripts/openapi_components.py",
   "scripts/scan_tracked_secrets.py",
   "scripts/security/verify-toolchain.sh",
   "scripts/verify_artifact_attestation.py",
