@@ -8,8 +8,10 @@ import {
   KnowledgeStates,
   KnowledgeTechnicalDetails,
 } from "@/components/memory/knowledge-detail"
+import { CorrectionRequests } from "@/components/memory/correction-status"
 import { KnowledgeOutcomeNotice } from "@/components/memory/knowledge-outcome"
 import { KnowledgePayloads } from "@/components/memory/knowledge-payload"
+import { LifecycleActions } from "@/components/memory/lifecycle-actions"
 import { ReviewActions } from "@/components/memory/review-actions"
 import { ReviewHistory } from "@/components/memory/review-history"
 import { readSessionCsrfToken } from "@/server/actions/session-csrf-read"
@@ -22,10 +24,9 @@ export const fetchCache = "force-no-store"
 /** One key per rendered form, so a duplicate click replays instead of repeating. */
 const mintIdempotencyKeys = (): Record<string, string> =>
   Object.fromEntries(
-    ["approve", "revert", "edit", "reject"].map((action) => [
-      action,
-      crypto.randomUUID(),
-    ]),
+    ["approve", "revert", "edit", "reject", "activate", "supersede", "correction"].map(
+      (action) => [action, crypto.randomUUID()],
+    ),
   )
 
 /**
@@ -44,9 +45,14 @@ const KnowledgeDetailPage = async ({
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) => {
   const { knowledgeObjectId } = await params
-  const requested = (await searchParams)["result"]
+  const parameters = await searchParams
+  const requested = parameters["result"]
   const outcome = typeof requested === "string" ? requested : undefined
-  const view = await readKnowledgeDetail(knowledgeObjectId)
+  const chosen = parameters["supersedeWith"]
+  const view = await readKnowledgeDetail(
+    knowledgeObjectId,
+    typeof chosen === "string" ? { supersedeWith: chosen } : {},
+  )
 
   if (view.status === "not-found") notFound()
 
@@ -100,6 +106,15 @@ const KnowledgeDetailPage = async ({
         idempotencyKeys={idempotencyKeys}
       />
       <ReviewHistory view={view.history} />
+      {/* The second axis, kept visually and semantically apart from review. */}
+      <LifecycleActions
+        detail={detail}
+        controls={controls}
+        supersession={view.supersession}
+        csrfToken={csrfToken}
+        idempotencyKeys={idempotencyKeys}
+      />
+      <CorrectionRequests view={view.corrections} />
       <KnowledgeTechnicalDetails detail={detail} />
     </section>
   )

@@ -19,11 +19,13 @@ import {
   type KnowledgeControls,
   isAdmittedKnowledge,
   knowledgeControls,
+  reviewDecisionLabel,
 } from "@/lib/knowledge/presentation"
 import {
   fetchKnowledgeCorrections,
   fetchKnowledgeDetail,
   fetchKnowledgeEvidence,
+  fetchKnowledgeLifecycleState,
   fetchKnowledgePage,
   fetchKnowledgeReviewHistory,
 } from "@/server/adapters/knowledge"
@@ -84,6 +86,36 @@ export type KnowledgeCorrectionsView =
   | { readonly status: "ready"; readonly corrections: KnowledgeCorrections }
   | { readonly status: "unavailable"; readonly failure: ViewFailure }
 
+/** One Knowledge Object a reviewer may name as the replacement. */
+export type SupersessionCandidate = {
+  readonly knowledgeObjectId: string
+  readonly shortClaim: string
+  readonly reviewLabel: string
+}
+
+/**
+ * The replacement the reviewer selected, with the pair it carries.
+ *
+ * Both of the new object's tokens are read here and rendered on the
+ * confirmation step, so the reviewer observes all four before submitting and
+ * the mutation forwards four values the backend reported rather than two it
+ * reported and two the Console fetched behind the reviewer's back.
+ */
+export type SupersessionTarget =
+  | {
+      readonly status: "ready"
+      readonly knowledgeObjectId: string
+      readonly shortClaim: string
+      readonly reviewSequence: number
+      readonly lifecycleVersion: number
+    }
+  | { readonly status: "unavailable"; readonly failure: ViewFailure }
+
+export type SupersessionContext = {
+  readonly candidates: readonly SupersessionCandidate[]
+  readonly target: SupersessionTarget | null
+}
+
 export type KnowledgeDetailView =
   | {
       readonly status: "ready"
@@ -92,6 +124,7 @@ export type KnowledgeDetailView =
       readonly history: KnowledgeHistoryView
       readonly corrections: KnowledgeCorrectionsView
       readonly controls: KnowledgeControls
+      readonly supersession: SupersessionContext
     }
   | { readonly status: "not-found" }
   | { readonly status: "unavailable"; readonly failure: ViewFailure }
@@ -235,8 +268,62 @@ const readCorrections = async (
     : { status: "unavailable", failure: describeFailure(corrections.failure) }
 }
 
+/**
+ * The Knowledge Objects a reviewer may name as the replacement.
+ *
+ * `LIFE-003` requires both objects to be currently `APPROVED` or `EDITED`, so
+ * the two eligible queues are read and merged. The backend refuses an
+ * ineligible one either way; offering only eligible ones saves a round trip
+ * rather than deciding anything.
+ */
+const readSupersessionCandidates = async (
+  scope: RepositoryScope,
+  excluding: string,
+): Promise<readonly SupersessionCandidate[]> => {
+  const pages = await Promise.all(
+    (["APPROVED", "EDITED"] as const).map((reviewStatus) =>
+      fetchKnowledgePage(scope, { reviewStatus }),
+    ),
+  )
+
+  return pages
+    .flatMap((page) => (page.ok ? page.value.items : []))
+    .filter((summary) => summary.knowledgeObjectId !== excluding)
+    .map((summary) => ({
+      knowledgeObjectId: summary.knowledgeObjectId,
+      shortClaim: summary.shortClaim,
+      reviewLabel: reviewDecisionLabel(summary.reviewStatus),
+    }))
+}
+
+const readSupersessionTarget = async (
+  scope: RepositoryScope,
+  knowledgeObjectId: string,
+): Promise<SupersessionTarget> => {
+  const [lifecycle, detail] = await Promise.all([
+    fetchKnowledgeLifecycleState(scope, knowledgeObjectId),
+    fetchKnowledgeDetail(scope, knowledgeObjectId),
+  ])
+
+  if (!lifecycle.ok) {
+    return { status: "unavailable", failure: describeFailure(lifecycle.failure) }
+  }
+  if (!detail.ok) {
+    return { status: "unavailable", failure: describeFailure(detail.failure) }
+  }
+
+  return {
+    status: "ready",
+    knowledgeObjectId,
+    shortClaim: detail.value.knowledge,
+    reviewSequence: lifecycle.value.reviewSequence,
+    lifecycleVersion: lifecycle.value.lifecycleVersion,
+  }
+}
+
 export const readKnowledgeDetail = async (
   knowledgeObjectId: string,
+  options: { readonly supersedeWith?: string } = {},
 ): Promise<KnowledgeDetailView> => {
   if (!isUuid(knowledgeObjectId)) return { status: "not-found" }
 
@@ -270,16 +357,34 @@ export const readKnowledgeDetail = async (
     readCorrections(resolved.scope, knowledgeObjectId),
   ])
 
+  const controls = knowledgeControls(
+    detail.value.review,
+    detail.value.lifecycle,
+    resolved.capabilities,
+  )
+
+  // Only paid for where the control exists. A page that cannot supersede has
+  // no reason to enumerate replacements.
+  const selected =
+    options.supersedeWith !== undefined && isUuid(options.supersedeWith)
+      ? options.supersedeWith
+      : undefined
+
   return {
     status: "ready",
     detail: detail.value,
     evidence,
     history,
     corrections,
-    controls: knowledgeControls(
-      detail.value.review,
-      detail.value.lifecycle,
-      resolved.capabilities,
-    ),
+    controls,
+    supersession: {
+      candidates: controls.canSupersede
+        ? await readSupersessionCandidates(resolved.scope, knowledgeObjectId)
+        : [],
+      target:
+        controls.canSupersede && selected !== undefined
+          ? await readSupersessionTarget(resolved.scope, selected)
+          : null,
+    },
   }
 }
