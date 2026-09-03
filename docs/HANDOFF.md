@@ -78,7 +78,7 @@ Updated: 2026-09-03
 
 ## Verification and next action
 
-Lint, format, `tsc --noEmit`, 554 Vitest tests, a production build, 121
+Lint, format, `tsc --noEmit`, 555 Vitest tests, a production build, 121
 Playwright tests over the pinned origin `https://console.evirion.test:3443`, 94
 Python tests, Semgrep with no findings, digest-verified Gitleaks over 37 commits
 with no leaks, the authority package, the documentation tree and the Console
@@ -86,11 +86,12 @@ contract lock all pass, and the generated client reproduces byte for byte from
 the pinned contract. Local Node is 22.18.0 against a baseline pin of 24.20.0,
 which affects installation rather than these gates; CI runs the pinned runtime.
 
-One caution for a local gate: `playwright.config.ts` sets
-`reuseExistingServer: !process.env.CI`, so a stub left listening on port 3444 by
-an earlier run is reused silently and serves that older process's fixtures.
-Every browser test then fails at scenario load with a `500`. Kill
-`tools/console-stub/server.mjs` and `tools/local-tls/serve.mjs` first.
+One caution for a local gate: start with ports 3000, 3443 and 3444 free, and
+check them rather than trusting `pkill`. A stub left on 3444 is reused silently
+because `reuseExistingServer` is on outside CI, and an abandoned `next-server`
+on the IPv6 wildcard coexists with the fresh IPv4-bound one on 3000, so the edge
+intermittently answers from a days-old build. Both produce failures in suites
+nobody touched. The acceptance trace records the detail.
 
 The next action is to review this branch and decide whether to open its pull
 request. `EEM-9/05-memory-review-lifecycle` follows, and its prerequisite is

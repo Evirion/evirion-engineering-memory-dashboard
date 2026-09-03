@@ -75,7 +75,7 @@
   as an assumption in the acceptance trace. Hiding a control remains a
   convenience: the backend refuses the request either way, and the browser suite
   proves the refusal rather than assuming the control's absence.
-- Verification: lint, format, `tsc --noEmit`, 554 Vitest tests, a production
+- Verification: lint, format, `tsc --noEmit`, 555 Vitest tests, a production
   build, 121 Playwright tests over the pinned origin
   `https://console.evirion.test:3443`, 94 Python tests, Semgrep with no
   findings, digest-verified Gitleaks over 37 commits with no leaks, the

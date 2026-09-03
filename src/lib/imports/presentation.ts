@@ -37,15 +37,17 @@ export type CostCompleteness = RepositoryImport["cost"]["completeness"]
 export type ImportRecoveryAction = RepositoryImport["recoveryAction"]
 export type ImportFailure = RepositoryImportFailures["failures"][number]
 
-export const TERMINAL_STATUSES: readonly ImportStatus[] = [
-  "COMPLETED",
-  "FAILED",
-  "CANCELLED",
-]
-
-/** A terminal run has nothing further to report, so polling stops on one. */
-export const isTerminal = (status: ImportStatus): boolean =>
-  TERMINAL_STATUSES.includes(status)
+/**
+ * The states where the backend moves the run on its own, which is what decides
+ * whether the page polls.
+ *
+ * It is narrower than "not terminal" on both sides. A terminal run has nothing
+ * further to report. A run awaiting approval or paused is waiting on a person,
+ * so there is equally nothing to poll for, and refreshing under a customer who
+ * is filling in a budget would discard what they typed.
+ */
+export const isProgressing = (status: ImportStatus): boolean =>
+  status === "PLANNING" || status === "DISCOVERING" || status === "PROCESSING"
 
 /** The user-facing label `BF-002` fixes for each backend state. */
 export const statusLabel = (status: ImportStatus): string => {

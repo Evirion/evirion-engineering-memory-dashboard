@@ -1,5 +1,7 @@
 import Link from "next/link"
 
+import type { Repository } from "@contracts/console"
+
 import { ConsoleUnavailable } from "@/components/console/console-unavailable"
 import {
   ApproveForm,
@@ -17,7 +19,7 @@ import {
   CommandOutcomeNotice,
   readCommandResult,
 } from "@/components/repositories/command-outcome"
-import { importControls, isTerminal } from "@/lib/imports/presentation"
+import { importControls, isProgressing } from "@/lib/imports/presentation"
 import { readSessionCsrfToken } from "@/server/actions/session-csrf-read"
 import { readRepositoryImport } from "@/server/queries/imports"
 import { validRepositoryId } from "@/server/queries/repositories"
@@ -112,7 +114,7 @@ const RepositoryImportPage = async ({
         <EmptyImport repository={repository} />
       ) : (
         <>
-          {isTerminal(current.status) ? null : <ImportPoll />}
+          {isProgressing(current.status) ? <ImportPoll /> : null}
           <ImportStatusPanel current={current} />
           <AuthorizationPanel current={current} />
           <ImportProgress current={current} />
@@ -139,11 +141,7 @@ const RepositoryImportPage = async ({
  * already decided by the repository read that succeeded before it, so an
  * absent current import here means exactly that.
  */
-const EmptyImport = ({
-  repository,
-}: {
-  repository: { readonly entitlement: { readonly state: string } | null }
-}) => (
+const EmptyImport = ({ repository }: { repository: Repository }) => (
   <section
     aria-labelledby="import-empty-heading"
     data-testid="import-empty"

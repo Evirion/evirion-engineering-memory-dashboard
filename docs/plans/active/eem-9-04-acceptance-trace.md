@@ -148,11 +148,26 @@ It also recovered an annotation that was being dropped: the contract marks
 
 ## An operational note for the next session
 
+A local browser gate must start with ports 3000, 3443 and 3444 free. Two
+different stale processes cost debugging cycles here, and neither announced
+itself.
+
 `playwright.config.ts` sets `reuseExistingServer: !process.env.CI`, so a stub
-left listening on port 3444 by an earlier local run is reused silently and
-serves whatever fixtures that older process was built with. Every browser test
-then fails at scenario load with a `500`. Kill `tools/console-stub/server.mjs`
-and `tools/local-tls/serve.mjs` before a local gate. CI is unaffected.
+left listening on 3444 is reused silently and serves whatever fixtures that
+older process was built with. Every browser test then fails at scenario load
+with a `500`, which reads as thirty-eight independent failures.
+
+Worse, `tools/local-tls/serve.mjs` starts Next with `--hostname 127.0.0.1`,
+which binds IPv4 only, while an abandoned `next-server` from an earlier session
+binds the IPv6 wildcard. Both then listen on 3000, the edge reaches whichever
+the resolver hands it, and the gate intermittently answers from a build that is
+days old. The symptom is a small, shifting set of failures in suites nobody
+touched: `404` for chunk names the old build never had, and pages that render
+the wrong thing. `pkill -f serve.mjs` does not clear it, because the orphan's
+command line is `next-server`.
+
+Check the three ports before running a gate rather than trusting `pkill`. CI is
+unaffected: it starts clean and sets `CI`, which disables server reuse.
 
 ## What this subtask does not claim
 

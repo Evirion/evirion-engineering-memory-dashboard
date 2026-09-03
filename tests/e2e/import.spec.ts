@@ -448,7 +448,7 @@ test.describe("import recovery is only what the projection declares", () => {
 })
 
 test.describe("polling is bounded", () => {
-  test("polls a running import and stops on a terminal one", async ({
+  test("polls only while the backend is moving the run on its own", async ({
     context,
     page,
   }) => {
@@ -459,8 +459,24 @@ test.describe("polling is bounded", () => {
       "running",
     )
 
+    // Terminal: nothing further to report.
     await signIn(context, { scenario: "importCompleted" })
     await page.goto(surface)
     await expect(page.getByTestId("import-poll")).toHaveCount(0)
+
+    // Waiting on the customer: refreshing under someone filling in a budget
+    // would discard what they typed, and nothing would have changed anyway.
+    await signIn(context, { scenario: "importAwaitingApproval" })
+    await page.goto(surface)
+    await expect(page.getByTestId("import-poll")).toHaveCount(0)
+    await expect(page.getByTestId("import-approve")).toBeVisible()
+
+    // Waiting on Evirion: the backend can still move this one.
+    await signIn(context, { scenario: "importAwaitingAuthorization" })
+    await page.goto(surface)
+    await expect(page.getByTestId("import-poll")).toHaveAttribute(
+      "data-polling",
+      "running",
+    )
   })
 })

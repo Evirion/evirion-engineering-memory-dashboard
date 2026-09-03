@@ -2,6 +2,8 @@ import "server-only"
 
 import { NextResponse, type NextRequest } from "next/server"
 
+import type { RepositoryImportReceipt } from "@contracts/console"
+
 import { readSession } from "@/lib/auth/session-broker"
 import { readServerEnvironment } from "@/lib/env/server"
 import type { ConsoleResult } from "@/server/adapters/console-api"
@@ -170,7 +172,7 @@ export const beginImportCommand = async (
  */
 export const finishImportCommand = (
   repositoryId: string,
-  result: ConsoleResult<{ readonly responseCode: string }>,
+  result: ConsoleResult<RepositoryImportReceipt>,
 ): NextResponse => {
   const path = importPath(repositoryId)
   if (result.ok) {

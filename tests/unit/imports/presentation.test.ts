@@ -7,7 +7,7 @@ import {
   costCompletenessLabel,
   costView,
   dispositionCounts,
-  isTerminal,
+  isProgressing,
   missingPrerequisiteLabel,
   progressCounts,
   recoveryActionLabel,
@@ -99,8 +99,26 @@ describe("the eight backend states BF-002 maps", () => {
     ])
   })
 
-  it("treats only the three ended states as terminal", () => {
-    expect(STATUSES.filter(isTerminal)).toEqual(["COMPLETED", "FAILED", "CANCELLED"])
+  it("polls only where the backend moves the run without a person", () => {
+    expect(STATUSES.filter(isProgressing)).toEqual([
+      "PLANNING",
+      "DISCOVERING",
+      "PROCESSING",
+    ])
+  })
+
+  it("polls on neither an ended run nor one waiting on somebody", () => {
+    // The three terminal states have nothing further to report, and the two
+    // waiting states would change nothing while discarding a budget in progress.
+    for (const status of [
+      "COMPLETED",
+      "FAILED",
+      "CANCELLED",
+      "AWAITING_APPROVAL",
+      "PAUSED",
+    ] as const) {
+      expect(isProgressing(status), status).toBe(false)
+    }
   })
 })
 
