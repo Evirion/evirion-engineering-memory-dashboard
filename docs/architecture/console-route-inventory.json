@@ -36,9 +36,11 @@
     { "path": "/auth/sign-in", "owner": "EEM-9/02" },
     { "path": "/auth/verify", "owner": "EEM-9/02" },
     { "path": "/onboarding", "owner": "EEM-9/02" },
+    { "path": "/memory", "owner": "EEM-9/05" },
     { "path": "/repositories", "owner": "EEM-9/03" },
     { "path": "/repositories/:repositoryId", "owner": "EEM-9/03" },
     { "path": "/repositories/:repositoryId/import", "owner": "EEM-9/04" },
+    { "path": "/repositories/:repositoryId/memory", "owner": "EEM-9/05" },
     { "path": "/settings/sessions", "owner": "EEM-9/02" }
   ]
 }

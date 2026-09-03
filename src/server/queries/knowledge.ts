@@ -28,7 +28,7 @@ import {
   fetchKnowledgeReviewHistory,
 } from "@/server/adapters/knowledge"
 import { type RepositoryScope, isUuid } from "@/server/adapters/repositories"
-import { fetchRepository } from "@/server/adapters/repositories"
+import { fetchRepository, fetchRepositoryPage } from "@/server/adapters/repositories"
 import { describeFailure } from "@/server/queries/repositories"
 import { requireSessionContext } from "@/server/queries/session-context"
 
@@ -50,11 +50,22 @@ import { requireSessionContext } from "@/server/queries/session-context"
  *   a number this module reconstructed.
  */
 
+/** One option for the repository predicate, named rather than left as a UUID. */
+export type RepositoryChoice = {
+  readonly id: string
+  readonly nameWithOwner: string
+}
+
 export type KnowledgeQueueView =
   | {
       readonly status: "ready"
       readonly page: KnowledgePage
       readonly filters: KnowledgeFilters
+      /**
+       * Empty when the inventory could not be read. The queue still renders:
+       * losing one predicate's option list is not losing the queue.
+       */
+      readonly repositoryChoices: readonly RepositoryChoice[]
       /** Present only on the repository-scoped queue, for the page heading. */
       readonly repositoryName?: string
     }
@@ -131,6 +142,25 @@ const resolveScope = async (): Promise<ResolvedScope> => {
   }
 }
 
+/**
+ * The repository predicate's option list.
+ *
+ * A failed read yields no options rather than an unavailable queue. The
+ * predicate is a convenience; losing it does not stop a reviewer reading their
+ * queue, and the backend scopes the query either way.
+ */
+const readRepositoryChoices = async (
+  scope: RepositoryScope,
+): Promise<readonly RepositoryChoice[]> => {
+  const repositories = await fetchRepositoryPage(scope, {})
+  return repositories.ok
+    ? repositories.value.items.map((repository) => ({
+        id: repository.id,
+        nameWithOwner: repository.nameWithOwner,
+      }))
+    : []
+}
+
 export const readKnowledgeQueue = async (
   filters: KnowledgeFilters,
   repositoryId?: string,
@@ -163,6 +193,10 @@ export const readKnowledgeQueue = async (
     status: "ready",
     page: page.value,
     filters: scoped,
+    // Only the unscoped queue offers the predicate, so only it pays for the
+    // inventory read.
+    repositoryChoices:
+      repositoryId === undefined ? await readRepositoryChoices(resolved.scope) : [],
     ...(repositoryName === undefined ? {} : { repositoryName }),
   }
 }
