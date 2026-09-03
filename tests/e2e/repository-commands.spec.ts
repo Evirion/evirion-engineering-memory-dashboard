@@ -253,6 +253,47 @@ test.describe("policy and consent", () => {
     // The rest of the page is untouched by a catalogue that will not load.
     await expect(page.getByText("Active, source only")).toBeVisible()
   })
+
+  test("records no consent at all while the catalogue cannot be read", async ({
+    context,
+    page,
+  }) => {
+    await signIn(context, { scenario: "modelProfilesUnavailable" })
+    await page.goto(detail(REPOSITORIES.activeSourceOnly))
+
+    // Withholding the form is a convenience. This crafts the submission the
+    // form will not make, so the refusal is proved to come from the BFF: an
+    // unreadable catalogue is not an empty one, and consent recorded without a
+    // membership check is exactly what this surface exists to prevent.
+    await page.evaluate(() => {
+      const form = document.querySelector<HTMLFormElement>(
+        'form[action="/api/repositories/policy"]',
+      )
+      const fields: Record<string, string> = {
+        mode: "AUTO_EXTRACT",
+        allowedModelProfiles: "anthropic-claude-sonnet-4",
+        callCeiling: "50",
+        budgetCeilingUsd: "12.500000",
+        retryPolicy: "NO_RETRY",
+        expiresAt: "2027-01-01T00:00",
+      }
+      form?.querySelector('[name="mode"]')?.remove()
+      for (const [name, value] of Object.entries(fields)) {
+        const input = document.createElement("input")
+        input.type = "hidden"
+        input.name = name
+        input.value = value
+        form?.append(input)
+      }
+      form?.requestSubmit()
+    })
+
+    await expect(page.getByText("DEPENDENCY_UNAVAILABLE")).toBeVisible()
+    await expect(page.getByText("Active, source only")).toBeVisible()
+    await expect(page.getByRole("region", { name: "Recorded consent" })).toContainText(
+      "No consent is recorded",
+    )
+  })
 })
 
 test.describe("operator-owned replacement", () => {

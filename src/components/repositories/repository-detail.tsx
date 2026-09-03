@@ -64,9 +64,15 @@ export const EntitlementFacts = ({ repository }: { repository: Repository }) => 
  * live consent, and listing it as an ordinary profile would imply it can still
  * be chosen. Like an operator-managed allowance, it is a state, not a failure.
  */
-const RetiredProfileNotice = ({ view }: { view: ModelProfileCatalogueView }) => {
+const RetiredProfileNotice = ({
+  view,
+  consented,
+}: {
+  view: ModelProfileCatalogueView
+  consented: readonly string[]
+}) => {
   if (view.status === "unavailable") return null
-  const retired = retiredNamedByConsent(view.catalogue)
+  const retired = retiredNamedByConsent(view.catalogue, consented)
   if (retired.length === 0) return null
 
   return (
@@ -148,7 +154,10 @@ export const ConsentFacts = ({
       </dl>
     )}
     {repository.effectiveConsent === null ? null : (
-      <RetiredProfileNotice view={modelProfiles} />
+      <RetiredProfileNotice
+        view={modelProfiles}
+        consented={repository.effectiveConsent.allowedModelProfiles}
+      />
     )}
   </section>
 )

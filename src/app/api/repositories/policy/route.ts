@@ -114,7 +114,7 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
     return refuseRepositoryCommand(fields.repositoryId, "REQUEST_INVALID")
   }
 
-  let consent: LiveRepositoryConsent | null | undefined = null
+  let consent: LiveRepositoryConsent | null = null
   if (mode === "AUTO_EXTRACT") {
     // Read the catalogue before validating, so an unoffered profile is refused
     // against the published set rather than against the shape of the string.
@@ -133,10 +133,11 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
         .filter((profile) => profile.availability === "OFFERED")
         .map((profile) => profile.canonicalIdentifier),
     )
-    consent = readConsentFields(fields.form, offered)
-    if (consent === undefined) {
+    const parsed = readConsentFields(fields.form, offered)
+    if (parsed === undefined) {
       return refuseRepositoryCommand(fields.repositoryId, "REQUEST_INVALID")
     }
+    consent = parsed
   }
 
   return finishRepositoryCommand(
@@ -145,7 +146,7 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
       repositoryId: fields.repositoryId,
       expectedVersion: fields.expectedVersion,
       mode,
-      consent: consent ?? null,
+      consent,
       idempotencyKey: fields.idempotencyKey,
     }),
   )

@@ -125,6 +125,29 @@ describe("recorded consent", () => {
     expect(rendered).not.toContain("<button")
   })
 
+  it("says nothing when the withdrawal belongs to another repository's consent", () => {
+    // `namedByActiveConsent` is organization-wide. This repository consents to
+    // something else, so the withdrawal names nothing here and reporting it
+    // would send the customer looking for a problem this page does not have.
+    const elsewhere = find(REPOSITORIES.activeAutoExtract)
+    const rendered = markup(
+      <ConsentFacts
+        repository={{
+          ...elsewhere,
+          effectiveConsent: {
+            ...(elsewhere.effectiveConsent as NonNullable<
+              Repository["effectiveConsent"]
+            >),
+            allowedModelProfiles: ["openai-gpt-5"],
+          },
+        }}
+        modelProfiles={catalogue(MODEL_PROFILES_WITH_RETIRED())}
+      />,
+    )
+
+    expect(rendered).not.toMatch(/no longer offers/i)
+  })
+
   it("says nothing about profiles when the catalogue cannot be read", () => {
     // Silence is right here: an unreadable catalogue is not evidence that a
     // profile was withdrawn, and claiming one was would be inventing a state.

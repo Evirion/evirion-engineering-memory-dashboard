@@ -446,20 +446,33 @@ describe("model profile catalogue", () => {
     ).toEqual(["anthropic-claude-sonnet-4", "openai-gpt-5"])
   })
 
-  it("surfaces only a withdrawn profile an active consent still names", () => {
+  it("surfaces a withdrawn profile this repository's consent still names", () => {
     // A withdrawn profile nobody consented to is not the customer's problem and
     // is simply not offered. One a live consent names is a state they cannot fix.
     expect(
-      retiredNamedByConsent(catalogue).map((entry) => entry.canonicalIdentifier),
+      retiredNamedByConsent(catalogue, ["openai-gpt-5-mini"]).map(
+        (entry) => entry.canonicalIdentifier,
+      ),
     ).toEqual(["openai-gpt-5-mini"])
+  })
+
+  it("says nothing about a withdrawal this repository's consent does not name", () => {
+    // `namedByActiveConsent` is true across the organization, so filtering on
+    // it alone would report one repository's withdrawn profile on every other
+    // repository's page, where it names nothing.
+    expect(retiredNamedByConsent(catalogue, ["openai-gpt-5"])).toEqual([])
+    expect(retiredNamedByConsent(catalogue, [])).toEqual([])
   })
 
   it("finds nothing to surface when every named profile is still offered", () => {
     expect(
-      retiredNamedByConsent({
-        organizationId: catalogue.organizationId,
-        modelProfiles: [profile("openai-gpt-5", "OFFERED", true)],
-      }),
+      retiredNamedByConsent(
+        {
+          organizationId: catalogue.organizationId,
+          modelProfiles: [profile("openai-gpt-5", "OFFERED", true)],
+        },
+        ["openai-gpt-5"],
+      ),
     ).toEqual([])
   })
 
@@ -474,6 +487,6 @@ describe("model profile catalogue", () => {
     const empty = { organizationId: catalogue.organizationId, modelProfiles: [] }
 
     expect(offeredProfiles(empty)).toEqual([])
-    expect(retiredNamedByConsent(empty)).toEqual([])
+    expect(retiredNamedByConsent(empty, ["openai-gpt-5-mini"])).toEqual([])
   })
 })

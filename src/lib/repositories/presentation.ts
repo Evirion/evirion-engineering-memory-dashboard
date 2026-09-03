@@ -116,21 +116,30 @@ export const offeredProfiles = (
     .map(asChoice)
 
 /**
- * Profiles a live consent names that the organization may no longer pick.
+ * Profiles this repository's recorded consent names that are no longer offered.
  *
  * Withdrawing an offer does not revoke a consent already given, so this is a
  * state the backend can produce and the customer cannot resolve alone. A
  * withdrawn profile no consent names is not surfaced: it is simply not offered.
+ *
+ * The scope is the repository's own consent rather than the catalogue's
+ * `namedByActiveConsent`, which the contract defines across the organization.
+ * Filtering on that flag alone would report one repository's withdrawn profile
+ * on every other repository's page, where it names nothing.
  */
 export const retiredNamedByConsent = (
   catalogue: OrganizationModelProfiles,
-): readonly ModelProfileChoice[] =>
-  catalogue.modelProfiles
+  consented: readonly string[],
+): readonly ModelProfileChoice[] => {
+  const named = new Set(consented)
+  return catalogue.modelProfiles
     .filter(
       (profile) =>
-        profile.availability === "NO_LONGER_OFFERED" && profile.namedByActiveConsent,
+        profile.availability === "NO_LONGER_OFFERED" &&
+        named.has(profile.canonicalIdentifier),
     )
     .map(asChoice)
+}
 
 const counters = (
   labels: Readonly<Record<string, string>>,
