@@ -4,19 +4,20 @@ Updated: 2026-09-03
 
 ## Current state
 
-- Active task: `EEM-9/03e-console-contract-revision`, implemented and locally
-  verified on branch `EEM-9/03e-console-contract-revision`, six commits, not
-  pushed. No pull request exists.
-- `main` is at `6467a74`, which is EEM-9/04 merged as PR
+- Active task: none. `main` is at `9e5ae45`, which is
+  `EEM-9/03e-console-contract-revision` merged as PR
+  [#10](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/10),
+  and `EEM-9/04-import-operations` before it as PR
   [#9](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/9).
-  This branch starts from it. The previous handoff described EEM-9/04 as
-  unpushed with no pull request; that was true when written and is now stale.
 - The backend pointer still verifies at commit
   `a6665b599472e295636382ece4d0071e1cb4492c` and package digest
   `6897d9661a038a14eee0fd8128e7a3e96d5b191ef41f197f621779cc2e0ec56f`, because it
   reads the pinned commit rather than Dashboard `main`.
-- This branch consumes `console-contract-v1.0.1`. Both contract gaps that
-  blocked EEM-9/06 are now closed in this repository.
+- `console-contract-v1.0.1` is consumed. Both contract gaps that blocked
+  `EEM-9/06` are closed. A third gap, which blocks `EEM-9/05`, is recorded
+  below and is not closed.
+- **`EEM-9/05` is not startable.** Its stated prerequisite reads as met and is
+  not; see the gap below before planning against it.
 
 ## What changed here and why
 
@@ -93,25 +94,63 @@ One caution for a local gate: start with ports 3000, 3443 and 3444 free, and
 check them rather than trusting `pkill`. A stub left on 3444 is reused silently
 because `reuseExistingServer` is on outside CI.
 
-The next action is to review this branch and decide whether to open its pull
-request. **It also needs an owner decision that EEM-9/04 did not:** consuming
-this release moved the Dashboard authority `packageSha256`, so whether a paired
-backend successor pointer follows is a decision taken on that value.
+That gate describes the `EEM-9/03e` tree that merged. The counts above have not
+been re-observed since, and this follow-up changes only documentation, so it
+reruns the documentation, acceptance and authority digest checks rather than the
+runtime ones.
 
-`EEM-9/05-memory-review-lifecycle` follows, and its prerequisite is that all
-EEM-8 subtasks are merged.
+The next action is the knowledge read contract recorded below. It is backend
+work, and `EEM-9/05` cannot start until it lands, is released and is consumed.
 
 Commit, push, pull request, and merge each require separate explicit
 authorization.
 
-## Contract gaps: both now closed
+## Contract gaps: two closed, one open and blocking
 
 Open decision 6 and the missing model-profile catalogue were both contract
 blocked. Backend issues
 [#53](https://github.com/Evirion/evirion-engineering-memory/issues/53) and
 [#54](https://github.com/Evirion/evirion-engineering-memory/issues/54) are
-closed, their schemas are published in `console-contract-v1.0.1`, and this
-branch consumes them. `EEM-9/06` no longer inherits either gap.
+closed, their schemas are published in `console-contract-v1.0.1` and consumed
+here. `EEM-9/06` no longer inherits either gap.
+
+### The knowledge read contract publishes no payload, and it blocks EEM-9/05
+
+`EEM-9/05` requires that `EEM-9/04` and all EEM-8 subtasks are merged. Both are
+true, so the prerequisite reads as met. It is not.
+
+All eleven knowledge operations in `console-contract-v1.0.1`, reads and
+mutations alike, answer the bare `SuccessEnvelope`, whose `data` the contract
+leaves untyped. No knowledge payload schema file exists, and no knowledge
+operation carries the `x-evirion-response-schema` binding that
+`RepositoryOverview` and `OrganizationModelProfiles` use. `CommandReceipt` fixes
+`responseCode` to the four entitlement codes, so it cannot describe a knowledge
+mutation either. There is nothing on that surface the Console can validate.
+
+`EEM-8/05` is the subtask the backend roadmap credits with unblocking `EEM-9/05`.
+It is merged as backend PR
+[#49](https://github.com/Evirion/evirion-engineering-memory/pull/49) and is an
+ancestor of the release source commit, so its digest is real. What it published
+was 755 lines of `openapi.yaml` — the operations, their parameters and their
+request bodies — and no schema file. The digest exists; there is nothing behind
+it to validate a response against.
+
+This is not the `RepositoryImportReceipt` case that `EEM-9/04` solved. There the
+bytes existed inside `openapi.yaml` and were digest verified, so the type could
+be generated. Here no bytes exist anywhere. `EEM-9/03` already rejected the
+alternative: rendering from a hand-written type "would make the one surface with
+no contract authority also the only surface rendering unvalidated backend data".
+
+It needs a backend subtask, a release carrying it, and a second Dashboard
+consumption. It is not yet raised as a backend issue.
+
+Verify rather than trust this note:
+
+```bash
+ls vendor/console-contract-v1.0.1/contracts/console/v1/schemas/ | grep -i knowledge
+grep -c "x-evirion-response-schema" \
+  vendor/console-contract-v1.0.1/contracts/console/v1/openapi.yaml
+```
 
 Accessibility open decision 1 is unresolved and is due before EEM-9/07. Open
 decisions 2, 3, 4 and 5 remain open and are carried, not answered, by this
