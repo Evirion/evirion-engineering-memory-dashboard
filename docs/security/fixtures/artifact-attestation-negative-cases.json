@@ -1,7 +1,7 @@
 {
   "artifacts": [
     {
-      "expectedPolicyDigest": "dcf0652af2c96031e3856966c5e25ec8e50e621c432c90f5262ede66712f63f7",
+      "expectedPolicyDigest": "0b5b0e938ffeb298fefc6d95ac6b5dd3bf2b0306ed7ec68b54e492a8a091f39d",
       "expectedReleaseAssetId": 540908882,
       "expectedReleaseTag": "console-contract-v1.0",
       "expectedSourceCommit": "20cd3b60ba4b067277e960ede99d508cf0bef70a",
@@ -248,7 +248,7 @@
           "schemaVersion": "1.0",
           "tag": "console-contract-v1.0"
         },
-        "policyDigest": "dcf0652af2c96031e3856966c5e25ec8e50e621c432c90f5262ede66712f63f7",
+        "policyDigest": "0b5b0e938ffeb298fefc6d95ac6b5dd3bf2b0306ed7ec68b54e492a8a091f39d",
         "policyId": "console-contract-v1",
         "rekor": {
           "inclusionProofVerified": true,
@@ -285,7 +285,7 @@
       }
     },
     {
-      "expectedPolicyDigest": "dcf0652af2c96031e3856966c5e25ec8e50e621c432c90f5262ede66712f63f7",
+      "expectedPolicyDigest": "0b5b0e938ffeb298fefc6d95ac6b5dd3bf2b0306ed7ec68b54e492a8a091f39d",
       "expectedReleaseAssetId": 1234,
       "expectedReleaseTag": "dashboard-authority-v1.0.0",
       "expectedSourceCommit": "dddddddddddddddddddddddddddddddddddddddd",
@@ -532,7 +532,7 @@
           "schemaVersion": "1.0",
           "tag": "dashboard-authority-v1.0.0"
         },
-        "policyDigest": "dcf0652af2c96031e3856966c5e25ec8e50e621c432c90f5262ede66712f63f7",
+        "policyDigest": "0b5b0e938ffeb298fefc6d95ac6b5dd3bf2b0306ed7ec68b54e492a8a091f39d",
         "policyId": "dashboard-authority-v1",
         "rekor": {
           "inclusionProofVerified": true,

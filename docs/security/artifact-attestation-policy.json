@@ -1,14 +1,14 @@
 {
-  "amendedDate": "2026-09-02",
+  "amendedDate": "2026-09-03",
   "artifacts": {
     "console-contract-v1": {
-      "artifactName": "console-contract-v<major>.<minor>.tar.gz",
-      "bundleName": "console-contract-v<major>.<minor>.sigstore.json",
+      "artifactName": "console-contract-v<major>.<minor>[.<revision>].tar.gz",
+      "bundleName": "console-contract-v<major>.<minor>[.<revision>].sigstore.json",
       "eventName": "push",
       "fulcioRoot": "public-good-instance",
       "manifestPath": "contracts/console/v1/manifest.json",
       "oidcIssuer": "https://token.actions.githubusercontent.com",
-      "refPattern": "^refs/tags/console-contract-v[0-9]+\\.[0-9]+$",
+      "refPattern": "^refs/tags/console-contract-v[0-9]+\\.[0-9]+(\\.[1-9][0-9]*)?$",
       "refPrefix": "refs/tags/console-contract-v",
       "rekorLog": "public-good-instance",
       "repository": "Evirion/evirion-engineering-memory",
@@ -78,7 +78,7 @@
     "supersededMechanism": "repos/{owner}/{repo}/immutable-releases requires admin read access and the GitHub Actions permissions surface has no administration scope, so an ephemeral workflow token can never satisfy it",
     "tagScoped": true
   },
-  "policyDigest": "dcf0652af2c96031e3856966c5e25ec8e50e621c432c90f5262ede66712f63f7",
+  "policyDigest": "0b5b0e938ffeb298fefc6d95ac6b5dd3bf2b0306ed7ec68b54e492a8a091f39d",
   "publication": {
     "contentAddressed": true,
     "githubImmutableReleaseRequired": true,

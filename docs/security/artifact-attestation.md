@@ -1,8 +1,9 @@
 # Authority and contract artifact attestation
 
-Status: policy amended 2026-09-02 for EEM-9/01b. One artifact is published and
-consumed: the backend Console contract release `console-contract-v1.0`. No
-`dashboard-authority-v*` artifact has been published.
+Status: policy amended 2026-09-03 for EEM-9/03e. Two artifacts are published and
+one is consumed: the backend Console contract releases `console-contract-v1.0`
+and `console-contract-v1.0.1`, of which the revision is the one this repository
+pins. No `dashboard-authority-v*` artifact has been published.
 
 ## Trust boundary
 
@@ -98,12 +99,40 @@ immutable-release policy is now enabled on both repositories, verified by an
 administrator-authenticated read that returns
 `{"enabled": true, "enforced_by_owner": false}`.
 
+### A contract release tag may carry a revision
+
+The `console-contract-v1` entry admits an optional third tag component:
+
+```
+^refs/tags/console-contract-v[0-9]+\.[0-9]+(\.[1-9][0-9]*)?$
+```
+
+Backend
+[ADR 0014](https://github.com/Evirion/evirion-engineering-memory/blob/main/docs/decisions/0014-contract-release-revisions.md)
+owns that grammar, because the publishing workflow enforces it before signing;
+this policy mirrors it so a consumer can verify what the backend can publish.
+The revision identifies the publication, never the API, so a revision leaves
+`contractVersion` alone and a consumer's pinned envelope guards keep matching.
+
+`console-contract-v1.0.0` stays refused, so a first release is spelled without a
+revision and one set of bytes keeps exactly one tag. A revision is only valid for
+bytes the backend workflow already proved additive against the published
+predecessor of the same version.
+
+This widens which tags may be verified. It does not widen anything else, and it
+does not let a consumer follow a version: the lock still names one exact tag,
+asset ID and digest. See
+[ADR-0002](../decisions/0002-console-contract-consumption-and-immutability-evidence.md)
+and
+[ADR-0005](../decisions/0005-console-contract-release-revisions.md).
+
 ### Release tags are not required to be reachable
 
-`console-contract-v1.0` tags a branch commit that the squash merge did not place
-on backend `main`. The object survives because an immutable release locks its
-tag. Reachability from a default branch is therefore not evidence of anything
-and must not be added as a check; the policy records
+Both published contract releases tag a branch commit that the squash merge did
+not place on backend `main`: `console-contract-v1.0` at `20cd3b60` and
+`console-contract-v1.0.1` at `2458f333`. Each object survives because an
+immutable release locks its tag. Reachability from a default branch is therefore
+not evidence of anything and must not be added as a check; the policy records
 `releaseCommitReachableFromDefaultBranchRequired: false` and the verifier
 refuses a policy that sets it true.
 
@@ -152,6 +181,9 @@ The executable fixture covers every artifact entry and rejects:
 - replaced asset bytes or asset digest;
 - a release whose `immutable` field is false or absent;
 - wrong repository, workflow, tag namespace, source commit, or OIDC issuer;
+- a tag outside the admitted grammar, including a `.0` revision, a fourth
+  component, a missing minor, a trailing separator, a leading-zero revision, and
+  a pre-release suffix;
 - wrong release tag/asset identity, subject digest, unregistered policy id,
   stale policy, or stale Rekor-to-release time;
 - an unpinned verifier or an unpinned trusted root;

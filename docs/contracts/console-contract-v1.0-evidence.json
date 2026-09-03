@@ -15,9 +15,9 @@
     "schemaVersion": "1.0",
     "tag": "console-contract-v1.0"
   },
-  "policyDigest": "dcf0652af2c96031e3856966c5e25ec8e50e621c432c90f5262ede66712f63f7",
+  "policyDigest": "0b5b0e938ffeb298fefc6d95ac6b5dd3bf2b0306ed7ec68b54e492a8a091f39d",
   "policyId": "console-contract-v1",
-  "recordedAt": "2026-09-02",
+  "recordedAt": "2026-09-03",
   "rekor": {
     "inclusionProofVerified": true,
     "integratedTime": 1788339965,

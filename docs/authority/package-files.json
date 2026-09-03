@@ -30,6 +30,7 @@
   "docs/decisions/0002-console-contract-consumption-and-immutability-evidence.md",
   "docs/decisions/0003-application-source-boundary-and-route-contract.md",
   "docs/decisions/0004-console-lint-and-format-toolchain.md",
+  "docs/decisions/0005-console-contract-release-revisions.md",
   "docs/decisions/README.md",
   "docs/plans/active/README.md",
   "docs/plans/active/eem-9-02-acceptance-trace.md",
