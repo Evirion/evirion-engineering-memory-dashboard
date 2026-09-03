@@ -74,6 +74,30 @@ digest. They are tracked as backend issues
 [#54](https://github.com/Evirion/evirion-engineering-memory/issues/54), and both
 should be resolved before `EEM-9/06` starts.
 
+## The next Dashboard contract consumption is one subtask, not two
+
+Owner decision of 2026-09-03. Both backend gaps publish contract bytes this
+repository must consume, and consuming them is the same ceremony either way:
+vendor the archive, regenerate the client, update the lock and the attestation
+evidence, and move the authority digest. Doing that twice buys nothing, so the
+Dashboard consumes once, after both have merged and a release carries both
+schemas.
+
+The consequence is accepted deliberately: the repository overview counters are
+already merged in the backend as PR
+[#55](https://github.com/Evirion/evirion-engineering-memory/pull/55) and will
+not appear in the Console until the model-profile registry lands with them.
+
+That subtask carries three UI changes beyond the consumption itself:
+
+- the repository counters, which `EEM-9/06` owns, on
+  `/repositories/:repositoryId`, closing open decision 6;
+- the `AUTO_EXTRACT` consent field, today free text because nothing enumerates
+  valid profiles, becoming a choice from the catalogue, with the matching
+  validation in the policy route;
+- a recorded consent naming a profile no longer in the organization's allowlist
+  rendered as an explicit state rather than as an ordinary row.
+
 Technical Design Partner Ready and paid readiness remain false. In particular,
 `SEC-2026-012`, staging evidence, external manual verification, paid
 authorization, and production evidence remain separate future gates.
