@@ -72,6 +72,27 @@
         "tests/e2e/import.spec.ts",
         "tests/security/import-boundary.spec.ts"
       ]
+    },
+    "memory-review": {
+      "owner": "EEM-9/05 C05",
+      "focused": ["lint", "typecheck", "test:memory-review"],
+      "affected": [
+        "lint",
+        "format:check",
+        "typecheck",
+        "test:unit",
+        "build",
+        "test:e2e"
+      ],
+      "testFiles": [
+        "tests/unit/memory",
+        "tests/component/memory",
+        "tests/contract/console-stub-fixtures.test.ts",
+        "tests/e2e/memory.spec.ts",
+        "tests/e2e/memory-detail.spec.ts",
+        "tests/e2e/memory-review.spec.ts",
+        "tests/security/memory-boundary.spec.ts"
+      ]
     }
   }
 }

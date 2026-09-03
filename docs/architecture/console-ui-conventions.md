@@ -281,6 +281,33 @@ The semantics are fixed by the backend and are not a design choice:
   the same decision for evidence. Whatever is chosen must survive a payload with
   thirteen editable fields.
 
+Four rules the implementation established. They are here because a later task
+touching this surface would otherwise have to rediscover each one.
+
+- **An edit form prefills from the effective payload, not the original.** When a
+  derivative already exists, opening the form on the machine extraction would
+  silently discard the previous reviewer's words the moment it rendered. The
+  original stays on screen beside the form either way.
+- **Supersession confirms in two steps.** The mutation carries four tokens, two
+  per object, and the reviewer must observe all four. Selecting the replacement
+  first is what makes that possible; fetching the other object's pair at submit
+  time would make the Console assert a freshness the reviewer never saw. The
+  direction is stated in words, never implied by layout or field order.
+- **Zero is a value, not an absence.** Review sequence zero is `PENDING` and
+  lifecycle version zero is `UNRESOLVED`. Any falsy check on either token turns
+  a first review into a stale request. `error.json` bounds `currentVersion`
+  below at one, so a conflict against a zero cannot report the current value and
+  must omit the field rather than send one the validator rejects.
+- **Three lifecycle operations state a precondition the Console cannot
+  evaluate.** Activation, supersession and correction each require recent
+  reauthentication; recording a review explicitly does not. No published field
+  reports whether that freshness is satisfied, because `session-context.json`
+  pins `session.status` to a constant while `session.json` publishes an enum
+  containing `REAUTH_REQUIRED`, and no error code separates stale freshness from
+  being signed out. Say that the action may ask the customer to sign in again.
+  Do not claim to know whether it will, and do not invent a treatment for a code
+  the contract does not publish.
+
 ### EEM-9/06 — Processing, settings and metrics
 
 **Missing from the plan: the positive form of the cost rule.** The plan states

@@ -54,6 +54,11 @@ const ERRORS = {
   REPOSITORY_IMPORT_JOB_NOT_RETRYABLE: [409, false],
   REPOSITORY_IMPORT_FILTERS_INVALID: [422, false],
   PAID_OPERATION_NOT_AUTHORIZED: [403, false],
+  REVIEW_VERSION_CONFLICT: [409, false],
+  LIFECYCLE_VERSION_CONFLICT: [409, false],
+  SUPERSESSION_INVALID: [409, false],
+  SUPERSESSION_TRAVERSAL_LIMIT: [409, false],
+  KNOWLEDGE_ACTION_NOT_ALLOWED: [409, false],
 }
 
 const MESSAGES = {
@@ -78,9 +83,12 @@ function load(name) {
   return {
     name,
     // A scenario that names no import has none, which is the empty state and
-    // not a missing key the lookups would have to guard against.
+    // not a missing key the lookups would have to guard against. The same
+    // holds for knowledge: a repository scenario has an empty review queue.
     imports: {},
     importFailures: {},
+    knowledge: {},
+    knowledgePageSize: 50,
     ...build(),
     // Idempotency is durable for the life of the scenario, exactly as a stored
     // command receipt is: same key and same request returns the same receipt.
@@ -349,6 +357,15 @@ const handle = async (request, response, url) => {
     return succeed(response, state.modelProfiles ?? MODEL_PROFILES())
   }
 
+  const answered = await handleKnowledge(request, response, {
+    state,
+    principal,
+    organizationId,
+    rest,
+    url,
+  })
+  if (answered) return undefined
+
   const imported = await handleImport(request, response, {
     state,
     principal,
@@ -514,6 +531,670 @@ const handle = async (request, response, url) => {
   }
 
   return fail(response, "RESOURCE_NOT_FOUND")
+}
+
+/**
+ * How far the graph walk goes before it fails closed.
+ *
+ * Deliberately small, so the fixture chain reaches both outcomes the contract
+ * publishes: a target found inside the bound is a cycle, and a walk that hits
+ * the bound without resolving refuses without mutating anything.
+ */
+const SUPERSESSION_DEPTH_LIMIT = 2
+
+/** The review actions each effective decision admits, from the `12.1` matrix. */
+const REVIEW_ACTIONS = {
+  PENDING: ["APPROVE", "EDIT", "USER_REJECT"],
+  APPROVED: ["EDIT", "USER_REJECT"],
+  EDITED: ["EDIT", "USER_REJECT", "REVERT_TO_ORIGINAL_AND_APPROVE"],
+  USER_REJECTED: ["APPROVE", "EDIT"],
+}
+
+const REJECT_REASONS = new Set([
+  "INCORRECT",
+  "NOT_DURABLE",
+  "UNSUPPORTED",
+  "TOO_VAGUE",
+  "DUPLICATE",
+  "OUTDATED",
+  "OTHER",
+])
+
+const SEVERITIES = new Set(["NONE", "MINOR", "MAJOR", "CRITICAL"])
+const CORRECTION_TYPES = new Set([
+  "RETRACT_SUPERSESSION",
+  "WITHDRAW_ACTIVE_KNOWLEDGE",
+  "RESTORE_UNRESOLVED",
+])
+const CORRECTION_REASONS = new Set([
+  "SUPERSESSION_ERRONEOUS",
+  "KNOWLEDGE_NO_LONGER_TRUE",
+  "KNOWLEDGE_MISATTRIBUTED",
+  "OTHER",
+])
+
+/** Review sequence zero is the absence of a review, which is `PENDING`. */
+const sequenceOf = (object) => object.reviews.length
+
+const decisionOf = (object) => object.reviews.at(-1)?.decision ?? "PENDING"
+
+const isReviewed = (object) => {
+  const decision = decisionOf(object)
+  return decision === "APPROVED" || decision === "EDITED"
+}
+
+const openCorrectionOf = (object) =>
+  object.corrections.find(
+    (entry) => entry.status === "REQUESTED" || entry.status === "EXECUTING",
+  )
+
+/**
+ * What the review state admits.
+ *
+ * Normal Reject exists only while the lifecycle is unresolved; an active or
+ * superseded object is corrected through the operator workflow instead. A
+ * terminal or internally withdrawn object admits no normal reviewer change.
+ */
+const allowedReviewActions = (object) => {
+  if (object.lifecycleState === "SUPERSEDED" || object.lifecycleState === "WITHDRAWN") {
+    return []
+  }
+  const base = REVIEW_ACTIONS[decisionOf(object)] ?? []
+  return object.lifecycleState === "UNRESOLVED"
+    ? base
+    : base.filter((action) => action !== "USER_REJECT")
+}
+
+const allowedLifecycleActions = (object) => {
+  // One open request at a time. A second would race the operator's own
+  // compensating write against the same relation.
+  if (openCorrectionOf(object)) return []
+
+  switch (object.lifecycleState) {
+    case "UNRESOLVED":
+      return isReviewed(object) ? ["MARK_ACTIVE", "MARK_SUPERSEDED"] : []
+    case "ACTIVE":
+      return isReviewed(object)
+        ? ["MARK_ACTIVE", "MARK_SUPERSEDED", "REQUEST_CORRECTION"]
+        : ["REQUEST_CORRECTION"]
+    case "SUPERSEDED":
+    case "WITHDRAWN":
+      return ["REQUEST_CORRECTION"]
+    default:
+      return []
+  }
+}
+
+const lifecycleOf = (object) => ({
+  allowedLifecycleActions: allowedLifecycleActions(object),
+  decision: decisionOf(object),
+  // Only `APPROVED` or `EDITED` plus `ACTIVE` reaches trusted retrieval.
+  inActiveProjection: object.lifecycleState === "ACTIVE" && isReviewed(object),
+  knowledgeObjectId: object.base.knowledgeObjectId,
+  lifecycleState: object.lifecycleState,
+  lifecycleVersion: object.lifecycleVersion,
+  openCorrectionRequestId: openCorrectionOf(object)?.correctionRequestId ?? null,
+  reviewSequence: sequenceOf(object),
+  supersededBy: object.supersededBy,
+  supersedes: object.supersedes,
+})
+
+const reviewStateOf = (object) => ({
+  allowedActions: allowedReviewActions(object),
+  decision: decisionOf(object),
+  knowledgeObjectId: object.base.knowledgeObjectId,
+  latestReview: object.reviews.at(-1) ?? null,
+  lifecycleState: object.lifecycleState,
+  lifecycleVersion: object.lifecycleVersion,
+  reviewSequence: sequenceOf(object),
+})
+
+/**
+ * The detail projection, with the optional blocks a scenario may withhold.
+ *
+ * `review` is optional in the contract and `editedPayload` is optional on a
+ * review, so a backend can legitimately answer with either absent. Both are
+ * withheld per scenario rather than stored, so the shared inventory keeps
+ * deriving consistently for every other test.
+ */
+const detailOf = (state, object) => {
+  const id = object.base.knowledgeObjectId
+  const humanEdited = decisionOf(object) === "EDITED"
+
+  if (state.knowledgeWithoutReview === id) {
+    return { ...object.base, humanEdited, lifecycle: lifecycleOf(object) }
+  }
+
+  const review = reviewStateOf(object)
+  if (state.knowledgeWithoutEditedPayload === id && review.latestReview) {
+    const { editedPayload: _withheld, ...rest } = review.latestReview
+    return {
+      ...object.base,
+      humanEdited,
+      lifecycle: lifecycleOf(object),
+      review: { ...review, latestReview: rest },
+    }
+  }
+
+  return {
+    ...object.base,
+    // The backend's own fact, taken from the effective review. It is never a
+    // comparison of two payloads.
+    humanEdited,
+    lifecycle: lifecycleOf(object),
+    review,
+  }
+}
+
+const summaryOf = (object) => ({
+  confidence: object.base.confidence,
+  knowledgeObjectId: object.base.knowledgeObjectId,
+  knowledgeType: object.base.knowledgeType,
+  lifecycleState: object.lifecycleState,
+  mergedAt: object.base.sourceContext.mergedAt,
+  pullRequestNumber: object.base.sourceContext.pullRequestNumber,
+  pullRequestTitle: object.base.sourceContext.pullRequestTitle,
+  reviewStatus: decisionOf(object),
+  shortClaim: object.shortClaim,
+})
+
+const isAdmitted = (object) =>
+  object.base.technicalDetails.admissionDisposition === "ACCEPTED"
+
+/**
+ * A lifecycle state no contract publishes, for the fail-closed path.
+ *
+ * Injected at the response rather than stored, so the shared inventory keeps
+ * holding exactly the published set that the coverage assertions require.
+ */
+const unsupported = (state, payload) =>
+  state.knowledgeUnsupported
+    ? { ...payload, lifecycleState: "ARCHIVED_BY_OPERATOR" }
+    : payload
+
+/**
+ * One Knowledge Object, or nothing.
+ *
+ * `state` is already scoped to this caller's isolation and the organization
+ * was checked before this point, so an object belonging to another tenant is
+ * indistinguishable from one that never existed.
+ */
+const findKnowledge = (state, knowledgeObjectId) => state.knowledge[knowledgeObjectId]
+
+/**
+ * Walk `supersededBy` from `start` looking for `target`.
+ *
+ * Finding it means the requested relation would close a cycle. Hitting the
+ * bound first means the graph is too deep to decide, which fails closed
+ * without mutating anything.
+ */
+const walkSupersession = (state, start, target) => {
+  let frontier = [start]
+  const seen = new Set(frontier)
+
+  for (let depth = 1; depth <= SUPERSESSION_DEPTH_LIMIT; depth += 1) {
+    const next = []
+    for (const id of frontier) {
+      for (const edge of findKnowledge(state, id)?.supersededBy ?? []) {
+        if (edge.relationState !== "ACTIVE") continue
+        if (edge.knowledgeObjectId === target) return { outcome: "cycle" }
+        if (seen.has(edge.knowledgeObjectId)) continue
+        seen.add(edge.knowledgeObjectId)
+        next.push(edge.knowledgeObjectId)
+      }
+    }
+    if (next.length === 0) return { outcome: "clear" }
+    frontier = next
+  }
+
+  return { outcome: "exhausted" }
+}
+
+/** The queue predicates, applied in the order the contract publishes them. */
+const matchesFilters = (object, params) => {
+  const source = object.base.sourceContext
+  const wantedReview = params.get("reviewStatus") ?? "PENDING"
+  if (decisionOf(object) !== wantedReview) return false
+
+  const lifecycle = params.get("lifecycleState")
+  if (lifecycle && object.lifecycleState !== lifecycle) return false
+
+  const repositoryId = params.get("repositoryId")
+  if (repositoryId && source.repositoryId !== repositoryId) return false
+
+  const knowledgeType = params.get("knowledgeType")
+  if (knowledgeType && object.base.knowledgeType !== knowledgeType) return false
+
+  const pullRequestId = params.get("pullRequestId")
+  if (pullRequestId && source.pullRequestId !== pullRequestId) return false
+
+  const authorLogin = params.get("authorLogin")
+  if (authorLogin && source.pullRequestAuthorLogin !== authorLogin) return false
+
+  const mergedFrom = params.get("mergedFrom")
+  if (mergedFrom && (source.mergedAt === null || source.mergedAt < mergedFrom)) {
+    return false
+  }
+
+  const mergedTo = params.get("mergedTo")
+  if (mergedTo && (source.mergedAt === null || source.mergedAt > mergedTo)) return false
+
+  return true
+}
+
+const knowledgePage = (state, params) => {
+  const size = Number(params.get("pageSize") ?? state.knowledgePageSize)
+  // Ordering is by the stable tenant-scoped identity the cursor names, so the
+  // page is total and a repeated scan cannot skip or duplicate a row.
+  const matched = Object.values(state.knowledge)
+    .filter((object) => isAdmitted(object) && matchesFilters(object, params))
+    .toSorted((left, right) =>
+      left.base.knowledgeObjectId.localeCompare(right.base.knowledgeObjectId),
+    )
+
+  const after = params.get("after")
+  const start = after
+    ? matched.findIndex((object) => object.base.knowledgeObjectId === after) + 1
+    : 0
+  const items = matched.slice(start, start + size)
+  const nextIndex = start + items.length
+
+  return {
+    items: items.map((object) => unsupported(state, summaryOf(object))),
+    page: {
+      nextCursor:
+        nextIndex < matched.length
+          ? (items.at(-1)?.base.knowledgeObjectId ?? null)
+          : null,
+    },
+  }
+}
+
+/**
+ * A conflict carrying the current value, when the schema can express it.
+ *
+ * `error.json` constrains `currentVersion` to a minimum of one, while both
+ * knowledge tokens legitimately reach zero: review sequence zero is `PENDING`
+ * and lifecycle version zero is `UNRESOLVED`. A conflict against a zero
+ * therefore has to omit the field rather than send a value the generated
+ * validator would reject, which would turn a published refusal into an
+ * unsupported response.
+ */
+const conflict = (code, current) =>
+  current >= 1 ? { error: code, currentVersion: current } : { error: code }
+
+/** Both tokens, checked in a fixed order so each can go stale on its own. */
+const checkTokens = (object, body) => {
+  if (body?.expectedReviewSequence !== sequenceOf(object)) {
+    return conflict("REVIEW_VERSION_CONFLICT", sequenceOf(object))
+  }
+  if (body?.expectedLifecycleVersion !== object.lifecycleVersion) {
+    return conflict("LIFECYCLE_VERSION_CONFLICT", object.lifecycleVersion)
+  }
+  return undefined
+}
+
+/**
+ * The field combinations each action admits.
+ *
+ * The backend is the authority for these and refuses an invalid one with a
+ * stable identifier rather than repairing it into a different decision than
+ * the reviewer made.
+ */
+const checkReviewShape = (action, body) => {
+  const hasEdit = body?.edit !== undefined
+  const hasReason = body?.rejectReasonCode !== undefined
+
+  if (action === "EDIT" && !hasEdit) return "REQUEST_INVALID"
+  if (action !== "EDIT" && hasEdit) return "REQUEST_INVALID"
+  if (action === "USER_REJECT" && !hasReason) return "REQUEST_INVALID"
+  if (action !== "USER_REJECT" && hasReason) return "REQUEST_INVALID"
+  if (hasReason && !REJECT_REASONS.has(body.rejectReasonCode)) {
+    return "REQUEST_INVALID"
+  }
+  if (
+    (action === "EDIT" || action === "USER_REJECT") &&
+    !SEVERITIES.has(body?.issueSeverity)
+  ) {
+    return "REQUEST_INVALID"
+  }
+  // `OTHER` carries no meaning on its own, so it requires a bounded note.
+  if (body?.rejectReasonCode === "OTHER" && typeof body?.note !== "string") {
+    return "REQUEST_INVALID"
+  }
+  if (hasEdit && Object.keys(body.edit?.payload ?? {}).length !== 13) {
+    return "REQUEST_INVALID"
+  }
+  return undefined
+}
+
+/**
+ * Append one immutable review row.
+ *
+ * The reviewer is derived from the authenticated principal rather than from
+ * anything the request carried, and the sequence is the row count so it stays
+ * monotonic without a stored counter to disagree with.
+ */
+const appendReview = (object, principal, action, body) => {
+  const decision =
+    action === "USER_REJECT"
+      ? "USER_REJECTED"
+      : action === "EDIT"
+        ? "EDITED"
+        : "APPROVED"
+
+  object.reviews.push({
+    acknowledgedEvidenceIds: body?.acknowledgedEvidenceIds ?? [],
+    action,
+    decision,
+    observedLifecycleState: object.lifecycleState,
+    observedLifecycleVersion: object.lifecycleVersion,
+    originalPayloadSha256: "a".repeat(64),
+    recordedAt: new Date().toISOString().replace(/\.\d+Z$/, "Z"),
+    reviewId: randomUUID(),
+    reviewSequence: sequenceOf(object) + 1,
+    reviewerRole: principal.role,
+    reviewerUserId: principal.actorId,
+    ...(action === "EDIT"
+      ? {
+          editSchemaSha256: "c".repeat(64),
+          editSchemaVersion: "1",
+          editedPayload: body.edit.payload,
+          editedPayloadSha256: "b".repeat(64),
+        }
+      : {}),
+    ...(body?.issueSeverity === undefined ? {} : { issueSeverity: body.issueSeverity }),
+    ...(body?.note === undefined ? {} : { note: body.note }),
+    ...(body?.rejectReasonCode === undefined
+      ? {}
+      : { rejectReasonCode: body.rejectReasonCode }),
+  })
+}
+
+/**
+ * The eleven knowledge review and lifecycle operations.
+ *
+ * Returns `true` when it answered. Three behaviours are the point of the
+ * double: each of the four optimistic tokens can go stale on its own, a
+ * supersession that would close a cycle or exhaust the traversal bound
+ * refuses without mutating anything, and a customer can create and read a
+ * correction request but never execute, reject or retry one.
+ */
+async function handleKnowledge(request, response, scope) {
+  const { state, principal, organizationId, rest, url } = scope
+
+  if (rest === "/knowledge" && request.method === "GET") {
+    if (!requireCapability(principal, "knowledge.read")) {
+      fail(response, "CAPABILITY_REQUIRED")
+      return true
+    }
+    if (state.knowledgeError) {
+      fail(response, state.knowledgeError)
+      return true
+    }
+    succeed(response, knowledgePage(state, url.searchParams))
+    return true
+  }
+
+  const match = /^\/knowledge\/([^/]+)(\/[a-z-]+)?$/.exec(rest)
+  if (!match) return false
+
+  const knowledgeObjectId = match[1]
+  const action = match[2] ?? ""
+  if (!UUID.test(knowledgeObjectId)) {
+    fail(response, "REQUEST_INVALID")
+    return true
+  }
+
+  const object = findKnowledge(state, knowledgeObjectId)
+  if (!object) {
+    fail(response, "RESOURCE_NOT_FOUND")
+    return true
+  }
+
+  if (request.method === "GET") {
+    if (!requireCapability(principal, "knowledge.read")) {
+      fail(response, "CAPABILITY_REQUIRED")
+      return true
+    }
+
+    switch (action) {
+      case "":
+        succeed(response, {
+          ...detailOf(state, object),
+          lifecycle: unsupported(state, lifecycleOf(object)),
+        })
+        return true
+      case "/evidence":
+        if (state.evidenceError) {
+          fail(response, state.evidenceError)
+          return true
+        }
+        succeed(response, { evidence: object.evidence, knowledgeObjectId })
+        return true
+      case "/reviews":
+        succeed(response, { knowledgeObjectId, reviews: object.reviews })
+        return true
+      case "/review-state":
+        succeed(response, reviewStateOf(object))
+        return true
+      case "/lifecycle-state":
+        succeed(response, lifecycleOf(object))
+        return true
+      case "/corrections":
+        succeed(response, {
+          correctionRequests: object.corrections,
+          knowledgeObjectId,
+        })
+        return true
+      default:
+        fail(response, "RESOURCE_NOT_FOUND")
+        return true
+    }
+  }
+
+  if (request.method !== "POST") {
+    fail(response, "RESOURCE_NOT_FOUND")
+    return true
+  }
+
+  if (action === "/reviews") {
+    await withCommand(request, response, state, principal, organizationId, {
+      operation: "knowledge.review",
+      target: knowledgeObjectId,
+      capability: "knowledge.review",
+      apply: (body) => {
+        const stale = checkTokens(object, body)
+        if (stale) return stale
+        if (!allowedReviewActions(object).includes(body?.action)) {
+          return { error: "KNOWLEDGE_ACTION_NOT_ALLOWED" }
+        }
+        const invalid = checkReviewShape(body.action, body)
+        if (invalid) return { error: invalid }
+
+        appendReview(object, principal, body.action, body)
+        return {
+          code: "KNOWLEDGE_REVIEW_RECORDED",
+          payload: reviewStateOf(object),
+        }
+      },
+    })
+    return true
+  }
+
+  if (action === "/activate") {
+    await withCommand(request, response, state, principal, organizationId, {
+      operation: "knowledge.activate",
+      target: knowledgeObjectId,
+      capability: "knowledge.lifecycle.manage",
+      apply: (body) => {
+        const stale = checkTokens(object, body)
+        if (stale) return stale
+        if (!allowedLifecycleActions(object).includes("MARK_ACTIVE")) {
+          return { error: "KNOWLEDGE_ACTION_NOT_ALLOWED" }
+        }
+
+        object.lifecycleState = "ACTIVE"
+        object.lifecycleVersion += 1
+        return { code: "KNOWLEDGE_MARKED_ACTIVE", payload: lifecycleOf(object) }
+      },
+    })
+    return true
+  }
+
+  if (action === "/supersede") {
+    await withCommand(request, response, state, principal, organizationId, {
+      operation: "knowledge.supersede",
+      target: knowledgeObjectId,
+      capability: "knowledge.lifecycle.manage",
+      apply: (body) => {
+        const newer = findKnowledge(state, String(body?.newKnowledgeObjectId ?? ""))
+        // A foreign or absent replacement is refused identically, and self
+        // supersession is refused before anything is read.
+        if (!newer || newer.base.knowledgeObjectId === knowledgeObjectId) {
+          return { error: "SUPERSESSION_INVALID" }
+        }
+        if (!isAdmitted(newer) || !isReviewed(newer) || !isReviewed(object)) {
+          return { error: "SUPERSESSION_INVALID" }
+        }
+
+        // Four tokens, each able to go stale on its own. The old object's
+        // pair is checked first so a stale old review is reported as such.
+        if (body?.expectedOldReviewSequence !== sequenceOf(object)) {
+          return conflict("REVIEW_VERSION_CONFLICT", sequenceOf(object))
+        }
+        if (body?.expectedOldLifecycleVersion !== object.lifecycleVersion) {
+          return conflict("LIFECYCLE_VERSION_CONFLICT", object.lifecycleVersion)
+        }
+        if (body?.expectedNewReviewSequence !== sequenceOf(newer)) {
+          return conflict("REVIEW_VERSION_CONFLICT", sequenceOf(newer))
+        }
+        if (body?.expectedNewLifecycleVersion !== newer.lifecycleVersion) {
+          return conflict("LIFECYCLE_VERSION_CONFLICT", newer.lifecycleVersion)
+        }
+
+        if (!allowedLifecycleActions(object).includes("MARK_SUPERSEDED")) {
+          return { error: "KNOWLEDGE_ACTION_NOT_ALLOWED" }
+        }
+
+        const walk = walkSupersession(
+          state,
+          newer.base.knowledgeObjectId,
+          knowledgeObjectId,
+        )
+        if (walk.outcome === "cycle") return { error: "SUPERSESSION_INVALID" }
+        if (walk.outcome === "exhausted") {
+          return { error: "SUPERSESSION_TRAVERSAL_LIMIT" }
+        }
+
+        const relationId = randomUUID()
+        object.supersededBy = [
+          ...object.supersededBy,
+          {
+            knowledgeObjectId: newer.base.knowledgeObjectId,
+            knowledgeRelationId: relationId,
+            relationState: "ACTIVE",
+            relationVersion: 1,
+          },
+        ]
+        newer.supersedes = [
+          ...newer.supersedes,
+          {
+            knowledgeObjectId,
+            knowledgeRelationId: relationId,
+            relationState: "ACTIVE",
+            relationVersion: 1,
+          },
+        ]
+        object.lifecycleState = "SUPERSEDED"
+        object.lifecycleVersion += 1
+        // The new object does not auto-activate. Activating it is a separate
+        // decision with its own optimistic pair.
+        return { code: "KNOWLEDGE_MARKED_SUPERSEDED", payload: lifecycleOf(object) }
+      },
+    })
+    return true
+  }
+
+  if (action === "/corrections") {
+    await withCommand(request, response, state, principal, organizationId, {
+      operation: "knowledge.correction",
+      target: knowledgeObjectId,
+      capability: "knowledge.lifecycle.manage",
+      apply: (body) => {
+        const stale = checkTokens(object, body)
+        if (stale) return stale
+        if (!CORRECTION_TYPES.has(body?.requestType)) {
+          return { error: "REQUEST_INVALID" }
+        }
+        if (!CORRECTION_REASONS.has(body?.reasonCode)) {
+          return { error: "REQUEST_INVALID" }
+        }
+        if (body.reasonCode === "OTHER" && typeof body?.note !== "string") {
+          return { error: "REQUEST_INVALID" }
+        }
+
+        const retracting = body.requestType === "RETRACT_SUPERSESSION"
+        const edge = object.supersededBy.find(
+          (entry) => entry.knowledgeRelationId === body?.knowledgeRelationId,
+        )
+        if (
+          retracting &&
+          (!edge || body?.expectedRelationVersion !== edge.relationVersion)
+        ) {
+          // A relation this object does not carry, or one whose version moved,
+          // refuses without mutating anything.
+          return edge
+            ? { error: "VERSION_CONFLICT", currentVersion: edge.relationVersion }
+            : { error: "SUPERSESSION_INVALID" }
+        }
+        if (!retracting && body?.knowledgeRelationId !== undefined) {
+          return { error: "REQUEST_INVALID" }
+        }
+        if (!allowedLifecycleActions(object).includes("REQUEST_CORRECTION")) {
+          return { error: "KNOWLEDGE_ACTION_NOT_ALLOWED" }
+        }
+
+        const created = {
+          attemptCount: 0,
+          correctionRequestId: randomUUID(),
+          history: [
+            {
+              actorKind: "customer",
+              recordedAt: new Date().toISOString().replace(/\.\d+Z$/, "Z"),
+              requestVersion: 1,
+              toStatus: "REQUESTED",
+            },
+          ],
+          knowledgeObjectId,
+          reasonCode: body.reasonCode,
+          requestType: body.requestType,
+          requestVersion: 1,
+          requestedAt: new Date().toISOString().replace(/\.\d+Z$/, "Z"),
+          requestedByRole: principal.role,
+          requestedByUserId: principal.actorId,
+          requestedLifecycleVersion: object.lifecycleVersion,
+          requestedReviewSequence: sequenceOf(object),
+          status: "REQUESTED",
+          ...(retracting
+            ? {
+                knowledgeRelationId: body.knowledgeRelationId,
+                requestedRelationVersion: body.expectedRelationVersion,
+              }
+            : {}),
+          ...(body?.note === undefined ? {} : { note: body.note }),
+        }
+        object.corrections = [...object.corrections, created]
+        // Nothing here can drive the request past REQUESTED. Executing and
+        // rejecting are operator commands on a separate non-browser surface.
+        return { code: "KNOWLEDGE_CORRECTION_REQUESTED", payload: created }
+      },
+    })
+    return true
+  }
+
+  fail(response, "RESOURCE_NOT_FOUND")
+  return true
 }
 
 const IMPORT_BUDGET = /^(0|[1-9][0-9]{0,11})\.[0-9]{6}$/

@@ -1,5 +1,11 @@
 import type {
   GithubInstallation,
+  KnowledgeCorrections,
+  KnowledgeDetail,
+  KnowledgeEvidence,
+  KnowledgeLifecycleState,
+  KnowledgeRelationEdge,
+  KnowledgeReview,
   OrganizationModelProfiles,
   Repository,
   RepositoryImport,
@@ -81,6 +87,80 @@ export declare const PRINCIPALS: Readonly<
   >
 >
 
+export declare const KNOWLEDGE: {
+  readonly pending: string
+  readonly approved: string
+  readonly edited: string
+  readonly userRejected: string
+  readonly active: string
+  readonly superseded: string
+  readonly superseding: string
+  readonly withdrawn: string
+  readonly machineRejected: string
+  readonly machineQuarantined: string
+  readonly correctionOpen: string
+}
+
+export declare const KNOWLEDGE_CHAIN: {
+  readonly first: string
+  readonly second: string
+  readonly third: string
+  readonly fourth: string
+}
+
+/** One per identifier kind the knowledge surface accepts. None is ever served. */
+export declare const FOREIGN_KNOWLEDGE: {
+  readonly knowledgeObject: string
+  readonly evidence: string
+  readonly review: string
+  readonly relation: string
+  readonly correction: string
+}
+
+export declare const EVIDENCE_IDS: {
+  readonly first: string
+  readonly second: string
+  readonly unlinked: string
+}
+
+export declare const RELATIONS: {
+  readonly superseding: string
+  readonly retracted: string
+  readonly chainFirst: string
+  readonly chainSecond: string
+  readonly chainThird: string
+}
+
+export declare const CORRECTIONS: {
+  readonly requested: string
+  readonly executing: string
+  readonly executed: string
+  readonly rejected: string
+  readonly failed: string
+}
+
+/**
+ * One stored Knowledge Object.
+ *
+ * The published projections are derived from this by the server rather than
+ * stored beside it, so review sequence stays the row count and `PENDING` stays
+ * the absence of a review rather than a value a fixture could contradict.
+ */
+export type StubKnowledgeObject = {
+  base: Omit<KnowledgeDetail, "humanEdited" | "lifecycle" | "review">
+  shortClaim: string
+  evidence: KnowledgeEvidence["evidence"]
+  reviews: KnowledgeReview[]
+  lifecycleState: KnowledgeLifecycleState["lifecycleState"]
+  lifecycleVersion: number
+  supersededBy: KnowledgeRelationEdge[]
+  supersedes: KnowledgeRelationEdge[]
+  corrections: KnowledgeCorrections["correctionRequests"]
+  repositoryId: string
+}
+
+export declare const KNOWLEDGE_OBJECTS: () => Record<string, StubKnowledgeObject>
+
 export type StubScenario = {
   readonly repositories: Repository[]
   readonly limit: RepositoryPage["summary"]["limit"]
@@ -102,6 +182,19 @@ export type StubScenario = {
   readonly modelProfiles?: OrganizationModelProfiles
   /** A published stable code the catalogue read answers with instead. */
   readonly modelProfilesError?: string
+  /** The knowledge inventory, keyed by identifier. Absent means an empty queue. */
+  readonly knowledge?: Readonly<Record<string, StubKnowledgeObject>>
+  readonly knowledgePageSize?: number
+  /** A published stable code the review queue answers with instead. */
+  readonly knowledgeError?: string
+  /** A published stable code the evidence read answers with instead. */
+  readonly evidenceError?: string
+  /** Injects a lifecycle state no contract publishes, for the fail-closed path. */
+  readonly knowledgeUnsupported?: boolean
+  /** Serves this object's detail without the optional `review` block. */
+  readonly knowledgeWithoutReview?: string
+  /** Serves this object's latest review without its optional `editedPayload`. */
+  readonly knowledgeWithoutEditedPayload?: string
 }
 
 /**
@@ -134,6 +227,13 @@ export declare const SCENARIOS: {
   readonly importFailed: () => StubScenario
   readonly importCancelled: () => StubScenario
   readonly importResumeBlocked: () => StubScenario
+  readonly memory: () => StubScenario
+  readonly memoryEmpty: () => StubScenario
+  readonly memoryUnavailable: () => StubScenario
+  readonly memoryPaged: () => StubScenario
+  readonly memoryEvidenceUnavailable: () => StubScenario
+  readonly memoryUnsupported: () => StubScenario
+  readonly memoryPartialProjection: () => StubScenario
 }
 
 export type StubScenarioName = keyof typeof SCENARIOS

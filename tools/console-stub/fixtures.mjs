@@ -772,6 +772,543 @@ export const OVERVIEWS = () =>
     ]),
   )
 
+export const KNOWLEDGE = {
+  pending: "00000000-0000-4000-8000-000000000201",
+  approved: "00000000-0000-4000-8000-000000000202",
+  edited: "00000000-0000-4000-8000-000000000203",
+  userRejected: "00000000-0000-4000-8000-000000000204",
+  active: "00000000-0000-4000-8000-000000000205",
+  superseded: "00000000-0000-4000-8000-000000000206",
+  superseding: "00000000-0000-4000-8000-000000000207",
+  withdrawn: "00000000-0000-4000-8000-000000000208",
+  machineRejected: "00000000-0000-4000-8000-000000000209",
+  machineQuarantined: "00000000-0000-4000-8000-00000000020a",
+  correctionOpen: "00000000-0000-4000-8000-00000000020b",
+}
+
+/** A three-link supersession chain, for the traversal bound and for cycles. */
+export const KNOWLEDGE_CHAIN = {
+  first: "00000000-0000-4000-8000-000000000211",
+  second: "00000000-0000-4000-8000-000000000212",
+  third: "00000000-0000-4000-8000-000000000213",
+  fourth: "00000000-0000-4000-8000-000000000214",
+}
+
+/**
+ * Owned by the other tenant, one per identifier kind the surface accepts.
+ *
+ * None is ever served. The refusal must be identical whether an identifier
+ * belongs to another organization or to nothing at all, or the response itself
+ * discloses existence.
+ */
+export const FOREIGN_KNOWLEDGE = {
+  knowledgeObject: "00000000-0000-4000-8000-0000000002f1",
+  evidence: "00000000-0000-4000-8000-0000000002f2",
+  review: "00000000-0000-4000-8000-0000000002f3",
+  relation: "00000000-0000-4000-8000-0000000002f4",
+  correction: "00000000-0000-4000-8000-0000000002f5",
+}
+
+const hex = (seed) => seed.repeat(64).slice(0, 64)
+
+const ORIGINAL_SHA = hex("a")
+const EDITED_SHA = hex("b")
+const EDIT_SCHEMA_SHA = hex("c")
+const PIPELINE_SHA = hex("d")
+
+const PULL_REQUESTS = {
+  review: "00000000-0000-4000-8000-000000000301",
+  lifecycle: "00000000-0000-4000-8000-000000000302",
+}
+
+const REVIEWER = "00000000-0000-4000-8000-00000000c001"
+const KNOWLEDGE_REPOSITORY = REPOSITORIES.activeSourceOnly
+
+/** The thirteen editable keys, which `REV-002` requires in full on every edit. */
+const editablePayload = (overrides = {}) => ({
+  affectedSystems: ["console", "extraction"],
+  answerableQuestions: ["Can a recorded review be amended?"],
+  constraints: ["Reviews are append-only"],
+  designRationale: "A mutable row would lose the decision it replaced.",
+  documentedTradeoffs: ["More rows to read"],
+  explicitAlternatives: ["A mutable current-state column"],
+  failureModes: ["A silently discarded decision"],
+  futureImpact: "The audit trail stays complete.",
+  implementationStatus: "implemented",
+  invariants: ["The review sequence is monotonic"],
+  knowledge: "Every review decision is appended, never updated.",
+  knowledgeType: "ArchitectureDecision",
+  problem: "Updating a review in place destroys the prior decision.",
+  ...overrides,
+})
+
+const evidenceItem = (evidenceId, ordinal, quote) => ({
+  author: "octocat",
+  evidenceId,
+  ordinal,
+  quote,
+  source: "pull request review comment",
+  sourceId: PULL_REQUESTS.review,
+  sourceType: "pull_request_review_comment",
+  sourceUrl: "https://github.com/acme/payments-api/pull/412",
+})
+
+export const EVIDENCE_IDS = {
+  first: "00000000-0000-4000-8000-000000000401",
+  second: "00000000-0000-4000-8000-000000000402",
+  unlinked: "00000000-0000-4000-8000-000000000403",
+}
+
+const defaultEvidence = () => [
+  evidenceItem(
+    EVIDENCE_IDS.first,
+    1,
+    "We append a review row rather than updating the one before it.",
+  ),
+  evidenceItem(
+    EVIDENCE_IDS.second,
+    2,
+    "The effective decision is the highest sequence, never the latest timestamp.",
+  ),
+]
+
+const review = (sequence, action, decision, overrides = {}) => ({
+  acknowledgedEvidenceIds: [EVIDENCE_IDS.first],
+  action,
+  decision,
+  observedLifecycleState: "UNRESOLVED",
+  observedLifecycleVersion: 0,
+  originalPayloadSha256: ORIGINAL_SHA,
+  recordedAt: `2026-08-${String(10 + sequence).padStart(2, "0")}T09:00:00Z`,
+  reviewId: `00000000-0000-4000-8000-${String(500 + sequence).padStart(12, "0")}`,
+  reviewSequence: sequence,
+  reviewerRole: "owner",
+  reviewerUserId: REVIEWER,
+  ...overrides,
+})
+
+const approveReview = (sequence) => review(sequence, "APPROVE", "APPROVED")
+
+const editReview = (sequence, issueSeverity, overrides = {}) =>
+  review(sequence, "EDIT", "EDITED", {
+    editSchemaSha256: EDIT_SCHEMA_SHA,
+    editSchemaVersion: "1",
+    editedPayload: editablePayload(overrides),
+    editedPayloadSha256: EDITED_SHA,
+    issueSeverity,
+  })
+
+const rejectReview = (sequence, rejectReasonCode, issueSeverity, note) =>
+  review(sequence, "USER_REJECT", "USER_REJECTED", {
+    rejectReasonCode,
+    issueSeverity,
+    ...(note === undefined ? {} : { note }),
+  })
+
+/**
+ * One append-only history carrying every published reject reason.
+ *
+ * A reviewer who rejects, reconsiders and rejects again for a different reason
+ * is exactly what `12.1` permits, and it is the only shape that reaches all
+ * seven reason codes without inventing a transition the matrix forbids. It
+ * doubles as the long timeline the history surface has to render.
+ */
+const reconsideredHistory = () => [
+  rejectReview(1, "INCORRECT", "CRITICAL"),
+  approveReview(2),
+  rejectReview(3, "UNSUPPORTED", "MINOR"),
+  approveReview(4),
+  rejectReview(5, "TOO_VAGUE", "NONE"),
+  approveReview(6),
+  rejectReview(7, "DUPLICATE", "MAJOR"),
+  approveReview(8),
+  rejectReview(9, "OUTDATED", "MINOR"),
+  approveReview(10),
+  rejectReview(11, "OTHER", "MAJOR", "Superseded by the decision in PR 480."),
+  approveReview(12),
+  rejectReview(13, "NOT_DURABLE", "MINOR"),
+]
+
+const technicalDetails = (overrides = {}) => ({
+  admissionDecisionOrigin: "MODEL",
+  admissionDisposition: "ACCEPTED",
+  componentVersions: { admission: "2.4.0", extractor: "3.1.0" },
+  cost: {
+    completeness: "MEASURED",
+    measuredUsd: "0.042000",
+    reservedUsd: "0.000000",
+    unresolvedUsd: "0.000000",
+  },
+  effectiveJobId: "00000000-0000-4000-8000-000000000601",
+  extractedAt: "2026-08-09T18:20:00Z",
+  extractionRunId: "00000000-0000-4000-8000-000000000602",
+  latencyMs: 4120,
+  resolvedModelId: "evirion-extraction-standard",
+  semanticPipelineFingerprint: PIPELINE_SHA,
+  tokenUsage: { completion: 812, prompt: 6140 },
+  validationValid: true,
+  ...overrides,
+})
+
+const sourceContext = (overrides = {}) => ({
+  mergedAt: "2026-08-08T14:30:00Z",
+  nameWithOwner: "acme/payments-api",
+  pullRequestAuthorLogin: "octocat",
+  pullRequestId: PULL_REQUESTS.review,
+  pullRequestNumber: 412,
+  pullRequestTitle: "Make knowledge review append-only",
+  pullRequestUrl: "https://github.com/acme/payments-api/pull/412",
+  repositoryId: KNOWLEDGE_REPOSITORY,
+  ...overrides,
+})
+
+/**
+ * One stored Knowledge Object.
+ *
+ * The projections the API publishes are derived from this by the server, not
+ * stored beside it, so review sequence stays `reviews.length` and `PENDING`
+ * stays the absence of a review rather than a value a fixture could contradict.
+ */
+const knowledgeObject = (knowledgeObjectId, shortClaim, overrides = {}) => ({
+  base: {
+    author: "octocat",
+    confidence: 82,
+    createdAt: "2026-08-09T18:25:00Z",
+    implementationStatus: "implemented",
+    knowledge: "Every review decision is appended, never updated.",
+    knowledgeObjectId,
+    knowledgeStatus: "current",
+    knowledgeType: "ArchitectureDecision",
+    knowledgeValue: "high",
+    memoryPriority: 70,
+    originalPayload: editablePayload(),
+    problem: "Updating a review in place destroys the prior decision.",
+    sourceContext: sourceContext(),
+    technicalDetails: technicalDetails(),
+  },
+  shortClaim,
+  evidence: defaultEvidence(),
+  reviews: [],
+  lifecycleState: "UNRESOLVED",
+  lifecycleVersion: 0,
+  supersededBy: [],
+  supersedes: [],
+  corrections: [],
+  repositoryId: KNOWLEDGE_REPOSITORY,
+  ...overrides,
+})
+
+const relation = (knowledgeRelationId, knowledgeObjectId, relationState, version) => ({
+  knowledgeObjectId,
+  knowledgeRelationId,
+  relationState,
+  relationVersion: version,
+})
+
+export const RELATIONS = {
+  superseding: "00000000-0000-4000-8000-000000000701",
+  retracted: "00000000-0000-4000-8000-000000000702",
+  chainFirst: "00000000-0000-4000-8000-000000000703",
+  chainSecond: "00000000-0000-4000-8000-000000000704",
+  chainThird: "00000000-0000-4000-8000-000000000705",
+}
+
+export const CORRECTIONS = {
+  requested: "00000000-0000-4000-8000-000000000801",
+  executing: "00000000-0000-4000-8000-000000000802",
+  executed: "00000000-0000-4000-8000-000000000803",
+  failed: "00000000-0000-4000-8000-000000000804",
+  rejected: "00000000-0000-4000-8000-000000000805",
+}
+
+const correctionHistoryEntry = (toStatus, requestVersion, overrides = {}) => ({
+  actorKind: toStatus === "REQUESTED" ? "customer" : "platform_operator",
+  recordedAt: `2026-08-2${requestVersion}T11:00:00Z`,
+  requestVersion,
+  toStatus,
+  ...overrides,
+})
+
+/**
+ * One durable correction request.
+ *
+ * `history` is append-only and carries both actor kinds: the customer creates
+ * the request and a platform operator moves it. Nothing here names the
+ * operator, their decision rationale beyond the published reason, or any
+ * internal failure detail.
+ */
+const correction = (correctionRequestId, status, overrides = {}) => ({
+  attemptCount: 1,
+  correctionRequestId,
+  history: [correctionHistoryEntry("REQUESTED", 1)],
+  knowledgeObjectId: KNOWLEDGE.correctionOpen,
+  reasonCode: "SUPERSESSION_ERRONEOUS",
+  requestType: "RETRACT_SUPERSESSION",
+  requestVersion: 1,
+  requestedAt: "2026-08-21T11:00:00Z",
+  requestedByRole: "owner",
+  requestedByUserId: REVIEWER,
+  requestedLifecycleVersion: 1,
+  requestedReviewSequence: 1,
+  status,
+  ...overrides,
+})
+
+/**
+ * Every published correction status, request type, reason code and
+ * compensating lifecycle state, on one object's request list.
+ */
+const correctionCatalogue = () => [
+  correction(CORRECTIONS.requested, "REQUESTED", {
+    knowledgeRelationId: RELATIONS.superseding,
+    requestedRelationVersion: 1,
+  }),
+  correction(CORRECTIONS.executing, "EXECUTING", {
+    requestType: "WITHDRAW_ACTIVE_KNOWLEDGE",
+    reasonCode: "KNOWLEDGE_NO_LONGER_TRUE",
+    requestVersion: 2,
+    compensatingLifecycleState: "WITHDRAWN",
+    updatedAt: "2026-08-22T11:00:00Z",
+    history: [
+      correctionHistoryEntry("REQUESTED", 1),
+      correctionHistoryEntry("EXECUTING", 2, { fromStatus: "REQUESTED" }),
+    ],
+  }),
+  correction(CORRECTIONS.executed, "EXECUTED", {
+    requestType: "RESTORE_UNRESOLVED",
+    reasonCode: "KNOWLEDGE_MISATTRIBUTED",
+    requestVersion: 3,
+    compensatingLifecycleState: "UNRESOLVED",
+    updatedAt: "2026-08-23T11:00:00Z",
+    history: [
+      correctionHistoryEntry("REQUESTED", 1),
+      correctionHistoryEntry("EXECUTING", 2, { fromStatus: "REQUESTED" }),
+      correctionHistoryEntry("EXECUTED", 3, { fromStatus: "EXECUTING" }),
+    ],
+  }),
+  correction(CORRECTIONS.failed, "FAILED", {
+    reasonCode: "OTHER",
+    note: "The supersession named the wrong replacement.",
+    requestVersion: 2,
+    attemptCount: 2,
+    // A published code and nothing else. No operator internal reaches here.
+    failureCode: "DEPENDENCY_UNAVAILABLE",
+    compensatingLifecycleState: "ACTIVE",
+    knowledgeRelationId: RELATIONS.retracted,
+    requestedRelationVersion: 2,
+    updatedAt: "2026-08-24T11:00:00Z",
+    history: [
+      correctionHistoryEntry("REQUESTED", 1),
+      correctionHistoryEntry("EXECUTING", 2, { fromStatus: "REQUESTED" }),
+      correctionHistoryEntry("FAILED", 2, { fromStatus: "EXECUTING" }),
+    ],
+  }),
+  correction(CORRECTIONS.rejected, "REJECTED", {
+    requestVersion: 2,
+    updatedAt: "2026-08-25T11:00:00Z",
+    history: [
+      correctionHistoryEntry("REQUESTED", 1),
+      correctionHistoryEntry("REJECTED", 2, {
+        fromStatus: "REQUESTED",
+        reason: "The supersession is correct as recorded.",
+      }),
+    ],
+  }),
+]
+
+/**
+ * The knowledge inventory, keyed by identifier.
+ *
+ * It covers every published review decision and lifecycle state, both
+ * admission outcomes that are not Knowledge Objects, and a supersession chain
+ * long enough to exhaust the traversal bound.
+ */
+export const KNOWLEDGE_OBJECTS = () => {
+  const objects = {
+    [KNOWLEDGE.pending]: knowledgeObject(
+      KNOWLEDGE.pending,
+      "Review decisions are appended, never updated.",
+    ),
+    [KNOWLEDGE.approved]: knowledgeObject(
+      KNOWLEDGE.approved,
+      "The effective review is the highest sequence.",
+      { reviews: [approveReview(1)] },
+    ),
+    [KNOWLEDGE.edited]: knowledgeObject(
+      KNOWLEDGE.edited,
+      "An edit is a derivative of the machine extraction.",
+      {
+        reviews: [
+          rejectReview(1, "INCORRECT", "CRITICAL"),
+          approveReview(2),
+          editReview(3, "MINOR", { knowledge: "An edit never replaces the original." }),
+          review(4, "REVERT_TO_ORIGINAL_AND_APPROVE", "APPROVED"),
+          editReview(5, "NONE", {
+            knowledge: "The reviewer restated the claim in the team's own words.",
+          }),
+        ],
+      },
+    ),
+    [KNOWLEDGE.userRejected]: knowledgeObject(
+      KNOWLEDGE.userRejected,
+      "A rejected object keeps its provenance and its history.",
+      { reviews: reconsideredHistory() },
+    ),
+    [KNOWLEDGE.active]: knowledgeObject(
+      KNOWLEDGE.active,
+      "Activation is a lifecycle event, not a review decision.",
+      { reviews: [approveReview(1)], lifecycleState: "ACTIVE", lifecycleVersion: 1 },
+    ),
+    [KNOWLEDGE.superseding]: knowledgeObject(
+      KNOWLEDGE.superseding,
+      "The newer claim that replaces the retry-budget decision.",
+      {
+        reviews: [approveReview(1)],
+        // It supersedes two objects: one live relation, and one an operator
+        // retracted after the customer asked for a correction.
+        supersedes: [
+          relation(RELATIONS.superseding, KNOWLEDGE.superseded, "ACTIVE", 1),
+          relation(RELATIONS.retracted, KNOWLEDGE.correctionOpen, "RETRACTED", 2),
+        ],
+        base: {
+          ...knowledgeObject(KNOWLEDGE.superseding, "").base,
+          sourceContext: sourceContext({
+            pullRequestId: PULL_REQUESTS.lifecycle,
+            pullRequestNumber: 480,
+            pullRequestTitle: "Replace the retry budget decision",
+          }),
+        },
+      },
+    ),
+    [KNOWLEDGE.superseded]: knowledgeObject(
+      KNOWLEDGE.superseded,
+      "The retry budget decision that a newer claim replaced.",
+      {
+        reviews: [approveReview(1)],
+        lifecycleState: "SUPERSEDED",
+        lifecycleVersion: 1,
+        supersededBy: [
+          relation(RELATIONS.superseding, KNOWLEDGE.superseding, "ACTIVE", 1),
+        ],
+      },
+    ),
+    [KNOWLEDGE.withdrawn]: knowledgeObject(
+      KNOWLEDGE.withdrawn,
+      "An internally withdrawn claim, which is not a reviewer action.",
+      {
+        reviews: [approveReview(1)],
+        lifecycleState: "WITHDRAWN",
+        lifecycleVersion: 2,
+      },
+    ),
+    [KNOWLEDGE.correctionOpen]: knowledgeObject(
+      KNOWLEDGE.correctionOpen,
+      "A claim whose supersession the customer asked Evirion to retract.",
+      {
+        reviews: [approveReview(1)],
+        lifecycleState: "SUPERSEDED",
+        lifecycleVersion: 1,
+        supersededBy: [
+          relation(RELATIONS.retracted, KNOWLEDGE.superseding, "RETRACTED", 2),
+        ],
+        corrections: correctionCatalogue(),
+      },
+    ),
+    // Neither of the next two is a Knowledge Object. They are legitimate
+    // machine outcomes that produced no knowledge, and no surface may render
+    // one as trusted, so the queue never lists them and the detail refuses.
+    [KNOWLEDGE.machineRejected]: knowledgeObject(
+      KNOWLEDGE.machineRejected,
+      "A machine-rejected extraction that must never appear as knowledge.",
+      {
+        base: {
+          ...knowledgeObject(KNOWLEDGE.machineRejected, "").base,
+          technicalDetails: technicalDetails({
+            admissionDecisionOrigin: "DETERMINISTIC_POLICY",
+            admissionDisposition: "REJECTED",
+            cost: {
+              completeness: "NOT_APPLICABLE",
+              measuredUsd: "0.000000",
+              reservedUsd: "0.000000",
+              unresolvedUsd: "0.000000",
+            },
+          }),
+        },
+      },
+    ),
+    [KNOWLEDGE.machineQuarantined]: knowledgeObject(
+      KNOWLEDGE.machineQuarantined,
+      "A quarantined extraction that must never appear as knowledge.",
+      {
+        base: {
+          ...knowledgeObject(KNOWLEDGE.machineQuarantined, "").base,
+          technicalDetails: technicalDetails({
+            admissionDecisionOrigin: "VALIDATION",
+            admissionDisposition: "QUARANTINED",
+            validationValid: false,
+            cost: {
+              completeness: "UNRESOLVED",
+              measuredUsd: "0.000000",
+              reservedUsd: "0.010000",
+              unresolvedUsd: "0.010000",
+            },
+          }),
+        },
+      },
+    ),
+  }
+
+  // The chain: fourth supersedes third supersedes second supersedes first.
+  // Superseding `fourth` by `first` would close the cycle, and reaching from
+  // one end to the other exhausts a bound of three.
+  const chain = [
+    [KNOWLEDGE_CHAIN.first, KNOWLEDGE_CHAIN.second, RELATIONS.chainFirst],
+    [KNOWLEDGE_CHAIN.second, KNOWLEDGE_CHAIN.third, RELATIONS.chainSecond],
+    [KNOWLEDGE_CHAIN.third, KNOWLEDGE_CHAIN.fourth, RELATIONS.chainThird],
+  ]
+
+  for (const [index, id] of Object.values(KNOWLEDGE_CHAIN).entries()) {
+    objects[id] = knowledgeObject(id, `Chain link ${index + 1}.`, {
+      reviews: [approveReview(1)],
+      lifecycleState: index === 3 ? "UNRESOLVED" : "SUPERSEDED",
+      lifecycleVersion: index === 3 ? 0 : 1,
+      base: {
+        ...knowledgeObject(id, "").base,
+        // The chain has no cost figure at all, which is `NOT_APPLICABLE` and
+        // never zero.
+        technicalDetails: technicalDetails({
+          cost: {
+            completeness: "RESERVED",
+            measuredUsd: "0.000000",
+            reservedUsd: "0.025000",
+            unresolvedUsd: "0.000000",
+          },
+        }),
+      },
+    })
+  }
+
+  for (const [older, newer, relationId] of chain) {
+    objects[older].supersededBy = [relation(relationId, newer, "ACTIVE", 1)]
+    objects[newer].supersedes = [relation(relationId, older, "ACTIVE", 1)]
+  }
+
+  return objects
+}
+
+/** A connected organization with the repository the knowledge inventory cites. */
+const withKnowledge = () => ({
+  repositories: baseRepositories(),
+  limit: {
+    maxActiveRepositories: 5,
+    mode: "FIXED",
+    replacementMode: "SELF_SERVICE",
+  },
+  installation: installationConnected(),
+  pageSize: 50,
+  knowledgePageSize: 50,
+})
+
 /** A connected organization whose one active repository carries `run`. */
 const withImport = (run) => ({
   repositories: baseRepositories(),
@@ -997,6 +1534,71 @@ export const SCENARIOS = {
     installation: installationConnected(),
     pageSize: 50,
     overviewError: "DEPENDENCY_UNAVAILABLE",
+  }),
+
+  /**
+   * The whole knowledge inventory: every review decision, every lifecycle
+   * state, both admission outcomes that are not Knowledge Objects, every
+   * correction status, and a supersession chain long enough to exhaust the
+   * traversal bound.
+   */
+  memory: () => ({ ...withKnowledge(), knowledge: KNOWLEDGE_OBJECTS() }),
+
+  /** No admitted knowledge yet, which is the empty state and not a refusal. */
+  memoryEmpty: () => withKnowledge(),
+
+  /** The queue cannot be read. Nothing may render as an empty result. */
+  memoryUnavailable: () => ({
+    ...withKnowledge(),
+    knowledge: KNOWLEDGE_OBJECTS(),
+    knowledgeError: "DEPENDENCY_UNAVAILABLE",
+  }),
+
+  /** Two rows per page, so the cursor control is exercised. */
+  memoryPaged: () => ({
+    ...withKnowledge(),
+    knowledge: KNOWLEDGE_OBJECTS(),
+    knowledgePageSize: 2,
+  }),
+
+  /**
+   * Evidence cannot be read. `KD-002` requires the attribution to be visible
+   * before a review action, so the surface must say it does not know rather
+   * than render an object with no supporting quote.
+   */
+  memoryEvidenceUnavailable: () => ({
+    ...withKnowledge(),
+    knowledge: KNOWLEDGE_OBJECTS(),
+    evidenceError: "DEPENDENCY_UNAVAILABLE",
+  }),
+
+  /**
+   * A lifecycle state the contract does not publish.
+   *
+   * The value is injected at the response rather than stored in the shared
+   * inventory, because the coverage assertions require that inventory to hold
+   * exactly the published set. Every route must fail closed on a response like
+   * this rather than render a partial document.
+   */
+  memoryUnsupported: () => ({
+    ...withKnowledge(),
+    knowledge: KNOWLEDGE_OBJECTS(),
+    knowledgeUnsupported: true,
+  }),
+
+  /**
+   * Contract-legal detail responses with an optional block absent.
+   *
+   * `review` is optional, and it is the only source of `allowedActions`.
+   * `editedPayload` is optional, so the backend can say an object is edited
+   * and give nothing to render. Every other scenario derives both
+   * consistently, which is exactly why these two shapes went untested.
+   */
+  memoryPartialProjection: () => ({
+    ...withKnowledge(),
+    knowledge: KNOWLEDGE_OBJECTS(),
+    knowledgeWithoutReview: KNOWLEDGE.pending,
+    knowledgeWithoutEditedPayload: KNOWLEDGE.edited,
   }),
 
   /** No import prepared yet, which is the empty state and not a refusal. */
