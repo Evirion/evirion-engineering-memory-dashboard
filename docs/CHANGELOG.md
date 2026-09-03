@@ -1,5 +1,50 @@
 # Dashboard changelog
 
+## 2026-09-03 — EEM-9/03f console contract v1.0.2
+
+- Why: `EEM-9/05` could not start. All eleven knowledge operations answered the
+  bare `SuccessEnvelope`, no knowledge payload schema existed, and
+  `CommandReceipt` fixed its response codes to the four entitlement ones, so
+  nothing on that surface could be validated. Raised as backend issue
+  [#58](https://github.com/Evirion/evirion-engineering-memory/issues/58), closed
+  by `EEM-8/08`, published as `console-contract-v1.0.2`.
+- Contracts: the release is vendored and the client regenerated from exactly
+  those bytes. Eighteen generated types become thirty-two, adding eleven
+  knowledge types. `contractVersion` stays `1.0`, so the pinned envelope guard
+  and the generated `isConsoleError` const are unchanged and no existing Console
+  read moved. Archive `4bff72ff`, `packageSha256` `1ba7e1f8`, source commit
+  `cfd930a`, surface digest `d7c34b6d`.
+- Security: the archive was fetched by pinned asset ID, matched against the
+  digest the signed release body states independently, checked for links,
+  traversal, unexpected member types and duplicate paths before extraction, and
+  verified offline with the pinned cosign v3.1.3 against the pinned Sigstore
+  trusted root in a network-isolated container, asserting certificate identity,
+  issuer, workflow repository, tag ref, source commit and push trigger. A control
+  run without the trusted root fails at TUF refresh, proving the pinned root was
+  load-bearing. Rekor inclusion recorded from the bundle and confirmed against
+  the public log; signing to release four seconds against a frozen hour.
+- Contracts: no policy amendment was needed. The revision grammar was widened
+  once, by `EEM-9/03e`, and `v1.0.2` already matches it;
+  `console-contract-v1.0.0` stays refused.
+- Contracts: the reachability note was rewritten rather than carried. `cfd930a`
+  is on backend `main`, unlike the two tags before it, so the previous sentence
+  would have been false. The field stays `false` because it records what the lock
+  relies on rather than what happens to be true.
+- Contracts: the Auth parity lock follows the contract source commit to
+  `cfd930a`. Both files it records are byte-identical at the old and new commits,
+  so the pin moved and no derived value did.
+- Verification: lint, format, `tsc --noEmit`, 613 Vitest tests, a production
+  build, 127 Playwright tests, 100 Python tests, the authority package, the
+  documentation tree, backend Auth parity and the Console contract lock all pass,
+  and the generated client reproduces byte for byte.
+- Deployment state: implemented and locally verified only. Nothing is deployed,
+  observed, staging-certified, paid-certified or production-certified.
+- Remaining gates: no UI consumes the knowledge types yet; that surface is
+  `EEM-9/05`. Backend issue
+  [#60](https://github.com/Evirion/evirion-engineering-memory/issues/60) remains
+  open: nothing yet requires proving a candidate contract consumable before its
+  release is signed immutable.
+
 ## 2026-09-03 — EEM-9/03e Console contract revision consumed
 
 - Why: the backend published `console-contract-v1.0.1`, a revision of contract

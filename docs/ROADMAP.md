@@ -45,9 +45,18 @@ the [controlling EEM-9 plan](plans/active/eem-9-design-partner-console-dashboard
    [`eem-9-04-acceptance-trace.md`](plans/active/eem-9-04-acceptance-trace.md).
 8. `EEM-9/03e-console-contract-revision` is merged as PR
    [#10](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/10)
-   at `9e5ae45`. It consumes `console-contract-v1.0.1` and closes both contract
-   gaps below. Its trace is
+   at `9e5ae45`. It consumes `console-contract-v1.0.1` and closes the first two
+   contract gaps below. Its trace is
    [`eem-9-03e-acceptance-trace.md`](plans/active/eem-9-03e-acceptance-trace.md).
+9. `EEM-9/04b-record-merged-state` is merged as PR
+   [#11](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/11)
+   and `EEM-9/04c-uri-format` as PR
+   [#12](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/12)
+   at `3f8cd88`. The second registers the `uri` format as an https-only check,
+   without which the next release could not be consumed.
+10. `EEM-9/03f-console-contract-revision` is implemented and locally verified on
+    its branch. It consumes `console-contract-v1.0.2`, which carries the
+    knowledge read and receipt contract, and closes the third gap below.
 
 All EEM-4 subtasks are merged in the backend as PRs
 [#26](https://github.com/Evirion/evirion-engineering-memory/pull/26)–[#29](https://github.com/Evirion/evirion-engineering-memory/pull/29),
@@ -84,31 +93,40 @@ The two contract gaps found during `EEM-9/03` are closed. Backend issues
 `console-contract-v1.0.1`, and `EEM-9/03e` consumes both. `EEM-9/06` no longer
 inherits either gap.
 
-## A third contract gap blocks EEM-9/05
+## The third contract gap is closed
 
-Found on 2026-09-03 while sequencing the work after `EEM-9/04`. Step 5 of the
-accepted order above is not startable, and its prerequisite reads as met.
+Found on 2026-09-03 while sequencing the work after `EEM-9/04`, and closed the
+same day. Step 5 of the accepted order is startable again.
 
-All eleven knowledge operations in `console-contract-v1.0.1` answer the bare
-`SuccessEnvelope`. No knowledge payload schema file exists, no knowledge
-operation carries an `x-evirion-response-schema` binding, and `CommandReceipt`
-fixes its response codes to the four entitlement ones. Nothing on the surface
-`EEM-9/05` owns can be validated.
+All eleven knowledge operations answered the bare `SuccessEnvelope`: no payload
+schema file, no `x-evirion-response-schema` binding, and a `CommandReceipt` whose
+response codes were fixed to the four entitlement ones. Nothing on the surface
+`EEM-9/05` owns could be validated. The backend roadmap credited `EEM-8/05` with
+unblocking it, and that subtask was merged and inside the release, but it had
+published operations, parameters and request bodies without a single schema file.
 
-The backend roadmap credits `EEM-8/05` with unblocking `EEM-9/05`. That subtask
-is merged and inside the release, but it published operations, parameters and
-request bodies without a single schema file, so the digest it produced has
-nothing behind it to validate a response against.
+Raised as backend issue
+[#58](https://github.com/Evirion/evirion-engineering-memory/issues/58), closed by
+`EEM-8/08` in backend PR
+[#59](https://github.com/Evirion/evirion-engineering-memory/pull/59), published
+as `console-contract-v1.0.2` and consumed here by `EEM-9/03f`.
 
-Unlike the historical-import receipt `EEM-9/04` generated, no bytes exist to
-generate from, and `EEM-9/03` already rejected hand-writing the type. Closing it
-needs a backend subtask, a release carrying it, and a second Dashboard
-consumption. It is not yet raised as a backend issue, and raising it is the
-next action.
+## The release pipeline cannot yet prove a contract is consumable
 
-`EEM-9/06` is unaffected and could be taken before `EEM-9/05` if the owner
-prefers not to idle, which would depart from the accepted order and is therefore
-an owner decision rather than an inference.
+Backend issue
+[#60](https://github.com/Evirion/evirion-engineering-memory/issues/60), open.
+
+`EEM-8/08` passed every backend gate and still produced bytes the Dashboard
+generator refused, because two knowledge fields use `format: uri` and an
+unreviewed format fails closed. It was caught only because the generator was run
+by hand against merged backend `main` before the tag existed. Nothing required
+that, and after a tag the release is immutable.
+
+`uri` was the instance; the same failure follows from `allOf`, `$defs`, an open
+object, a three-branch `oneOf` or a filename that maps to a reserved TypeScript
+global. It is fixed for now in `EEM-9/04c`, and the missing gate is what #60
+tracks. It should be closed before the next contract release, which the last
+three subtasks suggest will arrive sooner than planned.
 
 ## EEM-9/04 is not blocked by `EEM-7/05`
 

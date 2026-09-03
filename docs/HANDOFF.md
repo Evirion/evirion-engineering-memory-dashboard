@@ -4,63 +4,65 @@ Updated: 2026-09-03
 
 ## Current state
 
-- Active task: none. `main` is at `9e5ae45`, which is
-  `EEM-9/03e-console-contract-revision` merged as PR
-  [#10](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/10),
-  and `EEM-9/04-import-operations` before it as PR
+- Active task: `EEM-9/03f-console-contract-revision`, implemented and locally
+  verified on its branch. `main` is at `3f8cd88`, which is `EEM-9/04c` merged as
+  PR
+  [#12](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/12),
+  after `EEM-9/04b` as PR
+  [#11](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/11),
+  `EEM-9/03e` as PR
+  [#10](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/10)
+  and `EEM-9/04-import-operations` as PR
   [#9](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/9).
 - The backend pointer still verifies at commit
   `a6665b599472e295636382ece4d0071e1cb4492c` and package digest
   `6897d9661a038a14eee0fd8128e7a3e96d5b191ef41f197f621779cc2e0ec56f`, because it
   reads the pinned commit rather than Dashboard `main`.
-- `console-contract-v1.0.1` is consumed. Both contract gaps that blocked
-  `EEM-9/06` are closed. A third gap, which blocks `EEM-9/05`, is recorded
-  below and is not closed.
-- **`EEM-9/05` is not startable.** Its stated prerequisite reads as met and is
-  not; see the gap below before planning against it.
+- `console-contract-v1.0.2` is consumed. All three contract gaps found while
+  building the Console are now closed and consumed: repository overview, model
+  profiles, and the knowledge read and receipt contract.
+- **`EEM-9/05` is startable.** The gap that blocked it is closed; the knowledge
+  surface now has thirty-two generated types and eleven bound payloads.
 
 ## What changed here and why
 
-- **The frozen trust policy could not verify the release.** It pinned a
-  two-component tag grammar, and `console-contract-v1.0.1` carries a revision.
-  The `console-contract-v1` entry now mirrors backend ADR 0014 exactly, widened
-  by the optional revision component and nothing else. This is the first commit
-  and is deliberately readable on its own.
-- **The release is consumed.** Archive `a116ae5c`, `packageSha256` `29ff7b73`,
-  source commit `2458f333`. `contractVersion` stays `1.0`, so no pinned envelope
-  guard moved and no Console read broke.
-- **The counters answer open decision 6.** Seventeen, not the sixteen `REPO-003`
-  names; the extra is `withdrawn`, which issue #53 resolved deliberately.
-- **The consent field is a catalogue choice.** Free text is gone, and validation
-  is the published set in addition to the contract pattern.
-- Full detail and the mapping of every changed behaviour to a test is in
-  [`plans/active/eem-9-03e-acceptance-trace.md`](plans/active/eem-9-03e-acceptance-trace.md).
+- **The release is consumed.** Archive `4bff72ff`, `packageSha256` `1ba7e1f8`,
+  source commit `cfd930a`. `contractVersion` stays `1.0`, so no pinned envelope
+  guard moved and no Console read broke. Eighteen generated types become
+  thirty-two.
+- **The knowledge contract is what this release carries.** Eleven bound payload
+  schemas from backend PR
+  [#59](https://github.com/Evirion/evirion-engineering-memory/pull/59), which is
+  what `EEM-9/05` was waiting for.
+- **No UI consumes the new types here.** That surface belongs to `EEM-9/05`.
 
 ## Decisions a reviewer should check first
 
-- **The trust-boundary amendment is the load-bearing change.** Read the first
-  commit alone. The question to ask is whether the widened grammar admits
-  anything beyond a revision; a test asserts it does not, and a second compares
-  the pattern against the backend literal it mirrors so the two cannot drift.
-- **`policyDigest` moved, so the recorded evidence had to move with it.** It was
-  re-observed rather than edited: `console-contract-v1.0` was downloaded again
-  and re-verified against the amended policy before its digest changed.
-- **The surface digest moved and the gate calls that a breaking change.** It is
-  not one. The digest is over sorted export names, so any new schema moves it;
-  four exports were added and none removed or renamed.
-- **"Never render an unavailable aggregate as zero" is structural here.** Every
-  counter is required by the schema, so an uncomputable one fails validation and
-  the whole block reports unavailable. That is why a rendered zero is always a
-  real zero.
-- **A withdrawn profile is scoped to one repository.** The contract's
-  `namedByActiveConsent` is organization-wide; filtering on it alone reported one
-  repository's withdrawal on every other repository's page. Found by the
-  self-audit and fixed in the last commit.
+- **No policy amendment was needed and none was made.** The revision grammar was
+  widened once, by `EEM-9/03e`, and `v1.0.2` already matches it.
+  `console-contract-v1.0.0` stays refused, so that widening is still exactly one
+  component wide.
+- **The reachability note was rewritten rather than carried.** `cfd930a` is on
+  backend `main`, unlike the two tags before it, so repeating the previous
+  sentence would have stated something false. The field stays `false` because it
+  records what the lock relies on, not what happens to be true, and the verifier
+  refuses a lock that claims otherwise.
+- **A `uri` blocker was found before the tag, not after.** The generator refused
+  two knowledge fields because `uri` was not a reviewed format. It was fixed in
+  `EEM-9/04c` as an https-only check, which lands separately so this subtask is
+  vendor-and-regenerate with no generator change inside it. Had the rehearsal not
+  been run by hand, the release would have been signed, immutable and
+  unconsumable; backend issue
+  [#60](https://github.com/Evirion/evirion-engineering-memory/issues/60) tracks
+  making that rehearsal a required pre-tag step.
+- **The Auth parity lock follows the contract source commit.** Both files it
+  records are byte-identical at `2458f333` and `cfd930a`, so the pin moved and no
+  derived value did.
 
 ## Security and release state
 
 - The Auth and session contract is unchanged. The Auth parity lock follows the
-  contract source commit and was re-pinned to `2458f333`; both files it records
+  contract source commit and was re-pinned to `cfd930a`; both files it records
   are byte-identical at the old and new commits, so no derived value moved.
 - No provider was called, no paid operation was authorized, no worker ran, no
   hosted Supabase setting was read or changed, and nothing was deployed.
@@ -85,71 +87,65 @@ and the generated client reproduces byte for byte from the pinned contract. The
 test counts are from the final tree; the Gitleaks figure is deliberately not a
 commit count, because any commit recording one changes it.
 
-Both published releases verify offline with the pinned `cosign-linux-amd64`
-against the pinned trusted root, in a network-isolated `linux/amd64` container.
-A control run without the trusted root fails at TUF refresh, which is what
-proves the pinned root was used rather than a fetched one.
+`console-contract-v1.0.2` verifies offline with the pinned `cosign-linux-amd64`
+against the pinned trusted root, in a network-isolated `linux/amd64` container,
+asserting certificate identity, issuer, workflow repository, tag ref, source
+commit and push trigger. A control run without the trusted root fails at TUF
+refresh, which is what proves the pinned root was used rather than a fetched one.
+Rekor inclusion is recorded from the bundle and confirmed against the public log;
+signing to release was four seconds against a frozen maximum of an hour.
 
 One caution for a local gate: start with ports 3000, 3443 and 3444 free, and
 check them rather than trusting `pkill`. A stub left on 3444 is reused silently
 because `reuseExistingServer` is on outside CI.
 
-That gate describes the `EEM-9/03e` tree that merged. The counts above have not
-been re-observed since, and this follow-up changes only documentation, so it
-reruns the documentation, acceptance and authority digest checks rather than the
-runtime ones.
-
-The next action is the knowledge read contract recorded below. It is backend
-work, and `EEM-9/05` cannot start until it lands, is released and is consumed.
+The next action is `EEM-9/05-memory-review-lifecycle`. Its prerequisite is
+genuinely met now: `EEM-9/04` and all EEM-8 subtasks are merged, and the
+knowledge payloads it needs are generated and validatable.
 
 Commit, push, pull request, and merge each require separate explicit
 authorization.
 
-## Contract gaps: two closed, one open and blocking
+## Contract gaps: all three closed
 
-Open decision 6 and the missing model-profile catalogue were both contract
-blocked. Backend issues
-[#53](https://github.com/Evirion/evirion-engineering-memory/issues/53) and
-[#54](https://github.com/Evirion/evirion-engineering-memory/issues/54) are
-closed, their schemas are published in `console-contract-v1.0.1` and consumed
-here. `EEM-9/06` no longer inherits either gap.
+Every gap found while building the Console is closed and consumed. Backend issues
+[#53](https://github.com/Evirion/evirion-engineering-memory/issues/53) repository
+overview,
+[#54](https://github.com/Evirion/evirion-engineering-memory/issues/54) model
+profiles, and
+[#58](https://github.com/Evirion/evirion-engineering-memory/issues/58) the
+knowledge read and receipt contract. The first two arrived in
+`console-contract-v1.0.1` and the third in `v1.0.2`.
 
-### The knowledge read contract publishes no payload, and it blocks EEM-9/05
+Backend issue
+[#60](https://github.com/Evirion/evirion-engineering-memory/issues/60) is open
+and is process rather than contract: nothing requires anyone to check that a
+candidate contract is consumable before its release is signed immutable, and the
+`uri` blocker this subtask hit was caught only because the rehearsal was run by
+hand.
 
-`EEM-9/05` requires that `EEM-9/04` and all EEM-8 subtasks are merged. Both are
-true, so the prerequisite reads as met. It is not.
+### What EEM-9/05 now has
 
-All eleven knowledge operations in `console-contract-v1.0.1`, reads and
-mutations alike, answer the bare `SuccessEnvelope`, whose `data` the contract
-leaves untyped. No knowledge payload schema file exists, and no knowledge
-operation carries the `x-evirion-response-schema` binding that
-`RepositoryOverview` and `OrganizationModelProfiles` use. `CommandReceipt` fixes
-`responseCode` to the four entitlement codes, so it cannot describe a knowledge
-mutation either. There is nothing on that surface the Console can validate.
+Eleven bound payload schemas, generating eleven types: `KnowledgePage`,
+`KnowledgeDetail`, `KnowledgeEvidence`, `KnowledgeReviewHistory`,
+`KnowledgeReviewState`, `KnowledgeLifecycleState`, `KnowledgeCorrections`,
+`KnowledgeReceipt`, and the three shared rows `KnowledgeSummary`,
+`KnowledgeReview` and `KnowledgeRelationEdge`.
 
-`EEM-8/05` is the subtask the backend roadmap credits with unblocking `EEM-9/05`.
-It is merged as backend PR
-[#49](https://github.com/Evirion/evirion-engineering-memory/pull/49) and is an
-ancestor of the release source commit, so its digest is real. What it published
-was 755 lines of `openapi.yaml` — the operations, their parameters and their
-request bodies — and no schema file. The digest exists; there is nothing behind
-it to validate a response against.
-
-This is not the `RepositoryImportReceipt` case that `EEM-9/04` solved. There the
-bytes existed inside `openapi.yaml` and were digest verified, so the type could
-be generated. Here no bytes exist anywhere. `EEM-9/03` already rejected the
-alternative: rendering from a hand-written type "would make the one surface with
-no contract authority also the only surface rendering unvalidated backend data".
-
-It needs a backend subtask, a release carrying it, and a second Dashboard
-consumption. It is not yet raised as a backend issue.
+Two shapes worth knowing before planning against them. `KnowledgeReceipt` is a
+separate schema from `CommandReceipt` rather than a widening of it, because
+`CommandReceipt` was published without an unsupported fallback and the backend
+compare gate refuses widening an enum that has none; its own `responseCode`
+carries `UNSUPPORTED_SERVER_RESPONSE` as a real enum member, so it can grow. And
+`KnowledgeDetail` embeds the lifecycle and review projections by cross-file
+`$ref`, so the detail and the standalone endpoints cannot drift and a component
+can be shared between them.
 
 Verify rather than trust this note:
 
 ```bash
-ls vendor/console-contract-v1.0.1/contracts/console/v1/schemas/ | grep -i knowledge
-grep -c "x-evirion-response-schema" \
-  vendor/console-contract-v1.0.1/contracts/console/v1/openapi.yaml
+ls vendor/console-contract-v1.0.2/contracts/console/v1/schemas/ | grep -c knowledge
+grep -c "^export type Knowledge" generated/console-contract/v1/types.ts
 ```
 
 Accessibility open decision 1 is unresolved and is due before EEM-9/07. Open
