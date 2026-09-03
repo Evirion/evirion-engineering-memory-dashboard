@@ -74,6 +74,23 @@ digest. They are tracked as backend issues
 [#54](https://github.com/Evirion/evirion-engineering-memory/issues/54), and both
 should be resolved before `EEM-9/06` starts.
 
+## EEM-9/04 is not blocked by `EEM-7/05`
+
+Owner decision of 2026-09-03. The EEM-9 plan makes `EEM-9/04-import-operations`
+wait until "all EEM-7 subtasks are merged". That sentence was written when EEM-7
+held `/01`-`/04`, all of which are merged.
+
+`EEM-7/05-model-profile-registry` was created afterwards, from a gap found while
+building EEM-9/03. It concerns the model-profile catalogue that live
+`AUTO_EXTRACT` consent needs, and historical import reads none of it: every
+import operation and both import schemas are already published in
+`console-contract-v1.0`, which this repository already vendors.
+
+The prerequisite therefore means the EEM-7 subtasks that existed when the plan
+was frozen. `EEM-9/04` may start now, and it needs no new contract bytes. This
+is recorded rather than inferred, because a reader checking the plan literally
+would find an unmerged EEM-7 subtask and stop.
+
 ## The next Dashboard contract consumption is one subtask, not two
 
 Owner decision of 2026-09-03. Both backend gaps publish contract bytes this
