@@ -10,6 +10,7 @@ import type { CommandReceipt, ConsoleError, GithubInstallation, GithubSetupInten
 
 const DATE_TIME_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/;
 const EMAIL_PATTERN = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+const URI_PATTERN = /^https:\/\/[^\s]+$/;
 const UUID_PATTERN = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
 const PATTERN_1 = new RegExp("^[A-Z][A-Z0-9_]*$");
 const PATTERN_2 = new RegExp("^[0-9a-f]{64}$");

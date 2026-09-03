@@ -48,6 +48,14 @@ SUPPORTED_FORMATS = {
         r"(?:\\.\\d+)?(?:Z|[+-]\\d{2}:\\d{2})$"
     ),
     "email": r"^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+    # Deliberately a safe-scheme check rather than RFC 3986. Every URI the
+    # contract publishes is rendered as an `href`, and RFC 3986 admits
+    # `javascript:` and `data:`, so a faithful reading of the format would let
+    # the one construct this validator exists to stop straight through. Where a
+    # field needs more, the contract says so in its own `pattern`, which the
+    # generator applies in addition to this; `pullRequestUrl` and `sourceUrl`
+    # both narrow to `^https://github\.com/` that way.
+    "uri": r"^https:\\/\\/[^\\s]+$",
     "uuid": (
         r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}"
         r"-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
