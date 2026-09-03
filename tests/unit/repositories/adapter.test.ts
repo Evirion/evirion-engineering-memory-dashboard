@@ -6,6 +6,7 @@ import {
   disableRepositoryEntitlement,
   fetchGithubInstallation,
   fetchGithubSyncRun,
+  fetchOrganizationModelProfiles,
   fetchRepository,
   fetchRepositoryOverview,
   fetchRepositoryPage,
@@ -244,6 +245,51 @@ describe("repository reads", () => {
     })
 
     const result = await fetchRepositoryOverview(scope, REPOSITORY, transport)
+
+    expect(result).toEqual({ ok: false, failure: { kind: "unsupported", status: 200 } })
+  })
+
+  it("reads the organization model profile catalogue", async () => {
+    const catalogue = {
+      organizationId: ORGANIZATION,
+      modelProfiles: [
+        {
+          canonicalIdentifier: "anthropic-claude-sonnet-4",
+          provider: "anthropic",
+          modelId: "claude-sonnet-4",
+          offeringState: "AVAILABLE",
+          availability: "OFFERED",
+          namedByActiveConsent: false,
+        },
+      ],
+    }
+    const { transport, calls } = recordingTransport(catalogue)
+
+    const result = await fetchOrganizationModelProfiles(scope, transport)
+
+    expect(result).toEqual({ ok: true, value: catalogue, requestId: REQUEST_ID })
+    expect(calls[0]?.url).toBe(
+      `https://api.evirion.test/v1/organizations/${ORGANIZATION}/model-profiles`,
+    )
+    expect(calls[0]?.init.method).toBe("GET")
+  })
+
+  it("fails closed on an availability the contract does not publish", async () => {
+    const { transport } = recordingTransport({
+      organizationId: ORGANIZATION,
+      modelProfiles: [
+        {
+          canonicalIdentifier: "anthropic-claude-sonnet-4",
+          provider: "anthropic",
+          modelId: "claude-sonnet-4",
+          offeringState: "AVAILABLE",
+          availability: "PROBABLY",
+          namedByActiveConsent: false,
+        },
+      ],
+    })
+
+    const result = await fetchOrganizationModelProfiles(scope, transport)
 
     expect(result).toEqual({ ok: false, failure: { kind: "unsupported", status: 200 } })
   })

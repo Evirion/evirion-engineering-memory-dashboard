@@ -1,5 +1,6 @@
 import type {
   GithubInstallation,
+  OrganizationModelProfiles,
   Repository,
   RepositoryImport,
   RepositoryImportFailures,
@@ -59,6 +60,10 @@ export declare const IMPORT_FAILURES: () => Readonly<
 /** One overview per repository in the inventory, keyed by repository id. */
 export declare const OVERVIEWS: () => Readonly<Record<string, RepositoryOverview>>
 
+export declare const MODEL_PROFILES: () => OrganizationModelProfiles
+export declare const MODEL_PROFILES_WITH_RETIRED: () => OrganizationModelProfiles
+export declare const MODEL_PROFILES_EMPTY: () => OrganizationModelProfiles
+
 export declare const CAPABILITIES: {
   readonly owner: readonly string[]
   readonly viewer: readonly string[]
@@ -93,6 +98,10 @@ export type StubScenario = {
   readonly overviews?: Readonly<Record<string, RepositoryOverview>>
   /** A published stable code the overview read answers with instead. */
   readonly overviewError?: string
+  /** The consent catalogue. Absent means the server serves `MODEL_PROFILES()`. */
+  readonly modelProfiles?: OrganizationModelProfiles
+  /** A published stable code the catalogue read answers with instead. */
+  readonly modelProfilesError?: string
 }
 
 /**
@@ -110,6 +119,9 @@ export declare const SCENARIOS: {
   readonly installationSuspended: () => StubScenario
   readonly paged: () => StubScenario
   readonly unlimited: () => StubScenario
+  readonly retiredModelProfile: () => StubScenario
+  readonly noModelProfiles: () => StubScenario
+  readonly modelProfilesUnavailable: () => StubScenario
   readonly overviewUnavailable: () => StubScenario
   readonly importAbsent: () => StubScenario
   readonly importPlanning: () => StubScenario

@@ -195,7 +195,9 @@ const baseRepositories = () => [
     },
     policy: { mode: "AUTO_EXTRACT", version: 6 },
     effectiveConsent: {
-      allowedModelProfiles: ["standard-extraction"],
+      // A registry canonical identifier, which is what the catalogue offers
+      // and what the worker presents at the paid boundary.
+      allowedModelProfiles: ["anthropic-claude-sonnet-4"],
       budgetCeilingUsd: "40.000000",
       callCeiling: 250,
       expiresAt: "2026-12-31T23:59:59Z",
@@ -662,7 +664,7 @@ const repositoryOverview = (repositoryId, nameWithOwner, overrides = {}) => ({
     // blank and from an unavailable aggregate rendered as zero.
     quarantinedRuns: 0,
     failedJobs: 0,
-    ...(overrides.processing ?? {}),
+    ...overrides.processing,
   },
   engineeringMemory: {
     admittedKnowledgeObjects: 30,
@@ -674,8 +676,91 @@ const repositoryOverview = (repositoryId, nameWithOwner, overrides = {}) => ({
     active: 25,
     superseded: 4,
     withdrawn: 1,
-    ...(overrides.engineeringMemory ?? {}),
+    ...overrides.engineeringMemory,
   },
+})
+
+const modelProfile = (
+  canonicalIdentifier,
+  provider,
+  modelId,
+  offeringState,
+  availability,
+  namedByActiveConsent,
+) => ({
+  canonicalIdentifier,
+  provider,
+  modelId,
+  offeringState,
+  availability,
+  namedByActiveConsent,
+})
+
+/**
+ * The catalogue an `AUTO_EXTRACT` consent may name.
+ *
+ * The identifier is the registry's and is never composed from provider and
+ * model. `acme/analytics` consents to `anthropic-claude-sonnet-4`, so the
+ * default catalogue marks that one as named by an active consent.
+ */
+export const MODEL_PROFILES = () => ({
+  organizationId: ORGANIZATION,
+  modelProfiles: [
+    modelProfile(
+      "anthropic-claude-sonnet-4",
+      "anthropic",
+      "claude-sonnet-4",
+      "AVAILABLE",
+      "OFFERED",
+      true,
+    ),
+    modelProfile("openai-gpt-5", "openai", "gpt-5", "AVAILABLE", "OFFERED", false),
+    modelProfile(
+      "openai-gpt-5-mini",
+      "openai",
+      "gpt-5-mini",
+      "DEPRECATED",
+      "OFFERED",
+      false,
+    ),
+    // Withdrawn and named by nobody: simply not offered, and not surfaced.
+    modelProfile(
+      "anthropic-claude-haiku-3",
+      "anthropic",
+      "claude-haiku-3",
+      "RETIRED",
+      "NO_LONGER_OFFERED",
+      false,
+    ),
+  ],
+})
+
+/**
+ * The same catalogue where a live consent names a profile that was withdrawn.
+ *
+ * Withdrawing an offer does not revoke consent, so this pairs
+ * `NO_LONGER_OFFERED` with `namedByActiveConsent`, which is the combination the
+ * Console must render as its own state.
+ */
+export const MODEL_PROFILES_WITH_RETIRED = () => ({
+  organizationId: ORGANIZATION,
+  modelProfiles: [
+    modelProfile("openai-gpt-5", "openai", "gpt-5", "AVAILABLE", "OFFERED", false),
+    modelProfile(
+      "anthropic-claude-sonnet-4",
+      "anthropic",
+      "claude-sonnet-4",
+      "RETIRED",
+      "NO_LONGER_OFFERED",
+      true,
+    ),
+  ],
+})
+
+/** An organization offered nothing at all: a fact, not a failure. */
+export const MODEL_PROFILES_EMPTY = () => ({
+  organizationId: ORGANIZATION,
+  modelProfiles: [],
 })
 
 /** One overview per repository the inventory carries. */
@@ -857,6 +942,45 @@ export const SCENARIOS = {
     },
     installation: installationConnected(),
     pageSize: 50,
+  }),
+
+  /** A live consent names a profile the organization may no longer pick. */
+  retiredModelProfile: () => ({
+    repositories: baseRepositories(),
+    limit: {
+      maxActiveRepositories: 5,
+      mode: "FIXED",
+      replacementMode: "SELF_SERVICE",
+    },
+    installation: installationConnected(),
+    pageSize: 50,
+    modelProfiles: MODEL_PROFILES_WITH_RETIRED(),
+  }),
+
+  /** Nothing is offered, so there is nothing to consent to. */
+  noModelProfiles: () => ({
+    repositories: baseRepositories(),
+    limit: {
+      maxActiveRepositories: 5,
+      mode: "FIXED",
+      replacementMode: "SELF_SERVICE",
+    },
+    installation: installationConnected(),
+    pageSize: 50,
+    modelProfiles: MODEL_PROFILES_EMPTY(),
+  }),
+
+  /** The catalogue cannot be read, so no consent may be offered at all. */
+  modelProfilesUnavailable: () => ({
+    repositories: baseRepositories(),
+    limit: {
+      maxActiveRepositories: 5,
+      mode: "FIXED",
+      replacementMode: "SELF_SERVICE",
+    },
+    installation: installationConnected(),
+    pageSize: 50,
+    modelProfilesError: "DEPENDENCY_UNAVAILABLE",
   }),
 
   /**

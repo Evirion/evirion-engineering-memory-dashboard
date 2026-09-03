@@ -2,8 +2,12 @@ import Link from "next/link"
 
 import type { Repository } from "@contracts/console"
 
-import { entitlementSourceLabel } from "@/lib/repositories/presentation"
+import {
+  entitlementSourceLabel,
+  retiredNamedByConsent,
+} from "@/lib/repositories/presentation"
 import { POLICY_TERMS } from "@/lib/repositories/vocabulary"
+import type { ModelProfileCatalogueView } from "@/server/queries/repositories"
 
 /**
  * The read-only facts behind the three axes.
@@ -51,7 +55,54 @@ export const EntitlementFacts = ({ repository }: { repository: Repository }) => 
   </section>
 )
 
-export const ConsentFacts = ({ repository }: { repository: Repository }) => (
+/**
+ * A recorded consent naming a profile the organization is no longer offered.
+ *
+ * Withdrawing an offer does not revoke a consent already given, so the backend
+ * can produce this and the customer cannot resolve it by themselves. It gets
+ * its own treatment rather than silence: dropping the row would hide part of a
+ * live consent, and listing it as an ordinary profile would imply it can still
+ * be chosen. Like an operator-managed allowance, it is a state, not a failure.
+ */
+const RetiredProfileNotice = ({ view }: { view: ModelProfileCatalogueView }) => {
+  if (view.status === "unavailable") return null
+  const retired = retiredNamedByConsent(view.catalogue)
+  if (retired.length === 0) return null
+
+  return (
+    <div className="flex flex-col gap-1 rounded border border-slate-300 bg-slate-50 px-3 py-2">
+      <p className="text-sm font-medium text-slate-900">
+        {retired.length === 1
+          ? "This consent names a model profile Evirion no longer offers"
+          : "This consent names model profiles Evirion no longer offers"}
+      </p>
+      <ul className="flex flex-col gap-1">
+        {retired.map((profile) => (
+          <li key={profile.canonicalIdentifier} className="text-sm text-slate-900">
+            {profile.label}
+            <span className="ml-2 text-xs text-slate-600">
+              {profile.offeringState === "RETIRED" ? "retired" : "deprecated"}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <p className="text-sm text-slate-700">
+        The consent is unchanged and Evirion decides which profiles are offered, so
+        there is nothing to fix here. Automatic extraction will not use a profile that
+        is no longer offered. To keep it running, record consent again and choose from
+        what is currently offered.
+      </p>
+    </div>
+  )
+}
+
+export const ConsentFacts = ({
+  repository,
+  modelProfiles,
+}: {
+  repository: Repository
+  modelProfiles: ModelProfileCatalogueView
+}) => (
   <section aria-label="Recorded consent" className="flex flex-col gap-2">
     <h2 className="text-sm font-semibold text-slate-900">Recorded consent</h2>
     {repository.effectiveConsent === null ? (
@@ -95,6 +146,9 @@ export const ConsentFacts = ({ repository }: { repository: Repository }) => (
           </dd>
         </div>
       </dl>
+    )}
+    {repository.effectiveConsent === null ? null : (
+      <RetiredProfileNotice view={modelProfiles} />
     )}
   </section>
 )

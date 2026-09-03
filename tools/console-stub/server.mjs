@@ -18,6 +18,7 @@ import { readMaterial } from "../local-tls/generate-certificate.mjs"
 import {
   CAPABILITIES,
   IMPORT_RUNS,
+  MODEL_PROFILES,
   OVERVIEWS,
   PRINCIPALS,
   SCENARIOS,
@@ -335,6 +336,17 @@ const handle = async (request, response, url) => {
   if (rest === "/repositories" && request.method === "GET") {
     if (state.listError) return fail(response, state.listError)
     return succeed(response, page(state, url.searchParams.get("after") ?? undefined))
+  }
+
+  if (rest === "/model-profiles" && request.method === "GET") {
+    if (state.modelProfilesError) return fail(response, state.modelProfilesError)
+    // The contract gates the catalogue on the capability that writes the
+    // consent envelope, so a viewer is refused here exactly as they would be
+    // on the write itself.
+    if (!requireCapability(principal, "repository.policy.manage")) {
+      return fail(response, "CAPABILITY_REQUIRED")
+    }
+    return succeed(response, state.modelProfiles ?? MODEL_PROFILES())
   }
 
   const imported = await handleImport(request, response, {

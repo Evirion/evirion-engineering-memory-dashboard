@@ -1,4 +1,5 @@
 import type {
+  OrganizationModelProfiles,
   Repository,
   RepositoryOverview,
   RepositoryPage,
@@ -84,6 +85,52 @@ const MEMORY_LABELS: Readonly<
   superseded: "Superseded",
   withdrawn: "Withdrawn",
 }
+
+export type ModelProfileChoice = {
+  readonly canonicalIdentifier: string
+  /** Provider and model, because an identifier alone is not a product name. */
+  readonly label: string
+  readonly offeringState: OrganizationModelProfiles["modelProfiles"][number]["offeringState"]
+}
+
+type CataloguedProfile = OrganizationModelProfiles["modelProfiles"][number]
+
+const asChoice = (profile: CataloguedProfile): ModelProfileChoice => ({
+  canonicalIdentifier: profile.canonicalIdentifier,
+  label: `${profile.provider} ${profile.modelId}`,
+  offeringState: profile.offeringState,
+})
+
+/**
+ * What the organization may name in a new consent.
+ *
+ * The canonical identifier is the registry's, never composed here from provider
+ * and model: composing it is exactly the defect backend issue #54 recorded,
+ * where the two ends disagreed on the format and no consent could ever match.
+ */
+export const offeredProfiles = (
+  catalogue: OrganizationModelProfiles,
+): readonly ModelProfileChoice[] =>
+  catalogue.modelProfiles
+    .filter((profile) => profile.availability === "OFFERED")
+    .map(asChoice)
+
+/**
+ * Profiles a live consent names that the organization may no longer pick.
+ *
+ * Withdrawing an offer does not revoke a consent already given, so this is a
+ * state the backend can produce and the customer cannot resolve alone. A
+ * withdrawn profile no consent names is not surfaced: it is simply not offered.
+ */
+export const retiredNamedByConsent = (
+  catalogue: OrganizationModelProfiles,
+): readonly ModelProfileChoice[] =>
+  catalogue.modelProfiles
+    .filter(
+      (profile) =>
+        profile.availability === "NO_LONGER_OFFERED" && profile.namedByActiveConsent,
+    )
+    .map(asChoice)
 
 const counters = (
   labels: Readonly<Record<string, string>>,

@@ -114,13 +114,13 @@ const RepositoryDetailPage = async ({
       <RepositoryAxisList repository={repository} />
       <ChangeRequestNotice repository={repository} />
       <EntitlementFacts repository={repository} />
-      <ConsentFacts repository={repository} />
+      <ConsentFacts repository={repository} modelProfiles={view.modelProfiles} />
       <RepositoryCounters view={view.overview} />
 
       <div className="flex flex-col gap-3">
         <ActivateForm {...context} />
         <PolicyForm {...context} />
-        <ConsentForm {...context} />
+        <ConsentForm {...context} modelProfiles={view.modelProfiles} />
         <DisableForm {...context} />
         <RequestChangeForm
           {...context}

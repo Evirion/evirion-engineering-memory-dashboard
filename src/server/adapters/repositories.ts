@@ -5,6 +5,7 @@ import {
   type GithubInstallation,
   type GithubSetupIntent,
   type GithubSyncRun,
+  type OrganizationModelProfiles,
   type Repository,
   type RepositoryOverview,
   type RepositoryPage,
@@ -12,6 +13,7 @@ import {
   isGithubInstallation,
   isGithubSetupIntent,
   isGithubSyncRun,
+  isOrganizationModelProfiles,
   isRepository,
   isRepositoryOverview,
   isRepositoryPage,
@@ -179,6 +181,24 @@ export const fetchRepositoryOverview = (
     scope,
     repositoryPath(scope, repositoryId, "/overview"),
     isRepositoryOverview,
+    transport,
+  )
+
+/**
+ * The model profiles this organization may name in an `AUTO_EXTRACT` consent.
+ *
+ * The contract gates this on `repository.policy.manage`, the same capability
+ * that writes the consent envelope, and returns a profile a recorded consent
+ * still names even once the organization may no longer pick it.
+ */
+export const fetchOrganizationModelProfiles = (
+  scope: RepositoryScope,
+  transport?: ConsoleTransport,
+): Promise<ConsoleResult<OrganizationModelProfiles>> =>
+  read(
+    scope,
+    organizationPath(scope, "/model-profiles"),
+    isOrganizationModelProfiles,
     transport,
   )
 

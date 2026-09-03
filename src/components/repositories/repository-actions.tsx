@@ -1,7 +1,9 @@
 import type { Repository } from "@contracts/console"
 
 import type { RepositoryControls } from "@/lib/repositories/presentation"
+import { offeredProfiles } from "@/lib/repositories/presentation"
 import { policyTerm } from "@/lib/repositories/vocabulary"
+import type { ModelProfileCatalogueView } from "@/server/queries/repositories"
 
 /**
  * The entitlement and policy controls.
@@ -221,13 +223,63 @@ export const PolicyForm = ({
     </form>
   )
 
+/**
+ * The consent form, and the two reasons it may not appear.
+ *
+ * Without the capability there is nothing to offer. Without a readable
+ * catalogue there is nothing safe to offer: falling back to free text would
+ * restore the state where a typo and an unavailable model look identical, which
+ * is the defect this surface exists to remove. An organization offered nothing
+ * is a third case, and it is a fact rather than a failure.
+ */
 export const ConsentForm = ({
   repository,
   controls,
   csrfToken,
   idempotencyKeys,
-}: ActionContext) =>
-  !controls.canChangePolicy ? null : (
+  modelProfiles,
+}: ActionContext & { readonly modelProfiles: ModelProfileCatalogueView }) => {
+  if (!controls.canChangePolicy) return null
+
+  if (modelProfiles.status === "unavailable") {
+    return (
+      <section
+        aria-label="Turn on automatic extraction"
+        className="rounded border border-slate-300 bg-slate-50 px-4 py-3"
+      >
+        <h2 className="text-sm font-semibold text-slate-900">
+          Turn on automatic extraction
+        </h2>
+        <p className="mt-1 text-sm text-slate-700">
+          The model profiles this organization may consent to cannot be read right now,
+          so this cannot be recorded. {modelProfiles.failure.message} Nothing has
+          changed, and any existing consent is unaffected.
+        </p>
+      </section>
+    )
+  }
+
+  const choices = offeredProfiles(modelProfiles.catalogue)
+  const consented = new Set(repository.effectiveConsent?.allowedModelProfiles ?? [])
+
+  if (choices.length === 0) {
+    return (
+      <section
+        aria-label="Turn on automatic extraction"
+        className="rounded border border-slate-300 bg-slate-50 px-4 py-3"
+      >
+        <h2 className="text-sm font-semibold text-slate-900">
+          Turn on automatic extraction
+        </h2>
+        <p className="mt-1 text-sm text-slate-700">
+          No model profiles are currently offered to this organization, so there is
+          nothing to consent to. Evirion decides which profiles are offered.
+        </p>
+      </section>
+    )
+  }
+
+  return (
     <details className="rounded border border-slate-300 bg-white px-4 py-3">
       <summary className="cursor-pointer text-sm font-semibold text-slate-900">
         Turn on automatic extraction
@@ -250,20 +302,33 @@ export const ConsentForm = ({
           csrfToken={csrfToken}
         />
         <input type="hidden" name="mode" value="AUTO_EXTRACT" />
-        <label className="flex flex-col gap-1 text-sm text-slate-900">
-          Model profiles, comma separated
-          {/* No contract endpoint enumerates the available profiles, so an
-              existing consent is the only reliable prefill there is. */}
-          <input
-            type="text"
-            name="allowedModelProfiles"
-            required
-            defaultValue={
-              repository.effectiveConsent?.allowedModelProfiles.join(", ") ?? ""
-            }
-            className={field}
-          />
-        </label>
+        <fieldset className="flex flex-col gap-2">
+          <legend className="text-sm text-slate-900">Model profiles</legend>
+          {/* The value posted is the registry's canonical identifier, which is
+              the exact string the worker presents at the paid boundary. The
+              label is for the reader; only this value is ever submitted. */}
+          {choices.map((choice) => (
+            <label
+              key={choice.canonicalIdentifier}
+              className="flex items-center gap-2 text-sm text-slate-900"
+            >
+              <input
+                type="checkbox"
+                name="allowedModelProfiles"
+                value={choice.canonicalIdentifier}
+                defaultChecked={consented.has(choice.canonicalIdentifier)}
+              />
+              <span>
+                {choice.label}
+                {choice.offeringState === "DEPRECATED" ? (
+                  <span className="ml-2 text-xs text-slate-600">
+                    deprecated, still offered
+                  </span>
+                ) : null}
+              </span>
+            </label>
+          ))}
+        </fieldset>
         <label className="flex flex-col gap-1 text-sm text-slate-900">
           Maximum model calls
           <input
@@ -309,6 +374,7 @@ export const ConsentForm = ({
       </form>
     </details>
   )
+}
 
 /**
  * Why a control the customer might expect is not here.

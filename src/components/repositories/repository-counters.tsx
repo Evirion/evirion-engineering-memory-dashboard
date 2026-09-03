@@ -50,7 +50,11 @@ export const RepositoryCounters = ({ view }: { view: RepositoryOverviewView }) =
       </div>
 
       {overviewGroups(view.overview).map((group) => (
-        <section key={group.id} aria-label={group.heading} className="flex flex-col gap-2">
+        <section
+          key={group.id}
+          aria-label={group.heading}
+          className="flex flex-col gap-2"
+        >
           <h3 className="text-sm font-medium text-slate-900">{group.heading}</h3>
           <dl className="grid gap-3 sm:grid-cols-3">
             {group.counters.map((counter) => (

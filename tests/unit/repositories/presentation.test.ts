@@ -6,10 +6,12 @@ import {
   accessAxis,
   capacitySummary,
   entitlementAxis,
+  offeredProfiles,
   overviewGroups,
   policyAxis,
   productStateLabel,
   repositoryControls,
+  retiredNamedByConsent,
 } from "@/lib/repositories/presentation"
 import { POLICY_TERMS, policyTerm } from "@/lib/repositories/vocabulary"
 
@@ -395,5 +397,83 @@ describe("repository overview counters", () => {
 
   it("states that rejected and quarantined runs are not Knowledge Objects", () => {
     expect(groups()[0]?.note).toMatch(/never become Knowledge Objects/i)
+  })
+})
+
+/**
+ * EEM-9/03e. The consent catalogue, and the state a customer cannot fix.
+ *
+ * Withdrawing an offer does not revoke a consent already given, so a recorded
+ * consent can name a profile the organization may no longer pick. Dropping that
+ * row would hide a live consent; showing it as an ordinary choice would invite
+ * a re-selection the backend refuses. It gets its own state.
+ */
+/**
+ * The registry stores identifier, provider and model separately. The identifier
+ * is never recomposed from the other two, so the fixture keeps them distinct.
+ */
+const profile = (
+  canonicalIdentifier: string,
+  availability: "OFFERED" | "NO_LONGER_OFFERED",
+  namedByActiveConsent: boolean,
+  offeringState: "AVAILABLE" | "DEPRECATED" | "RETIRED" = "AVAILABLE",
+) => {
+  const [provider, ...model] = canonicalIdentifier.split("-")
+  return {
+    canonicalIdentifier,
+    provider: provider as string,
+    modelId: model.join("-"),
+    offeringState,
+    availability,
+    namedByActiveConsent,
+  }
+}
+
+describe("model profile catalogue", () => {
+  const catalogue = {
+    organizationId: "00000000-0000-4000-8000-000000000301",
+    modelProfiles: [
+      profile("anthropic-claude-sonnet-4", "OFFERED", true),
+      profile("openai-gpt-5-mini", "NO_LONGER_OFFERED", true, "RETIRED"),
+      profile("openai-gpt-5", "OFFERED", false),
+      profile("anthropic-claude-haiku-4", "NO_LONGER_OFFERED", false, "DEPRECATED"),
+    ],
+  }
+
+  it("offers only what the organization may still name", () => {
+    expect(
+      offeredProfiles(catalogue).map((entry) => entry.canonicalIdentifier),
+    ).toEqual(["anthropic-claude-sonnet-4", "openai-gpt-5"])
+  })
+
+  it("surfaces only a withdrawn profile an active consent still names", () => {
+    // A withdrawn profile nobody consented to is not the customer's problem and
+    // is simply not offered. One a live consent names is a state they cannot fix.
+    expect(
+      retiredNamedByConsent(catalogue).map((entry) => entry.canonicalIdentifier),
+    ).toEqual(["openai-gpt-5-mini"])
+  })
+
+  it("finds nothing to surface when every named profile is still offered", () => {
+    expect(
+      retiredNamedByConsent({
+        organizationId: catalogue.organizationId,
+        modelProfiles: [profile("openai-gpt-5", "OFFERED", true)],
+      }),
+    ).toEqual([])
+  })
+
+  it("labels a choice by provider and model rather than by identifier alone", () => {
+    const [first] = offeredProfiles(catalogue)
+
+    expect(first?.label).toBe("anthropic claude-sonnet-4")
+    expect(first?.canonicalIdentifier).toBe("anthropic-claude-sonnet-4")
+  })
+
+  it("treats an empty catalogue as nothing to offer rather than as an error", () => {
+    const empty = { organizationId: catalogue.organizationId, modelProfiles: [] }
+
+    expect(offeredProfiles(empty)).toEqual([])
+    expect(retiredNamedByConsent(empty)).toEqual([])
   })
 })

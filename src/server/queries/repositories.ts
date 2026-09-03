@@ -5,6 +5,7 @@ import { redirect } from "next/navigation"
 
 import type {
   GithubInstallation,
+  OrganizationModelProfiles,
   Repository,
   RepositoryOverview,
   RepositoryPage,
@@ -22,6 +23,7 @@ import type { ConsoleFailure } from "@/server/adapters/console-api"
 import {
   type RepositoryScope,
   fetchGithubInstallation,
+  fetchOrganizationModelProfiles,
   fetchRepository,
   fetchRepositoryOverview,
   fetchRepositoryPage,
@@ -59,6 +61,18 @@ export type RepositoryOverviewView =
   | { readonly status: "ready"; readonly overview: RepositoryOverview }
   | { readonly status: "unavailable"; readonly failure: ViewFailure }
 
+/**
+ * The consent catalogue, resolved separately for the same reason.
+ *
+ * When it cannot be read the consent form is withheld rather than falling back
+ * to free text. Free text is what made a typo indistinguishable from an
+ * unavailable model, and reintroducing it on a failure path would put the worst
+ * version of the feature behind the least visible condition.
+ */
+export type ModelProfileCatalogueView =
+  | { readonly status: "ready"; readonly catalogue: OrganizationModelProfiles }
+  | { readonly status: "unavailable"; readonly failure: ViewFailure }
+
 export type RepositoryDetailView =
   | {
       readonly status: "ready"
@@ -70,6 +84,7 @@ export type RepositoryDetailView =
       /** True when the backend has more repositories than one page carries. */
       readonly candidatesTruncated: boolean
       readonly overview: RepositoryOverviewView
+      readonly modelProfiles: ModelProfileCatalogueView
     }
   | { readonly status: "unavailable"; readonly failure: ViewFailure }
 
@@ -201,11 +216,12 @@ export const readRepositoryDetail = async (
   // change-request candidates; walking every cursor to render one page would
   // be an unbounded read, so a remaining cursor is disclosed instead.
   //
-  // The overview neither depends on the page nor gates it, so the two travel
-  // together and only the page can fail the whole view.
-  const [page, overview] = await Promise.all([
+  // Neither the overview nor the catalogue depends on the page or gates it, so
+  // all three travel together and only the page can fail the whole view.
+  const [page, overview, profiles] = await Promise.all([
     fetchRepositoryPage(resolved.scope, { pageSize: 100 }),
     fetchRepositoryOverview(resolved.scope, repositoryId),
+    fetchOrganizationModelProfiles(resolved.scope),
   ])
   if (!page.ok) return { status: "unavailable", failure: describeFailure(page.failure) }
 
@@ -225,6 +241,9 @@ export const readRepositoryDetail = async (
     overview: overview.ok
       ? { status: "ready", overview: overview.value }
       : { status: "unavailable", failure: describeFailure(overview.failure) },
+    modelProfiles: profiles.ok
+      ? { status: "ready", catalogue: profiles.value }
+      : { status: "unavailable", failure: describeFailure(profiles.failure) },
   }
 }
 

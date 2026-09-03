@@ -11,7 +11,11 @@ import {
   PolicyVocabulary,
 } from "@/components/repositories/repository-detail"
 
+import type { ModelProfileCatalogueView } from "@/server/queries/repositories"
+
 import {
+  MODEL_PROFILES,
+  MODEL_PROFILES_WITH_RETIRED,
   OVERVIEWS,
   REPOSITORIES,
   SCENARIOS,
@@ -64,10 +68,17 @@ describe("entitlement facts", () => {
   })
 })
 
+const catalogue = (
+  value: ReturnType<typeof MODEL_PROFILES>,
+): ModelProfileCatalogueView => ({ status: "ready", catalogue: value })
+
 describe("recorded consent", () => {
   it("says plainly when no consent exists", () => {
     const rendered = markup(
-      <ConsentFacts repository={find(REPOSITORIES.activeSourceOnly)} />,
+      <ConsentFacts
+        repository={find(REPOSITORIES.activeSourceOnly)}
+        modelProfiles={catalogue(MODEL_PROFILES())}
+      />,
     )
 
     expect(rendered).toMatch(/No consent is recorded/)
@@ -75,13 +86,65 @@ describe("recorded consent", () => {
 
   it("shows the ceilings as ceilings, never as a spend or an invoice figure", () => {
     const rendered = markup(
-      <ConsentFacts repository={find(REPOSITORIES.activeAutoExtract)} />,
+      <ConsentFacts
+        repository={find(REPOSITORIES.activeAutoExtract)}
+        modelProfiles={catalogue(MODEL_PROFILES())}
+      />,
     )
 
-    expect(rendered).toContain("standard-extraction")
+    expect(rendered).toContain("anthropic-claude-sonnet-4")
     expect(rendered).toContain("Call ceiling")
     expect(rendered).toContain("40.000000 USD ceiling")
     expect(rendered).not.toMatch(/spent|invoice|charged so far/i)
+  })
+
+  it("says nothing extra while every named profile is still offered", () => {
+    const rendered = markup(
+      <ConsentFacts
+        repository={find(REPOSITORIES.activeAutoExtract)}
+        modelProfiles={catalogue(MODEL_PROFILES())}
+      />,
+    )
+
+    expect(rendered).not.toMatch(/no longer offers/i)
+  })
+
+  it("renders a withdrawn profile a live consent names as its own state", () => {
+    const rendered = markup(
+      <ConsentFacts
+        repository={find(REPOSITORIES.activeAutoExtract)}
+        modelProfiles={catalogue(MODEL_PROFILES_WITH_RETIRED())}
+      />,
+    )
+
+    expect(rendered).toMatch(/no longer offers/i)
+    expect(rendered).toContain("anthropic claude-sonnet-4")
+    expect(rendered).toContain("retired")
+    // A state, not a failure, and not something the customer can fix here.
+    expect(rendered).toMatch(/nothing to fix here/i)
+    expect(rendered).not.toContain("<button")
+  })
+
+  it("says nothing about profiles when the catalogue cannot be read", () => {
+    // Silence is right here: an unreadable catalogue is not evidence that a
+    // profile was withdrawn, and claiming one was would be inventing a state.
+    const rendered = markup(
+      <ConsentFacts
+        repository={find(REPOSITORIES.activeAutoExtract)}
+        modelProfiles={{
+          status: "unavailable",
+          failure: {
+            code: "DEPENDENCY_UNAVAILABLE",
+            treatment: "retry-bounded",
+            message: "The service is busy. Try again shortly.",
+            retryable: true,
+          },
+        }}
+      />,
+    )
+
+    expect(rendered).not.toMatch(/no longer offers/i)
+    expect(rendered).toContain("anthropic-claude-sonnet-4")
   })
 })
 

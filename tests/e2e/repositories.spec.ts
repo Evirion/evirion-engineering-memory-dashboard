@@ -139,7 +139,7 @@ test.describe("journey_open_one_repository", () => {
       "Active",
     )
     await expect(page.getByRole("region", { name: "Recorded consent" })).toContainText(
-      "standard-extraction",
+      "anthropic-claude-sonnet-4",
     )
   })
 
