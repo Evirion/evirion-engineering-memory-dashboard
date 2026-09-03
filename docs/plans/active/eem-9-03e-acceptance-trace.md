@@ -106,10 +106,32 @@ own, so `/repositories/:repositoryId` is the only route that could carry it.
 | 5, loading and error treatment | carried | The two new unavailable blocks reuse the EEM-9/03 inline treatment. Skeleton versus spinner and banner versus inline remain open |
 | 2, copy for the published error codes | carried | `MODEL_PROFILE_NOT_OFFERED` has a reviewed treatment and no approved copy, exactly as the other thirty-eight |
 
+## Independent review
+
+One bounded wave ran against the final tree: a security reviewer and a
+correctness reviewer in parallel. The security reviewer found nothing at medium
+severity or above; the correctness reviewer found no defects. No remediation
+followed, so no confirmation re-review was required.
+
+The security reviewer left one item below its own reporting bar: the BFF does
+not assert that `overview.repositoryId` equals the requested identifier, nor
+that `catalogue.organizationId` equals the caller's scope. It is not actionable
+here. Reaching it requires the backend itself to answer with another tenant's
+document rather than anything a peer tenant can drive, and it is inert on this
+surface because the counters block renders only `asOf` and the numbers, never
+the overview's own identity fields. It is recorded as a hardening candidate for
+whichever subtask next adds a BFF read, not as a finding against this one.
+
 ## Deployment and release state
 
 Implemented and locally verified. Not merged, not deployed, not observed, not
 staging-certified, not paid-certified, not production-certified.
+
+Final gate evidence, all from this tree: lint, format, `tsc --noEmit`, 613
+Vitest tests, a production build, 127 Playwright tests, 98 Python tests, the
+Console contract lock, the authority package, the documentation tree, backend
+Auth parity at `2458f333`, Semgrep with 0 findings on 107 files, and
+digest-verified Gitleaks over 47 commits with no leaks.
 
 No provider was called, no paid operation was authorized, no worker ran, no
 hosted Supabase setting was read or changed, and nothing was deployed. The only
