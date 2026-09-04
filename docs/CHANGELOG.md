@@ -1,5 +1,64 @@
 # Dashboard changelog
 
+## 2026-09-04 — PROC-002 amended: no customer retry of a live extraction
+
+- Why: `PROC-002` required the Console to render a retry action whenever a
+  backend response declared the capability `NONE | RETRY | RESUME |
+  CONTACT_SUPPORT`, and nothing publishes that capability. Raised as
+  [#17](https://github.com/Evirion/evirion-engineering-memory-dashboard/issues/17),
+  found in the backend while scoping the six processing schemas, and repaired
+  here because the wrong entry is in this repository's accepted documents.
+- Evidence: verified against the vendored `console-contract-v1.0.2` bytes
+  before anything changed. The contract publishes exactly two retry or resume
+  operations, `setRepositoryImportState` and `retryRepositoryImportJob`, both
+  scoped to historical imports; `listProcessingActivity` binds no response
+  schema and projects no action; `recoveryAction` exists only on the two import
+  schemas with eight values, not four. `PROC-002` also named
+  `test_console_customer_operations_live.py::test_retry_uses_backend_capability_and_checkpoint`
+  as its backend evidence, and neither that test nor that file exists anywhere
+  in the backend repository. The backend's successor `processing-page.json`,
+  implemented on `EEM-8/10-console-contract-revision` and neither merged nor
+  released, reaches the same conclusion in its own description: the row
+  declares no recovery action and a client must not infer one.
+- Behavior: none. Documentation only, and no runtime, schema, contract or test
+  file changed.
+- Requirements: `PROC-002` is renamed and amended. The processing surface is
+  read-only, failure detail shows the stable error and a correlation ID, and a
+  support direction is static Console copy rather than a backend-declared
+  capability. `J-010` becomes two journeys sharing one failure detail, because
+  only the import half has a customer action. `J-007` step 5 no longer promises
+  an action. The eight-value import `recoveryAction` is untouched.
+- Ownership: `PROC-002` moves from `B06A` to `C06`, because an absence on a
+  Console surface can only be proved by a Console test. Its primary evidence
+  becomes `tests/e2e/processing-settings.spec.ts::processing_detail_offers_no_recovery_action`,
+  which EEM-9/06 writes like every other C06 row. `acceptance-map.yaml` and
+  `ownership.json` are regenerated; the row count stays 392.
+- Decision: [ADR-0006](decisions/0006-no-customer-retry-of-a-live-extraction.md)
+  records what the requirement asked for, what the backend serves, why serving
+  it was rejected for Alpha, and the five things that would have to be true to
+  revisit it. Why the merged backend subtask shipped the import half and not
+  the processing half is recorded as `Reason not documented`.
+- Also corrected: `console-ui-conventions.md` at five sites that assigned the
+  generic call to action to `/06`, the implementation plan's `B06A`, `C04` and
+  `C06` steps, and the accepted architecture note, whose designed
+  `POST /processing/:jobId/retry` route, `api.retry_console_processing`
+  function and `processing.retry` capability were never built.
+- Not corrected, deliberately: the controlling EEM-9 plan and the program
+  design still carry the superseded assignment. Both are backend-source
+  documents this repository is not the source of, and moving the controlling
+  plan would require the paired stable-pointer change this amendment is not
+  authorized to make. Both locations are named in ADR-0006.
+- Security: unchanged. No contract bytes, no lock, no trust policy, no Auth
+  parity pin and no generated client moved. No provider was called, no paid
+  operation authorized, no hosted Supabase setting read or changed, and nothing
+  deployed.
+- Verification: the standard-library test suite, `check_docs`, all three
+  generators, `check_authority` and `scan_tracked_secrets` pass. The authority
+  `packageSha256` moved, because packaged documents changed.
+- Deployment state: implemented and locally verified only. Not merged, not
+  deployed, not observed, not staging-certified, not paid-certified, not
+  production-certified.
+
 ## 2026-09-03 — EEM-9/05 memory review and lifecycle
 
 - Why: the Console could read repositories and drive imports but had no surface

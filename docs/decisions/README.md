@@ -4,6 +4,7 @@
 - [ADR-0002: Console contract consumption and executable immutability evidence](0002-console-contract-consumption-and-immutability-evidence.md)
 - [ADR-0003: application-source boundary and the resolving-route contract](0003-application-source-boundary-and-route-contract.md)
 - [ADR-0005: the consumer trust policy mirrors the backend contract revision tag grammar](0005-console-contract-release-revisions.md)
+- [ADR-0006: no customer retry of a live extraction](0006-no-customer-retry-of-a-live-extraction.md)
 
 Accepted requirements and architecture own product behavior. Decision records
 explain durable choices and do not override executable contracts, migrations,

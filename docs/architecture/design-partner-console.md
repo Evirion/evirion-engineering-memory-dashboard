@@ -743,6 +743,10 @@ processing.retry
 usage.read
 ```
 
+**Amended 2026-09-04.** `processing.retry` guards nothing. The operation it was
+written for was never built and Alpha builds none; see
+[ADR-0006](../decisions/0006-no-customer-retry-of-a-live-extraction.md).
+
 ### 9.1 Platform operator principal
 
 Operator actions use:
@@ -1642,6 +1646,14 @@ GET  /v1/organizations/:organizationId/usage
 GET  /v1/organizations/:organizationId/metrics/alpha
 ```
 
+**Amended 2026-09-04.** The processing retry route and its
+`api.retry_console_processing` function below were designed and never built.
+`console-contract-v1.0.2` publishes neither, publishes no action on the
+processing surface, and the only retry or resume operations it publishes are
+`setRepositoryImportState` and `retryRepositoryImportJob`, both scoped to
+historical imports. `PROC-002` is amended to match; see
+[ADR-0006](../decisions/0006-no-customer-retry-of-a-live-extraction.md).
+
 Authenticated platform-operator routes are a separate non-browser surface:
 
 ```text
@@ -2094,7 +2106,7 @@ conditions are asserted.
 | Review | membership, KO, latest review | review, audit | update KO/admission/run |
 | Supersede | membership, two KOs, relation/state | relation, state event, audit | cross-tenant/self/partial |
 | Processing read | membership, safe job/run/admission projection | none | raw model/source/secrets |
-| Retry | capability, backend retry capability, checkpoint | existing guarded retry transition, audit | frontend retry classification |
+| Retry import job | capability, backend `recoveryAction`, checkpoint | existing guarded retry transition, audit | frontend retry classification; any live-extraction retry, which no operation offers |
 
 ## 20. Contract artifact and cross-repository versioning
 
