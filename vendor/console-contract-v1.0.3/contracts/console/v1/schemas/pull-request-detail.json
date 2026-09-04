@@ -1,0 +1,398 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:pull-request-detail",
+  "title": "Pull request detail",
+  "description": "One pull request with the Knowledge Objects it admitted and every run against it. A rejected run shows its reason and creates no Knowledge Object card, a quarantined run shows bounded validation categories, and neither is rendered as an infrastructure failure.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "pullRequestId",
+    "repositoryId",
+    "nameWithOwner",
+    "pullRequestNumber",
+    "title",
+    "authorLogin",
+    "currentState",
+    "mergedAt",
+    "headSha",
+    "mergeCommitSha",
+    "pullRequestUrl",
+    "admittedKnowledgeObjects",
+    "runs"
+  ],
+  "properties": {
+    "pullRequestId": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "core.pull_requests.id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "repositoryId": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "core.pull_requests.repository_id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "nameWithOwner": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 201,
+      "description": "Two `not null` columns of the repository the pull request's composite foreign key requires, so this is never null for a pull request that resolves at all.",
+      "x-evirion-backend-projection": "api.get_pull_request_detail.name_with_owner",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    },
+    "pullRequestNumber": {
+      "type": "integer",
+      "minimum": 1,
+      "x-evirion-backend-projection": "core.pull_requests.pr_number",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "title": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "x-evirion-backend-projection": "core.pull_requests.title",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    },
+    "authorLogin": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "x-evirion-backend-projection": "core.pull_requests.author_login",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "currentState": {
+      "type": "string",
+      "enum": [
+        "OPEN",
+        "CLOSED",
+        "MERGED",
+        "UNSUPPORTED_SERVER_RESPONSE"
+      ],
+      "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+      "x-evirion-backend-projection": "core.pull_requests.current_state",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "mergedAt": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "format": "date-time"
+        }
+      ],
+      "description": "Non-null exactly when `currentState` is MERGED, which the database enforces as a check constraint.",
+      "x-evirion-backend-projection": "core.pull_requests.merged_at",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "headSha": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "x-evirion-backend-projection": "core.pull_requests.head_sha",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "mergeCommitSha": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "x-evirion-backend-projection": "core.pull_requests.merge_commit_sha",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "pullRequestUrl": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://github\\.com/"
+        }
+      ],
+      "description": "Server-generated. Null when a stored name segment fails GitHub's character set.",
+      "x-evirion-backend-projection": "api.get_pull_request_detail.pull_request_url",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "admittedKnowledgeObjects": {
+      "type": "array",
+      "description": "Only objects of an accepted admission. A rejected or quarantined run contributes none, so an empty array is a real answer rather than a missing one.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "knowledgeObjectId",
+          "knowledgeType",
+          "shortClaim"
+        ],
+        "properties": {
+          "knowledgeObjectId": {
+            "type": "string",
+            "format": "uuid",
+            "x-evirion-backend-projection": "core.knowledge_objects.id",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "knowledgeType": {
+            "type": "string",
+            "description": "The database places no length or character constraint on this column, so the contract places none either.",
+            "x-evirion-backend-projection": "core.knowledge_objects.knowledge_type",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "shortClaim": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "The first 200 characters of the knowledge value. The full payload lives in the Knowledge Object detail, so a card never loads it.",
+            "x-evirion-backend-projection": "core.knowledge_objects.knowledge_value",
+            "x-evirion-sensitivity": "customer-safe-detail"
+          }
+        },
+        "x-evirion-backend-projection": "api.get_pull_request_detail.admitted_knowledge_object",
+        "x-evirion-sensitivity": "customer-safe-detail"
+      },
+      "x-evirion-backend-projection": "api.get_pull_request_detail.admitted_knowledge_objects",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    },
+    "runs": {
+      "type": "array",
+      "description": "Every extraction run against this pull request, oldest completion first.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "extractionRunId",
+          "effectiveJobId",
+          "disposition",
+          "sourceStatus",
+          "jobStatus",
+          "rejectionReason",
+          "validationIssueCategories",
+          "completedAt"
+        ],
+        "properties": {
+          "extractionRunId": {
+            "type": "string",
+            "format": "uuid",
+            "x-evirion-backend-projection": "core.extraction_runs.id",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "effectiveJobId": {
+            "type": "string",
+            "format": "uuid",
+            "x-evirion-backend-projection": "api.get_pull_request_detail.effective_job_id",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "disposition": {
+            "type": "string",
+            "enum": [
+              "ACCEPTED",
+              "REJECTED",
+              "QUARANTINED",
+              "UNSUPPORTED_SERVER_RESPONSE"
+            ],
+            "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+            "x-evirion-backend-projection": "core.extraction_runs.disposition",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "sourceStatus": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "CLAIMED",
+              "RETRY_WAIT",
+              "READY",
+              "DEAD_LETTER",
+              "UNSUPPORTED_SERVER_RESPONSE"
+            ],
+            "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+            "x-evirion-backend-projection": "core.extraction_jobs.source_status",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "jobStatus": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "CLAIMED",
+              "RETRY_WAIT",
+              "COMPLETED",
+              "DEAD_LETTER",
+              "UNSUPPORTED_SERVER_RESPONSE"
+            ],
+            "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+            "x-evirion-backend-projection": "core.extraction_jobs.status",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "rejectionReason": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "The persisted reason a REJECTED admission gives. Null for every other disposition, which the database enforces.",
+            "x-evirion-backend-projection": "core.admission_records.rejection_reason",
+            "x-evirion-sensitivity": "customer-safe-detail"
+          },
+          "validationIssueCategories": {
+            "type": "array",
+            "uniqueItems": true,
+            "description": "The distinct validation codes of this run's admission and nothing else. No message, path, payload or stack trace travels here; the full bounded issues are their own operation.",
+            "items": {
+              "type": "string"
+            },
+            "x-evirion-backend-projection": "core.validation_issues.code",
+            "x-evirion-sensitivity": "customer-safe-detail"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time",
+            "x-evirion-backend-projection": "core.extraction_runs.completed_at",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          }
+        },
+        "x-evirion-backend-projection": "api.get_pull_request_detail.run",
+        "x-evirion-sensitivity": "customer-safe-detail"
+      },
+      "x-evirion-backend-projection": "api.get_pull_request_detail.runs",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    },
+    "cost": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "completeness",
+        "measuredUsd",
+        "reservedUsd",
+        "unresolvedUsd"
+      ],
+      "description": "The pull request's rollup over its canonical jobs; an alias job carries no cost of its own. An amount and its completeness, always together. Absent without organization.usage.read.",
+      "properties": {
+        "completeness": {
+          "type": "string",
+          "enum": [
+            "RESERVED",
+            "MEASURED",
+            "UNRESOLVED",
+            "NOT_APPLICABLE",
+            "UNSUPPORTED_SERVER_RESPONSE"
+          ],
+          "description": "An unresolved or reserved contribution dominates, so a rollup never claims to be measured while part of it is outstanding.",
+          "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+          "x-evirion-backend-projection": "core.extraction_jobs.model_cost_accounting_status",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "measuredUsd": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,11})\\.[0-9]{6}$",
+          "x-evirion-backend-projection": "core.extraction_jobs.model_cost_accounted_usd",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "reservedUsd": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,11})\\.[0-9]{6}$",
+          "x-evirion-backend-projection": "core.extraction_jobs.model_cost_reservation_usd",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "unresolvedUsd": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,11})\\.[0-9]{6}$",
+          "x-evirion-backend-projection": "core.extraction_jobs.model_cost_unresolved_usd",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        }
+      },
+      "x-evirion-backend-projection": "api.get_pull_request_detail.cost",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    }
+  },
+  "examples": [
+    {
+      "pullRequestId": "00000000-0000-4000-8000-000000000311",
+      "repositoryId": "00000000-0000-4000-8000-000000000302",
+      "nameWithOwner": "evirion/repository",
+      "pullRequestNumber": 128,
+      "title": "Make extraction runs append-only",
+      "authorLogin": "octocat",
+      "currentState": "MERGED",
+      "mergedAt": "2026-09-03T17:00:00.000000Z",
+      "headSha": "3d2f1c0b9a8776655443322110ffeeddccbbaa99",
+      "mergeCommitSha": "99887766554433221100ffeeddccbbaa99887766",
+      "pullRequestUrl": "https://github.com/evirion/repository/pull/128",
+      "admittedKnowledgeObjects": [
+        {
+          "knowledgeObjectId": "00000000-0000-4000-8000-000000000401",
+          "knowledgeType": "ArchitectureDecision",
+          "shortClaim": "Extraction runs are append-only and never rewritten in place."
+        }
+      ],
+      "runs": [
+        {
+          "extractionRunId": "00000000-0000-4000-8000-000000000321",
+          "effectiveJobId": "00000000-0000-4000-8000-000000000601",
+          "disposition": "ACCEPTED",
+          "sourceStatus": "READY",
+          "jobStatus": "COMPLETED",
+          "rejectionReason": null,
+          "validationIssueCategories": [],
+          "completedAt": "2026-09-03T18:33:40.000000Z"
+        }
+      ],
+      "cost": {
+        "completeness": "MEASURED",
+        "measuredUsd": "0.250000",
+        "reservedUsd": "0.000000",
+        "unresolvedUsd": "0.000000"
+      }
+    },
+    {
+      "pullRequestId": "00000000-0000-4000-8000-000000000312",
+      "repositoryId": "00000000-0000-4000-8000-000000000302",
+      "nameWithOwner": "evirion/repository",
+      "pullRequestNumber": 129,
+      "title": null,
+      "authorLogin": null,
+      "currentState": "MERGED",
+      "mergedAt": "2026-09-03T19:00:00.000000Z",
+      "headSha": null,
+      "mergeCommitSha": null,
+      "pullRequestUrl": "https://github.com/evirion/repository/pull/129",
+      "admittedKnowledgeObjects": [],
+      "runs": [
+        {
+          "extractionRunId": "00000000-0000-4000-8000-000000000323",
+          "effectiveJobId": "00000000-0000-4000-8000-000000000602",
+          "disposition": "QUARANTINED",
+          "sourceStatus": "READY",
+          "jobStatus": "COMPLETED",
+          "rejectionReason": null,
+          "validationIssueCategories": [
+            "EVIDENCE_QUOTE_NOT_A_SUBSTRING"
+          ],
+          "completedAt": "2026-09-03T19:05:00.000000Z"
+        }
+      ]
+    }
+  ]
+}

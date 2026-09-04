@@ -1,0 +1,200 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:github-settings-summary",
+  "title": "GitHub settings summary",
+  "description": "The GitHub control-plane projection plus the two settings figures. It is a strict superset of `github-installation.json`, which closes itself against undeclared fields, so the settings surface needs its own schema rather than a second route onto that one. Access is not entitlement: `repositorySummary` counts what the installation can reach, `activeRepositories` counts what is entitled. No token or secret diagnostic exists in either half.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "organizationId",
+    "installation",
+    "setupIntent",
+    "latestSyncRun",
+    "repositorySummary",
+    "activeRepositories",
+    "lastSuccessfulSyncAt"
+  ],
+  "properties": {
+    "organizationId": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "core.organizations.id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "installation": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "status",
+            "accountLogin",
+            "connectedAt"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "x-evirion-backend-projection": "core.github_installations.id",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "ACTIVE",
+                "SUSPENDED",
+                "REMOVED",
+                "UNSUPPORTED_SERVER_RESPONSE"
+              ],
+              "description": "Carries the fallback that `github-installation.json` publishes this vocabulary without. The backing column is constrained by a database check a later migration can widen, so the enum may grow, and under ADR 0016 an enum that may grow declares a fallback that is one of its members. This schema is new and can take it; the older one cannot, because adding the member there is itself the widening its missing fallback fails to permit.",
+              "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+              "x-evirion-backend-projection": "core.github_installations.status",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            },
+            "accountLogin": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "x-evirion-backend-projection": "core.github_installations.account_login",
+              "x-evirion-sensitivity": "customer-safe-detail"
+            },
+            "connectedAt": {
+              "type": "string",
+              "format": "date-time",
+              "x-evirion-backend-projection": "core.github_installations.created_at",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            }
+          }
+        }
+      ],
+      "description": "Null when the organization has no active or suspended installation. The published vocabulary matches `github-installation.json`, because both project the same routine.",
+      "x-evirion-backend-projection": "api.get_github_settings_summary.installation",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "setupIntent": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "github-setup-intent.json"
+        }
+      ],
+      "x-evirion-backend-projection": "api.get_github_settings_summary.setup_intent",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "latestSyncRun": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "github-sync-run.json"
+        }
+      ],
+      "x-evirion-backend-projection": "api.get_github_settings_summary.latest_sync_run",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "repositorySummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "accessibleRepositories",
+        "inaccessibleRepositories"
+      ],
+      "properties": {
+        "accessibleRepositories": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "api.get_github_settings_summary.accessible_count",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "inaccessibleRepositories": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "api.get_github_settings_summary.inaccessible_count",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        }
+      },
+      "x-evirion-backend-projection": "api.get_github_settings_summary.repository_summary",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "activeRepositories": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Entitled repositories, counted by a Postgres aggregate in a query with no GROUP BY, so it always yields one non-null row and a zero can only mean the backend counted zero.",
+      "x-evirion-backend-projection": "core.repository_entitlements.status",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "lastSuccessfulSyncAt": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "format": "date-time"
+        }
+      ],
+      "description": "The resolution instant of the newest completed synchronization run, or null when none has completed. It is resolved in the same statement as `latestSyncRun`, so a run resolving mid-read cannot leave one behind the other.",
+      "x-evirion-backend-projection": "core.github_repository_sync_runs.resolved_at",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    }
+  },
+  "examples": [
+    {
+      "organizationId": "00000000-0000-4000-8000-000000000503",
+      "installation": null,
+      "setupIntent": null,
+      "latestSyncRun": null,
+      "repositorySummary": {
+        "accessibleRepositories": 0,
+        "inaccessibleRepositories": 0
+      },
+      "activeRepositories": 0,
+      "lastSuccessfulSyncAt": null
+    },
+    {
+      "organizationId": "00000000-0000-4000-8000-000000000503",
+      "installation": {
+        "id": "00000000-0000-4000-8000-000000000504",
+        "status": "ACTIVE",
+        "accountLogin": "evirion",
+        "connectedAt": "2026-08-30T08:16:39.000000Z"
+      },
+      "setupIntent": {
+        "id": "00000000-0000-4000-8000-000000000502",
+        "status": "CONSUMED",
+        "expiresAt": "2026-08-30T08:31:39.000000Z",
+        "resolvedAt": "2026-08-30T08:18:02.000000Z",
+        "failureCode": null
+      },
+      "latestSyncRun": {
+        "id": "00000000-0000-4000-8000-000000000501",
+        "status": "COMPLETED",
+        "generation": 1,
+        "version": 4,
+        "attemptCount": 1,
+        "progress": {
+          "pagesApplied": 1,
+          "repositoriesSeen": 3,
+          "repositoriesMarkedInaccessible": 0
+        },
+        "failureCode": null,
+        "requestedAt": "2026-08-30T08:16:39.000000Z",
+        "startedAt": "2026-08-30T08:16:41.000000Z",
+        "resolvedAt": "2026-08-30T08:16:44.000000Z"
+      },
+      "repositorySummary": {
+        "accessibleRepositories": 3,
+        "inaccessibleRepositories": 0
+      },
+      "activeRepositories": 2,
+      "lastSuccessfulSyncAt": "2026-08-30T08:16:44.000000Z"
+    }
+  ]
+}

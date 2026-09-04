@@ -137,6 +137,104 @@ paths:
           $ref: "#/components/responses/RateLimited"
         "503":
           $ref: "#/components/responses/FoundationError"
+  /v1/session/reauthentications:
+    post:
+      operationId: issueSessionReauthentication
+      tags:
+        - session
+      summary: Start a step-up for an action refused as not recently reauthenticated.
+      description: >-
+        Issues a one-time challenge bound to the current application session,
+        to one action class, and to the caller's MFA factor state. Call this
+        after an operation is refused with `REAUTHENTICATION_REQUIRED`, which
+        means the session is live but outside the recent-reauthentication
+        window; it does not mean the caller lacks the capability. Complete the
+        challenge with `completeSessionReauthentication`. Neither the challenge
+        identifier nor any nonce is ever placed in a URL.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CorrelationId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionReauthenticationRequest"
+      responses:
+        "200":
+          description: A challenge the caller may complete within ten minutes.
+          x-evirion-response-schema: "#/components/schemas/SessionReauthenticationReceipt"
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "409":
+          $ref: "#/components/responses/FoundationError"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/FoundationError"
+  /v1/session/reauthentication-completions:
+    post:
+      operationId: completeSessionReauthentication
+      tags:
+        - session
+      summary: Consume a step-up challenge with a fresh TOTP proof.
+      description: >-
+        Present the challenge together with an access token whose `amr` records
+        a TOTP verification performed in the last two minutes, on the same
+        provider session. Obtain that token by re-verifying the enrolled TOTP
+        factor with the identity provider; doing so keeps the session and
+        refreshes the proof. The backend verifies the proof itself and never
+        accepts a caller's assertion that a factor was verified. On success the
+        session re-enters the recent-reauthentication window and the refused
+        mutation may be retried. Consuming a challenge also revokes the
+        principal's other application sessions.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CorrelationId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionReauthenticationCompletionRequest"
+      responses:
+        "200":
+          description: The challenge is consumed and the session is fresh again.
+          x-evirion-response-schema: "#/components/schemas/SessionReauthenticationReceipt"
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "409":
+          $ref: "#/components/responses/FoundationError"
+        "422":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/FoundationError"
   /v1/session-revocations:
     post:
       operationId: revokeSelfSessions
@@ -1837,6 +1935,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessEnvelope"
+          x-evirion-response-schema: "#/components/schemas/ProcessingPage"
         "400":
           $ref: "#/components/responses/FoundationError"
         "401":
@@ -1873,6 +1972,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessEnvelope"
+          x-evirion-response-schema: "#/components/schemas/ValidationIssues"
         "400":
           $ref: "#/components/responses/FoundationError"
         "401":
@@ -1911,6 +2011,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessEnvelope"
+          x-evirion-response-schema: "#/components/schemas/PullRequestDetail"
         "400":
           $ref: "#/components/responses/FoundationError"
         "401":
@@ -1948,6 +2049,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessEnvelope"
+          x-evirion-response-schema: "#/components/schemas/GithubSettingsSummary"
         "400":
           $ref: "#/components/responses/FoundationError"
         "401":
@@ -1987,6 +2089,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessEnvelope"
+          x-evirion-response-schema: "#/components/schemas/OrganizationUsage"
         "400":
           $ref: "#/components/responses/FoundationError"
         "401":
@@ -2065,6 +2168,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessEnvelope"
+          x-evirion-response-schema: "#/components/schemas/OrganizationMetrics"
         "400":
           $ref: "#/components/responses/FoundationError"
         "401":
@@ -2540,8 +2644,12 @@ components:
       $ref: "./schemas/invitation.json"
     Session:
       $ref: "./schemas/session.json"
+    SessionReauthenticationReceipt:
+      $ref: "./schemas/session-reauthentication-receipt.json"
     SessionRevocation:
       $ref: "./schemas/session-revocation.json"
+    ValidationIssues:
+      $ref: "./schemas/validation-issues.json"
     CommandReceipt:
       $ref: "./schemas/command-receipt.json"
     # The knowledge mutations need their own receipt. `CommandReceipt` fixes
@@ -2572,10 +2680,14 @@ components:
       $ref: "./schemas/knowledge-lifecycle-state.json"
     KnowledgeCorrections:
       $ref: "./schemas/knowledge-corrections.json"
+    OrganizationMetrics:
+      $ref: "./schemas/organization-metrics.json"
     OrganizationModelProfiles:
       $ref: "./schemas/organization-model-profiles.json"
     OrganizationOffboarding:
       $ref: "./schemas/organization-offboarding.json"
+    OrganizationUsage:
+      $ref: "./schemas/organization-usage.json"
     OrganizationOffboardingRequest:
       type: object
       additionalProperties: false
@@ -2595,6 +2707,8 @@ components:
           x-evirion-sensitivity: customer-safe-detail
     GithubInstallation:
       $ref: "./schemas/github-installation.json"
+    GithubSettingsSummary:
+      $ref: "./schemas/github-settings-summary.json"
     GithubSetupIntent:
       $ref: "./schemas/github-setup-intent.json"
     GithubSyncRun:
@@ -2632,6 +2746,10 @@ components:
           maxLength: 128
           x-evirion-backend-projection: api.complete_github_installation.p_account_login
           x-evirion-sensitivity: customer-safe-detail
+    ProcessingPage:
+      $ref: "./schemas/processing-page.json"
+    PullRequestDetail:
+      $ref: "./schemas/pull-request-detail.json"
     Repository:
       $ref: "./schemas/repository.json"
     RepositoryEntitlementCommand:
@@ -3031,6 +3149,56 @@ components:
           type: integer
           minimum: 1
           x-evirion-backend-projection: core.organization_memberships.version
+          x-evirion-sensitivity: customer-safe-summary
+    SessionReauthenticationRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - actionClass
+      properties:
+        actionClass:
+          type: string
+          description: >-
+            The class of action the step-up is for. It binds the challenge, so
+            a challenge issued for one class cannot complete another. Declared
+            without an unsupported fallback because a client must never send a
+            value the backend does not implement.
+          enum:
+            - membership_change
+            - factor_change
+            - email_change
+            - account_recovery
+            - knowledge_lifecycle
+          x-evirion-backend-projection: api.create_console_reauthentication.p_action_class
+          x-evirion-sensitivity: customer-safe-summary
+    SessionReauthenticationCompletionRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - challengeId
+        - actionClass
+      properties:
+        challengeId:
+          type: string
+          format: uuid
+          description: >-
+            The challenge returned by `issueSessionReauthentication`. Carried in
+            the body rather than the path, because the Alpha auth contract keeps
+            authentication material out of URLs.
+          x-evirion-backend-projection: api.advance_console_reauthentication.p_challenge_id
+          x-evirion-sensitivity: customer-safe-summary
+        actionClass:
+          type: string
+          description: >-
+            Must equal the class the challenge was issued for. A mismatch is
+            refused and moves no state.
+          enum:
+            - membership_change
+            - factor_change
+            - email_change
+            - account_recovery
+            - knowledge_lifecycle
+          x-evirion-backend-projection: api.advance_console_reauthentication.p_action_class
           x-evirion-sensitivity: customer-safe-summary
     SessionRevocationRequest:
       type: object

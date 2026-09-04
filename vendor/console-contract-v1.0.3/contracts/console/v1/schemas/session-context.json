@@ -77,6 +77,20 @@
           "minimum": 1,
           "x-evirion-backend-projection": "api.console_session_context.session_version",
           "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "reauthenticationFreshUntil": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "format": "date-time"
+            }
+          ],
+          "description": "The instant this session stops satisfying the backend's recent-reauthentication requirement. The three knowledge lifecycle mutations are admitted on freshness grounds while it is not in the past, and refused with REAUTHENTICATION_REQUIRED once it is. Null means no window applies at all, because the session never reauthenticated or the presented token carries no AAL2; a fresher proof is needed either way. It is an instant rather than a boolean because a boolean computed on the server goes stale inside the window before the customer acts. Absent from a response produced before this field was published.",
+          "x-evirion-backend-projection": "api.console_session_context.reauthentication_fresh_until",
+          "x-evirion-sensitivity": "customer-safe-summary"
         }
       },
       "x-evirion-backend-projection": "api.console_session_context.session",
@@ -95,7 +109,23 @@
       "session": {
         "id": "00000000-0000-4000-8000-000000000103",
         "status": "ACTIVE",
-        "version": 1
+        "version": 1,
+        "reauthenticationFreshUntil": "2026-09-04T07:25:00.000000Z"
+      }
+    },
+    {
+      "actorId": "00000000-0000-4000-8000-000000000101",
+      "organizationId": "00000000-0000-4000-8000-000000000102",
+      "role": "reviewer",
+      "capabilities": [
+        "knowledge.read",
+        "review.submit"
+      ],
+      "session": {
+        "id": "00000000-0000-4000-8000-000000000103",
+        "status": "ACTIVE",
+        "version": 1,
+        "reauthenticationFreshUntil": null
       }
     }
   ]

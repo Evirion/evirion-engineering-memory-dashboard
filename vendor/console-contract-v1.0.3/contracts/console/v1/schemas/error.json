@@ -37,6 +37,7 @@
             "AUTHENTICATION_REQUIRED",
             "ORGANIZATION_MEMBERSHIP_REQUIRED",
             "CAPABILITY_REQUIRED",
+            "REAUTHENTICATION_REQUIRED",
             "RESOURCE_NOT_FOUND",
             "IDEMPOTENCY_KEY_REUSED",
             "VERSION_CONFLICT",
@@ -93,6 +94,14 @@
         "currentVersion": {
           "type": "integer",
           "minimum": 1,
+          "description": "The current one-based resource version. Which of the two detail fields a conflict carries is decided by the shape of the optimistic token, not by the error code, and a client reads whichever is present.",
+          "x-evirion-backend-projection": "owning-operation-projection",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "currentSequence": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The current zero-based sequence token. Zero is legitimate: review sequence zero means PENDING, lifecycle version zero means UNRESOLVED, and relation version zero means no relation state event has been appended, so this is deliberately not the currentVersion shape. A VERSION_CONFLICT raised on a relation version carries this field rather than currentVersion for that reason.",
           "x-evirion-backend-projection": "owning-operation-projection",
           "x-evirion-sensitivity": "customer-safe-summary"
         }
@@ -126,6 +135,15 @@
       "error": {
         "code": "CAPABILITY_REQUIRED",
         "message": "The required capability is unavailable.",
+        "retryable": false
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-00000000002c",
+      "error": {
+        "code": "REAUTHENTICATION_REQUIRED",
+        "message": "This action requires a fresher authentication.",
         "retryable": false
       }
     },
@@ -262,9 +280,9 @@
       "requestId": "00000000-0000-4000-8000-000000000017",
       "error": {
         "code": "REVIEW_VERSION_CONFLICT",
-        "message": "The review version changed.",
+        "message": "The review sequence changed.",
         "retryable": false,
-        "currentVersion": 2
+        "currentSequence": 0
       }
     },
     {
@@ -274,7 +292,17 @@
         "code": "LIFECYCLE_VERSION_CONFLICT",
         "message": "The lifecycle version changed.",
         "retryable": false,
-        "currentVersion": 2
+        "currentSequence": 0
+      }
+    },
+    {
+      "contractVersion": "1.0",
+      "requestId": "00000000-0000-4000-8000-00000000002d",
+      "error": {
+        "code": "VERSION_CONFLICT",
+        "message": "The resource version changed.",
+        "retryable": false,
+        "currentSequence": 1
       }
     },
     {

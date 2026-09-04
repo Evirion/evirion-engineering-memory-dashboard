@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:validation-issues",
+  "title": "Extraction run validation issues",
+  "description": "The bounded validation issues of one extraction run. The allowlist is exactly ordinal, stage, code, path and message. The issue's stored payload document is never projected, so no raw model response, Source Envelope body or stack trace can travel here.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "extractionRunId",
+    "admissionDisposition",
+    "issues"
+  ],
+  "properties": {
+    "extractionRunId": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "core.extraction_runs.id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "admissionDisposition": {
+      "type": "string",
+      "enum": [
+        "ACCEPTED",
+        "REJECTED",
+        "QUARANTINED",
+        "UNSUPPORTED_SERVER_RESPONSE"
+      ],
+      "description": "The run's own disposition, so a quarantine reads as invalid output rather than as an infrastructure failure and a rejection reads as a model decision.",
+      "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+      "x-evirion-backend-projection": "core.extraction_runs.disposition",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "issues": {
+      "type": "array",
+      "description": "Empty when the run recorded none. An accepted run normally records none.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ordinal",
+          "stage",
+          "code",
+          "path",
+          "message"
+        ],
+        "properties": {
+          "ordinal": {
+            "type": "integer",
+            "minimum": 0,
+            "x-evirion-backend-projection": "core.validation_issues.ordinal",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "stage": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "The database places no vocabulary or length constraint on this column, so the contract places none either: a bound the backend does not guarantee would reject a real response.",
+            "x-evirion-backend-projection": "core.validation_issues.stage",
+            "x-evirion-sensitivity": "customer-safe-detail"
+          },
+          "code": {
+            "type": "string",
+            "description": "The stable validation code. The database places no vocabulary constraint on it, so the contract enumerates none.",
+            "x-evirion-backend-projection": "core.validation_issues.code",
+            "x-evirion-sensitivity": "customer-safe-detail"
+          },
+          "path": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "The location inside the model output that failed validation, not a filesystem path.",
+            "x-evirion-backend-projection": "core.validation_issues.path",
+            "x-evirion-sensitivity": "customer-safe-detail"
+          },
+          "message": {
+            "type": "string",
+            "description": "The persisted validator message. It is the validator's own text about the shape of the output, never the output itself.",
+            "x-evirion-backend-projection": "core.validation_issues.message",
+            "x-evirion-sensitivity": "customer-safe-detail"
+          }
+        },
+        "x-evirion-backend-projection": "api.list_processing_validation_issues.issue",
+        "x-evirion-sensitivity": "customer-safe-detail"
+      },
+      "x-evirion-backend-projection": "api.list_processing_validation_issues.issues",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    }
+  },
+  "examples": [
+    {
+      "extractionRunId": "00000000-0000-4000-8000-000000000321",
+      "admissionDisposition": "ACCEPTED",
+      "issues": []
+    },
+    {
+      "extractionRunId": "00000000-0000-4000-8000-000000000322",
+      "admissionDisposition": "QUARANTINED",
+      "issues": [
+        {
+          "ordinal": 0,
+          "stage": "schema",
+          "code": "EVIDENCE_QUOTE_NOT_A_SUBSTRING",
+          "path": "$.knowledge[0].evidence[1].quote",
+          "message": "The quote is not an exact substring of the source."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:session-reauthentication-receipt",
+  "title": "Completed reauthentication command receipt",
+  "description": "The receipt both step-up commands return. Its four top-level keys are the merged receipt envelope every Console mutation carries; command-receipt.json cannot describe these because its response vocabulary is closed against widening, which is the defect ADR 0016 records.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "receiptId",
+    "status",
+    "responseCode",
+    "responsePayload"
+  ],
+  "properties": {
+    "receiptId": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "core.console_command_receipts.id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "status": {
+      "type": "string",
+      "const": "completed",
+      "description": "A receipt reaches the customer only once its command has completed.",
+      "x-evirion-backend-projection": "core.console_command_receipts.status",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "responseCode": {
+      "type": "string",
+      "enum": [
+        "CONSOLE_REAUTHENTICATION_ISSUED",
+        "CONSOLE_REAUTHENTICATION_CONSUMED",
+        "UNSUPPORTED_SERVER_RESPONSE"
+      ],
+      "description": "One code per command, and each route pins the exact code it expects. UNSUPPORTED_SERVER_RESPONSE is the consumer's representation of a value it does not recognize; the backend never emits it. It is a member rather than a bare annotation so a later step-up command can be published additively.",
+      "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+      "x-evirion-backend-projection": "core.console_command_receipts.response_code",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "responsePayload": {
+      "type": "object",
+      "description": "The owning command's own result. `issueSessionReauthentication` returns challengeId, state, actionClass and expiresAt; `completeSessionReauthentication` returns challengeId and state. Neither interior is restated here, because it belongs to the command rather than to this envelope.",
+      "x-evirion-backend-projection": "core.console_command_receipts.response_payload",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    }
+  },
+  "examples": [
+    {
+      "receiptId": "00000000-0000-4000-8000-000000000501",
+      "status": "completed",
+      "responseCode": "CONSOLE_REAUTHENTICATION_ISSUED",
+      "responsePayload": {
+        "challengeId": "00000000-0000-4000-8000-000000000201",
+        "state": "ISSUED",
+        "actionClass": "knowledge_lifecycle",
+        "expiresAt": "2026-09-04T08:35:00.000000Z"
+      }
+    },
+    {
+      "receiptId": "00000000-0000-4000-8000-000000000502",
+      "status": "completed",
+      "responseCode": "CONSOLE_REAUTHENTICATION_CONSUMED",
+      "responsePayload": {
+        "challengeId": "00000000-0000-4000-8000-000000000201",
+        "state": "CONSUMED"
+      }
+    }
+  ]
+}
