@@ -3,6 +3,8 @@ import type { NextRequest, NextResponse } from "next/server"
 import {
   beginKnowledgeCommand,
   finishKnowledgeCommand,
+  guardKnowledgeFreshness,
+  knowledgePendingMutation,
   readExpectedSequence,
   refuseKnowledgeCommand,
 } from "@/server/actions/knowledge-command"
@@ -25,7 +27,11 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
   const command = await beginKnowledgeCommand(request)
   if (command.status === "rejected") return command.response
 
-  const { scope, fields } = command
+  const { scope, fields, sessionContext } = command
+  const pending = knowledgePendingMutation(fields, "/api/memory/activate")
+  const stale = await guardKnowledgeFreshness(sessionContext, pending)
+  if (stale) return stale
+
   const expectedReviewSequence = readExpectedSequence(
     fields.form,
     "expectedReviewSequence",
@@ -50,5 +56,7 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
       expectedLifecycleVersion,
       ...(note === "" ? {} : { note }),
     }),
+    pending,
+    sessionContext,
   )
 }

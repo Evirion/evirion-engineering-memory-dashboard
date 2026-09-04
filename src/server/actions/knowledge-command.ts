@@ -2,12 +2,16 @@ import "server-only"
 
 import { NextResponse, type NextRequest } from "next/server"
 
-import type { KnowledgeReceipt } from "@contracts/console"
+import type { KnowledgeReceipt, SessionContext } from "@contracts/console"
 
+import { actionClassForGate } from "@/lib/auth/reauthentication-action-class"
+import { isSessionReauthenticationFresh } from "@/lib/auth/reauthentication-freshness"
+import { formFieldsFrom, type PendingMutation } from "@/lib/auth/reauthentication-state"
 import { readSession } from "@/lib/auth/session-broker"
 import { readServerEnvironment } from "@/lib/env/server"
 import type { ConsoleResult } from "@/server/adapters/console-api"
 import { fetchSessionContext } from "@/server/adapters/console-api"
+import { redirectForReauthentication } from "@/server/actions/reauthentication-resume"
 import { type RepositoryScope, isUuid } from "@/server/adapters/repositories"
 import { guardMutation, sessionBindingFrom } from "@/server/actions/mutation-guard"
 import { canonicalRedirect } from "@/server/actions/redirects"
@@ -42,6 +46,7 @@ export type KnowledgeCommandOutcome =
       readonly status: "ready"
       readonly scope: RepositoryScope
       readonly fields: KnowledgeCommandFields
+      readonly sessionContext: SessionContext
     }
   | { readonly status: "rejected"; readonly response: NextResponse }
 
@@ -147,7 +152,36 @@ export const beginKnowledgeCommand = async (
       correlationId,
     },
     fields: { knowledgeObjectId, idempotencyKey, form },
+    sessionContext: context.value,
   }
+}
+
+export type PendingMutationDraft = Omit<
+  PendingMutation,
+  "providerSessionId" | "expiresAt"
+>
+
+export const knowledgePendingMutation = (
+  fields: KnowledgeCommandFields,
+  mutationPath: string,
+): PendingMutationDraft => ({
+  returnPath: knowledgePath(fields.knowledgeObjectId),
+  mutationPath,
+  gate: "knowledge_lifecycle",
+  actionClass: actionClassForGate("knowledge_lifecycle"),
+  fields: formFieldsFrom(fields.form),
+})
+
+export const guardKnowledgeFreshness = async (
+  sessionContext: SessionContext,
+  pending: PendingMutationDraft,
+): Promise<NextResponse | undefined> => {
+  if (isSessionReauthenticationFresh(sessionContext)) return undefined
+  const sessionId = sessionContext.session?.id
+  if (typeof sessionId !== "string" || sessionId === "") {
+    return undefined
+  }
+  return redirectForReauthentication(pending, sessionId)
 }
 
 /**
@@ -163,15 +197,27 @@ export const beginKnowledgeCommand = async (
  * produced it, and a boolean re-derived on a later request would be the UI
  * asserting something no backend told it.
  */
-export const finishKnowledgeCommand = (
+export const finishKnowledgeCommand = async (
   knowledgeObjectId: string,
   result: ConsoleResult<KnowledgeReceipt>,
-): NextResponse => {
+  pending?: PendingMutationDraft,
+  sessionContext?: SessionContext,
+): Promise<NextResponse> => {
   const path = knowledgePath(knowledgeObjectId)
   if (result.ok) return back(path, result.value.responseCode)
 
   switch (result.failure.kind) {
     case "error":
+      if (result.failure.error.error.code === "REAUTHENTICATION_REQUIRED") {
+        const sessionId = sessionContext?.session?.id
+        if (
+          pending !== undefined &&
+          typeof sessionId === "string" &&
+          sessionId !== ""
+        ) {
+          return redirectForReauthentication(pending, sessionId)
+        }
+      }
       return back(path, result.failure.error.error.code)
     case "unsupported":
       return back(path, "UNSUPPORTED_SERVER_RESPONSE")

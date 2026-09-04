@@ -195,6 +195,12 @@ export type StubScenario = {
   readonly knowledgeWithoutReview?: string
   /** Serves this object's latest review without its optional `editedPayload`. */
   readonly knowledgeWithoutEditedPayload?: string
+  /** Session freshness instant served on `/v1/session/context`. */
+  readonly reauthenticationFreshUntil?: string | null
+  /** Omit `session.reauthenticationFreshUntil` from session context. */
+  readonly omitReauthenticationFreshUntil?: boolean
+  /** Refuse the next step-up completion as an invalidated challenge. */
+  readonly invalidateChallengeOnComplete?: boolean
 }
 
 /**
@@ -227,6 +233,8 @@ export declare const SCENARIOS: {
   readonly importFailed: () => StubScenario
   readonly importCancelled: () => StubScenario
   readonly importResumeBlocked: () => StubScenario
+  readonly importStaleFreshness: () => StubScenario
+  readonly importAbsentFreshnessField: () => StubScenario
   readonly memory: () => StubScenario
   readonly memoryEmpty: () => StubScenario
   readonly memoryUnavailable: () => StubScenario
@@ -234,6 +242,8 @@ export declare const SCENARIOS: {
   readonly memoryEvidenceUnavailable: () => StubScenario
   readonly memoryUnsupported: () => StubScenario
   readonly memoryPartialProjection: () => StubScenario
+  readonly memoryStaleFreshness: () => StubScenario
+  readonly reauthInvalidateChallenge: () => StubScenario
 }
 
 export type StubScenarioName = keyof typeof SCENARIOS

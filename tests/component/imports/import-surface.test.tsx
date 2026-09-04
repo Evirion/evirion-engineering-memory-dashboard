@@ -54,6 +54,7 @@ const context = (
   current,
   controls: importControls(repository, current, capabilities),
   csrfToken: "csrf-token",
+  importReturnPath: `/repositories/${repository.id}/import`,
   idempotencyKeys: {
     prepare: "00000000-0000-4000-8000-00000000b001",
     approve: "00000000-0000-4000-8000-00000000b002",

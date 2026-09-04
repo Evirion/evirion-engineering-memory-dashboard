@@ -5,6 +5,7 @@ import {
   providerEffectFor,
   type RevocationSelection,
 } from "@/lib/auth/session-revocation"
+import { clearReauthenticationCookies } from "@/lib/auth/reauthentication-state"
 import { guardMutation, sessionBindingFrom } from "@/server/actions/mutation-guard"
 import { clearPreAuthCookies } from "@/lib/auth/pre-auth-cookies"
 import { canonicalRedirect } from "@/server/actions/redirects"
@@ -31,7 +32,11 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
   )
   const outcome = readSession(cookies)
 
-  for (const instruction of [...clearSession(), ...clearPreAuthCookies()]) {
+  for (const instruction of [
+    ...clearSession(),
+    ...clearPreAuthCookies(),
+    ...clearReauthenticationCookies(),
+  ]) {
     response.cookies.set({
       ...instruction,
       httpOnly: true,

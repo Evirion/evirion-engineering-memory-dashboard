@@ -69,13 +69,18 @@ the [controlling EEM-9 plan](plans/active/eem-9-design-partner-console-dashboard
 12. `docs/amend-proc-002` is merged as PR
     [#18](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/18)
     at `913de6b`.
-13. `EEM-9/03g-console-contract-revision` is implemented and locally verified on
-    branch `EEM-9/03g-console-contract-revision`. It consumes
-    `console-contract-v1.0.3`, retires `vendor/console-contract-v1.0.2`, binds
-    `REAUTHENTICATION_REQUIRED`, and corrects the Console stub for EEM-8/11
+13. `EEM-9/03g-console-contract-revision` is merged on `main` at `0d2d5e4` via
+    PR [#19](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/19).
+    It consumes `console-contract-v1.0.3`, retires `vendor/console-contract-v1.0.2`,
+    binds `REAUTHENTICATION_REQUIRED`, and corrects the Console stub for EEM-8/11
     conflict detail. Its trace is
     [`eem-9-03g-acceptance-trace.md`](plans/active/eem-9-03g-acceptance-trace.md).
-    It unblocks `EEM-9/06` and issue #16; it does not build the step-up flow.
+    It unblocked `EEM-9/06` and issue #16.
+14. `EEM-9/02c-step-up-and-return` is implemented and locally verified on branch
+    `EEM-9/02c-step-up-and-return`. It closes issue #16 and delivers the shared
+    step-up ceremony for import and knowledge lifecycle surfaces. Its trace is
+    [`eem-9-02c-acceptance-trace.md`](plans/active/eem-9-02c-acceptance-trace.md).
+    Not merged yet.
 
 All EEM-4 subtasks are merged in the backend as PRs
 [#26](https://github.com/Evirion/evirion-engineering-memory/pull/26)–[#29](https://github.com/Evirion/evirion-engineering-memory/pull/29),
@@ -96,13 +101,15 @@ exists.
 3. `EEM-9/03-repository-control` after EEM-6, while EEM-7 proceeds.
 4. `EEM-9/04-import-operations` after EEM-7, while EEM-8 proceeds.
 5. `EEM-9/05-memory-review-lifecycle` after EEM-8. Merged.
-6. `EEM-9/03g-console-contract-revision` — consume `console-contract-v1.0.3`
+6. `EEM-9/03g-console-contract-revision` — consume `console-contract-v1.0.3`.
+   Merged.
+7. `EEM-9/02c-step-up-and-return` — shared step-up ceremony for issue #16
    (implemented, not merged).
-7. `EEM-9/06-processing-settings-metrics` after `EEM-9/03g` merges.
-8. Paired `EEM-9/07-free-integration`.
-9. Separately approved `EEM-9/08-paid-certification`.
-10. Paired `EEM-9/09-design-partner-ready`.
-11. Separately scoped `EEM-9/10-first-design-partner-outcome`.
+8. `EEM-9/06-processing-settings-metrics` after `EEM-9/02c` merges.
+9. Paired `EEM-9/07-free-integration`.
+10. Separately approved `EEM-9/08-paid-certification`.
+11. Paired `EEM-9/09-design-partner-ready`.
+12. Separately scoped `EEM-9/10-first-design-partner-outcome`.
 
 Backend EEM-3/13 is merged and locally reverified. Its EEM-3 global lock graph
 is a continuing release invariant for every later backend mutation.
@@ -156,7 +163,7 @@ than gaps that stopped work. Both are recorded in
 `console-contract-v1.0.3` publishes `REAUTHENTICATION_REQUIRED`, the
 reauthentication receipt and operations, and live `currentSequence` on
 sequence-token conflicts. `EEM-9/03g` consumes those bytes and binds the error
-code; issue #16 owns the step-up ceremony.
+code; `EEM-9/02c` owns the step-up ceremony (issue #16).
 
 Resource-version conflicts on entitlements and policy still carry no detail
 field; invitation and entitlement-generation conflicts may still carry

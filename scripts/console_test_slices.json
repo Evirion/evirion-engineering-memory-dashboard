@@ -69,8 +69,11 @@
         "tests/unit/imports",
         "tests/component/imports",
         "tests/contract/console-stub-fixtures.test.ts",
+        "tests/unit/auth/reauthentication-freshness.test.ts",
         "tests/e2e/import.spec.ts",
-        "tests/security/import-boundary.spec.ts"
+        "tests/e2e/reauthentication.spec.ts",
+        "tests/security/import-boundary.spec.ts",
+        "tests/security/reauthentication-boundary.spec.ts"
       ]
     },
     "memory-review": {
@@ -88,10 +91,32 @@
         "tests/unit/memory",
         "tests/component/memory",
         "tests/contract/console-stub-fixtures.test.ts",
+        "tests/unit/auth/reauthentication-freshness.test.ts",
         "tests/e2e/memory.spec.ts",
         "tests/e2e/memory-detail.spec.ts",
         "tests/e2e/memory-review.spec.ts",
-        "tests/security/memory-boundary.spec.ts"
+        "tests/e2e/reauthentication.spec.ts",
+        "tests/security/memory-boundary.spec.ts",
+        "tests/security/reauthentication-boundary.spec.ts"
+      ]
+    },
+    "reauthentication": {
+      "owner": "EEM-9/02c",
+      "focused": ["lint", "typecheck", "test:reauthentication"],
+      "affected": [
+        "lint",
+        "format:check",
+        "typecheck",
+        "test:unit",
+        "build",
+        "test:e2e"
+      ],
+      "testFiles": [
+        "tests/unit/auth/reauthentication-freshness.test.ts",
+        "tests/unit/auth/reauthentication-state.test.ts",
+        "tests/contract/console-stub-fixtures.test.ts",
+        "tests/e2e/reauthentication.spec.ts",
+        "tests/security/reauthentication-boundary.spec.ts"
       ]
     }
   }

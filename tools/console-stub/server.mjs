@@ -32,6 +32,7 @@ const ERRORS = {
   AUTHENTICATION_REQUIRED: [401, false],
   ORGANIZATION_MEMBERSHIP_REQUIRED: [403, false],
   CAPABILITY_REQUIRED: [403, false],
+  REAUTHENTICATION_REQUIRED: [403, false],
   RESOURCE_NOT_FOUND: [404, false],
   IDEMPOTENCY_KEY_REUSED: [409, false],
   VERSION_CONFLICT: [409, false],
@@ -80,21 +81,22 @@ const states = new Map()
 function load(name) {
   const build = SCENARIOS[name]
   if (!build) throw new Error(`unknown scenario: ${name}`)
+  const scenario = build()
   return {
     name,
-    // A scenario that names no import has none, which is the empty state and
-    // not a missing key the lookups would have to guard against. The same
-    // holds for knowledge: a repository scenario has an empty review queue.
     imports: {},
     importFailures: {},
     knowledge: {},
     knowledgePageSize: 50,
-    ...build(),
-    // Idempotency is durable for the life of the scenario, exactly as a stored
-    // command receipt is: same key and same request returns the same receipt.
+    ...scenario,
     receipts: new Map(),
     syncRuns: new Map(),
     setupIntents: new Map(),
+    reauthenticationChallenges: new Map(),
+    reauthenticationFreshUntil: scenario.reauthenticationFreshUntil ?? null,
+    omitReauthenticationFreshUntil: scenario.omitReauthenticationFreshUntil ?? false,
+    invalidateNextChallenge: scenario.invalidateNextChallenge ?? false,
+    invalidateChallengeOnComplete: scenario.invalidateChallengeOnComplete ?? false,
   }
 }
 
@@ -210,6 +212,34 @@ const findRepository = (state, principal, repositoryId) => {
 const requireCapability = (principal, capability) =>
   CAPABILITIES[principal.role]?.includes(capability) ?? false
 
+const freshUntilFor = (state) =>
+  state.omitReauthenticationFreshUntil ? undefined : state.reauthenticationFreshUntil
+
+const isFresh = (state) => {
+  const until = state.reauthenticationFreshUntil
+  if (until === null || until === undefined) return false
+  return Date.parse(until) > Date.now()
+}
+
+const sessionContextPayload = (principal, state) => {
+  const session = {
+    id: principal.sessionId,
+    status: "ACTIVE",
+    version: 1,
+  }
+  const freshUntil = freshUntilFor(state)
+  if (freshUntil !== undefined) {
+    session.reauthenticationFreshUntil = freshUntil
+  }
+  return {
+    actorId: principal.actorId,
+    capabilities: CAPABILITIES[principal.role],
+    organizationId: principal.organizationId,
+    role: principal.role,
+    session,
+  }
+}
+
 const page = (state, after) => {
   const size = state.pageSize
   const start = after ? state.repositories.findIndex((e) => e.id === after) + 1 : 0
@@ -249,13 +279,18 @@ const handle = async (request, response, url) => {
   const state = stateFor(principal.isolation)
 
   if (url.pathname === "/v1/session/context" && request.method === "GET") {
-    return succeed(response, {
-      actorId: principal.actorId,
-      capabilities: CAPABILITIES[principal.role],
-      organizationId: principal.organizationId,
-      role: principal.role,
-      session: { id: principal.sessionId, status: "ACTIVE", version: 1 },
-    })
+    return succeed(response, sessionContextPayload(principal, state))
+  }
+
+  if (url.pathname === "/v1/session/reauthentications" && request.method === "POST") {
+    return handleReauthenticationIssue(request, response, state, principal)
+  }
+
+  if (
+    url.pathname === "/v1/session/reauthentication-completions" &&
+    request.method === "POST"
+  ) {
+    return handleReauthenticationComplete(request, response, state, principal)
   }
 
   const organizationMatch = /^\/v1\/organizations\/([^/]+)(\/.*)?$/.exec(url.pathname)
@@ -1018,6 +1053,7 @@ async function handleKnowledge(request, response, scope) {
       operation: "knowledge.activate",
       target: knowledgeObjectId,
       capability: "knowledge.lifecycle.manage",
+      requireReauthentication: true,
       apply: (body) => {
         const stale = checkTokens(object, body)
         if (stale) return stale
@@ -1038,6 +1074,7 @@ async function handleKnowledge(request, response, scope) {
       operation: "knowledge.supersede",
       target: knowledgeObjectId,
       capability: "knowledge.lifecycle.manage",
+      requireReauthentication: true,
       apply: (body) => {
         const newer = findKnowledge(state, String(body?.newKnowledgeObjectId ?? ""))
         // A foreign or absent replacement is refused identically, and self
@@ -1112,6 +1149,7 @@ async function handleKnowledge(request, response, scope) {
       operation: "knowledge.correction",
       target: knowledgeObjectId,
       capability: "knowledge.lifecycle.manage",
+      requireReauthentication: true,
       apply: (body) => {
         const stale = checkTokens(object, body)
         if (stale) return stale
@@ -1295,6 +1333,7 @@ async function handleImport(request, response, scope) {
       operation: "import.create",
       target: repositoryId,
       capability: IMPORT_CAPABILITY,
+      requireReauthentication: true,
       apply: (body) => {
         if (body?.confirmationAccepted !== true) return { error: "REQUEST_INVALID" }
         if (!body?.filters || typeof body.filters !== "object") {
@@ -1329,6 +1368,7 @@ async function handleImport(request, response, scope) {
       operation: "import.approve",
       target: found.run.importId,
       capability: IMPORT_CAPABILITY,
+      requireReauthentication: true,
       apply: (body) => {
         if (body?.confirmationAccepted !== true) return { error: "REQUEST_INVALID" }
         if (
@@ -1380,6 +1420,7 @@ async function handleImport(request, response, scope) {
       operation: "import.state",
       target: found.run.importId,
       capability: IMPORT_CAPABILITY,
+      requireReauthentication: true,
       apply: (body) => {
         if (body?.expectedStatus !== found.run.status) {
           return { error: "VERSION_CONFLICT" }
@@ -1419,6 +1460,7 @@ async function handleImport(request, response, scope) {
       operation: "import.retry",
       target: retryMatch[2],
       capability: IMPORT_CAPABILITY,
+      requireReauthentication: true,
       apply: () => {
         const failures = state.importFailures[found.run.importId] ?? []
         const failure = failures.find(
@@ -1522,9 +1564,101 @@ const productStateOf = (repository) => {
   }
 }
 
+async function handleReauthenticationIssue(request, response, state, principal) {
+  const key = request.headers["idempotency-key"]
+  if (typeof key !== "string" || !UUID.test(key)) {
+    return fail(response, "REQUEST_INVALID")
+  }
+
+  const body = await readBody(request)
+  if (body === Symbol.for("unparsable")) return fail(response, "REQUEST_INVALID")
+
+  const actionClass = body?.actionClass
+  const allowed = new Set([
+    "membership_change",
+    "factor_change",
+    "email_change",
+    "account_recovery",
+    "knowledge_lifecycle",
+  ])
+  if (typeof actionClass !== "string" || !allowed.has(actionClass)) {
+    return fail(response, "REQUEST_INVALID")
+  }
+
+  const challengeId = randomUUID()
+  const expiresAt = new Date(Date.now() + 600_000).toISOString()
+  state.reauthenticationChallenges.set(challengeId, {
+    actionClass,
+    state: state.invalidateNextChallenge ? "invalidated" : "issued",
+    expiresAt,
+    sessionId: principal.sessionId,
+  })
+  state.invalidateNextChallenge = false
+
+  if (state.reauthenticationChallenges.get(challengeId).state === "invalidated") {
+    return fail(response, "CAPABILITY_REQUIRED")
+  }
+
+  return succeed(
+    response,
+    receiptFor("CONSOLE_REAUTHENTICATION_ISSUED", {
+      challengeId,
+      state: "ISSUED",
+      actionClass,
+      expiresAt,
+    }),
+  )
+}
+
+async function handleReauthenticationComplete(request, response, state, principal) {
+  const key = request.headers["idempotency-key"]
+  if (typeof key !== "string" || !UUID.test(key)) {
+    return fail(response, "REQUEST_INVALID")
+  }
+
+  const body = await readBody(request)
+  if (body === Symbol.for("unparsable")) return fail(response, "REQUEST_INVALID")
+
+  const challengeId = body?.challengeId
+  const actionClass = body?.actionClass
+  if (typeof challengeId !== "string" || !UUID.test(challengeId)) {
+    return fail(response, "REQUEST_INVALID")
+  }
+
+  if (state.invalidateChallengeOnComplete) {
+    state.invalidateChallengeOnComplete = false
+    return fail(response, "CAPABILITY_REQUIRED")
+  }
+
+  const challenge = state.reauthenticationChallenges.get(challengeId)
+  if (
+    !challenge ||
+    challenge.sessionId !== principal.sessionId ||
+    challenge.actionClass !== actionClass ||
+    challenge.state !== "issued"
+  ) {
+    return fail(response, "CAPABILITY_REQUIRED")
+  }
+
+  challenge.state = "consumed"
+  state.reauthenticationFreshUntil = new Date(Date.now() + 600_000).toISOString()
+
+  return succeed(
+    response,
+    receiptFor("CONSOLE_REAUTHENTICATION_CONSUMED", {
+      challengeId,
+      state: "CONSUMED",
+    }),
+  )
+}
+
 async function withCommand(request, response, state, principal, organizationId, spec) {
   if (!requireCapability(principal, spec.capability)) {
     return fail(response, "CAPABILITY_REQUIRED")
+  }
+
+  if (spec.requireReauthentication && !isFresh(state)) {
+    return fail(response, "REAUTHENTICATION_REQUIRED")
   }
 
   const key = request.headers["idempotency-key"]

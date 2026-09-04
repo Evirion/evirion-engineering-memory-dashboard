@@ -2,12 +2,16 @@ import "server-only"
 
 import { NextResponse, type NextRequest } from "next/server"
 
-import type { RepositoryImportReceipt } from "@contracts/console"
+import type { RepositoryImportReceipt, SessionContext } from "@contracts/console"
 
+import { actionClassForGate } from "@/lib/auth/reauthentication-action-class"
+import { isSessionReauthenticationFresh } from "@/lib/auth/reauthentication-freshness"
+import { formFieldsFrom, type PendingMutation } from "@/lib/auth/reauthentication-state"
 import { readSession } from "@/lib/auth/session-broker"
 import { readServerEnvironment } from "@/lib/env/server"
 import type { ConsoleResult } from "@/server/adapters/console-api"
 import { fetchSessionContext } from "@/server/adapters/console-api"
+import { redirectForReauthentication } from "@/server/actions/reauthentication-resume"
 import type { RepositoryImportStatus } from "@/server/adapters/imports"
 import { type RepositoryScope, isUuid } from "@/server/adapters/repositories"
 import { guardMutation, sessionBindingFrom } from "@/server/actions/mutation-guard"
@@ -53,6 +57,7 @@ export type ImportCommandOutcome =
       readonly status: "ready"
       readonly scope: RepositoryScope
       readonly fields: ImportCommandFields
+      readonly sessionContext: SessionContext
     }
   | { readonly status: "rejected"; readonly response: NextResponse }
 
@@ -163,7 +168,36 @@ export const beginImportCommand = async (
       correlationId,
     },
     fields: { repositoryId, idempotencyKey, form },
+    sessionContext: context.value,
   }
+}
+
+export type PendingMutationDraft = Omit<
+  PendingMutation,
+  "providerSessionId" | "expiresAt"
+>
+
+export const importPendingMutation = (
+  fields: ImportCommandFields,
+  mutationPath: string,
+): PendingMutationDraft => ({
+  returnPath: importPath(fields.repositoryId),
+  mutationPath,
+  gate: "repository_import",
+  actionClass: actionClassForGate("repository_import"),
+  fields: formFieldsFrom(fields.form),
+})
+
+export const guardImportFreshness = async (
+  sessionContext: SessionContext,
+  pending: PendingMutationDraft,
+): Promise<NextResponse | undefined> => {
+  if (isSessionReauthenticationFresh(sessionContext)) return undefined
+  const sessionId = sessionContext.session?.id
+  if (typeof sessionId !== "string" || sessionId === "") {
+    return undefined
+  }
+  return redirectForReauthentication(pending, sessionId)
 }
 
 /**
@@ -178,10 +212,12 @@ export const beginImportCommand = async (
  * own response code, not a failure, so it travels back as itself rather than
  * as a generic success.
  */
-export const finishImportCommand = (
+export const finishImportCommand = async (
   repositoryId: string,
   result: ConsoleResult<RepositoryImportReceipt>,
-): NextResponse => {
+  pending?: PendingMutationDraft,
+  sessionContext?: SessionContext,
+): Promise<NextResponse> => {
   const path = importPath(repositoryId)
   if (result.ok) {
     return back(
@@ -192,6 +228,16 @@ export const finishImportCommand = (
 
   switch (result.failure.kind) {
     case "error":
+      if (result.failure.error.error.code === "REAUTHENTICATION_REQUIRED") {
+        const sessionId = sessionContext?.session?.id
+        if (
+          pending !== undefined &&
+          typeof sessionId === "string" &&
+          sessionId !== ""
+        ) {
+          return redirectForReauthentication(pending, sessionId)
+        }
+      }
       return back(path, result.failure.error.error.code)
     case "unsupported":
       return back(path, "UNSUPPORTED_SERVER_RESPONSE")

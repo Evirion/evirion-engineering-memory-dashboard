@@ -3,6 +3,8 @@ import type { NextRequest, NextResponse } from "next/server"
 import {
   beginImportCommand,
   finishImportCommand,
+  guardImportFreshness,
+  importPendingMutation,
   refuseImportCommand,
 } from "@/server/actions/import-command"
 import {
@@ -76,7 +78,11 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
   const command = await beginImportCommand(request)
   if (command.status === "rejected") return command.response
 
-  const { scope, fields } = command
+  const { scope, fields, sessionContext } = command
+  const pending = importPendingMutation(fields, "/api/imports/prepare")
+  const stale = await guardImportFreshness(sessionContext, pending)
+  if (stale) return stale
+
   const filters = readImportFilters(fields.form)
   if (filters === undefined) {
     return refuseImportCommand(fields.repositoryId, "REQUEST_INVALID")
@@ -89,5 +95,7 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
       idempotencyKey: fields.idempotencyKey,
       filters,
     }),
+    pending,
+    sessionContext,
   )
 }

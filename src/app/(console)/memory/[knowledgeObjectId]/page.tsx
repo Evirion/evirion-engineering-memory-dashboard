@@ -10,12 +10,19 @@ import {
 } from "@/components/memory/knowledge-detail"
 import { CorrectionRequests } from "@/components/memory/correction-status"
 import { KnowledgeOutcomeNotice } from "@/components/memory/knowledge-outcome"
+import {
+  INVALID_CHALLENGE,
+  ReauthenticationOutcome,
+} from "@/components/auth/reauthentication-outcome"
 import { KnowledgePayloads } from "@/components/memory/knowledge-payload"
 import { LifecycleActions } from "@/components/memory/lifecycle-actions"
 import { ReviewActions } from "@/components/memory/review-actions"
 import { ReviewHistory } from "@/components/memory/review-history"
+import { reauthenticationFreshUntil } from "@/lib/auth/reauthentication-freshness"
 import { readSessionCsrfToken } from "@/server/actions/session-csrf-read"
+import { pendingReauthenticationContext } from "@/server/actions/reauthentication-resume"
 import { readKnowledgeDetail } from "@/server/queries/knowledge"
+import { requireSessionContext } from "@/server/queries/session-context"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -48,6 +55,10 @@ const KnowledgeDetailPage = async ({
   const parameters = await searchParams
   const requested = parameters["result"]
   const outcome = typeof requested === "string" ? requested : undefined
+  const reauthRequired = parameters["reauth"] === "required"
+  const session = await requireSessionContext()
+  const freshUntil =
+    session.status === "ready" ? reauthenticationFreshUntil(session.context) : undefined
   const chosen = parameters["supersedeWith"]
   const view = await readKnowledgeDetail(
     knowledgeObjectId,
@@ -71,6 +82,11 @@ const KnowledgeDetailPage = async ({
   const { detail, controls } = view
   const csrfToken = await readSessionCsrfToken()
   const idempotencyKeys = mintIdempotencyKeys()
+  const pending = await pendingReauthenticationContext()
+  const knowledgeReturnPath =
+    typeof chosen === "string"
+      ? `/memory/${detail.knowledgeObjectId}?supersedeWith=${encodeURIComponent(chosen)}`
+      : `/memory/${detail.knowledgeObjectId}`
 
   return (
     <section className="flex flex-col gap-6">
@@ -91,7 +107,21 @@ const KnowledgeDetailPage = async ({
         </Link>
       </nav>
 
-      <KnowledgeOutcomeNotice result={outcome} />
+      <ReauthenticationOutcome
+        result={outcome}
+        reauthRequired={reauthRequired}
+        csrfToken={csrfToken}
+        hasPending={pending.hasPending}
+        gate={pending.hasPending ? pending.gate : "knowledge_lifecycle"}
+        returnPath={pending.hasPending ? pending.returnPath : knowledgeReturnPath}
+      />
+      {reauthRequired ||
+      outcome === "REAUTHENTICATION_REQUIRED" ||
+      outcome === INVALID_CHALLENGE ||
+      outcome === "PENDING_EXPIRED" ||
+      outcome === "PENDING_SESSION_MISMATCH" ? null : (
+        <KnowledgeOutcomeNotice result={outcome} />
+      )}
 
       <KnowledgeStates detail={detail} />
       <KnowledgeSourceContext detail={detail} />
@@ -113,6 +143,8 @@ const KnowledgeDetailPage = async ({
         supersession={view.supersession}
         csrfToken={csrfToken}
         idempotencyKeys={idempotencyKeys}
+        reauthenticationFreshUntil={freshUntil}
+        knowledgeReturnPath={knowledgeReturnPath}
       />
       <CorrectionRequests view={view.corrections} />
       <KnowledgeTechnicalDetails detail={detail} />

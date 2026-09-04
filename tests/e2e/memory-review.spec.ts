@@ -551,7 +551,7 @@ test.describe("mark_active", () => {
     await expect(page.getByTestId("knowledge-states")).toContainText("Approved")
   })
 
-  test("states that the action may require signing in again", async ({
+  test("states that the action may require confirming identity again", async ({
     context,
     page,
   }) => {
@@ -563,7 +563,7 @@ test.describe("mark_active", () => {
     // control states the precondition rather than claiming to know.
     await expect(
       page.getByTestId("lifecycle-activate").getByTestId("lifecycle-reauth-notice"),
-    ).toBeVisible()
+    ).toContainText("confirming your identity again")
   })
 
   test("refuses a stale lifecycle version and records nothing", async ({
