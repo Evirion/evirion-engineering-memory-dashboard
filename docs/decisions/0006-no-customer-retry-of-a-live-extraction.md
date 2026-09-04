@@ -31,23 +31,23 @@ capability and the client never derives it from a status.
 ## What the backend serves
 
 Nothing on the processing surface, verified against the pinned
-`console-contract-v1.0.2` bytes this repository vendors.
+`console-contract-v1.0.3` bytes this repository vendors.
 
 - The contract publishes exactly two retry or resume operations, and both are
-  scoped to historical imports: `setRepositoryImportState` at line 1134 of
-  [`openapi.yaml`](../../vendor/console-contract-v1.0.2/contracts/console/v1/openapi.yaml)
-  and `retryRepositoryImportJob` at line 1225. No operation retries or resumes
+  scoped to historical imports: `setRepositoryImportState` at line 1232 of
+  [`openapi.yaml`](../../vendor/console-contract-v1.0.3/contracts/console/v1/openapi.yaml)
+  and `retryRepositoryImportJob` at line 1323. No operation retries or resumes
   a live extraction job.
 - `recoveryAction` exists only on
-  [`repository-import.json`](../../vendor/console-contract-v1.0.2/contracts/console/v1/schemas/repository-import.json)
+  [`repository-import.json`](../../vendor/console-contract-v1.0.3/contracts/console/v1/schemas/repository-import.json)
   and
-  [`repository-import-failures.json`](../../vendor/console-contract-v1.0.2/contracts/console/v1/schemas/repository-import-failures.json).
+  [`repository-import-failures.json`](../../vendor/console-contract-v1.0.3/contracts/console/v1/schemas/repository-import-failures.json).
   Its vocabulary is eight values, not four: `AWAIT_DISCOVERY`,
   `APPROVE_IMPORT`, `GRANT_CUSTOMER_CONSENT`, `AWAIT_EVIRION_AUTHORIZATION`,
   `PAUSE_IMPORT_TO_RETRY`, `RETRY_JOB`, `CONTACT_SUPPORT`, `NONE`. The backend
   computes it in `private.b06a_import_recovery_action`, at line 302 of
   `supabase/migrations/20260831114310_console_customer_import_operations.sql`.
-- `listProcessingActivity`, at line 1818, binds no response schema and projects
+- `listProcessingActivity`, at line 1916, binds no response schema and projects
   no action. A processing row carries a processing state and a paid
   authorization status, and nothing that names an action.
 
@@ -56,9 +56,7 @@ would either invent a field or require the client to derive one from a status,
 which the requirement forbade then and still forbids.
 
 The backend reached the same conclusion independently while writing the
-successor schemas. `processing-page.json`, implemented and locally verified on
-backend branch `EEM-8/10-console-contract-revision` and neither merged nor
-released, publishes twenty-one row fields and no action among them. Its own
+successor schemas. `processing-page.json`, published in `console-contract-v1.0.3`, publishes twenty-one row fields and no action among them. Its own
 description states that the row declares no recovery action, that the backend
 projects none for a processing job, and that a client must not infer one from a
 status that looks retryable. It does publish `lastErrorCode`, which is the
