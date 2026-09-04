@@ -107,6 +107,7 @@ export default defineConfig({
         // harness and are not credentials for any real environment.
         CONSOLE_CSRF_SIGNING_KEY: "console-local-test-csrf-signing-key-0001",
         CONSOLE_BFF_PROOF_SIGNING_KEY: "console-local-test-proof-signing-key-001",
+        CONSOLE_ALLOW_STUB_AUTH: "true",
       },
     },
   ],

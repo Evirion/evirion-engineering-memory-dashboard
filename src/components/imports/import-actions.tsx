@@ -1,5 +1,7 @@
 import type { Repository, RepositoryImport } from "@contracts/console"
 
+import { GatedForm } from "@/components/auth/gated-form"
+import { ReauthenticationPreconditionNotice } from "@/components/auth/reauthentication-notice"
 import type { ImportControls } from "@/lib/imports/presentation"
 import {
   authorizationView,
@@ -30,6 +32,8 @@ export type ImportActionContext = {
   readonly csrfToken: string
   /** One per rendered form, so a double submit cannot become two commands. */
   readonly idempotencyKeys: Readonly<Record<string, string>>
+  readonly reauthenticationFreshUntil?: string | null | undefined
+  readonly importReturnPath: string
 }
 
 const submit =
@@ -79,14 +83,19 @@ export const PrepareForm = ({
   controls,
   csrfToken,
   idempotencyKeys,
+  reauthenticationFreshUntil,
+  importReturnPath,
 }: ImportActionContext) => {
   if (!controls.canPrepare) return null
 
   return (
-    <form
+    <GatedForm
       action="/api/imports/prepare"
-      method="post"
-      data-testid="import-prepare"
+      freshUntil={reauthenticationFreshUntil}
+      gate="repository_import"
+      returnPath={importReturnPath}
+      mutationPath="/api/imports/prepare"
+      dataTestId="import-prepare"
       className={card}
     >
       <h2 className="text-sm font-semibold text-slate-900">Prepare import</h2>
@@ -95,6 +104,7 @@ export const PrepareForm = ({
         them as source work. Discovery and preparation make no model call and cost
         nothing.
       </p>
+      <ReauthenticationPreconditionNotice testId="import-reauth-notice" />
       <Hidden
         repositoryId={repository.id}
         idempotencyKey={idempotencyKeys["prepare"] ?? ""}
@@ -129,7 +139,7 @@ export const PrepareForm = ({
       <button type="submit" className={submit}>
         Prepare import
       </button>
-    </form>
+    </GatedForm>
   )
 }
 
@@ -146,15 +156,20 @@ export const ApproveForm = ({
   controls,
   csrfToken,
   idempotencyKeys,
+  reauthenticationFreshUntil,
+  importReturnPath,
 }: ImportActionContext) => {
   if (current === null || !controls.canApprove) return null
   const view = authorizationView(current.paidAuthorizationStatus)
 
   return (
-    <form
+    <GatedForm
       action="/api/imports/approve"
-      method="post"
-      data-testid="import-approve"
+      freshUntil={reauthenticationFreshUntil}
+      gate="repository_import"
+      returnPath={importReturnPath}
+      mutationPath="/api/imports/approve"
+      dataTestId="import-approve"
       className={card}
     >
       <h2 className="text-sm font-semibold text-slate-900">
@@ -171,6 +186,7 @@ export const ApproveForm = ({
         authorization, which is a separate gate only Evirion can open, so this import
         may still wait afterwards.
       </p>
+      <ReauthenticationPreconditionNotice testId="import-reauth-notice" />
       <dl className="flex flex-col gap-1 text-sm">
         <div className="flex flex-wrap gap-2">
           <dt className="font-medium text-slate-900">Repository</dt>
@@ -208,7 +224,7 @@ export const ApproveForm = ({
       <button type="submit" className={submit}>
         Approve extraction
       </button>
-    </form>
+    </GatedForm>
   )
 }
 
@@ -226,6 +242,8 @@ export const RunStateForms = ({
   controls,
   csrfToken,
   idempotencyKeys,
+  reauthenticationFreshUntil,
+  importReturnPath,
 }: ImportActionContext) => {
   if (current === null) return null
 
@@ -259,14 +277,18 @@ export const RunStateForms = ({
   return (
     <div data-testid="import-run-controls" className="flex flex-col gap-3">
       {offered.map((control) => (
-        <form
+        <GatedForm
           key={control.state}
           action="/api/imports/state"
-          method="post"
+          freshUntil={reauthenticationFreshUntil}
+          gate="repository_import"
+          returnPath={importReturnPath}
+          mutationPath="/api/imports/state"
           className={card}
         >
           <h2 className="text-sm font-semibold text-slate-900">{control.label}</h2>
           <p className="text-sm text-slate-700">{control.detail}</p>
+          <ReauthenticationPreconditionNotice />
           <Hidden
             repositoryId={repository.id}
             idempotencyKey={idempotencyKeys[control.key] ?? ""}
@@ -277,7 +299,7 @@ export const RunStateForms = ({
           <button type="submit" className={submit}>
             {control.label}
           </button>
-        </form>
+        </GatedForm>
       ))}
     </div>
   )
@@ -301,6 +323,8 @@ export const ImportFailureList = ({
   csrfToken,
   idempotencyKeys,
   failures,
+  reauthenticationFreshUntil,
+  importReturnPath,
 }: ImportActionContext & { readonly failures: ImportFailuresView }) => {
   if (current === null) return null
   if (failures.status === "not-applicable") return null
@@ -375,7 +399,13 @@ export const ImportFailureList = ({
               {controls.canRetry &&
               failure.retryable &&
               failure.extractionJobId !== null ? (
-                <form action="/api/imports/retry" method="post">
+                <GatedForm
+                  action="/api/imports/retry"
+                  freshUntil={reauthenticationFreshUntil}
+                  gate="repository_import"
+                  returnPath={importReturnPath}
+                  mutationPath="/api/imports/retry"
+                >
                   <Hidden
                     repositoryId={repository.id}
                     idempotencyKey={idempotencyKeys[`retry:${failure.itemId}`] ?? ""}
@@ -387,10 +417,11 @@ export const ImportFailureList = ({
                     name="extractionJobId"
                     value={failure.extractionJobId}
                   />
+                  <ReauthenticationPreconditionNotice />
                   <button type="submit" className={submit}>
                     Retry this work
                   </button>
-                </form>
+                </GatedForm>
               ) : null}
             </li>
           )

@@ -12,6 +12,7 @@ import {
   isRepositoryImportFailures,
   isRepositoryOverview,
   isRepositoryPage,
+  isSessionReauthenticationReceipt,
 } from "@contracts/console"
 
 import {
@@ -535,5 +536,36 @@ describe("the Console API double serves contract-shaped bytes", () => {
         }),
       ).toBe(true)
     }
+  })
+
+  it("validates step-up receipts and rejects a contradictory fixture", () => {
+    const issued = {
+      receiptId: "00000000-0000-4000-8000-000000000301",
+      responseCode: "CONSOLE_REAUTHENTICATION_ISSUED",
+      status: "completed",
+      responsePayload: {
+        challengeId: "00000000-0000-4000-8000-000000000302",
+        state: "ISSUED",
+        actionClass: "knowledge_lifecycle",
+        expiresAt: "2099-01-01T00:00:00.000Z",
+      },
+    }
+
+    expect(isSessionReauthenticationReceipt(issued)).toBe(true)
+
+    expect(
+      isSessionReauthenticationReceipt({
+        ...issued,
+        receiptId: "not-a-uuid",
+      }),
+    ).toBe(false)
+  })
+
+  it("keeps stale and absent freshness scenarios distinct", () => {
+    expect(SCENARIOS.importStaleFreshness().reauthenticationFreshUntil).toBeNull()
+    expect(SCENARIOS.importAbsentFreshnessField().omitReauthenticationFreshUntil).toBe(
+      true,
+    )
+    expect(SCENARIOS.memoryStaleFreshness().reauthenticationFreshUntil).toBeNull()
   })
 })

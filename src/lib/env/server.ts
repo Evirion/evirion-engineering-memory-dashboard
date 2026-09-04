@@ -52,6 +52,10 @@ export type ServerEnvironment = {
   readonly csrfSigningKey: string
   /** 256-bit minimum. Signs the one-time backend bootstrap proof. */
   readonly bootstrapProofSigningKey: string
+  /** Loopback origin for server-to-server replays through the BFF. */
+  readonly internalOrigin: string
+  /** Permits the console-stub TOTP double outside production. */
+  readonly allowStubAuth: boolean
 }
 
 const MINIMUM_SIGNING_KEY_BYTES = 32
@@ -153,5 +157,9 @@ export const readServerEnvironment = (
       source,
       "CONSOLE_BFF_PROOF_SIGNING_KEY",
     ),
+    internalOrigin: `http://127.0.0.1:${source["CONSOLE_UPSTREAM_PORT"]?.trim() ?? "3000"}`,
+    allowStubAuth:
+      (source["NODE_ENV"]?.trim() ?? "development") !== "production" ||
+      source["CONSOLE_ALLOW_STUB_AUTH"]?.trim() === "true",
   }
 }

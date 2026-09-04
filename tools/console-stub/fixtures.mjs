@@ -30,6 +30,14 @@ export const REPOSITORIES = {
  */
 export const FOREIGN_REPOSITORY = "00000000-0000-4000-8000-0000000000f1"
 
+/** Keeps the default scenario inside the freshness window for existing journeys. */
+export const FRESH_SESSION_UNTIL = "2026-12-31T23:59:59.000000Z"
+
+const withFreshSession = (scenario) => ({
+  reauthenticationFreshUntil: FRESH_SESSION_UNTIL,
+  ...scenario,
+})
+
 export const CAPABILITIES = {
   owner: [
     "knowledge.lifecycle.manage",
@@ -1297,39 +1305,8 @@ export const KNOWLEDGE_OBJECTS = () => {
 }
 
 /** A connected organization with the repository the knowledge inventory cites. */
-const withKnowledge = () => ({
-  repositories: baseRepositories(),
-  limit: {
-    maxActiveRepositories: 5,
-    mode: "FIXED",
-    replacementMode: "SELF_SERVICE",
-  },
-  installation: installationConnected(),
-  pageSize: 50,
-  knowledgePageSize: 50,
-})
-
-/** A connected organization whose one active repository carries `run`. */
-const withImport = (run) => ({
-  repositories: baseRepositories(),
-  limit: {
-    maxActiveRepositories: 5,
-    mode: "FIXED",
-    replacementMode: "SELF_SERVICE",
-  },
-  installation: installationConnected(),
-  pageSize: 50,
-  imports: { [IMPORTED_REPOSITORY]: run() },
-  importFailures: IMPORT_FAILURES(),
-})
-
-/**
- * The named states the browser gate drives. A scenario is loaded through the
- * control endpoint before the browser is pointed at the Console.
- */
-export const SCENARIOS = {
-  /** Every published product state, with one slot free of a capacity of five. */
-  default: () => ({
+const withKnowledge = () =>
+  withFreshSession({
     repositories: baseRepositories(),
     limit: {
       maxActiveRepositories: 5,
@@ -1338,7 +1315,41 @@ export const SCENARIOS = {
     },
     installation: installationConnected(),
     pageSize: 50,
-  }),
+    knowledgePageSize: 50,
+  })
+
+/** A connected organization whose one active repository carries `run`. */
+const withImport = (run) =>
+  withFreshSession({
+    repositories: baseRepositories(),
+    limit: {
+      maxActiveRepositories: 5,
+      mode: "FIXED",
+      replacementMode: "SELF_SERVICE",
+    },
+    installation: installationConnected(),
+    pageSize: 50,
+    imports: { [IMPORTED_REPOSITORY]: run() },
+    importFailures: IMPORT_FAILURES(),
+  })
+
+/**
+ * The named states the browser gate drives. A scenario is loaded through the
+ * control endpoint before the browser is pointed at the Console.
+ */
+export const SCENARIOS = {
+  /** Every published product state, with one slot free of a capacity of five. */
+  default: () =>
+    withFreshSession({
+      repositories: baseRepositories(),
+      limit: {
+        maxActiveRepositories: 5,
+        mode: "FIXED",
+        replacementMode: "SELF_SERVICE",
+      },
+      installation: installationConnected(),
+      pageSize: 50,
+    }),
 
   /** Capacity is consumed, so activating anything further must be refused. */
   limitReached: () => ({
@@ -1542,7 +1553,8 @@ export const SCENARIOS = {
    * correction status, and a supersession chain long enough to exhaust the
    * traversal bound.
    */
-  memory: () => ({ ...withKnowledge(), knowledge: KNOWLEDGE_OBJECTS() }),
+  memory: () =>
+    withFreshSession({ ...withKnowledge(), knowledge: KNOWLEDGE_OBJECTS() }),
 
   /** No admitted knowledge yet, which is the empty state and not a refusal. */
   memoryEmpty: () => withKnowledge(),
@@ -1607,7 +1619,8 @@ export const SCENARIOS = {
   importPlanning: () => withImport(IMPORT_RUNS.planning),
   importDiscovering: () => withImport(IMPORT_RUNS.discovering),
   /** The one authorization state that gives the customer something to do. */
-  importAwaitingApproval: () => withImport(IMPORT_RUNS.awaitingApproval),
+  importAwaitingApproval: () =>
+    withFreshSession(withImport(IMPORT_RUNS.awaitingApproval)),
   /** Processing, consent recorded, and still waiting on Evirion. */
   importAwaitingAuthorization: () => withImport(IMPORT_RUNS.awaitingAuthorization),
   importProcessing: () => withImport(IMPORT_RUNS.processing),
@@ -1615,9 +1628,34 @@ export const SCENARIOS = {
   importPaused: () => withImport(IMPORT_RUNS.paused),
   importCompleted: () => withImport(IMPORT_RUNS.completed),
   /** Failed work beside an unresolved cost, which is where a zero would lie. */
-  importFailed: () => withImport(IMPORT_RUNS.failed),
+  importFailed: () => withFreshSession(withImport(IMPORT_RUNS.failed)),
   /** Cancelled by an operator revocation, with authorization revoked. */
   importCancelled: () => withImport(IMPORT_RUNS.cancelled),
   /** Paused with held-back source work, so resuming is forced back to paused. */
   importResumeBlocked: () => withImport(IMPORT_RUNS.resumeBlocked),
+
+  /** Freshness lapsed: null means not fresh. */
+  importStaleFreshness: () => ({
+    ...withImport(IMPORT_RUNS.awaitingApproval),
+    reauthenticationFreshUntil: null,
+  }),
+
+  /** Older server shape: the field is absent rather than null. */
+  importAbsentFreshnessField: () => ({
+    ...withImport(IMPORT_RUNS.awaitingApproval),
+    omitReauthenticationFreshUntil: true,
+  }),
+
+  memoryStaleFreshness: () => ({
+    ...withKnowledge(),
+    knowledge: KNOWLEDGE_OBJECTS(),
+    reauthenticationFreshUntil: null,
+  }),
+
+  /** The next completion attempt is refused as an invalidated challenge. */
+  reauthInvalidateChallenge: () => ({
+    ...withImport(IMPORT_RUNS.awaitingApproval),
+    reauthenticationFreshUntil: null,
+    invalidateChallengeOnComplete: true,
+  }),
 }

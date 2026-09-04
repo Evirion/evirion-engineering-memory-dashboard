@@ -3,6 +3,8 @@ import type { NextRequest, NextResponse } from "next/server"
 import {
   beginImportCommand,
   finishImportCommand,
+  guardImportFreshness,
+  importPendingMutation,
   readExpectedStatus,
   readImportId,
   refuseImportCommand,
@@ -51,7 +53,11 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
   const command = await beginImportCommand(request)
   if (command.status === "rejected") return command.response
 
-  const { scope, fields } = command
+  const { scope, fields, sessionContext } = command
+  const pending = importPendingMutation(fields, "/api/imports/approve")
+  const stale = await guardImportFreshness(sessionContext, pending)
+  if (stale) return stale
+
   const importId = readImportId(fields.form)
   const expectedStatus = readExpectedStatus(fields.form)
   const costBudgetUsd = readApprovedBudget(
@@ -74,5 +80,7 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
       expectedStatus,
       costBudgetUsd,
     }),
+    pending,
+    sessionContext,
   )
 }

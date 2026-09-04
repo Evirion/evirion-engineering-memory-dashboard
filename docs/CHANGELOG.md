@@ -1,5 +1,31 @@
 # Dashboard changelog
 
+## 2026-09-04 — EEM-9/02c step-up reauthentication and return
+
+- Why: issue #16 — gated import and knowledge lifecycle mutations dead-ended
+  ten minutes after sign-in because `REAUTHENTICATION_REQUIRED` had no actionable
+  treatment and no return path.
+- Contract: consumes existing `console-contract-v1.0.3` ceremony operations and
+  `session.reauthenticationFreshUntil`; no contract bytes changed.
+- Behavior: shared server-only step-up mechanism with HttpOnly pending-mutation
+  and challenge cookies; TOTP-only ceremony; precondition notice on gated
+  controls; in-place offer on stale freshness or backend refusal; mutation
+  replay after successful completion; other-sessions revocation warning before
+  completion; recoverable invalidated-challenge outcome. Import (`EEM-9/04`) and
+  knowledge lifecycle (`EEM-9/05`) surfaces wired; membership (`EEM-9/06`) reuses
+  the mechanism without new pages here.
+- Files: `src/lib/auth/reauthentication-*`, `src/server/actions/reauthentication-resume.ts`,
+  `src/server/adapters/reauthentication.ts`, `src/app/api/session/reauthentication/*`,
+  `src/components/auth/*`, import and knowledge command/routes/actions, stub
+  fixtures and scenarios, tests under `tests/unit/auth`, `tests/e2e/reauthentication.spec.ts`,
+  `tests/security/reauthentication-boundary.spec.ts`.
+- Verification: focused slice `reauthentication`, affected slices `imports` and
+  `memory-review`, complete free gate on branch `EEM-9/02c-step-up-and-return`.
+- Deployment state: implemented and locally verified only. Not merged, not
+  deployed, not observed, not staging-certified, not paid-certified, not
+  production-certified.
+- Closes: #16 from the pull request when merged.
+
 ## 2026-09-04 — EEM-9/03g consumes console-contract-v1.0.3
 
 - Why: backend `console-contract-v1.0.3` publishes the six EEM-8/10 read

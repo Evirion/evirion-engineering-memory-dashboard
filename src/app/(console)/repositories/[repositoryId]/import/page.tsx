@@ -16,9 +16,16 @@ import {
   ImportStatusPanel,
 } from "@/components/imports/import-status"
 import { ImportOutcomeNotice } from "@/components/imports/import-outcome"
+import {
+  INVALID_CHALLENGE,
+  ReauthenticationOutcome,
+} from "@/components/auth/reauthentication-outcome"
+import { reauthenticationFreshUntil } from "@/lib/auth/reauthentication-freshness"
 import { importControls, isProgressing } from "@/lib/imports/presentation"
 import { readSessionCsrfToken } from "@/server/actions/session-csrf-read"
+import { pendingReauthenticationContext } from "@/server/actions/reauthentication-resume"
 import { readRepositoryImport } from "@/server/queries/imports"
+import { requireSessionContext } from "@/server/queries/session-context"
 import { validRepositoryId } from "@/server/queries/repositories"
 
 export const dynamic = "force-dynamic"
@@ -47,8 +54,15 @@ const RepositoryImportPage = async ({
 }) => {
   const { repositoryId } = await params
   const identifier = validRepositoryId(repositoryId)
-  const requested = (await searchParams)["result"]
+  const parameters = await searchParams
+  const requested = parameters["result"]
   const outcome = typeof requested === "string" ? requested : undefined
+  const reauthRequired = parameters["reauth"] === "required"
+  const session = await requireSessionContext()
+  const freshUntil =
+    session.status === "ready" ? reauthenticationFreshUntil(session.context) : undefined
+  const csrfToken = await readSessionCsrfToken()
+  const pending = await pendingReauthenticationContext()
 
   // A malformed identifier gets the same answer as a foreign one. Anything
   // else would tell the caller which identifiers are well formed.
@@ -83,7 +97,7 @@ const RepositoryImportPage = async ({
     repository,
     current,
     controls: importControls(repository, current, view.capabilities),
-    csrfToken: await readSessionCsrfToken(),
+    csrfToken,
     idempotencyKeys: mintIdempotencyKeys([
       "prepare",
       "approve",
@@ -94,6 +108,8 @@ const RepositoryImportPage = async ({
         ? failures.failures.failures.map((failure) => `retry:${failure.itemId}`)
         : []),
     ]),
+    reauthenticationFreshUntil: freshUntil,
+    importReturnPath: `/repositories/${repository.id}/import`,
   }
 
   return (
@@ -103,7 +119,21 @@ const RepositoryImportPage = async ({
         <p className="text-sm text-slate-600">{repository.nameWithOwner}</p>
       </div>
 
-      <ImportOutcomeNotice result={outcome} />
+      <ReauthenticationOutcome
+        result={outcome}
+        reauthRequired={reauthRequired}
+        csrfToken={csrfToken}
+        hasPending={pending.hasPending}
+        gate={pending.hasPending ? pending.gate : "repository_import"}
+        returnPath={pending.hasPending ? pending.returnPath : context.importReturnPath}
+      />
+      {reauthRequired ||
+      outcome === "REAUTHENTICATION_REQUIRED" ||
+      outcome === INVALID_CHALLENGE ||
+      outcome === "PENDING_EXPIRED" ||
+      outcome === "PENDING_SESSION_MISMATCH" ? null : (
+        <ImportOutcomeNotice result={outcome} />
+      )}
 
       {current === null ? (
         <EmptyImport repository={repository} />

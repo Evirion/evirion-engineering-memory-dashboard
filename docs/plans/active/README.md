@@ -49,10 +49,15 @@ EEM-9/04 is merged as PR
 Its trace is
 [`eem-9-03e-acceptance-trace.md`](eem-9-03e-acceptance-trace.md).
 
-`EEM-9/03g-console-contract-revision` is implemented and locally verified on
-branch `EEM-9/03g-console-contract-revision`, not merged, with no pull request.
-Its trace is
+`EEM-9/03g-console-contract-revision` is merged on `main` after PR
+[#19](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/19)
+(`fix/03g-doc-links-v1.0.3`). Its trace is
 [`eem-9-03g-acceptance-trace.md`](eem-9-03g-acceptance-trace.md).
+
+`EEM-9/02c-step-up-and-return` is implemented and locally verified on branch
+`EEM-9/02c-step-up-and-return`, not merged, with no pull request open yet. It
+closes issue #16. Its trace is
+[`eem-9-02c-acceptance-trace.md`](eem-9-02c-acceptance-trace.md).
 
 The EEM-9/03 request below names "the attestation-verified EEM-6 contract lock".
 No such artifact exists and none is required: the single
@@ -132,6 +137,16 @@ this subtask. Consuming a contract is one subtask, not two, as the catalog
 records for EEM-9/03e. Do not deploy, call a provider, run any paid operation,
 or touch hosted Supabase. Consume only published, attestation-verified release
 assets; never source bytes from backend main.`
+
+### EEM-9/02c — Step-up reauthentication and return
+
+`Start EEM-9/02c-step-up-and-return in evirion-engineering-memory-dashboard on
+a branch named EEM-9/02c-step-up-and-return, started from updated main after
+the fix/03g-doc-links-v1.0.3 work lands. Work only on this subtask. It closes
+issue #16. Do not deploy, call a provider, run any paid operation, or touch
+hosted Supabase. Build the shared step-up mechanism once; cover import and
+knowledge lifecycle surfaces shipped in EEM-9/04 and EEM-9/05; do not build
+EEM-9/06 pages.`
 
 ### EEM-9/04 — Import operations
 

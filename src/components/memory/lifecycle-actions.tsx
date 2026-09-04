@@ -1,5 +1,7 @@
 import type { KnowledgeDetail } from "@contracts/console"
 
+import { GatedForm } from "@/components/auth/gated-form"
+import { ReauthenticationPreconditionNotice } from "@/components/auth/reauthentication-notice"
 import { ConsoleUnavailable } from "@/components/console/console-unavailable"
 import type { KnowledgeControls } from "@/lib/knowledge/presentation"
 import type { SupersessionContext } from "@/server/queries/knowledge"
@@ -46,11 +48,7 @@ const CORRECTION_REASONS = [
 ] as const
 
 /** Stated on the three operations whose published precondition names it. */
-const ReauthenticationNotice = () => (
-  <p data-testid="lifecycle-reauth-notice" className="text-xs text-slate-600">
-    This action may ask you to sign in again before it is applied.
-  </p>
-)
+const ReauthenticationNotice = ReauthenticationPreconditionNotice
 
 export type LifecycleFormProps = {
   readonly detail: KnowledgeDetail
@@ -58,6 +56,8 @@ export type LifecycleFormProps = {
   readonly supersession: SupersessionContext
   readonly csrfToken: string
   readonly idempotencyKeys: Readonly<Record<string, string>>
+  readonly reauthenticationFreshUntil?: string | null | undefined
+  readonly knowledgeReturnPath: string
 }
 
 const Hidden = ({
@@ -81,12 +81,17 @@ export const MarkActiveForm = ({
   controls,
   csrfToken,
   idempotencyKeys,
+  reauthenticationFreshUntil,
+  knowledgeReturnPath,
 }: LifecycleFormProps) =>
   controls.canMarkActive ? (
-    <form
+    <GatedForm
       action="/api/memory/activate"
-      method="post"
-      data-testid="lifecycle-activate"
+      freshUntil={reauthenticationFreshUntil}
+      gate="knowledge_lifecycle"
+      returnPath={knowledgeReturnPath}
+      mutationPath="/api/memory/activate"
+      dataTestId="lifecycle-activate"
       className={card}
     >
       <Hidden
@@ -110,7 +115,7 @@ export const MarkActiveForm = ({
           Confirms this is current knowledge and lets retrieval return it. It records no
           review and changes no earlier decision.
         </p>
-        <ReauthenticationNotice />
+        <ReauthenticationNotice testId="lifecycle-reauth-notice" />
       </div>
       <div className={field}>
         <label htmlFor="activateNote" className={labelClass}>
@@ -127,7 +132,7 @@ export const MarkActiveForm = ({
       <button type="submit" className={button}>
         Mark active
       </button>
-    </form>
+    </GatedForm>
   ) : null
 
 /**
@@ -190,6 +195,8 @@ const SupersedeConfirm = ({
   supersession,
   csrfToken,
   idempotencyKeys,
+  reauthenticationFreshUntil,
+  knowledgeReturnPath,
 }: LifecycleFormProps) => {
   const target = supersession.target
   if (target === null) return null
@@ -203,10 +210,13 @@ const SupersedeConfirm = ({
   }
 
   return (
-    <form
+    <GatedForm
       action="/api/memory/supersede"
-      method="post"
-      data-testid="lifecycle-supersede-confirm"
+      freshUntil={reauthenticationFreshUntil}
+      gate="knowledge_lifecycle"
+      returnPath={knowledgeReturnPath}
+      mutationPath="/api/memory/supersede"
+      dataTestId="lifecycle-supersede-confirm"
       className={card}
     >
       <Hidden
@@ -251,7 +261,7 @@ const SupersedeConfirm = ({
           The newer object replaces this one. This one becomes superseded; the newer one
           is not activated by this, which is a separate decision.
         </p>
-        <ReauthenticationNotice />
+        <ReauthenticationNotice testId="lifecycle-reauth-notice" />
       </div>
       <div className={field}>
         <label htmlFor="supersedeNote" className={labelClass}>
@@ -268,7 +278,7 @@ const SupersedeConfirm = ({
       <button type="submit" className={button}>
         Record that the newer object supersedes this one
       </button>
-    </form>
+    </GatedForm>
   )
 }
 
@@ -277,6 +287,8 @@ export const RequestCorrectionForm = ({
   controls,
   csrfToken,
   idempotencyKeys,
+  reauthenticationFreshUntil,
+  knowledgeReturnPath,
 }: LifecycleFormProps) => {
   if (!controls.canRequestCorrection) return null
 
@@ -285,10 +297,13 @@ export const RequestCorrectionForm = ({
   )
 
   return (
-    <form
+    <GatedForm
       action="/api/memory/corrections"
-      method="post"
-      data-testid="lifecycle-correction"
+      freshUntil={reauthenticationFreshUntil}
+      gate="knowledge_lifecycle"
+      returnPath={knowledgeReturnPath}
+      mutationPath="/api/memory/corrections"
+      dataTestId="lifecycle-correction"
       className={card}
     >
       <Hidden
@@ -316,7 +331,7 @@ export const RequestCorrectionForm = ({
           You are asking Evirion to make the change. Nothing moves until an Evirion
           operator applies it, and you can follow the request below.
         </p>
-        <ReauthenticationNotice />
+        <ReauthenticationNotice testId="lifecycle-reauth-notice" />
       </div>
       <div className={field}>
         <label htmlFor="requestType" className={labelClass}>
@@ -406,7 +421,7 @@ export const RequestCorrectionForm = ({
       <button type="submit" className={button}>
         Send the request to Evirion
       </button>
-    </form>
+    </GatedForm>
   )
 }
 
