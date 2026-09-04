@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import type { RepositoryImport } from "@contracts/console"
 import {
+  isConsoleError,
   isGithubInstallation,
   isKnowledgeCorrections,
   isKnowledgeEvidence,
@@ -499,5 +500,40 @@ describe("the Console API double serves contract-shaped bytes", () => {
     expect(granted.has("usage.read")).toBe(false)
     expect(CAPABILITIES.viewer).not.toContain("repository.entitlements.manage")
     expect(CAPABILITIES.viewer).not.toContain("repository.policy.manage")
+  })
+
+  it("refuses review and lifecycle conflicts that name currentVersion", () => {
+    // EEM-8/11 made sequence detail live on these conflicts. A double that still
+    // emits currentVersion would let tests pass against bytes the backend cannot
+    // send.
+    for (const code of [
+      "REVIEW_VERSION_CONFLICT",
+      "LIFECYCLE_VERSION_CONFLICT",
+    ] as const) {
+      expect(
+        isConsoleError({
+          contractVersion: "1.0",
+          requestId: "00000000-0000-4000-8000-000000000001",
+          error: {
+            code,
+            message: "The token changed.",
+            retryable: false,
+            currentVersion: 0,
+          },
+        }),
+      ).toBe(false)
+      expect(
+        isConsoleError({
+          contractVersion: "1.0",
+          requestId: "00000000-0000-4000-8000-000000000001",
+          error: {
+            code,
+            message: "The token changed.",
+            retryable: false,
+            currentSequence: 0,
+          },
+        }),
+      ).toBe(true)
+    }
   })
 })

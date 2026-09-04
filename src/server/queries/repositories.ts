@@ -111,6 +111,9 @@ export const describeFailure = (
         ...(mapped.currentVersion === undefined
           ? {}
           : { currentVersion: mapped.currentVersion }),
+        ...(mapped.currentSequence === undefined
+          ? {}
+          : { currentSequence: mapped.currentSequence }),
       }
     }
     case "unsupported":

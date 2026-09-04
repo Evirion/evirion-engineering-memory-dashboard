@@ -1,5 +1,34 @@
 # Dashboard changelog
 
+## 2026-09-04 — EEM-9/03g consumes console-contract-v1.0.3
+
+- Why: backend `console-contract-v1.0.3` publishes the six EEM-8/10 read
+  payloads, the EEM-4/05 reauthentication receipt and operations, and EEM-8/11
+  live `currentSequence` conflict detail. Without consuming these bytes,
+  `EEM-9/06` cannot be written, issue #16 cannot bind the step-up ceremony, and
+  the Console stub diverged from what the real backend sends on version
+  conflicts.
+- Contract: vendored `console-contract-v1.0.3`; retired `vendor/console-contract-v1.0.2`.
+  Lock pins release `382780687`, asset `544433569`, archive digest `cf856f2a`,
+  bundle `544433565`, source commit `cbdff787`, package digest `939a3bd1`,
+  generated surface `9ed72426` (39 consumable types, up from 32). Evidence in
+  `docs/contracts/console-contract-v1.0.3-evidence.json`. Prior evidence files
+  retained.
+- Behavior: regenerated client only; no product routes built. Bound
+  `REAUTHENTICATION_REQUIRED` to treatment `reauthentication-required` (customer
+  is signed in but needs a fresher proof; not sign-in, not not-permitted).
+  Corrected `tools/console-stub/server.mjs` to omit detail on entitlement and
+  policy resource conflicts and to emit `currentSequence` on review, lifecycle
+  and relation conflicts.
+- Verification: published archive byte-identical to local rebuild at `cbdff787`;
+  offline cosign verification against pinned trusted root; `check_console_contract_lock`,
+  `check_backend_auth_parity` at `cbdff787`, authority manifest rebuilt and
+  reverified, affected Vitest and Python contract suites, complete free gate.
+- Deployment state: implemented and locally verified only. Not merged, not
+  deployed, not observed, not staging-certified, not paid-certified, not
+  production-certified.
+- Unblocks: `EEM-9/06`, issue #16 (step-up flow remains a separate subtask).
+
 ## 2026-09-04 — PROC-002 amended: no customer retry of a live extraction
 
 - Why: `PROC-002` required the Console to render a retry action whenever a

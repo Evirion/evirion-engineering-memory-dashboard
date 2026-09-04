@@ -57,12 +57,12 @@
     "totpVerifyEnabled": true
   },
   "note": "Derived, non-secret Auth settings read from the backend repository at the exact source commit the attestation-verified Console contract lock records. The values are pinned here so CI verifies Dashboard/backend Auth parity without a cross-repository read, which no Dashboard workflow token could perform. A local check re-verifies these values against the sibling bytes.",
-  "recordedAt": "2026-09-03",
-  "recordedBy": "EEM-9/02 C02, re-pinned by EEM-9/03e",
+  "recordedAt": "2026-09-04",
+  "recordedBy": "EEM-9/02 C02, re-pinned by EEM-9/03g",
   "schemaVersion": "1.0",
   "source": {
-    "commit": "cfd930a4fb5894cb3cd3d1d196e1ca9ca8157010",
-    "commitMoveNote": "Re-pinned from 20cd3b60 when the Console contract lock moved to the console-contract-v1.0.1 revision. Both recorded files are byte-identical at the two commits, so every derived Auth value below is unchanged and no parity claim is restated on weaker evidence.",
+    "commit": "cbdff787e290f735226dc0749c933e22fa6544cb",
+    "commitMoveNote": "Re-pinned from cfd930a when the Console contract lock moved to console-contract-v1.0.3. Both recorded files are byte-identical at the two commits, so every derived Auth value below is unchanged and no parity claim is restated on weaker evidence.",
     "commitSource": "docs/contracts/console-contract-lock.json sourceCommit",
     "files": [
       {

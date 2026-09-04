@@ -66,9 +66,16 @@ the [controlling EEM-9 plan](plans/active/eem-9-design-partner-console-dashboard
     Its trace is
     [`eem-9-05-acceptance-trace.md`](plans/active/eem-9-05-acceptance-trace.md).
     It consumes no new contract bytes.
-12. `docs/amend-proc-002` amends `PROC-002` and is implemented and locally
-    verified on its branch. It is documentation only and unblocks `EEM-9/06`;
-    see [the amendment below](#proc-002-is-amended-rather-than-served).
+12. `docs/amend-proc-002` is merged as PR
+    [#18](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/18)
+    at `913de6b`.
+13. `EEM-9/03g-console-contract-revision` is implemented and locally verified on
+    branch `EEM-9/03g-console-contract-revision`. It consumes
+    `console-contract-v1.0.3`, retires `vendor/console-contract-v1.0.2`, binds
+    `REAUTHENTICATION_REQUIRED`, and corrects the Console stub for EEM-8/11
+    conflict detail. Its trace is
+    [`eem-9-03g-acceptance-trace.md`](plans/active/eem-9-03g-acceptance-trace.md).
+    It unblocks `EEM-9/06` and issue #16; it does not build the step-up flow.
 
 All EEM-4 subtasks are merged in the backend as PRs
 [#26](https://github.com/Evirion/evirion-engineering-memory/pull/26)–[#29](https://github.com/Evirion/evirion-engineering-memory/pull/29),
@@ -89,11 +96,13 @@ exists.
 3. `EEM-9/03-repository-control` after EEM-6, while EEM-7 proceeds.
 4. `EEM-9/04-import-operations` after EEM-7, while EEM-8 proceeds.
 5. `EEM-9/05-memory-review-lifecycle` after EEM-8. Merged.
-6. `EEM-9/06-processing-settings-metrics`.
-7. Paired `EEM-9/07-free-integration`.
-8. Separately approved `EEM-9/08-paid-certification`.
-9. Paired `EEM-9/09-design-partner-ready`.
-10. Separately scoped `EEM-9/10-first-design-partner-outcome`.
+6. `EEM-9/03g-console-contract-revision` — consume `console-contract-v1.0.3`
+   (implemented, not merged).
+7. `EEM-9/06-processing-settings-metrics` after `EEM-9/03g` merges.
+8. Paired `EEM-9/07-free-integration`.
+9. Separately approved `EEM-9/08-paid-certification`.
+10. Paired `EEM-9/09-design-partner-ready`.
+11. Separately scoped `EEM-9/10-first-design-partner-outcome`.
 
 Backend EEM-3/13 is merged and locally reverified. Its EEM-3 global lock graph
 is a continuing release invariant for every later backend mutation.
@@ -138,23 +147,20 @@ amendment the requirement asserts an absence on a Console surface.
 backend-source documents still carry the superseded assignment and are named in
 the ADR; amending them belongs to the backend.
 
-## Two contract limits raised by EEM-9/05
+## Two contract limits raised by EEM-9/05 — addressed in v1.0.3
 
-Neither blocks the surface, and both are additive requests rather than gaps
-that stopped work. Both are recorded in
+Neither blocked the surface at the time, and both were additive requests rather
+than gaps that stopped work. Both are recorded in
 [`eem-9-05-acceptance-trace.md`](plans/active/eem-9-05-acceptance-trace.md).
 
-Activation, supersession and correction each require recent reauthentication
-per the operation description, and nothing published lets the Console tell a
-customer whether that is satisfied: `session-context.json` pins
-`session.status` to a constant while `session.json` publishes an enum that
-includes `REAUTH_REQUIRED`, and no error code separates stale freshness from
-being signed out. The request is a distinct code plus either widening the
-current-session status or adding a freshness field.
+`console-contract-v1.0.3` publishes `REAUTHENTICATION_REQUIRED`, the
+reauthentication receipt and operations, and live `currentSequence` on
+sequence-token conflicts. `EEM-9/03g` consumes those bytes and binds the error
+code; issue #16 owns the step-up ceremony.
 
-Separately, `error.json` constrains `currentVersion` to a minimum of one, while
-both knowledge tokens legitimately reach zero. A conflict against `PENDING` or
-`UNRESOLVED` therefore cannot report what the state now is.
+Resource-version conflicts on entitlements and policy still carry no detail
+field; invitation and entitlement-generation conflicts may still carry
+`currentVersion` per the published examples.
 
 ## The third contract gap is closed
 

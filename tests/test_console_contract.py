@@ -69,27 +69,27 @@ class ConsoleContractLockTests(unittest.TestCase):
         )
         self.assertEqual(
             self.lock["sourceCommit"],
-            "cfd930a4fb5894cb3cd3d1d196e1ca9ca8157010",
+            "cbdff787e290f735226dc0749c933e22fa6544cb",
         )
-        self.assertEqual(self.lock["artifact"]["tag"], "console-contract-v1.0.2")
+        self.assertEqual(self.lock["artifact"]["tag"], "console-contract-v1.0.3")
         self.assertEqual(
-            self.lock["artifact"]["assetName"], "console-contract-v1.0.2.tar.gz"
+            self.lock["artifact"]["assetName"], "console-contract-v1.0.3.tar.gz"
         )
-        self.assertEqual(self.lock["artifact"]["assetId"], 543053165)
+        self.assertEqual(self.lock["artifact"]["assetId"], 544433569)
         self.assertEqual(
             self.lock["artifact"]["assetSha256"],
-            "4bff72ff77882c406331483d27ef4f78bbca0f0b142196da6e5f1c85a4d3658c",
+            "cf856f2a01d8988b1046a96bbabb7dfbe0bc21953dc3d37142b68dc5873c3a1b",
         )
-        self.assertEqual(self.lock["artifact"]["bundleAssetId"], 543053166)
+        self.assertEqual(self.lock["artifact"]["bundleAssetId"], 544433565)
         self.assertEqual(
             self.lock["artifact"]["bundleSha256"],
-            "60a15279d70c796a979a362e6472c30ac1cd9e8a09cc5723fcc5dba907ac6609",
+            "0299497d5a69616428f2175e475b274152b4be6a2c0994ccf6e963ae857a2d12",
         )
         self.assertEqual(
             self.lock["certificateIdentity"],
             "https://github.com/Evirion/evirion-engineering-memory/"
             ".github/workflows/console-contract-release.yml"
-            "@refs/tags/console-contract-v1.0.2",
+            "@refs/tags/console-contract-v1.0.3",
         )
         self.assertTrue(self.lock["release"]["immutable"])
 
@@ -117,7 +117,7 @@ class ConsoleContractLockTests(unittest.TestCase):
     def test_console_contract_content_is_the_consumed_revision(self) -> None:
         self.assertEqual(
             self.lock["contract"]["packageSha256"],
-            "1ba7e1f87bd1b4c44e5571cd96ada8563b186c8b45b3122dfef456463582b105",
+            "939a3bd136bb044ca10737ce9a4d25ad36e4feca4588e3d36b1debc92549ac8e",
         )
         verify_contract_bytes(
             ROOT / self.lock["consumption"]["vendoredRoot"],

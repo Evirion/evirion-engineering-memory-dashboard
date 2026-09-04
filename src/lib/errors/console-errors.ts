@@ -3,7 +3,7 @@ import type { ConsoleError } from "@contracts/console"
 /**
  * Map a published stable error code to a safe UI treatment.
  *
- * The backend publishes 39 stable codes and declares retryability itself. The
+ * The backend publishes 40 stable codes and declares retryability itself. The
  * UI never derives retryability, and it never forwards a raw SQL, Supabase,
  * GitHub, worker or provider error. `error.message` is deliberately unused:
  * only the code decides what the customer sees.
@@ -18,6 +18,7 @@ export type ConsoleErrorCode = ConsoleError["error"]["code"]
 
 export const ERROR_TREATMENTS = [
   "sign-in-required",
+  "reauthentication-required",
   "switch-organization",
   "not-permitted",
   "reload-and-resubmit",
@@ -47,6 +48,8 @@ export type ViewFailure = {
   /** Shown so a customer can quote it to support instead of retrying. */
   readonly requestId?: string
   readonly currentVersion?: number
+  /** Present on a sequence-token conflict so the UI can reload exactly. */
+  readonly currentSequence?: number
 }
 
 export type MappedError = {
@@ -57,6 +60,8 @@ export type MappedError = {
   readonly requestId?: string
   /** Present on an optimistic-version conflict so the UI can reload exactly. */
   readonly currentVersion?: number
+  /** Present on a sequence-token conflict so the UI can reload exactly. */
+  readonly currentSequence?: number
 }
 
 /**
@@ -66,6 +71,9 @@ export type MappedError = {
  */
 const TREATMENTS: Readonly<Record<ConsoleErrorCode, ErrorTreatment>> = {
   AUTHENTICATION_REQUIRED: "sign-in-required",
+  // The customer is signed in; this action needs a fresher proof than the
+  // current session carries. It is not sign-in-required and not not-permitted.
+  REAUTHENTICATION_REQUIRED: "reauthentication-required",
   ORGANIZATION_MEMBERSHIP_REQUIRED: "switch-organization",
   CAPABILITY_REQUIRED: "not-permitted",
   RESOURCE_NOT_FOUND: "not-permitted",
@@ -146,6 +154,9 @@ export const mapConsoleError = (payload: ConsoleError): MappedError => {
     ...(payload.error.currentVersion === undefined
       ? {}
       : { currentVersion: payload.error.currentVersion }),
+    ...(payload.error.currentSequence === undefined
+      ? {}
+      : { currentSequence: payload.error.currentSequence }),
   }
 }
 
@@ -157,6 +168,8 @@ export const describeTreatment = (treatment: ErrorTreatment): string => {
   switch (treatment) {
     case "sign-in-required":
       return "Sign in to continue."
+    case "reauthentication-required":
+      return "Confirm your identity to continue."
     case "switch-organization":
       return "This is not available for the selected organization."
     case "not-permitted":

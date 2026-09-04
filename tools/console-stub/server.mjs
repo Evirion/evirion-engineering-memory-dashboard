@@ -411,7 +411,7 @@ const handle = async (request, response, url) => {
 
         const current = repository.entitlement?.version ?? null
         if ((body?.expectedVersion ?? null) !== current) {
-          return { error: "VERSION_CONFLICT", currentVersion: current ?? undefined }
+          return { error: "VERSION_CONFLICT" }
         }
         if (
           repository.entitlement?.state !== "ACTIVE" &&
@@ -448,10 +448,7 @@ const handle = async (request, response, url) => {
         }
         if (!repository.entitlement) return { error: "REPOSITORY_NOT_ENTITLED" }
         if (body?.expectedVersion !== repository.entitlement.version) {
-          return {
-            error: "VERSION_CONFLICT",
-            currentVersion: repository.entitlement.version,
-          }
+          return { error: "VERSION_CONFLICT" }
         }
 
         repository.entitlement = {
@@ -477,10 +474,7 @@ const handle = async (request, response, url) => {
       apply: (body) => {
         if (!repository.entitlement) return { error: "REPOSITORY_NOT_ENTITLED" }
         if (body?.expectedVersion !== repository.entitlement.version) {
-          return {
-            error: "VERSION_CONFLICT",
-            currentVersion: repository.entitlement.version,
-          }
+          return { error: "VERSION_CONFLICT" }
         }
         if (!UUID.test(String(body?.requestedRepositoryId ?? ""))) {
           return { error: "REQUEST_INVALID" }
@@ -512,7 +506,7 @@ const handle = async (request, response, url) => {
         }
         const current = repository.policy?.version ?? 1
         if (body?.expectedVersion !== current) {
-          return { error: "VERSION_CONFLICT", currentVersion: current }
+          return { error: "VERSION_CONFLICT" }
         }
         // AUTO_EXTRACT without a complete consent stays fail-closed.
         if (body?.mode === "AUTO_EXTRACT" && !body?.consent) {
@@ -811,17 +805,14 @@ const knowledgePage = (state, params) => {
 }
 
 /**
- * A conflict carrying the current value, when the schema can express it.
+ * A review, lifecycle, or relation conflict carries the current sequence token.
  *
- * `error.json` constrains `currentVersion` to a minimum of one, while both
- * knowledge tokens legitimately reach zero: review sequence zero is `PENDING`
- * and lifecycle version zero is `UNRESOLVED`. A conflict against a zero
- * therefore has to omit the field rather than send a value the generated
- * validator would reject, which would turn a published refusal into an
- * unsupported response.
+ * Zero is legitimate: review sequence zero is `PENDING`, lifecycle version
+ * zero is `UNRESOLVED`, and relation version zero means no relation state
+ * event has been appended. The backend therefore emits `currentSequence`,
+ * not `currentVersion`, on these conflicts.
  */
-const conflict = (code, current) =>
-  current >= 1 ? { error: code, currentVersion: current } : { error: code }
+const conflict = (code, sequence) => ({ error: code, currentSequence: sequence })
 
 /** Both tokens, checked in a fixed order so each can go stale on its own. */
 const checkTokens = (object, body) => {
@@ -1145,7 +1136,7 @@ async function handleKnowledge(request, response, scope) {
           // A relation this object does not carry, or one whose version moved,
           // refuses without mutating anything.
           return edge
-            ? { error: "VERSION_CONFLICT", currentVersion: edge.relationVersion }
+            ? { error: "VERSION_CONFLICT", currentSequence: edge.relationVersion }
             : { error: "SUPERSESSION_INVALID" }
         }
         if (!retracting && body?.knowledgeRelationId !== undefined) {
@@ -1558,10 +1549,13 @@ async function withCommand(request, response, state, principal, organizationId, 
 
   const outcome = spec.apply(body)
   if (outcome.error) {
-    const extra =
-      outcome.currentVersion === undefined
-        ? {}
-        : { currentVersion: outcome.currentVersion }
+    const extra = {}
+    if (outcome.currentSequence !== undefined) {
+      extra.currentSequence = outcome.currentSequence
+    }
+    if (outcome.currentVersion !== undefined) {
+      extra.currentVersion = outcome.currentVersion
+    }
     return fail(response, outcome.error, extra)
   }
   if (outcome.data) {

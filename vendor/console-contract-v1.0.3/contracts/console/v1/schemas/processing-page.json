@@ -1,0 +1,394 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:processing-page",
+  "title": "Processing activity page",
+  "description": "One page of processing rows, ordered by the extraction job identity the cursor pages on. A rejected admission, a quarantine and an infrastructure failure are three separate outcomes of `processingState`, never one generic failure. The row declares no recovery action: the backend projects none for a processing job, and a client must not infer one from a status that looks retryable.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "items",
+    "page"
+  ],
+  "properties": {
+    "items": {
+      "type": "array",
+      "maxItems": 100,
+      "description": "The last three keys of a row are merged in only for a caller holding organization.usage.read, so their absence is the authorized shape rather than a malformed one.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "mappingVersion",
+          "extractionJobId",
+          "effectiveJobId",
+          "isAlias",
+          "repositoryId",
+          "nameWithOwner",
+          "pullRequestNumber",
+          "pullRequestTitle",
+          "jobStatus",
+          "sourceStatus",
+          "admissionDisposition",
+          "attempts",
+          "sourceAttempts",
+          "paidAuthorizationStatus",
+          "processingState",
+          "lastErrorCode",
+          "sourceLastErrorCode",
+          "updatedAt"
+        ],
+        "properties": {
+          "mappingVersion": {
+            "type": "string",
+            "const": "1",
+            "description": "The version of the backend-state to customer-state mapping this row was built with. It moves when the mapping changes, so a consumer never silently reinterprets an old vocabulary.",
+            "x-evirion-backend-projection": "api.list_processing_activity.mapping_version",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "extractionJobId": {
+            "type": "string",
+            "format": "uuid",
+            "x-evirion-backend-projection": "core.extraction_jobs.id",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "effectiveJobId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The deduplication target when one exists, otherwise the job itself. Cost, latency and admission are attributed to it, so two alias rows agree instead of double counting.",
+            "x-evirion-backend-projection": "api.list_processing_activity.effective_job_id",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "isAlias": {
+            "type": "boolean",
+            "description": "True when this job resolved to an earlier content-addressed extraction and performed no work of its own.",
+            "x-evirion-backend-projection": "core.extraction_jobs.deduplicated_to_job_id",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "repositoryId": {
+            "type": "string",
+            "format": "uuid",
+            "x-evirion-backend-projection": "core.pull_requests.repository_id",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "nameWithOwner": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 201,
+            "x-evirion-backend-projection": "api.list_processing_activity.name_with_owner",
+            "x-evirion-sensitivity": "customer-safe-detail"
+          },
+          "pullRequestNumber": {
+            "type": "integer",
+            "minimum": 1,
+            "x-evirion-backend-projection": "core.pull_requests.pr_number",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "pullRequestTitle": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "x-evirion-backend-projection": "core.pull_requests.title",
+            "x-evirion-sensitivity": "customer-safe-detail"
+          },
+          "jobStatus": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "CLAIMED",
+              "RETRY_WAIT",
+              "COMPLETED",
+              "DEAD_LETTER",
+              "UNSUPPORTED_SERVER_RESPONSE"
+            ],
+            "description": "The extraction job's own queue state. It is not the customer-facing outcome: read `processingState` for that.",
+            "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+            "x-evirion-backend-projection": "core.extraction_jobs.status",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "sourceStatus": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "CLAIMED",
+              "RETRY_WAIT",
+              "READY",
+              "DEAD_LETTER",
+              "UNSUPPORTED_SERVER_RESPONSE"
+            ],
+            "description": "Source collection is a separate queue from extraction, so its failure is a separate outcome.",
+            "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+            "x-evirion-backend-projection": "core.extraction_jobs.source_status",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "admissionDisposition": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "ACCEPTED",
+                  "REJECTED",
+                  "QUARANTINED",
+                  "UNSUPPORTED_SERVER_RESPONSE"
+                ],
+                "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE"
+              }
+            ],
+            "description": "Null until the effective job produces an extraction run. A REJECTED admission is a valid model decision and a QUARANTINED one is invalid output; neither is an infrastructure failure.",
+            "x-evirion-backend-projection": "core.extraction_runs.disposition",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "attempts": {
+            "type": "integer",
+            "minimum": 0,
+            "x-evirion-backend-projection": "core.extraction_jobs.attempt_count",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "sourceAttempts": {
+            "type": "integer",
+            "minimum": 0,
+            "x-evirion-backend-projection": "core.extraction_jobs.source_attempt_count",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "paidAuthorizationStatus": {
+            "type": "string",
+            "enum": [
+              "NOT_REQUIRED",
+              "AUTHORIZED",
+              "AWAITING_CUSTOMER_CONSENT",
+              "AWAITING_OPERATIONAL_AUTHORIZATION",
+              "REVOKED",
+              "EXPIRED",
+              "UNSUPPORTED_SERVER_RESPONSE"
+            ],
+            "description": "The repository's paid authorization as the customer may see it. AWAITING_CUSTOMER_CONSENT is the customer's action; the other three waiting values are Evirion's.",
+            "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+            "x-evirion-backend-projection": "api.list_processing_activity.paid_authorization_status",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "processingState": {
+            "type": "string",
+            "enum": [
+              "ACCEPTED",
+              "REJECTED",
+              "QUARANTINED",
+              "FAILED",
+              "SOURCE_FAILED",
+              "COLLECTING_SOURCE",
+              "AWAITING_APPROVAL",
+              "NOT_AUTHORIZED",
+              "AWAITING_EVIRION_AUTHORIZATION",
+              "AWAITING_CUSTOMER_CONSENT",
+              "EXTRACTING",
+              "UNSUPPORTED_SERVER_RESPONSE"
+            ],
+            "description": "The single customer-facing outcome, derived by the backend under `mappingVersion`. Three kinds of bad are distinct: REJECTED is a model decision, QUARANTINED is invalid output, and FAILED or SOURCE_FAILED is an infrastructure failure. Two kinds of waiting are also distinct: AWAITING_CUSTOMER_CONSENT is the customer's, and AWAITING_EVIRION_AUTHORIZATION covers a paid authorization that is missing, expired or revoked, which is Evirion's and is neither extracting nor customer-retryable.",
+            "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+            "x-evirion-backend-projection": "api.list_processing_activity.processing_state",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "lastErrorCode": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "The stored stable error code and nothing else. No message, payload or stack trace travels with it.",
+            "x-evirion-backend-projection": "core.extraction_jobs.last_error_code",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "sourceLastErrorCode": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "x-evirion-backend-projection": "core.extraction_jobs.source_last_error_code",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The job's completion instant when it has one, otherwise its creation instant.",
+            "x-evirion-backend-projection": "api.list_processing_activity.updated_at",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "cost": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "completeness",
+              "measuredUsd",
+              "reservedUsd",
+              "unresolvedUsd"
+            ],
+            "description": "An amount and its completeness, always together. Absent without organization.usage.read.",
+            "properties": {
+              "completeness": {
+                "type": "string",
+                "enum": [
+                  "RESERVED",
+                  "MEASURED",
+                  "UNRESOLVED",
+                  "NOT_APPLICABLE",
+                  "UNSUPPORTED_SERVER_RESPONSE"
+                ],
+                "description": "Derived from the stored accounting status, so an unresolved cost can never be rendered as a measured zero.",
+                "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+                "x-evirion-backend-projection": "core.extraction_jobs.model_cost_accounting_status",
+                "x-evirion-sensitivity": "customer-safe-summary"
+              },
+              "measuredUsd": {
+                "type": "string",
+                "pattern": "^(0|[1-9][0-9]{0,11})\\.[0-9]{6}$",
+                "x-evirion-backend-projection": "core.extraction_jobs.model_cost_accounted_usd",
+                "x-evirion-sensitivity": "customer-safe-summary"
+              },
+              "reservedUsd": {
+                "type": "string",
+                "pattern": "^(0|[1-9][0-9]{0,11})\\.[0-9]{6}$",
+                "x-evirion-backend-projection": "core.extraction_jobs.model_cost_reservation_usd",
+                "x-evirion-sensitivity": "customer-safe-summary"
+              },
+              "unresolvedUsd": {
+                "type": "string",
+                "pattern": "^(0|[1-9][0-9]{0,11})\\.[0-9]{6}$",
+                "x-evirion-backend-projection": "core.extraction_jobs.model_cost_unresolved_usd",
+                "x-evirion-sensitivity": "customer-safe-summary"
+              }
+            },
+            "x-evirion-backend-projection": "api.list_processing_activity.cost",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "latencyMs": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "minimum": 0
+              }
+            ],
+            "description": "Null until the effective job's run has both a start and a completion. Absent without organization.usage.read.",
+            "x-evirion-backend-projection": "api.list_processing_activity.latency_ms",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "tokenUsage": {
+            "type": "object",
+            "description": "The aggregate usage counters, or an empty object when the run recorded none. Never null. Absent without organization.usage.read.",
+            "x-evirion-backend-projection": "core.extraction_runs.aggregate_usage",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          }
+        },
+        "x-evirion-backend-projection": "api.list_processing_activity.row",
+        "x-evirion-sensitivity": "customer-safe-detail"
+      },
+      "x-evirion-backend-projection": "api.list_processing_activity.items",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    },
+    "page": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "nextCursor"
+      ],
+      "properties": {
+        "nextCursor": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "format": "uuid"
+            }
+          ],
+          "description": "Null on the last page. Otherwise the identity to pass as the `after` parameter.",
+          "x-evirion-backend-projection": "api.list_processing_activity.next_cursor",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        }
+      },
+      "x-evirion-backend-projection": "api.list_processing_activity.page",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    }
+  },
+  "examples": [
+    {
+      "items": [],
+      "page": {
+        "nextCursor": null
+      }
+    },
+    {
+      "items": [
+        {
+          "mappingVersion": "1",
+          "extractionJobId": "00000000-0000-4000-8000-000000000601",
+          "effectiveJobId": "00000000-0000-4000-8000-000000000601",
+          "isAlias": false,
+          "repositoryId": "00000000-0000-4000-8000-000000000302",
+          "nameWithOwner": "evirion/repository",
+          "pullRequestNumber": 128,
+          "pullRequestTitle": "Make extraction runs append-only",
+          "jobStatus": "COMPLETED",
+          "sourceStatus": "READY",
+          "admissionDisposition": "ACCEPTED",
+          "attempts": 1,
+          "sourceAttempts": 1,
+          "paidAuthorizationStatus": "NOT_REQUIRED",
+          "processingState": "ACCEPTED",
+          "lastErrorCode": null,
+          "sourceLastErrorCode": null,
+          "updatedAt": "2026-09-03T18:33:41.123456Z",
+          "cost": {
+            "completeness": "MEASURED",
+            "measuredUsd": "0.250000",
+            "reservedUsd": "0.000000",
+            "unresolvedUsd": "0.000000"
+          },
+          "latencyMs": 1450,
+          "tokenUsage": {
+            "totalTokens": 100
+          }
+        },
+        {
+          "mappingVersion": "1",
+          "extractionJobId": "00000000-0000-4000-8000-000000000602",
+          "effectiveJobId": "00000000-0000-4000-8000-000000000602",
+          "isAlias": false,
+          "repositoryId": "00000000-0000-4000-8000-000000000302",
+          "nameWithOwner": "evirion/repository",
+          "pullRequestNumber": 129,
+          "pullRequestTitle": null,
+          "jobStatus": "DEAD_LETTER",
+          "sourceStatus": "READY",
+          "admissionDisposition": null,
+          "attempts": 3,
+          "sourceAttempts": 1,
+          "paidAuthorizationStatus": "AWAITING_OPERATIONAL_AUTHORIZATION",
+          "processingState": "FAILED",
+          "lastErrorCode": "EXTRACTION_DEAD_LETTER",
+          "sourceLastErrorCode": null,
+          "updatedAt": "2026-09-03T18:40:00.000000Z"
+        }
+      ],
+      "page": {
+        "nextCursor": "00000000-0000-4000-8000-000000000602"
+      }
+    }
+  ]
+}

@@ -1,0 +1,597 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:organization-metrics",
+  "title": "Organization alpha metrics",
+  "description": "One internally consistent metrics document at a single server-derived cutoff. The cohort is every extraction job created at or before `asOf`, with no lower bound, optionally narrowed to one repository; that is the exact window every figure below is measured over. Human review, lifecycle and machine admission are three separate blocks and are never mixed into one rate. Every rate names its denominator in the same document, and a rate whose denominator is zero is null rather than a misleading zero.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "organizationId",
+    "repositoryId",
+    "asOf",
+    "review",
+    "lifecycle",
+    "admission"
+  ],
+  "properties": {
+    "organizationId": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "core.organizations.id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "repositoryId": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "format": "uuid"
+        }
+      ],
+      "description": "Null when the document covers every repository of the organization. Otherwise the repository the cohort was narrowed to.",
+      "x-evirion-backend-projection": "api.get_organization_metrics.repository_id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "asOf": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The upper bound of the window, resolved by the server. A future cutoff is refused, so the same `asOf` reproduces the same document.",
+      "x-evirion-backend-projection": "api.get_organization_metrics.as_of",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reviewedCount",
+        "approvedWithoutEditCount",
+        "editedCount",
+        "userRejectedCount",
+        "criticalOverclaimCount",
+        "approvalWithoutEditRate",
+        "editRate",
+        "userRejectionRate",
+        "criticalOverclaimRate"
+      ],
+      "description": "Human review only. `reviewedCount` is the denominator of all four rates.",
+      "properties": {
+        "reviewedCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Knowledge Objects whose effective review decision at the cutoff is not PENDING. The denominator of every rate in this block.",
+          "x-evirion-backend-projection": "api.get_organization_metrics.reviewed_count",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "approvedWithoutEditCount": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "api.get_organization_metrics.approved_count",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "editedCount": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "api.get_organization_metrics.edited_count",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "userRejectedCount": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "api.get_organization_metrics.user_rejected_count",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "criticalOverclaimCount": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "api.get_organization_metrics.critical_count",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "approvalWithoutEditRate": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          ],
+          "description": "Null exactly when `reviewedCount` is zero. A denominator that cannot be read is not a zero rate.",
+          "x-evirion-backend-projection": "api.get_organization_metrics.approval_without_edit_rate",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "editRate": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          ],
+          "description": "Null exactly when `reviewedCount` is zero.",
+          "x-evirion-backend-projection": "api.get_organization_metrics.edit_rate",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "userRejectionRate": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          ],
+          "description": "Null exactly when `reviewedCount` is zero.",
+          "x-evirion-backend-projection": "api.get_organization_metrics.user_rejection_rate",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "criticalOverclaimRate": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          ],
+          "description": "Null exactly when `reviewedCount` is zero.",
+          "x-evirion-backend-projection": "api.get_organization_metrics.critical_overclaim_rate",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        }
+      },
+      "x-evirion-backend-projection": "api.get_organization_metrics.review",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "activeCount",
+        "supersededCount",
+        "unresolvedCount",
+        "withdrawnCount",
+        "lifecycleResolutionRate"
+      ],
+      "description": "The four effective lifecycle states are a closed partition of the cohort, so their sum is the denominator of `lifecycleResolutionRate` and is not published a second time.",
+      "properties": {
+        "activeCount": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "api.get_organization_metrics.active_count",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "supersededCount": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "api.get_organization_metrics.superseded_count",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "unresolvedCount": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "api.get_organization_metrics.unresolved_count",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "withdrawnCount": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "api.get_organization_metrics.withdrawn_count",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "lifecycleResolutionRate": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          ],
+          "description": "Resolved states over the whole cohort. Null exactly when the four counts sum to zero.",
+          "x-evirion-backend-projection": "api.get_organization_metrics.lifecycle_resolution_rate",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        }
+      },
+      "x-evirion-backend-projection": "api.get_organization_metrics.lifecycle",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "admission": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "acceptedRuns",
+        "rejectedRuns",
+        "quarantinedRuns",
+        "terminalRuns",
+        "failedJobs",
+        "pullRequestsProcessed",
+        "acceptedKnowledgeObjects",
+        "quarantineRate",
+        "evidenceValidityRate",
+        "latencyPerPullRequest",
+        "costPerPullRequest",
+        "costPerAcceptedKnowledgeObject",
+        "totalCost"
+      ],
+      "description": "Machine admission and cost only, never mixed with human review. An accepted run, a rejected run, a quarantined run and a failed job are four separate figures.",
+      "properties": {
+        "acceptedRuns": {
+          "type": "integer",
+          "minimum": 0,
+          "x-evirion-backend-projection": "api.get_organization_metrics.accepted_runs",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "rejectedRuns": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "A valid model decision, counted apart from a quarantine and from an infrastructure failure.",
+          "x-evirion-backend-projection": "api.get_organization_metrics.rejected_runs",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "quarantinedRuns": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Invalid output that never entered trusted memory, counted apart from an infrastructure failure.",
+          "x-evirion-backend-projection": "api.get_organization_metrics.quarantined_runs",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "terminalRuns": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Runs that reached a disposition. The denominator of `quarantineRate` and `evidenceValidityRate`.",
+          "x-evirion-backend-projection": "api.get_organization_metrics.terminal_runs",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "failedJobs": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Jobs that reached the dead letter at or before the cutoff. An infrastructure failure, never an admission outcome.",
+          "x-evirion-backend-projection": "api.get_organization_metrics.failed_jobs",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "pullRequestsProcessed": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Distinct pull requests in the cohort. The denominator of `costPerPullRequest`.",
+          "x-evirion-backend-projection": "api.get_organization_metrics.pull_requests_processed",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "acceptedKnowledgeObjects": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The denominator of `costPerAcceptedKnowledgeObject`.",
+          "x-evirion-backend-projection": "api.get_organization_metrics.accepted_objects",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "quarantineRate": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          ],
+          "description": "Null exactly when `terminalRuns` is zero.",
+          "x-evirion-backend-projection": "api.get_organization_metrics.quarantine_rate",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "evidenceValidityRate": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          ],
+          "description": "Null exactly when `terminalRuns` is zero.",
+          "x-evirion-backend-projection": "api.get_organization_metrics.evidence_validity_rate",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "latencyPerPullRequest": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "denominator",
+            "seconds"
+          ],
+          "description": "A figure and the denominator it was divided by, always together.",
+          "properties": {
+            "denominator": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Distinct pull requests whose latency could be measured, which is fewer than `pullRequestsProcessed` when a run or a merge instant is missing.",
+              "x-evirion-backend-projection": "api.get_organization_metrics.latency_pull_requests",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            },
+            "seconds": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "number",
+                  "minimum": 0
+                }
+              ],
+              "description": "Null exactly when `denominator` is zero.",
+              "x-evirion-backend-projection": "api.get_organization_metrics.latency_seconds",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            }
+          },
+          "x-evirion-backend-projection": "api.get_organization_metrics.latency_per_pull_request",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "costPerPullRequest": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "completeness",
+            "denominator",
+            "measuredUsd"
+          ],
+          "description": "An amount, its completeness and its denominator, always together.",
+          "properties": {
+            "completeness": {
+              "type": "string",
+              "enum": [
+                "RESERVED",
+                "MEASURED",
+                "UNRESOLVED",
+                "NOT_APPLICABLE",
+                "UNSUPPORTED_SERVER_RESPONSE"
+              ],
+              "description": "Derived from the stored accounting status of the cohort, so an unresolved cost can never be rendered as a measured zero.",
+              "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+              "x-evirion-backend-projection": "core.extraction_jobs.model_cost_accounting_status",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            },
+            "denominator": {
+              "type": "integer",
+              "minimum": 0,
+              "x-evirion-backend-projection": "api.get_organization_metrics.pull_requests_processed",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            },
+            "measuredUsd": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(0|[1-9][0-9]{0,11})\\.[0-9]{6}$"
+                }
+              ],
+              "description": "Null exactly when `denominator` is zero.",
+              "x-evirion-backend-projection": "core.extraction_jobs.model_cost_accounted_usd",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            }
+          },
+          "x-evirion-backend-projection": "api.get_organization_metrics.cost_per_pull_request",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "costPerAcceptedKnowledgeObject": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "completeness",
+            "denominator",
+            "measuredUsd"
+          ],
+          "properties": {
+            "completeness": {
+              "type": "string",
+              "enum": [
+                "RESERVED",
+                "MEASURED",
+                "UNRESOLVED",
+                "NOT_APPLICABLE",
+                "UNSUPPORTED_SERVER_RESPONSE"
+              ],
+              "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+              "x-evirion-backend-projection": "core.extraction_jobs.model_cost_accounting_status",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            },
+            "denominator": {
+              "type": "integer",
+              "minimum": 0,
+              "x-evirion-backend-projection": "api.get_organization_metrics.accepted_objects",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            },
+            "measuredUsd": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(0|[1-9][0-9]{0,11})\\.[0-9]{6}$"
+                }
+              ],
+              "description": "Null exactly when `denominator` is zero.",
+              "x-evirion-backend-projection": "core.extraction_jobs.model_cost_accounted_usd",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            }
+          },
+          "x-evirion-backend-projection": "api.get_organization_metrics.cost_per_accepted_knowledge_object",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        },
+        "totalCost": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "completeness",
+            "measuredUsd",
+            "reservedUsd",
+            "unresolvedUsd"
+          ],
+          "description": "The cohort rollup. A settlement recorded after the cutoff had not happened at it, so the job contributes its reservation rather than its later measured amount.",
+          "properties": {
+            "completeness": {
+              "type": "string",
+              "enum": [
+                "RESERVED",
+                "MEASURED",
+                "UNRESOLVED",
+                "NOT_APPLICABLE",
+                "UNSUPPORTED_SERVER_RESPONSE"
+              ],
+              "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+              "x-evirion-backend-projection": "core.extraction_jobs.model_cost_accounting_status",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            },
+            "measuredUsd": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]{0,11})\\.[0-9]{6}$",
+              "x-evirion-backend-projection": "core.extraction_jobs.model_cost_accounted_usd",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            },
+            "reservedUsd": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]{0,11})\\.[0-9]{6}$",
+              "x-evirion-backend-projection": "core.extraction_jobs.model_cost_reservation_usd",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            },
+            "unresolvedUsd": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]{0,11})\\.[0-9]{6}$",
+              "x-evirion-backend-projection": "core.extraction_jobs.model_cost_unresolved_usd",
+              "x-evirion-sensitivity": "customer-safe-summary"
+            }
+          },
+          "x-evirion-backend-projection": "api.get_organization_metrics.total_cost",
+          "x-evirion-sensitivity": "customer-safe-summary"
+        }
+      },
+      "x-evirion-backend-projection": "api.get_organization_metrics.admission",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    }
+  },
+  "examples": [
+    {
+      "organizationId": "00000000-0000-4000-8000-000000000102",
+      "repositoryId": null,
+      "asOf": "2026-09-03T21:06:47.928931Z",
+      "review": {
+        "reviewedCount": 0,
+        "approvedWithoutEditCount": 0,
+        "editedCount": 0,
+        "userRejectedCount": 0,
+        "criticalOverclaimCount": 0,
+        "approvalWithoutEditRate": null,
+        "editRate": null,
+        "userRejectionRate": null,
+        "criticalOverclaimRate": null
+      },
+      "lifecycle": {
+        "activeCount": 0,
+        "supersededCount": 0,
+        "unresolvedCount": 1,
+        "withdrawnCount": 0,
+        "lifecycleResolutionRate": 0
+      },
+      "admission": {
+        "acceptedRuns": 1,
+        "rejectedRuns": 1,
+        "quarantinedRuns": 1,
+        "terminalRuns": 3,
+        "failedJobs": 1,
+        "pullRequestsProcessed": 3,
+        "acceptedKnowledgeObjects": 1,
+        "quarantineRate": 0.333333,
+        "evidenceValidityRate": 0.666667,
+        "latencyPerPullRequest": {
+          "denominator": 3,
+          "seconds": 0.006
+        },
+        "costPerPullRequest": {
+          "completeness": "MEASURED",
+          "denominator": 3,
+          "measuredUsd": "0.150000"
+        },
+        "costPerAcceptedKnowledgeObject": {
+          "completeness": "MEASURED",
+          "denominator": 1,
+          "measuredUsd": "0.450000"
+        },
+        "totalCost": {
+          "completeness": "MEASURED",
+          "measuredUsd": "0.450000",
+          "reservedUsd": "0.000000",
+          "unresolvedUsd": "0.000000"
+        }
+      }
+    },
+    {
+      "organizationId": "00000000-0000-4000-8000-000000000102",
+      "repositoryId": "00000000-0000-4000-8000-000000000302",
+      "asOf": "2026-09-03T21:06:47.928931Z",
+      "review": {
+        "reviewedCount": 0,
+        "approvedWithoutEditCount": 0,
+        "editedCount": 0,
+        "userRejectedCount": 0,
+        "criticalOverclaimCount": 0,
+        "approvalWithoutEditRate": null,
+        "editRate": null,
+        "userRejectionRate": null,
+        "criticalOverclaimRate": null
+      },
+      "lifecycle": {
+        "activeCount": 0,
+        "supersededCount": 0,
+        "unresolvedCount": 0,
+        "withdrawnCount": 0,
+        "lifecycleResolutionRate": null
+      },
+      "admission": {
+        "acceptedRuns": 0,
+        "rejectedRuns": 0,
+        "quarantinedRuns": 0,
+        "terminalRuns": 0,
+        "failedJobs": 0,
+        "pullRequestsProcessed": 0,
+        "acceptedKnowledgeObjects": 0,
+        "quarantineRate": null,
+        "evidenceValidityRate": null,
+        "latencyPerPullRequest": {
+          "denominator": 0,
+          "seconds": null
+        },
+        "costPerPullRequest": {
+          "completeness": "NOT_APPLICABLE",
+          "denominator": 0,
+          "measuredUsd": null
+        },
+        "costPerAcceptedKnowledgeObject": {
+          "completeness": "NOT_APPLICABLE",
+          "denominator": 0,
+          "measuredUsd": null
+        },
+        "totalCost": {
+          "completeness": "NOT_APPLICABLE",
+          "measuredUsd": "0.000000",
+          "reservedUsd": "0.000000",
+          "unresolvedUsd": "0.000000"
+        }
+      }
+    }
+  ]
+}

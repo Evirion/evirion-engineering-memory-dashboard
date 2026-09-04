@@ -44,9 +44,15 @@ recorded two contract gaps that blocked work EEM-9/06 owns. Both are closed:
 EEM-9/04 is merged as PR
 [#9](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/9).
 
-`EEM-9/03e-console-contract-revision` is implemented and locally verified on its
-branch, not merged, with no pull request. Its trace is
+`EEM-9/03e-console-contract-revision` is merged as PR
+[#10](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/10).
+Its trace is
 [`eem-9-03e-acceptance-trace.md`](eem-9-03e-acceptance-trace.md).
+
+`EEM-9/03g-console-contract-revision` is implemented and locally verified on
+branch `EEM-9/03g-console-contract-revision`, not merged, with no pull request.
+Its trace is
+[`eem-9-03g-acceptance-trace.md`](eem-9-03g-acceptance-trace.md).
 
 The EEM-9/03 request below names "the attestation-verified EEM-6 contract lock".
 No such artifact exists and none is required: the single
@@ -111,6 +117,21 @@ call a provider, or run any paid operation. Verify the Dashboard authority
 pointer from the backend sibling first and report the value you observe. Consume
 only published, attestation-verified release assets; never source bytes from
 backend main.`
+
+### EEM-9/03g — Console contract revision
+
+Not in the accepted plan, which was frozen before the EEM-8/10 read payloads,
+EEM-4/05 reauthentication ceremony, or EEM-8/11 conflict detail existed. Its
+scope is fixed by [`ROADMAP.md`](../../ROADMAP.md), "The next Dashboard contract
+consumption is one subtask, not two".
+
+`Start EEM-9/03g-console-contract-revision in
+evirion-engineering-memory-dashboard on a branch named
+EEM-9/03g-console-contract-revision, started from updated main. Work only on
+this subtask. Consuming a contract is one subtask, not two, as the catalog
+records for EEM-9/03e. Do not deploy, call a provider, run any paid operation,
+or touch hosted Supabase. Consume only published, attestation-verified release
+assets; never source bytes from backend main.`
 
 ### EEM-9/04 — Import operations
 
