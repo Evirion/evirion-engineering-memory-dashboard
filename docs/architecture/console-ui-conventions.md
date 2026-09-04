@@ -87,7 +87,7 @@ actually resolves.
 | `/memory` | /05 | Organization-wide memory queue, filters, pagination |
 | `/memory/:knowledgeObjectId` | /05 | Knowledge detail, evidence, review history and actions, lifecycle, supersession, correction-request status |
 | `/repositories/:repositoryId/pull-requests/:prNumber` | /06 | Pull request detail |
-| `/processing` | /06 | Processing activity list and detail, the sole generic `PROC-002` Retry, Resume and Support call to action |
+| `/processing` | /06 | Processing activity list and detail. Read-only: amended `PROC-002` gives it no recovery call to action |
 | `/settings/members` | /06 | Members, invitations, capability surfaces |
 | `/settings/github` | /06 | GitHub installation status and freshness, offboarding request and status |
 | `/settings/usage` | /06 | Usage, distinct cost states, consistent-cutoff metrics |
@@ -243,7 +243,9 @@ customer something to do:
   infrastructure failures, and never render as Knowledge Objects.
 - **No generic Retry control.** Import recovery exists only where the EEM-7
   import projection declares it. Response-loss replay reuses the exact
-  idempotency key and body. The generic `PROC-002` Retry belongs to /06.
+  idempotency key and body. No generic Retry exists anywhere: amended
+  `PROC-002` makes `/processing` read-only, so this page carries the Console's
+  only recovery controls.
 - Polling is bounded and stops on a terminal state or when the page is inactive.
   Meta refresh cannot do any of that, so this is the one place a product client
   component is warranted; architecture Section 21.1 permits it.
@@ -336,9 +338,12 @@ rather than inferred from an amount:
   attributed to the execution's first terminal period, so a later `asOf` updates
   that original period's figure. The UI shows the `asOf` it rendered, because
   two figures taken at different cutoffs are not comparable.
-- `/processing` carries the **sole** generic `PROC-002` Retry, Resume and Support
-  call to action in the whole Console. Retryability comes from the backend
-  projection and is never derived in the client.
+- `/processing` is **read-only**. Amended `PROC-002` removed the generic Retry,
+  Resume and Support call to action this section used to assign here, because
+  no operation retries or resumes a live extraction job and the projection
+  publishes no action. Show the stable error and the correlation ID. A support
+  direction is static copy; it never renders as a backend capability. See
+  [ADR-0006](../decisions/0006-no-customer-retry-of-a-live-extraction.md).
 - Member and offboarding controls render only backend capabilities and states.
   No customer route executes operator offboarding or paid authorization.
 - **TODO, product**: whether `/repositories/:repositoryId` shows repository
@@ -374,10 +379,10 @@ These are absolute. Each one is a Definition-of-Done row somewhere in /02–/06.
 The plan assigns these deliberately. Reproducing a pattern across tasks breaks
 them.
 
-- The generic processing-job `PROC-002` Retry, Resume and Support call to action
-  belongs to **/06 only**. `/04` must not render it; `/04` recovery exists only
-  when the EEM-7 import projection declares it, and response-loss replay reuses
-  the exact command receipt.
+- Recovery belongs to **/04 only**, and only where the EEM-7 import projection
+  declares it; response-loss replay reuses the exact command receipt. The
+  generic processing-job `PROC-002` Retry, Resume and Support call to action
+  this document used to assign to /06 no longer exists in any task.
 - Member, settings and offboarding surfaces belong to **/06**, not /03.
   `/settings/sessions` is the exception: it is the principal's own session
   inventory, owned by /02, and it exposes no member roster.
@@ -537,9 +542,9 @@ receipt and is a success, not an error.** Only a same-key different-payload
 request is a conflict. The UI must not show an error for the first case.
 
 **A retry control appears only when the backend projection declares the work
-retryable.** The UI never derives retryability. The generic processing-job
-`PROC-002` Retry, Resume and Support call to action exists on `/processing`
-only, owned by EEM-9/06; `/04` must not render it.
+retryable.** The UI never derives retryability. Exactly one projection declares
+it — the import `recoveryAction` on `/04` — so that is the Console's only retry.
+`/processing` publishes no action and renders none.
 
 ## Implementation
 

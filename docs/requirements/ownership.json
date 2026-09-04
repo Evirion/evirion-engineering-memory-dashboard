@@ -388,8 +388,8 @@
     "primaryOwner": "B09"
   },
   "PROC-002": {
-    "primaryEvidence": "test_console_customer_operations_live.py::test_retry_uses_backend_capability_and_checkpoint",
-    "primaryOwner": "B06A"
+    "primaryEvidence": "tests/e2e/processing-settings.spec.ts::processing_detail_offers_no_recovery_action",
+    "primaryOwner": "C06"
   },
   "PROC-003": {
     "primaryEvidence": "test_console_read_api_live.py::test_validation_issues_are_bounded_and_role_scoped",

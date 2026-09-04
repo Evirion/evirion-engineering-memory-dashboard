@@ -2503,6 +2503,13 @@ completeness plus backend-derived
 AWAITING_CUSTOMER_CONSENT | AWAITING_OPERATIONAL_AUTHORIZATION | AUTHORIZED |
 EXPIRED | REVOKED`.
 
+**Amended 2026-09-04.** EEM-7/03 merged without `api.retry_console_processing`
+and without any action capability on the processing surface. Only the two
+import operations were built, and `PROC-002` is amended to match rather than
+served; see
+[ADR-0006](../decisions/0006-no-customer-retry-of-a-live-extraction.md).
+The retry rows below therefore describe import retry only.
+
 **Contract packet before code:**
 
 - customer import/retry state transitions;
@@ -2521,9 +2528,10 @@ stale version and disable before approval.
 
 - [ ] **Step 2: Write RED retry tests**
 
-Backend supplies `NONE | RETRY | RESUME | CONTACT_SUPPORT`; direct request
-cannot override it. Cover checkpoint reuse, stale generation, non-retryable
+Backend supplies the import `recoveryAction`; direct request cannot override
+it. Cover checkpoint reuse, stale generation, non-retryable
 contract/entitlement error, duplicate command and no direct provider call.
+There is no live-extraction retry to test.
 
 - [ ] **Step 3: Implement guarded API/RPCs**
 
@@ -2600,8 +2608,8 @@ approve, conflict, direct `reextract` injection, progress, cost completeness
 and terminal outcome. Include missing/expired/revoked operational
 authorization, no customer Retry/Authorize CTA and recovery after fresh
 operator authorization. Import-specific response-loss replay reuses the exact
-command receipt; C04 does not own the generic processing-job `PROC-002` Retry
-CTA.
+command receipt. No generic processing-job call to action exists in any task;
+amended `PROC-002` makes the processing surface read-only.
 
 - [ ] **Step 3: Implement range form**
 
@@ -3093,11 +3101,12 @@ execute/reject controls.
 
 - [ ] **Step 2: Implement Processing Activity**
 
-Separate rejected admission, quarantine and infrastructure failure. Retry
-button only from backend `NONE | RETRY | RESUME | CONTACT_SUPPORT`
-capability. Show cost amount plus completeness, never unresolved as zero.
-This is the sole Console owner of the generic processing-job `PROC-002` CTA;
-C04 remains limited to import-run/item response-loss recovery.
+Separate rejected admission, quarantine and infrastructure failure. Show cost
+amount plus completeness, never unresolved as zero.
+Render no retry, resume or replay control: amended `PROC-002` makes this
+surface read-only, and a support direction is static copy rather than a
+rendered backend capability. C04 remains the only recovery surface, limited to
+import-run/item response-loss recovery.
 Operational authorization missing/expired/revoked is a waiting state, not
 extracting, infrastructure failure or customer-retryable work.
 
@@ -3678,6 +3687,13 @@ test must expose one named parameter/case per ordinal. P01 only materializes
 this existing mapping in YAML and verifies zero missing/duplicate owner rows;
 it does not defer or choose ownership.
 
+**Amended 2026-09-04.** `PROC-002` moved from `B06A` to `C06`. It had named
+`test_console_customer_operations_live.py::test_retry_uses_backend_capability_and_checkpoint`,
+a backend test that was never written for a capability the backend does not
+publish. Amended `PROC-002` asserts an absence on a Console surface, so its
+evidence is a Console test; see
+[ADR-0006](../decisions/0006-no-customer-retry-of-a-live-extraction.md).
+
 | ID | Primary PR | Primary executable evidence | Secondary UI/release evidence |
 |---|---|---|---|
 | `AUTH-001` | B02 | `test_console_membership_live.py::test_unknown_user_cannot_signup_without_invitation` | B01A hosted-signup guard; `tests/e2e/auth.spec.ts::invite_only_sign_in` |
@@ -3726,7 +3742,7 @@ it does not defer or choose ownership.
 | `LIFE-005` | B08 | `test_knowledge_lifecycle_live.py::test_operator_correction_is_append_only_and_atomic` | `memory-review.spec.ts::correction_history` |
 | `PR-001` | B09 | `test_console_read_api_live.py::test_pr_detail_separates_admission_and_knowledge` | `processing.spec.ts::pull_request_detail` |
 | `PROC-001` | B09 | `test_console_read_api_live.py::test_processing_outcomes_and_cost_status_are_distinct` | `processing.spec.ts::activity_states` |
-| `PROC-002` | B06A | `test_console_customer_operations_live.py::test_retry_uses_backend_capability_and_checkpoint` | `processing.spec.ts::retry_capability` |
+| `PROC-002` | C06 | `tests/e2e/processing-settings.spec.ts::processing_detail_offers_no_recovery_action` | Contract test that no processing action or capability field is published |
 | `PROC-003` | B09 | `test_console_read_api_live.py::test_validation_issues_are_bounded_and_role_scoped` | `processing.spec.ts::safe_validation_issues` |
 | `SET-001` | B02 | `test_console_membership_live.py::test_member_management_and_owner_guard` | `settings.spec.ts::members` |
 | `SET-002` | B09 | `test_console_read_api_live.py::test_github_settings_counts_and_freshness` | B04 lifecycle projection; `settings.spec.ts::github` |

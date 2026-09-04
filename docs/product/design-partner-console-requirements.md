@@ -1856,17 +1856,33 @@ Acceptance:
   `Waiting for Evirion authorization`, not extracting/failed/retryable;
 - pagination and tenant filters enforced.
 
-#### PROC-002 — Retry capability
+#### PROC-002 — No customer retry of a live extraction
 
-Retry action видна только если backend response explicitly declares retry
-capability.
+**Amended 2026-09-04**; see
+[ADR-0006](../decisions/0006-no-customer-retry-of-a-live-extraction.md). This
+requirement previously read "Retry capability" and required the Console to
+render a retry action whenever a backend response declared one. No operation
+retries or resumes a live extraction job, and Alpha builds none.
+
+The processing surface is read-only. Failure detail shows the stable
+payload-free error code as user-safe copy, and the interface may direct the
+customer to support as static Console copy. It never presents retry, resume or
+support as a backend-declared capability, because no such capability is
+published.
+
+Historical import recovery is a different surface and is unaffected. It stays
+served by the eight-value `recoveryAction` the import projection publishes,
+which `BF-002` covers.
 
 Acceptance:
 
-- frontend never classifies retryability itself;
-- checkpointed job does not make second provider call;
-- non-retryable entitlement/contract errors have no Retry CTA;
-- operation idempotent and audited;
+- the processing surface offers no retry, resume or replay control;
+- frontend never classifies retryability itself, and never derives an action
+  from a processing or paid-authorization state;
+- failure detail carries the stable error code and a correlation ID for
+  support;
+- a support direction is static Console copy, never a rendered backend
+  capability;
 - Alpha excludes unrestricted replay/DLQ controls.
 
 #### PROC-003 — Validation issues
@@ -2232,7 +2248,7 @@ Main flow:
 2. Filters repository/PR/status.
 3. Opens row.
 4. Console shows job/run/admission summary and bounded error/validation data.
-5. Retry action appears only when backend advertises it.
+5. No action appears. The surface is read-only, per amended `PROC-002`.
 
 Postconditions:
 
@@ -2266,17 +2282,33 @@ Failure/recovery:
 No entitlement or provenance is deleted. Reconnect does not auto-replay
 ignored events.
 
-### J-010 — Recover paused/failed import or processing
+### J-010 — Recover a paused or failed import, and observe a failed extraction
 
-1. User opens failure detail.
-2. Backend projection supplies stable error and explicit capability:
-   `NONE | RETRY | RESUME | CONTACT_SUPPORT`.
+Amended 2026-09-04 under ADR-0006. These are two journeys sharing one failure
+detail, and only the first has a customer action. The capability
+`NONE | RETRY | RESUME | CONTACT_SUPPORT` this journey previously named is
+published on neither surface.
+
+Historical import:
+
+1. User opens the import failure detail.
+2. The backend import projection supplies the stable error and one explicit
+   `recoveryAction` out of `AWAIT_DISCOVERY`, `APPROVE_IMPORT`,
+   `GRANT_CUSTOMER_CONSENT`, `AWAIT_EVIRION_AUTHORIZATION`,
+   `PAUSE_IMPORT_TO_RETRY`, `RETRY_JOB`, `CONTACT_SUPPORT` and `NONE`.
 3. UI exposes only that action.
-4. Retry/resume uses durable idempotency receipt and current
+4. Retry uses durable idempotency receipt and current
    entitlement/policy/approval checks.
 5. Checkpoint reuse occurs before any new provider authorization.
 
-Unknown/unsafe state has no retry CTA.
+Live extraction:
+
+1. User opens the processing failure detail.
+2. The projection supplies the stable error and no action.
+3. UI offers none, and may state as static copy that Evirion operates the
+   pipeline and that retries are operational.
+
+Unknown/unsafe state has no retry CTA on either surface.
 
 ### J-011 — Offboard a design partner
 

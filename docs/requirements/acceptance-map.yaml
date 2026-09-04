@@ -2520,40 +2520,40 @@
     {
       "case": "PROC-002.A1",
       "id": "PROC-002.A1",
-      "primaryEvidence": "test_console_customer_operations_live.py::test_retry_uses_backend_capability_and_checkpoint",
-      "primaryOwner": "B06A",
+      "primaryEvidence": "tests/e2e/processing-settings.spec.ts::processing_detail_offers_no_recovery_action",
+      "primaryOwner": "C06",
       "requirementId": "PROC-002",
-      "text": "frontend never classifies retryability itself;"
+      "text": "the processing surface offers no retry, resume or replay control;"
     },
     {
       "case": "PROC-002.A2",
       "id": "PROC-002.A2",
-      "primaryEvidence": "test_console_customer_operations_live.py::test_retry_uses_backend_capability_and_checkpoint",
-      "primaryOwner": "B06A",
+      "primaryEvidence": "tests/e2e/processing-settings.spec.ts::processing_detail_offers_no_recovery_action",
+      "primaryOwner": "C06",
       "requirementId": "PROC-002",
-      "text": "checkpointed job does not make second provider call;"
+      "text": "frontend never classifies retryability itself, and never derives an action from a processing or paid-authorization state;"
     },
     {
       "case": "PROC-002.A3",
       "id": "PROC-002.A3",
-      "primaryEvidence": "test_console_customer_operations_live.py::test_retry_uses_backend_capability_and_checkpoint",
-      "primaryOwner": "B06A",
+      "primaryEvidence": "tests/e2e/processing-settings.spec.ts::processing_detail_offers_no_recovery_action",
+      "primaryOwner": "C06",
       "requirementId": "PROC-002",
-      "text": "non-retryable entitlement/contract errors have no Retry CTA;"
+      "text": "failure detail carries the stable error code and a correlation ID for support;"
     },
     {
       "case": "PROC-002.A4",
       "id": "PROC-002.A4",
-      "primaryEvidence": "test_console_customer_operations_live.py::test_retry_uses_backend_capability_and_checkpoint",
-      "primaryOwner": "B06A",
+      "primaryEvidence": "tests/e2e/processing-settings.spec.ts::processing_detail_offers_no_recovery_action",
+      "primaryOwner": "C06",
       "requirementId": "PROC-002",
-      "text": "operation idempotent and audited;"
+      "text": "a support direction is static Console copy, never a rendered backend capability;"
     },
     {
       "case": "PROC-002.A5",
       "id": "PROC-002.A5",
-      "primaryEvidence": "test_console_customer_operations_live.py::test_retry_uses_backend_capability_and_checkpoint",
-      "primaryOwner": "B06A",
+      "primaryEvidence": "tests/e2e/processing-settings.spec.ts::processing_detail_offers_no_recovery_action",
+      "primaryOwner": "C06",
       "requirementId": "PROC-002",
       "text": "Alpha excludes unrestricted replay/DLQ controls."
     },
@@ -2899,7 +2899,7 @@
       "primaryEvidence": "tests/e2e/processing-settings.spec.ts::journey_investigate_processing_outcome",
       "primaryOwner": "C06",
       "requirementId": "J-007",
-      "text": "Preconditions:  - member has processing-view capability.  Main flow:  1. User opens Processing Activity. 2. Filters repository/PR/status. 3. Opens row. 4. Console shows job/run/admission summary and bounded error/validation data. 5. Retry action appears only when backend advertises it.  Postconditions:  - view has no processing side effect; - raw source/model payload remains protected."
+      "text": "Preconditions:  - member has processing-view capability.  Main flow:  1. User opens Processing Activity. 2. Filters repository/PR/status. 3. Opens row. 4. Console shows job/run/admission summary and bounded error/validation data. 5. No action appears. The surface is read-only, per amended `PROC-002`.  Postconditions:  - view has no processing side effect; - raw source/model payload remains protected."
     },
     {
       "case": "J-008.A1",
@@ -2923,7 +2923,7 @@
       "primaryEvidence": "tests/e2e/processing-settings.spec.ts::journey_recover_failed_or_paused_work",
       "primaryOwner": "C06",
       "requirementId": "J-010",
-      "text": "1. User opens failure detail. 2. Backend projection supplies stable error and explicit capability: `NONE | RETRY | RESUME | CONTACT_SUPPORT`. 3. UI exposes only that action. 4. Retry/resume uses durable idempotency receipt and current entitlement/policy/approval checks. 5. Checkpoint reuse occurs before any new provider authorization.  Unknown/unsafe state has no retry CTA."
+      "text": "Amended 2026-09-04 under ADR-0006. These are two journeys sharing one failure detail, and only the first has a customer action. The capability `NONE | RETRY | RESUME | CONTACT_SUPPORT` this journey previously named is published on neither surface.  Historical import:  1. User opens the import failure detail. 2. The backend import projection supplies the stable error and one explicit `recoveryAction` out of `AWAIT_DISCOVERY`, `APPROVE_IMPORT`, `GRANT_CUSTOMER_CONSENT`, `AWAIT_EVIRION_AUTHORIZATION`, `PAUSE_IMPORT_TO_RETRY`, `RETRY_JOB`, `CONTACT_SUPPORT` and `NONE`. 3. UI exposes only that action. 4. Retry uses durable idempotency receipt and current entitlement/policy/approval checks. 5. Checkpoint reuse occurs before any new provider authorization.  Live extraction:  1. User opens the processing failure detail. 2. The projection supplies the stable error and no action. 3. UI offers none, and may state as static copy that Evirion operates the pipeline and that retries are operational.  Unknown/unsafe state has no retry CTA on either surface."
     },
     {
       "case": "J-011.A1",
@@ -3144,5 +3144,5 @@
   ],
   "schemaVersion": "1.0",
   "source": "docs/product/design-partner-console-requirements.md",
-  "sourceSha256": "7c4e224c39faa7f59b739c994b7acf15e0f37a8d6c39d40d8038c96f1e9a8a9d"
+  "sourceSha256": "579fdbf47cfdf1632b096135e91923fd66d0b21e9226bc0dde620a4f4adfec4a"
 }

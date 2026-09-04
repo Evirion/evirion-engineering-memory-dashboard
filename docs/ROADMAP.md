@@ -1,6 +1,6 @@
 # Dashboard roadmap
 
-Updated: 2026-09-03
+Updated: 2026-09-04
 
 The accepted Console program is delivered as sequential numbered PRs in each
 repository. Every branch starts from updated `main`; branches are not stacked.
@@ -58,12 +58,17 @@ the [controlling EEM-9 plan](plans/active/eem-9-design-partner-console-dashboard
     [#13](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/13)
     at `875b446`. It consumes `console-contract-v1.0.2`, which carries the
     knowledge read and receipt contract, and closes the third gap below.
-11. `EEM-9/05-memory-review-lifecycle` is implemented and locally verified on its
-    branch. It delivers the review queue, knowledge detail and evidence, the four
-    review decisions, the append-only history, activation, supersession and
-    correction requests across the three frozen memory routes. Its trace is
+11. `EEM-9/05-memory-review-lifecycle` is merged as PR
+    [#15](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/15)
+    at `e037a76`. It delivers the review queue, knowledge detail and evidence,
+    the four review decisions, the append-only history, activation,
+    supersession and correction requests across the three frozen memory routes.
+    Its trace is
     [`eem-9-05-acceptance-trace.md`](plans/active/eem-9-05-acceptance-trace.md).
     It consumes no new contract bytes.
+12. `docs/amend-proc-002` amends `PROC-002` and is implemented and locally
+    verified on its branch. It is documentation only and unblocks `EEM-9/06`;
+    see [the amendment below](#proc-002-is-amended-rather-than-served).
 
 All EEM-4 subtasks are merged in the backend as PRs
 [#26](https://github.com/Evirion/evirion-engineering-memory/pull/26)–[#29](https://github.com/Evirion/evirion-engineering-memory/pull/29),
@@ -83,8 +88,7 @@ exists.
 2. `EEM-9/02-auth-shell` while EEM-6 proceeds.
 3. `EEM-9/03-repository-control` after EEM-6, while EEM-7 proceeds.
 4. `EEM-9/04-import-operations` after EEM-7, while EEM-8 proceeds.
-5. `EEM-9/05-memory-review-lifecycle` after EEM-8. Implemented and locally
-   verified; not merged.
+5. `EEM-9/05-memory-review-lifecycle` after EEM-8. Merged.
 6. `EEM-9/06-processing-settings-metrics`.
 7. Paired `EEM-9/07-free-integration`.
 8. Separately approved `EEM-9/08-paid-certification`.
@@ -100,6 +104,39 @@ The two contract gaps found during `EEM-9/03` are closed. Backend issues
 `repository-overview.json` and `organization-model-profiles.json` in
 `console-contract-v1.0.1`, and `EEM-9/03e` consumes both. `EEM-9/06` no longer
 inherits either gap.
+
+## PROC-002 is amended rather than served
+
+Owner decision of 2026-09-04, recorded in
+[ADR-0006](decisions/0006-no-customer-retry-of-a-live-extraction.md) and
+closing issue
+[#17](https://github.com/Evirion/evirion-engineering-memory-dashboard/issues/17).
+
+`PROC-002` required the Console to render a retry action whenever a backend
+response declared the capability `NONE | RETRY | RESUME | CONTACT_SUPPORT`. No
+operation retries or resumes a live extraction job. The contract publishes
+exactly two retry or resume operations, `setRepositoryImportState` and
+`retryRepositoryImportJob`, and both are scoped to historical imports;
+`listProcessingActivity` projects no action at all. Two of the four values
+therefore named operations that do not exist.
+
+Building the capability is paid-path work nobody has scheduled, and the
+requirement's own points 4 and 5 price it: durable idempotency receipts,
+current entitlement, policy and approval checks, and checkpoint reuse before
+any new provider authorization. So the requirement is amended. The processing
+surface stays read-only, failure detail shows the stable error, and a support
+direction is static Console copy rather than a backend-declared capability.
+
+The eight-value `recoveryAction` on the historical-import surface is
+unaffected. Import recovery is real, it is served, and `EEM-9/04` renders it.
+
+`PROC-002` also named a backend test that was never written, under owner
+`B06A`. That row now names Console evidence under `C06`, because after the
+amendment the requirement asserts an absence on a Console surface.
+
+`EEM-9/06` is unblocked and inherits no unserveable requirement. Two
+backend-source documents still carry the superseded assignment and are named in
+the ADR; amending them belongs to the backend.
 
 ## Two contract limits raised by EEM-9/05
 
