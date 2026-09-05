@@ -4,7 +4,7 @@
   "files": [
     {
       "path": "contracts/console/v1/openapi.yaml",
-      "sha256": "f406d7fdcf6a1e0e5f635e03066498bad57acd4fe9484490ab15464101c11497"
+      "sha256": "b2ef52358bfdec765d0b7273e94c5a277d5c44b3c04fbe729762d9f4cb70bbf6"
     },
     {
       "path": "contracts/console/v1/schemas/command-receipt.json",
@@ -29,6 +29,10 @@
     {
       "path": "contracts/console/v1/schemas/github-sync-run.json",
       "sha256": "138fe30fd963e3e7fe4e93e209d3a538caf4e064e491fc84949ef81c6dd5a98a"
+    },
+    {
+      "path": "contracts/console/v1/schemas/invitation-receipt.json",
+      "sha256": "f4ee3b3762b8856c4173171c563b0b88bc839c319956085f164430d06b0a9cd9"
     },
     {
       "path": "contracts/console/v1/schemas/invitation.json",
@@ -83,12 +87,28 @@
       "sha256": "e5dfdb5e5a9932270ca5fae0a80e58be849a78a361a517316fc9890656376c8a"
     },
     {
+      "path": "contracts/console/v1/schemas/membership-receipt.json",
+      "sha256": "9549d34f8358cf6af3af4247956e5ff509d78911c78cf08dfee304adb461c836"
+    },
+    {
+      "path": "contracts/console/v1/schemas/offboarding-receipt.json",
+      "sha256": "d4fdffcac2cb5a0a95b8709ae51885cce612ed029cb4ebf34cbae43b7d841d80"
+    },
+    {
+      "path": "contracts/console/v1/schemas/organization-invitations.json",
+      "sha256": "dd205ff3ebd36e91bf47972f55996e703b3c58ae00bdd94ae4678c22d10c4be4"
+    },
+    {
       "path": "contracts/console/v1/schemas/organization-metrics.json",
       "sha256": "8588b866a645c6f33da5204481d6c5fcb7949aa57a8712538895c745ab54baef"
     },
     {
       "path": "contracts/console/v1/schemas/organization-model-profiles.json",
       "sha256": "51fe3aed6f61323736a32f92c09a69e715133a701f3f4ec052fb01512668e041"
+    },
+    {
+      "path": "contracts/console/v1/schemas/organization-offboarding-status.json",
+      "sha256": "8aa150deda266d8d89c220340c69c271daf4170913ea5857b417ff925fa44e7e"
     },
     {
       "path": "contracts/console/v1/schemas/organization-offboarding.json",
@@ -104,7 +124,7 @@
     },
     {
       "path": "contracts/console/v1/schemas/processing-page.json",
-      "sha256": "e9a3baa4dda9b67c4faf74b788fe03dce0cc7f3fcb4c1a199fe782f60a0902d6"
+      "sha256": "4c236758151e570cd133ae687c431a9552429c275096ffcd6b78e22421ab12db"
     },
     {
       "path": "contracts/console/v1/schemas/pull-request-detail.json",
@@ -163,6 +183,6 @@
       "sha256": "94a0b134a959a3ae220150f25fb7ec98f71da1a7a9fa2e7be30295625ca7018f"
     }
   ],
-  "packageSha256": "939a3bd136bb044ca10737ce9a4d25ad36e4feca4588e3d36b1debc92549ac8e",
+  "packageSha256": "72ce0da16e89f7272a5c0ca2bc8d6e1d877e0c3b9ae5f3c039ccb59b298969d7",
   "schemaVersion": "1.0"
 }

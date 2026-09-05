@@ -37,6 +37,16 @@ const resolveMutationHandler = async (
       return (await import("@/app/api/memory/supersede/route")).POST
     case "/api/memory/corrections":
       return (await import("@/app/api/memory/corrections/route")).POST
+    case "/api/settings/invitations/create":
+      return (await import("@/app/api/settings/invitations/create/route")).POST
+    case "/api/settings/invitations/resend":
+      return (await import("@/app/api/settings/invitations/resend/route")).POST
+    case "/api/settings/invitations/revoke":
+      return (await import("@/app/api/settings/invitations/revoke/route")).POST
+    case "/api/settings/members/update":
+      return (await import("@/app/api/settings/members/update/route")).POST
+    case "/api/settings/offboarding/request":
+      return (await import("@/app/api/settings/offboarding/request/route")).POST
     default:
       return undefined
   }

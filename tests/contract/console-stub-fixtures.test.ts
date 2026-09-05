@@ -4,25 +4,43 @@ import type { RepositoryImport } from "@contracts/console"
 import {
   isConsoleError,
   isGithubInstallation,
+  isGithubSettingsSummary,
   isKnowledgeCorrections,
   isKnowledgeEvidence,
   isKnowledgeReview,
+  isMember,
+  isOrganizationInvitations,
+  isOrganizationMetrics,
+  isOrganizationOffboardingStatus,
+  isOrganizationUsage,
+  isProcessingPage,
+  isPullRequestDetail,
   isRepository,
   isRepositoryImport,
   isRepositoryImportFailures,
   isRepositoryOverview,
   isRepositoryPage,
   isSessionReauthenticationReceipt,
+  isValidationIssues,
 } from "@contracts/console"
 
 import {
   CAPABILITIES,
+  GITHUB_SETTINGS_SUMMARY,
   IMPORT_FAILURES,
   IMPORT_RUNS,
   KNOWLEDGE,
   KNOWLEDGE_OBJECTS,
+  ORGANIZATION_INVITATIONS,
+  ORGANIZATION_MEMBERS,
+  ORGANIZATION_METRICS,
+  ORGANIZATION_USAGE,
   OVERVIEWS,
+  PROCESSING_PAGE,
+  PROCESSING_PAGE_VIEWER,
+  PULL_REQUEST_DETAIL,
   SCENARIOS,
+  VALIDATION_ISSUES,
   type StubScenario,
 } from "../../tools/console-stub/fixtures.mjs"
 
@@ -567,5 +585,31 @@ describe("the Console API double serves contract-shaped bytes", () => {
       true,
     )
     expect(SCENARIOS.memoryStaleFreshness().reauthenticationFreshUntil).toBeNull()
+  })
+
+  it("validates processing and settings fixtures with the runtime schema", () => {
+    expect(isProcessingPage(PROCESSING_PAGE())).toBe(true)
+    expect(isProcessingPage(PROCESSING_PAGE_VIEWER())).toBe(true)
+    expect(isGithubSettingsSummary(GITHUB_SETTINGS_SUMMARY())).toBe(true)
+    for (const member of ORGANIZATION_MEMBERS()) {
+      expect(isMember(member), member.id).toBe(true)
+    }
+    expect(isOrganizationInvitations(ORGANIZATION_INVITATIONS())).toBe(true)
+    expect(
+      isOrganizationOffboardingStatus({
+        organizationId: "00000000-0000-4000-8000-0000000000a1",
+        offboarding: null,
+      }),
+    ).toBe(true)
+    expect(isOrganizationUsage(ORGANIZATION_USAGE())).toBe(true)
+    expect(isOrganizationMetrics(ORGANIZATION_METRICS())).toBe(true)
+    expect(isPullRequestDetail(PULL_REQUEST_DETAIL())).toBe(true)
+    expect(isValidationIssues(VALIDATION_ISSUES())).toBe(true)
+  })
+
+  it("never projects recoveryAction on processing rows", () => {
+    for (const row of PROCESSING_PAGE().items) {
+      expect("recoveryAction" in row).toBe(false)
+    }
   })
 })

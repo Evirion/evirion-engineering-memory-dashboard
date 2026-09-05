@@ -52,8 +52,8 @@ describe("navigation reflects capabilities and never grants them", () => {
         "knowledge.read",
         "processing.read",
         "organization.members.manage",
-        "github.manage",
-        "usage.read",
+        "organization.github.manage",
+        "organization.usage.read",
       ],
     })
 

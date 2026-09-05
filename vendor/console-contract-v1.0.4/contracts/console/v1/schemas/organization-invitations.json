@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:organization-invitations",
+  "title": "Organization pending invitations",
+  "description": "Live pending invitation generations for one organization. The list is keyed by invitation id and email so resend and revoke can bind expectedVersion without guessing from membership rows.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "invitationId",
+      "email",
+      "role",
+      "state",
+      "generation",
+      "version",
+      "expiresAt",
+      "createdAt"
+    ],
+    "properties": {
+      "invitationId": {
+        "type": "string",
+        "format": "uuid",
+        "x-evirion-backend-projection": "core.organization_invitations.id",
+        "x-evirion-sensitivity": "customer-safe-summary"
+      },
+      "email": {
+        "type": "string",
+        "format": "email",
+        "maxLength": 254,
+        "x-evirion-backend-projection": "core.organization_invitations.email",
+        "x-evirion-sensitivity": "customer-safe-detail"
+      },
+      "role": {
+        "type": "string",
+        "enum": [
+          "admin",
+          "reviewer",
+          "viewer"
+        ],
+        "x-evirion-backend-projection": "core.organization_invitations.role",
+        "x-evirion-sensitivity": "customer-safe-summary"
+      },
+      "state": {
+        "type": "string",
+        "enum": [
+          "REQUESTED",
+          "AUTH_USER_CREATED",
+          "SENT",
+          "UNSUPPORTED_SERVER_RESPONSE"
+        ],
+        "description": "Only live pending generations are listed; terminal states are omitted from this read. These are exactly the three states a revoke accepts, so every listed invitation is revocable.",
+        "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+        "x-evirion-backend-projection": "core.organization_invitations.state",
+        "x-evirion-sensitivity": "customer-safe-summary"
+      },
+      "generation": {
+        "type": "integer",
+        "minimum": 1,
+        "x-evirion-backend-projection": "core.organization_invitations.current_generation",
+        "x-evirion-sensitivity": "customer-safe-summary"
+      },
+      "version": {
+        "type": "integer",
+        "minimum": 1,
+        "description": "The optimistic token resend and revoke must send as expectedVersion.",
+        "x-evirion-backend-projection": "core.organization_invitations.version",
+        "x-evirion-sensitivity": "customer-safe-summary"
+      },
+      "expiresAt": {
+        "type": "string",
+        "format": "date-time",
+        "description": "A listed invitation can already be past this instant, because expiry is swept asynchronously and the generation keeps its pending state until the sweep runs. Revoke still succeeds on such a row; resend refuses it. Compare against the current time before offering resend.",
+        "x-evirion-backend-projection": "core.organization_invitations.expires_at",
+        "x-evirion-sensitivity": "customer-safe-summary"
+      },
+      "createdAt": {
+        "type": "string",
+        "format": "date-time",
+        "x-evirion-backend-projection": "core.organization_invitations.created_at",
+        "x-evirion-sensitivity": "customer-safe-summary"
+      }
+    }
+  },
+  "examples": [
+    [
+      {
+        "invitationId": "00000000-0000-4000-8000-000000000901",
+        "email": "reviewer@example.com",
+        "role": "reviewer",
+        "state": "SENT",
+        "generation": 1,
+        "version": 2,
+        "expiresAt": "2026-09-12T12:00:00.000Z",
+        "createdAt": "2026-09-05T12:00:00.000Z"
+      }
+    ]
+  ]
+}

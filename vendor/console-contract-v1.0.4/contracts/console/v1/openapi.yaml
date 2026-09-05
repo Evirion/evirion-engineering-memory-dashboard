@@ -336,6 +336,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessEnvelope"
+          x-evirion-response-schema: "#/components/schemas/MembershipReceipt"
         "401":
           $ref: "#/components/responses/FoundationError"
         "403":
@@ -353,6 +354,36 @@ paths:
   /v1/organizations/{organizationId}/invitations:
     parameters:
       - $ref: "#/components/parameters/OrganizationId"
+    get:
+      operationId: listOrganizationInvitations
+      tags:
+        - organizations
+      summary: List live pending organization invitations.
+      security:
+        - consoleBearer: []
+      parameters:
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: Pending invitation inventory for resend and revoke.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+          x-evirion-response-schema: "#/components/schemas/OrganizationInvitations"
+        "401":
+          $ref: "#/components/responses/FoundationError"
+        "403":
+          $ref: "#/components/responses/FoundationError"
+        "404":
+          $ref: "#/components/responses/FoundationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/FoundationError"
     post:
       operationId: createOrganizationInvitation
       tags:
@@ -379,6 +410,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessEnvelope"
+          x-evirion-response-schema: "#/components/schemas/InvitationReceipt"
         "401":
           $ref: "#/components/responses/FoundationError"
         "403":
@@ -422,6 +454,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessEnvelope"
+          x-evirion-response-schema: "#/components/schemas/InvitationReceipt"
         "401":
           $ref: "#/components/responses/FoundationError"
         "403":
@@ -467,6 +500,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessEnvelope"
+          x-evirion-response-schema: "#/components/schemas/InvitationReceipt"
         "401":
           $ref: "#/components/responses/FoundationError"
         "403":
@@ -535,7 +569,7 @@ paths:
         - $ref: "#/components/parameters/CorrelationId"
       responses:
         "200":
-          description: Current offboarding state, or null when none exists.
+          description: Organization offboarding wrapper; offboarding is null when none exists.
           headers:
             X-Request-ID:
               $ref: "#/components/headers/RequestId"
@@ -543,6 +577,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessEnvelope"
+          x-evirion-response-schema: "#/components/schemas/OrganizationOffboardingStatus"
         "400":
           $ref: "#/components/responses/FoundationError"
         "401":
@@ -586,6 +621,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessEnvelope"
+          x-evirion-response-schema: "#/components/schemas/OffboardingReceipt"
         "400":
           $ref: "#/components/responses/FoundationError"
         "401":
@@ -2642,6 +2678,14 @@ components:
       $ref: "./schemas/member.json"
     Invitation:
       $ref: "./schemas/invitation.json"
+    InvitationReceipt:
+      $ref: "./schemas/invitation-receipt.json"
+    MembershipReceipt:
+      $ref: "./schemas/membership-receipt.json"
+    OffboardingReceipt:
+      $ref: "./schemas/offboarding-receipt.json"
+    OrganizationInvitations:
+      $ref: "./schemas/organization-invitations.json"
     Session:
       $ref: "./schemas/session.json"
     SessionReauthenticationReceipt:
@@ -2686,6 +2730,8 @@ components:
       $ref: "./schemas/organization-model-profiles.json"
     OrganizationOffboarding:
       $ref: "./schemas/organization-offboarding.json"
+    OrganizationOffboardingStatus:
+      $ref: "./schemas/organization-offboarding-status.json"
     OrganizationUsage:
       $ref: "./schemas/organization-usage.json"
     OrganizationOffboardingRequest:

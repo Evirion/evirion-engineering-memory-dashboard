@@ -19,6 +19,7 @@ export const GatedForm = ({
   mutationPath,
   className,
   dataTestId,
+  ariaLabel,
   children,
 }: {
   action: string
@@ -29,6 +30,7 @@ export const GatedForm = ({
   mutationPath: string
   className?: string
   dataTestId?: string
+  ariaLabel?: string
   children: ReactNode
 }) => {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -79,6 +81,7 @@ export const GatedForm = ({
       method={method}
       className={className}
       data-testid={dataTestId}
+      aria-label={ariaLabel}
       onSubmit={handleSubmit}
     >
       {children}

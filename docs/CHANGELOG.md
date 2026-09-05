@@ -1,5 +1,57 @@
 # Dashboard changelog
 
+## 2026-09-05 — EEM-9/06 processing, settings, and metrics
+
+- Why: close the operational transparency slice — read-only processing with
+  distinct failure kinds, GitHub settings summary, usage and alpha metrics,
+  members invitations and role changes, offboarding request, and pull request
+  detail reachable from processing rows after `console-contract-v1.0.4`.
+- Contract: consumes pinned `console-contract-v1.0.4` invitation, membership,
+  offboarding, processing, PR detail, and validation-issue schemas through the
+  generated client; no handwritten duplicate API types.
+- Behavior: `/processing`, `/settings/{github,members,usage}`, PR detail route,
+  membership BFF mutations with step-up replay, capability-correct navigation
+  (`organization.github.manage`, `organization.usage.read`), stub scenarios
+  `processingSettings`, `processingSettingsViewer`, and `processingUnavailable`.
+- Security and correctness: pending invitations are read only for a caller
+  holding `organization.members.manage`, so one capability refusal no longer
+  takes the member inventory down with it; every membership receipt code is
+  reported by name and the unsupported sentinel lands on unknown outcome rather
+  than on success; offboarding requires an explicit confirmation rather than a
+  preset field; a pull request number is resolved across a bounded cursor
+  traversal, and exhausting the bound reports a dependency failure instead of
+  asserting the pull request does not exist; an unreadable validation issue list
+  is distinguished from an empty one.
+- Verification: focused slice `processing-settings`, affected slices, and the
+  complete free gate on branch `EEM-9/06-processing-settings-metrics`.
+- Deployment state: implemented and locally verified only. Not merged, not
+  deployed, not observed, not staging-certified, not paid-certified, not
+  production-certified.
+
+## 2026-09-05 — EEM-9/03h consumes console-contract-v1.0.4
+
+- Why: backend `console-contract-v1.0.4` closes issue #71 — invitation inventory
+  and receipts, membership and offboarding mutations and receipts, typed
+  offboarding read wrapper, and `pullRequestId` / `extractionRunId` on processing
+  rows. Without consuming these bytes, `EEM-9/06` cannot finish PR detail,
+  members step-up, or offboarding request.
+- Contract: vendored `console-contract-v1.0.4`; retired `vendor/console-contract-v1.0.3`.
+  Lock pins release `383202515`, asset `545651806`, archive digest `3690f02c`,
+  bundle `545651807`, source commit `b4011580`, package digest `72ce0da1`,
+  generated surface `cfbb7934` (44 consumable types, up from 39). Evidence in
+  `docs/contracts/console-contract-v1.0.4-evidence.json`. Prior evidence files
+  retained.
+- Behavior: regenerated client only; no product routes built.
+- Verification: published archive byte-identical to local rebuild at `b4011580`;
+  offline cosign verification against pinned trusted root; `check_console_contract_lock`,
+  `check_backend_auth_parity` at `b4011580`, authority manifest rebuilt and
+  reverified, contract Python tests, complete free gate.
+- Deployment state: implemented and locally verified only. Not merged, not
+  deployed, not observed, not staging-certified, not paid-certified, not
+  production-certified.
+- Unblocks: `EEM-9/06` blocked surfaces (PR detail, members mutations,
+  offboarding request).
+
 ## 2026-09-04 — EEM-9/02c step-up reauthentication and return
 
 - Why: issue #16 — gated import and knowledge lifecycle mutations dead-ended

@@ -77,10 +77,31 @@
             "x-evirion-backend-projection": "api.list_processing_activity.name_with_owner",
             "x-evirion-sensitivity": "customer-safe-detail"
           },
+          "pullRequestId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Always emitted by backends at or after console-contract-v1.0.4. Optional in the schema so the revision compares additively against v1.0.3.",
+            "x-evirion-backend-projection": "core.pull_requests.id",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
           "pullRequestNumber": {
             "type": "integer",
             "minimum": 1,
             "x-evirion-backend-projection": "core.pull_requests.pr_number",
+            "x-evirion-sensitivity": "customer-safe-summary"
+          },
+          "extractionRunId": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string",
+                "format": "uuid"
+              }
+            ],
+            "description": "Present when the effective job has a run; null otherwise. Always emitted by backends at or after console-contract-v1.0.4. Optional in the schema so the revision compares additively against v1.0.3.",
+            "x-evirion-backend-projection": "core.extraction_runs.id",
             "x-evirion-sensitivity": "customer-safe-summary"
           },
           "pullRequestTitle": {
@@ -342,8 +363,10 @@
           "isAlias": false,
           "repositoryId": "00000000-0000-4000-8000-000000000302",
           "nameWithOwner": "evirion/repository",
+          "pullRequestId": "00000000-0000-4000-8000-000000000611",
           "pullRequestNumber": 128,
           "pullRequestTitle": "Make extraction runs append-only",
+          "extractionRunId": "00000000-0000-4000-8000-000000000612",
           "jobStatus": "COMPLETED",
           "sourceStatus": "READY",
           "admissionDisposition": "ACCEPTED",
@@ -372,8 +395,10 @@
           "isAlias": false,
           "repositoryId": "00000000-0000-4000-8000-000000000302",
           "nameWithOwner": "evirion/repository",
+          "pullRequestId": "00000000-0000-4000-8000-000000000613",
           "pullRequestNumber": 129,
           "pullRequestTitle": null,
+          "extractionRunId": null,
           "jobStatus": "DEAD_LETTER",
           "sourceStatus": "READY",
           "admissionDisposition": null,

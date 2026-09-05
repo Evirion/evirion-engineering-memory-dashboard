@@ -1,46 +1,46 @@
 {
   "artifact": {
-    "assetId": 544433569,
-    "assetName": "console-contract-v1.0.3.tar.gz",
-    "assetSha256": "cf856f2a01d8988b1046a96bbabb7dfbe0bc21953dc3d37142b68dc5873c3a1b",
-    "bundleAssetId": 544433565,
-    "bundleName": "console-contract-v1.0.3.sigstore.json",
-    "bundleSha256": "0299497d5a69616428f2175e475b274152b4be6a2c0994ccf6e963ae857a2d12",
-    "releaseId": 382780687,
-    "tag": "console-contract-v1.0.3"
+    "assetId": 545651806,
+    "assetName": "console-contract-v1.0.4.tar.gz",
+    "assetSha256": "3690f02c71b6621e51e410b484dc463a43fb60372e871146f9b7aa9f85bc7df5",
+    "bundleAssetId": 545651807,
+    "bundleName": "console-contract-v1.0.4.sigstore.json",
+    "bundleSha256": "33a8b2fd7237298ba75c2a5f8ea3f4d0e028c7110b04cc84936cfab204b56b3d",
+    "releaseId": 383202515,
+    "tag": "console-contract-v1.0.4"
   },
-  "certificateIdentity": "https://github.com/Evirion/evirion-engineering-memory/.github/workflows/console-contract-release.yml@refs/tags/console-contract-v1.0.3",
+  "certificateIdentity": "https://github.com/Evirion/evirion-engineering-memory/.github/workflows/console-contract-release.yml@refs/tags/console-contract-v1.0.4",
   "consumption": {
     "consumedContractRoot": "contracts/console/v1",
     "generatedClientRoot": "generated/console-contract/v1",
-    "generatedClientSurfaceSha256": "9ed724261fc7ab36c33de6f422dad96e3a21a6bb1b0578a8e471f8d546df01e7",
+    "generatedClientSurfaceSha256": "cfbb7934be1cc7c594a7cb1df480999f27a4a962fde6d02d5b581261942b1da8",
     "notConsumed": [
       "contracts/operator/v1"
     ],
-    "vendoredRoot": "vendor/console-contract-v1.0.3"
+    "vendoredRoot": "vendor/console-contract-v1.0.4"
   },
   "contract": {
     "contractVersion": "1.0",
     "manifestPath": "contracts/console/v1/manifest.json",
-    "packageSha256": "939a3bd136bb044ca10737ce9a4d25ad36e4feca4588e3d36b1debc92549ac8e"
+    "packageSha256": "72ce0da16e89f7272a5c0ca2bc8d6e1d877e0c3b9ae5f3c039ccb59b298969d7"
   },
   "eventName": "push",
-  "evidencePath": "docs/contracts/console-contract-v1.0.3-evidence.json",
+  "evidencePath": "docs/contracts/console-contract-v1.0.4-evidence.json",
   "oidcIssuer": "https://token.actions.githubusercontent.com",
   "policyDigest": "0b5b0e938ffeb298fefc6d95ac6b5dd3bf2b0306ed7ec68b54e492a8a091f39d",
   "policyId": "console-contract-v1",
-  "recordedAt": "2026-09-04",
+  "recordedAt": "2026-09-05",
   "release": {
-    "createdAt": "2026-09-04T14:10:12Z",
+    "createdAt": "2026-09-05T09:40:56Z",
     "immutable": true,
-    "publishedAt": "2026-09-04T14:11:34Z"
+    "publishedAt": "2026-09-05T09:42:27Z"
   },
-  "releaseCommitReachabilityNote": "console-contract-v1.0.3 tags cbdff787, which is on backend main. The field stays false regardless, because it records what this lock relies on rather than what happens to be true: the tag and its object survive because the release is immutable, not because the commit stayed reachable. Reachability must not become a check.",
+  "releaseCommitReachabilityNote": "console-contract-v1.0.4 tags b4011580, which is on backend main. The field stays false regardless, because it records what this lock relies on rather than what happens to be true: the tag and its object survive because the release is immutable, not because the commit stayed reachable. Reachability must not become a check.",
   "releaseCommitReachableFromDefaultBranch": false,
   "releaseRevisionNote": "The third tag component is a release revision, not an API version. Backend ADR 0014 defines the grammar and the publishing workflow proves the bytes additive against the published predecessor before signing. contractVersion stays 1.0, so the generated isConsoleError const and the success-envelope guard in src/server/adapters/console-api.ts are unchanged. This lock names one exact tag, asset ID and digest; it never tracks the latest revision of a version.",
   "repository": "Evirion/evirion-engineering-memory",
   "schemaVersion": "1.0",
-  "sourceCommit": "cbdff787e290f735226dc0749c933e22fa6544cb",
+  "sourceCommit": "b4011580a822e378863cac0d67a9b5358872b986",
   "trustedRootSha256": "6494e21ea73fa7ee769f85f57d5a3e6a08725eae1e38c755fc3517c9e6bc0b66",
   "verifier": {
     "asset": "cosign-linux-amd64",

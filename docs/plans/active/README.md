@@ -54,10 +54,16 @@ Its trace is
 (`fix/03g-doc-links-v1.0.3`). Its trace is
 [`eem-9-03g-acceptance-trace.md`](eem-9-03g-acceptance-trace.md).
 
-`EEM-9/02c-step-up-and-return` is implemented and locally verified on branch
-`EEM-9/02c-step-up-and-return`, not merged, with no pull request open yet. It
-closes issue #16. Its trace is
+`EEM-9/02c-step-up-and-return` is merged on `main` as PR
+[#21](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/21).
+It closes issue #16. Its trace is
 [`eem-9-02c-acceptance-trace.md`](eem-9-02c-acceptance-trace.md).
+
+`EEM-9/03h-console-contract-revision` is implemented and locally verified on
+branch `EEM-9/03h-console-contract-revision`, not merged. It consumes backend
+issue [#71](https://github.com/Evirion/evirion-engineering-memory/issues/71)
+bytes as `console-contract-v1.0.4`. Its trace is
+[`eem-9-03h-acceptance-trace.md`](eem-9-03h-acceptance-trace.md).
 
 The EEM-9/03 request below names "the attestation-verified EEM-6 contract lock".
 No such artifact exists and none is required: the single
@@ -137,6 +143,19 @@ this subtask. Consuming a contract is one subtask, not two, as the catalog
 records for EEM-9/03e. Do not deploy, call a provider, run any paid operation,
 or touch hosted Supabase. Consume only published, attestation-verified release
 assets; never source bytes from backend main.`
+
+### EEM-9/03h — Console contract revision
+
+Not in the accepted plan, which was frozen before backend issue #71 closed the
+EEM-9/06 contract gaps. Its scope is fixed by [`ROADMAP.md`](../../ROADMAP.md),
+"The next Dashboard contract consumption is one subtask, not two".
+
+`Start EEM-9/03h-console-contract-revision in
+evirion-engineering-memory-dashboard on a branch named
+EEM-9/03h-console-contract-revision, started from updated main. Work only on
+this subtask. Consume only published, attestation-verified release assets for
+console-contract-v1.0.4; never source bytes from backend main. Do not deploy,
+call a provider, run any paid operation, or touch hosted Supabase.`
 
 ### EEM-9/02c — Step-up reauthentication and return
 

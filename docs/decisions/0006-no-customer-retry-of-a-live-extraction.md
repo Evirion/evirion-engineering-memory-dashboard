@@ -31,17 +31,19 @@ capability and the client never derives it from a status.
 ## What the backend serves
 
 Nothing on the processing surface, verified against the pinned
-`console-contract-v1.0.3` bytes this repository vendors.
+`console-contract-v1.0.3` bytes this repository vendors through `EEM-9/03g`; PR
+detail and processing-row identifiers are published in `console-contract-v1.0.4`
+and consumed by `EEM-9/03h`.
 
 - The contract publishes exactly two retry or resume operations, and both are
   scoped to historical imports: `setRepositoryImportState` at line 1232 of
-  [`openapi.yaml`](../../vendor/console-contract-v1.0.3/contracts/console/v1/openapi.yaml)
+  [`openapi.yaml`](../../vendor/console-contract-v1.0.4/contracts/console/v1/openapi.yaml)
   and `retryRepositoryImportJob` at line 1323. No operation retries or resumes
   a live extraction job.
 - `recoveryAction` exists only on
-  [`repository-import.json`](../../vendor/console-contract-v1.0.3/contracts/console/v1/schemas/repository-import.json)
+  [`repository-import.json`](../../vendor/console-contract-v1.0.4/contracts/console/v1/schemas/repository-import.json)
   and
-  [`repository-import-failures.json`](../../vendor/console-contract-v1.0.3/contracts/console/v1/schemas/repository-import-failures.json).
+  [`repository-import-failures.json`](../../vendor/console-contract-v1.0.4/contracts/console/v1/schemas/repository-import-failures.json).
   Its vocabulary is eight values, not four: `AWAIT_DISCOVERY`,
   `APPROVE_IMPORT`, `GRANT_CUSTOMER_CONSENT`, `AWAIT_EVIRION_AUTHORIZATION`,
   `PAUSE_IMPORT_TO_RETRY`, `RETRY_JOB`, `CONTACT_SUPPORT`, `NONE`. The backend

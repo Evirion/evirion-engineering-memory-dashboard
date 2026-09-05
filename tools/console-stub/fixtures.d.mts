@@ -1,17 +1,26 @@
 import type {
   GithubInstallation,
+  GithubSettingsSummary,
   KnowledgeCorrections,
   KnowledgeDetail,
   KnowledgeEvidence,
   KnowledgeLifecycleState,
   KnowledgeRelationEdge,
   KnowledgeReview,
+  Member,
+  OrganizationInvitations,
+  OrganizationMetrics,
+  OrganizationOffboardingStatus,
+  OrganizationUsage,
   OrganizationModelProfiles,
+  ProcessingPage,
+  PullRequestDetail,
   Repository,
   RepositoryImport,
   RepositoryImportFailures,
   RepositoryOverview,
   RepositoryPage,
+  ValidationIssues,
 } from "@contracts/console"
 
 /**
@@ -64,6 +73,51 @@ export declare const IMPORT_FAILURES: () => Readonly<
 >
 
 /** One overview per repository in the inventory, keyed by repository id. */
+export declare const PROCESSING_JOBS: {
+  readonly rejected: string
+  readonly quarantined: string
+  readonly failed: string
+  readonly evirionWait: string
+  readonly customerWait: string
+}
+
+export declare const PROCESSING_PULL_REQUESTS: {
+  readonly rejected: string
+  readonly quarantined: string
+  readonly failed: string
+  readonly evirionWait: string
+  readonly customerWait: string
+}
+
+export declare const PROCESSING_RUNS: {
+  readonly rejected: string
+  readonly quarantined: string
+  readonly failed: string
+  readonly evirionWait: string
+  readonly customerWait: string
+}
+
+export declare const INVITATIONS: {
+  readonly pending: string
+}
+
+export declare const MEMBERSHIP: {
+  readonly owner: string
+  readonly admin: string
+  readonly reviewer: string
+}
+
+export declare const PROCESSING_PAGE: () => ProcessingPage
+export declare const PROCESSING_PAGE_VIEWER: () => ProcessingPage
+export declare const GITHUB_SETTINGS_SUMMARY: () => GithubSettingsSummary
+export declare const ORGANIZATION_MEMBERS: () => Member[]
+export declare const ORGANIZATION_INVITATIONS: () => OrganizationInvitations
+export declare const OFFBOARDING_STATUS: () => OrganizationOffboardingStatus
+export declare const ORGANIZATION_USAGE: () => OrganizationUsage
+export declare const ORGANIZATION_METRICS: () => OrganizationMetrics
+export declare const PULL_REQUEST_DETAIL: () => PullRequestDetail
+export declare const VALIDATION_ISSUES: () => ValidationIssues
+
 export declare const OVERVIEWS: () => Readonly<Record<string, RepositoryOverview>>
 
 export declare const MODEL_PROFILES: () => OrganizationModelProfiles
@@ -201,6 +255,26 @@ export type StubScenario = {
   readonly omitReauthenticationFreshUntil?: boolean
   /** Refuse the next step-up completion as an invalidated challenge. */
   readonly invalidateChallengeOnComplete?: boolean
+  /** Processing rows for `/processing-activity`. */
+  readonly processingItems?: ProcessingPage["items"]
+  /** A published stable code the processing list answers with instead. */
+  readonly processingError?: string
+  /** Live members for `/members`. */
+  readonly members?: Member[]
+  /** Pending invitations for `/invitations`. */
+  readonly invitations?: OrganizationInvitations
+  /** Offboarding wrapper for `/offboarding`. */
+  readonly offboarding?: OrganizationOffboardingStatus
+  /** Pull request detail keyed by pull request id. */
+  readonly pullRequestDetails?: Readonly<Record<string, PullRequestDetail>>
+  /** Validation issues keyed by extraction run id. */
+  readonly validationIssues?: Readonly<Record<string, ValidationIssues>>
+  /** GitHub settings summary. */
+  readonly githubSettings?: GithubSettingsSummary
+  /** Organization usage document. */
+  readonly organizationUsage?: OrganizationUsage
+  /** Organization metrics document. */
+  readonly organizationMetrics?: OrganizationMetrics
 }
 
 /**
@@ -244,6 +318,9 @@ export declare const SCENARIOS: {
   readonly memoryPartialProjection: () => StubScenario
   readonly memoryStaleFreshness: () => StubScenario
   readonly reauthInvalidateChallenge: () => StubScenario
+  readonly processingSettings: () => StubScenario
+  readonly processingSettingsViewer: () => StubScenario
+  readonly processingUnavailable: () => StubScenario
 }
 
 export type StubScenarioName = keyof typeof SCENARIOS

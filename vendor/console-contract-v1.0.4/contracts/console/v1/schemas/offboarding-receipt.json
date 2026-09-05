@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:offboarding-receipt",
+  "title": "Completed offboarding command receipt",
+  "description": "The receipt the organization offboarding request mutation returns. Its four top-level keys are the same merged receipt envelope the entitlement receipt carries; only the response vocabulary differs, and command-receipt.json cannot describe these because its enum is closed against widening.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "receiptId",
+    "status",
+    "responseCode",
+    "responsePayload"
+  ],
+  "properties": {
+    "receiptId": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "core.console_command_receipts.id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "status": {
+      "type": "string",
+      "const": "completed",
+      "description": "A receipt reaches the customer only once its command has completed.",
+      "x-evirion-backend-projection": "core.console_command_receipts.status",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "responseCode": {
+      "type": "string",
+      "enum": [
+        "ORGANIZATION_OFFBOARDING_REQUESTED",
+        "UNSUPPORTED_SERVER_RESPONSE"
+      ],
+      "description": "One code per mutation, and the route pins the exact code it expects. UNSUPPORTED_SERVER_RESPONSE is the consumer's representation of a value it does not recognize; the backend never emits it.",
+      "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+      "x-evirion-backend-projection": "core.console_command_receipts.response_code",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "responsePayload": {
+      "type": "object",
+      "description": "The owning routine's own result. Its interior belongs to that routine's contract rather than to this envelope, so it is not restated here.",
+      "x-evirion-backend-projection": "core.console_command_receipts.response_payload",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    }
+  },
+  "examples": [
+    {
+      "receiptId": "00000000-0000-4000-8000-000000000701",
+      "status": "completed",
+      "responseCode": "ORGANIZATION_OFFBOARDING_REQUESTED",
+      "responsePayload": {
+        "changed": true,
+        "organizationId": "00000000-0000-4000-8000-000000000702",
+        "offboarding": {
+          "id": "00000000-0000-4000-8000-000000000703",
+          "state": "REQUESTED",
+          "version": 1,
+          "requestedAt": "2026-09-05T12:00:00.000Z"
+        }
+      }
+    }
+  ]
+}
