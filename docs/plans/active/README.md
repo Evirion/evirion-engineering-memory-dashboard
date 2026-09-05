@@ -66,9 +66,13 @@ Its trace is
 [`eem-9-03h-acceptance-trace.md`](eem-9-03h-acceptance-trace.md). This entry
 previously described it as unmerged, which EEM-9/07 corrected against Git.
 
-`EEM-9/07-free-integration` is implemented and locally verified as `I01-C`, not
-merged. Its trace is
-[`eem-9-07-acceptance-trace.md`](eem-9-07-acceptance-trace.md).
+`EEM-9/07-free-integration` is merged as `I01-C` through
+[PR #23](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/23)
+at `8e81d04`. Its trace is
+[`eem-9-07-acceptance-trace.md`](eem-9-07-acceptance-trace.md). The
+prerequisites for its still-unauthorized Step 7 are backend-owned, at
+`docs/plans/active/eem-9-07-remote-free-phase-plan.md` in
+`Evirion/evirion-engineering-memory`.
 
 The EEM-9/03 request below names "the attestation-verified EEM-6 contract lock".
 No such artifact exists and none is required: the single

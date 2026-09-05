@@ -1,5 +1,28 @@
 # Dashboard changelog
 
+## 2026-09-05 — EEM-9/07 Step 7 prerequisites, planning only
+
+- Why: the catalog's planning-only request follows the local `/07` gates, and
+  merging `I01-C` made three Dashboard documents false in the same breath.
+- Corrected against Git: handoff, roadmap and the active-plan catalog each still
+  said `I01-C` was implemented but unmerged, with nothing pushed. It merged as
+  [PR #23](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/23)
+  at `8e81d04`.
+- Recorded for the next reader: two checks failed on the first push and both
+  were Console defects no local run could surface. The EEM-9/01 bootstrap
+  contract still pinned the discarded `::asvs_v1_1_1` evidence shape, and the
+  rollback rehearsal test read the canary profile from a sibling backend
+  checkout no runner has. The sibling case now asserts its own precondition
+  rather than skipping, so it proves something either way.
+- Step 7 prerequisites are backend-owned and written down at
+  `docs/plans/active/eem-9-07-remote-free-phase-plan.md` in
+  `Evirion/evirion-engineering-memory`. Two are open: the ADR 0011 global lock
+  supersession, whose closure needs a Dashboard-first re-pin of
+  `docs/authority/eem3-global-lock-input.json`, and a staging migration baseline
+  that can only be read from the project.
+- No product byte, contract byte or authority digest moved. Nothing deployed,
+  observed or authorized.
+
 ## 2026-09-05 — EEM-9/07 free integration and security certification (`I01-C`)
 
 - Why: the first task where the Console and the backend are exercised against
