@@ -22,6 +22,7 @@ export default defineConfig({
       "tests/unit/**/*.test.ts",
       "tests/contract/**/*.test.ts",
       "tests/component/**/*.test.tsx",
+      "tests/conformance/**/*.test.ts",
     ],
     clearMocks: true,
     restoreMocks: true,

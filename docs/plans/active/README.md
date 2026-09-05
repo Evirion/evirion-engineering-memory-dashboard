@@ -59,11 +59,16 @@ Its trace is
 It closes issue #16. Its trace is
 [`eem-9-02c-acceptance-trace.md`](eem-9-02c-acceptance-trace.md).
 
-`EEM-9/03h-console-contract-revision` is implemented and locally verified on
-branch `EEM-9/03h-console-contract-revision`, not merged. It consumes backend
-issue [#71](https://github.com/Evirion/evirion-engineering-memory/issues/71)
-bytes as `console-contract-v1.0.4`. Its trace is
-[`eem-9-03h-acceptance-trace.md`](eem-9-03h-acceptance-trace.md).
+`EEM-9/03h-console-contract-revision` is merged; its consumption of
+`console-contract-v1.0.4` landed on `main` with EEM-9/06 through
+[PR #22](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/22).
+Its trace is
+[`eem-9-03h-acceptance-trace.md`](eem-9-03h-acceptance-trace.md). This entry
+previously described it as unmerged, which EEM-9/07 corrected against Git.
+
+`EEM-9/07-free-integration` is implemented and locally verified as `I01-C`, not
+merged. Its trace is
+[`eem-9-07-acceptance-trace.md`](eem-9-07-acceptance-trace.md).
 
 The EEM-9/03 request below names "the attestation-verified EEM-6 contract lock".
 No such artifact exists and none is required: the single

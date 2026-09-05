@@ -1092,10 +1092,43 @@ class AsvsMatrixTests(unittest.TestCase):
 
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["id"], "V1.1.1")
+        # EEM-9/07: evidence names the suite that proves a row rather than a
+        # synthesised case such as `asvs_v1_1_1`. Those cases existed in no
+        # suite, and a Python one could never be a pytest node at all, which is
+        # why every row had always read `planned`.
         self.assertEqual(
             rows[0]["primaryEvidence"],
-            "tests/security/xss-corpus.spec.ts::asvs_v1_1_1",
+            "tests/security/xss-corpus.spec.ts",
         )
+        # Status is recorded, never assumed: an unrecorded row stays planned.
+        self.assertEqual(rows[0]["status"], "planned")
+
+    def test_recorded_status_replaces_the_default(self) -> None:
+        source = [
+            {
+                "chapter_id": "V1",
+                "chapter_name": "Encoding",
+                "section_id": "V1.1",
+                "section_name": "Canonicalization",
+                "req_id": "V1.1.1",
+                "req_description": "Canonicalize input once.",
+                "L": "1",
+            }
+        ]
+        assignments = {
+            "V1": {
+                "primaryOwner": "I01-C",
+                "primaryEvidence": "tests/security/xss-corpus.spec.ts",
+                "environment": "local-and-staging",
+                "verifier": "Dashboard security owner",
+                "applicabilityRationale": "Console renders untrusted backend data.",
+            }
+        }
+        recorded = {"V1.1.1": {"status": "pass", "verifiedBy": "pnpm test:e2e"}}
+
+        rows = build_asvs_matrix(source, {"V1"}, assignments, recorded)
+
+        self.assertEqual(rows[0]["status"], "pass")
 
     def test_missing_chapter_assignment_fails_closed(self) -> None:
         source = [

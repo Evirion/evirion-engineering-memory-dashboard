@@ -12,6 +12,7 @@ class AuthorityError(ValueError):
 
 
 EXCLUDED_PARTS = {
+    ".cursor",
     ".git",
     ".idea",
     ".local",

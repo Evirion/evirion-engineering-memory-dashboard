@@ -15,6 +15,7 @@ import { createHash, randomUUID } from "node:crypto"
 import { createServer } from "node:https"
 
 import { readMaterial } from "../local-tls/generate-certificate.mjs"
+import { ERRORS, MESSAGES } from "./errors.mjs"
 import {
   CAPABILITIES,
   GITHUB_SETTINGS_SUMMARY,
@@ -32,48 +33,6 @@ import {
 
 const PORT = Number(process.env.CONSOLE_STUB_PORT ?? "3444")
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-
-/** code -> [http status, retryable]. Retryability is the backend's to declare. */
-const ERRORS = {
-  AUTHENTICATION_REQUIRED: [401, false],
-  ORGANIZATION_MEMBERSHIP_REQUIRED: [403, false],
-  CAPABILITY_REQUIRED: [403, false],
-  REAUTHENTICATION_REQUIRED: [403, false],
-  RESOURCE_NOT_FOUND: [404, false],
-  IDEMPOTENCY_KEY_REUSED: [409, false],
-  VERSION_CONFLICT: [409, false],
-  ORGANIZATION_LIMIT_NOT_PROVISIONED: [409, false],
-  REPOSITORY_NOT_ENTITLED: [409, false],
-  REPOSITORY_LIMIT_REACHED: [409, false],
-  REPOSITORY_REPLACEMENT_REQUIRES_OPERATOR: [409, false],
-  REPOSITORY_ACCESS_CHANGED: [409, false],
-  ENTITLEMENT_GENERATION_STALE: [409, false],
-  GITHUB_SYNC_INCOMPLETE: [409, true],
-  REQUEST_INVALID: [400, false],
-  DEPENDENCY_UNAVAILABLE: [503, true],
-  INTERNAL_ERROR: [500, false],
-  REPOSITORY_IMPORT_NOT_FOUND: [404, false],
-  REPOSITORY_IMPORT_ALREADY_ACTIVE: [409, false],
-  REPOSITORY_IMPORT_NOT_APPROVABLE: [409, false],
-  REPOSITORY_IMPORT_NOT_PAUSABLE: [409, false],
-  REPOSITORY_IMPORT_NOT_RESUMABLE: [409, false],
-  REPOSITORY_IMPORT_NOT_CANCELLABLE: [409, false],
-  REPOSITORY_IMPORT_JOB_NOT_RETRYABLE: [409, false],
-  REPOSITORY_IMPORT_FILTERS_INVALID: [422, false],
-  PAID_OPERATION_NOT_AUTHORIZED: [403, false],
-  REVIEW_VERSION_CONFLICT: [409, false],
-  LIFECYCLE_VERSION_CONFLICT: [409, false],
-  SUPERSESSION_INVALID: [409, false],
-  SUPERSESSION_TRAVERSAL_LIMIT: [409, false],
-  KNOWLEDGE_ACTION_NOT_ALLOWED: [409, false],
-  ORGANIZATION_CONTROL_CONFLICT: [409, false],
-}
-
-const MESSAGES = {
-  RESOURCE_NOT_FOUND: "The requested resource is not available.",
-  CAPABILITY_REQUIRED: "The required capability is unavailable.",
-  VERSION_CONFLICT: "The resource changed before this request was applied.",
-}
 
 /**
  * State is per isolation identifier, not global.
@@ -149,7 +108,11 @@ const succeed = (response, data, status = 200) =>
   send(response, status, { contractVersion: "1.0", requestId: randomUUID(), data })
 
 const fail = (response, code, extra = {}) => {
-  const [status, retryable] = ERRORS[code] ?? [500, false]
+  // A code the table does not know is a bug in this double, not a refusal to
+  // send. Defaulting to 500 used to hide exactly that.
+  const definition = ERRORS[code]
+  if (definition === undefined) throw new Error(`unknown stub error code: ${code}`)
+  const [status, retryable] = definition
   send(response, status, {
     contractVersion: "1.0",
     requestId: randomUUID(),

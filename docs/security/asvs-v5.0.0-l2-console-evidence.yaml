@@ -9,9 +9,9 @@
       "environment": "local-and-staging",
       "id": "V1.1.1",
       "level": 2,
-      "primaryEvidence": "tests/security/xss-corpus.spec.ts::asvs_v1_1_1",
+      "primaryEvidence": "tests/security/xss-corpus.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -22,9 +22,9 @@
       "environment": "local-and-staging",
       "id": "V1.1.2",
       "level": 2,
-      "primaryEvidence": "tests/security/xss-corpus.spec.ts::asvs_v1_1_2",
+      "primaryEvidence": "tests/security/xss-corpus.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -35,9 +35,9 @@
       "environment": "local-and-staging",
       "id": "V1.2.1",
       "level": 1,
-      "primaryEvidence": "tests/security/xss-corpus.spec.ts::asvs_v1_2_1",
+      "primaryEvidence": "tests/security/xss-corpus.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -48,9 +48,9 @@
       "environment": "local-and-staging",
       "id": "V1.2.2",
       "level": 1,
-      "primaryEvidence": "tests/security/xss-corpus.spec.ts::asvs_v1_2_2",
+      "primaryEvidence": "tests/security/xss-corpus.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -61,9 +61,9 @@
       "environment": "local-and-staging",
       "id": "V1.2.3",
       "level": 1,
-      "primaryEvidence": "tests/security/xss-corpus.spec.ts::asvs_v1_2_3",
+      "primaryEvidence": "tests/security/xss-corpus.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -74,9 +74,9 @@
       "environment": "local-and-staging",
       "id": "V1.2.4",
       "level": 1,
-      "primaryEvidence": "tests/security/xss-corpus.spec.ts::asvs_v1_2_4",
+      "primaryEvidence": "tests/security/xss-corpus.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -87,9 +87,9 @@
       "environment": "local-and-staging",
       "id": "V1.2.5",
       "level": 1,
-      "primaryEvidence": "tests/security/xss-corpus.spec.ts::asvs_v1_2_5",
+      "primaryEvidence": "tests/security/xss-corpus.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -100,9 +100,9 @@
       "environment": "local-and-staging",
       "id": "V1.2.6",
       "level": 2,
-      "primaryEvidence": "tests/security/xss-corpus.spec.ts::asvs_v1_2_6",
+      "primaryEvidence": "tests/security/xss-corpus.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -113,9 +113,9 @@
       "environment": "local-and-staging",
       "id": "V1.2.7",
       "level": 2,
-      "primaryEvidence": "tests/security/xss-corpus.spec.ts::asvs_v1_2_7",
+      "primaryEvidence": "tests/security/xss-corpus.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -126,9 +126,9 @@
       "environment": "local-and-staging",
       "id": "V1.2.8",
       "level": 2,
-      "primaryEvidence": "tests/security/xss-corpus.spec.ts::asvs_v1_2_8",
+      "primaryEvidence": "tests/security/xss-corpus.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -139,9 +139,9 @@
       "environment": "local-and-staging",
       "id": "V1.2.9",
       "level": 2,
-      "primaryEvidence": "tests/security/xss-corpus.spec.ts::asvs_v1_2_9",
+      "primaryEvidence": "tests/security/xss-corpus.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -152,9 +152,9 @@
       "environment": "local-and-staging",
       "id": "V1.3.1",
       "level": 1,
-      "primaryEvidence": "tests/security/xss-corpus.spec.ts::asvs_v1_3_1",
+      "primaryEvidence": "tests/security/xss-corpus.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -165,9 +165,9 @@
       "environment": "local-and-staging",
       "id": "V1.3.2",
       "level": 1,
-      "primaryEvidence": "tests/security/xss-corpus.spec.ts::asvs_v1_3_2",
+      "primaryEvidence": "tests/security/xss-corpus.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -178,9 +178,9 @@
       "environment": "local-and-staging",
       "id": "V1.3.3",
       "level": 2,
-      "primaryEvidence": "tests/security/xss-corpus.spec.ts::asvs_v1_3_3",
+      "primaryEvidence": "tests/security/xss-corpus.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -191,9 +191,9 @@
       "environment": "local-and-staging",
       "id": "V1.3.4",
       "level": 2,
-      "primaryEvidence": "tests/security/xss-corpus.spec.ts::asvs_v1_3_4",
+      "primaryEvidence": "tests/security/xss-corpus.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -204,9 +204,9 @@
       "environment": "local-and-staging",
       "id": "V1.3.5",
       "level": 2,
-      "primaryEvidence": "tests/security/xss-corpus.spec.ts::asvs_v1_3_5",
+      "primaryEvidence": "tests/security/xss-corpus.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -217,9 +217,9 @@
       "environment": "local-and-staging",
       "id": "V1.3.6",
       "level": 2,
-      "primaryEvidence": "tests/security/xss-corpus.spec.ts::asvs_v1_3_6",
+      "primaryEvidence": "tests/security/xss-corpus.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -230,9 +230,9 @@
       "environment": "local-and-staging",
       "id": "V1.3.7",
       "level": 2,
-      "primaryEvidence": "tests/security/xss-corpus.spec.ts::asvs_v1_3_7",
+      "primaryEvidence": "tests/security/xss-corpus.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -243,9 +243,9 @@
       "environment": "local-and-staging",
       "id": "V1.3.8",
       "level": 2,
-      "primaryEvidence": "tests/security/xss-corpus.spec.ts::asvs_v1_3_8",
+      "primaryEvidence": "tests/security/xss-corpus.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -256,9 +256,9 @@
       "environment": "local-and-staging",
       "id": "V1.3.9",
       "level": 2,
-      "primaryEvidence": "tests/security/xss-corpus.spec.ts::asvs_v1_3_9",
+      "primaryEvidence": "tests/security/xss-corpus.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -269,9 +269,9 @@
       "environment": "local-and-staging",
       "id": "V1.3.10",
       "level": 2,
-      "primaryEvidence": "tests/security/xss-corpus.spec.ts::asvs_v1_3_10",
+      "primaryEvidence": "tests/security/xss-corpus.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -282,9 +282,9 @@
       "environment": "local-and-staging",
       "id": "V1.3.11",
       "level": 2,
-      "primaryEvidence": "tests/security/xss-corpus.spec.ts::asvs_v1_3_11",
+      "primaryEvidence": "tests/security/xss-corpus.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -295,9 +295,9 @@
       "environment": "local-and-staging",
       "id": "V1.4.1",
       "level": 2,
-      "primaryEvidence": "tests/security/xss-corpus.spec.ts::asvs_v1_4_1",
+      "primaryEvidence": "tests/security/xss-corpus.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -308,9 +308,9 @@
       "environment": "local-and-staging",
       "id": "V1.4.2",
       "level": 2,
-      "primaryEvidence": "tests/security/xss-corpus.spec.ts::asvs_v1_4_2",
+      "primaryEvidence": "tests/security/xss-corpus.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -321,9 +321,9 @@
       "environment": "local-and-staging",
       "id": "V1.4.3",
       "level": 2,
-      "primaryEvidence": "tests/security/xss-corpus.spec.ts::asvs_v1_4_3",
+      "primaryEvidence": "tests/security/xss-corpus.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -334,9 +334,9 @@
       "environment": "local-and-staging",
       "id": "V1.5.1",
       "level": 1,
-      "primaryEvidence": "tests/security/xss-corpus.spec.ts::asvs_v1_5_1",
+      "primaryEvidence": "tests/security/xss-corpus.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -347,9 +347,9 @@
       "environment": "local-and-staging",
       "id": "V1.5.2",
       "level": 2,
-      "primaryEvidence": "tests/security/xss-corpus.spec.ts::asvs_v1_5_2",
+      "primaryEvidence": "tests/security/xss-corpus.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -360,9 +360,9 @@
       "environment": "local-and-staging",
       "id": "V3.2.1",
       "level": 1,
-      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts::asvs_v3_2_1",
+      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts",
       "primaryOwner": "C01",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -373,9 +373,9 @@
       "environment": "local-and-staging",
       "id": "V3.2.2",
       "level": 1,
-      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts::asvs_v3_2_2",
+      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts",
       "primaryOwner": "C01",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -386,9 +386,9 @@
       "environment": "local-and-staging",
       "id": "V3.3.1",
       "level": 1,
-      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts::asvs_v3_3_1",
+      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts",
       "primaryOwner": "C01",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -399,9 +399,9 @@
       "environment": "local-and-staging",
       "id": "V3.3.2",
       "level": 2,
-      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts::asvs_v3_3_2",
+      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts",
       "primaryOwner": "C01",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -412,9 +412,9 @@
       "environment": "local-and-staging",
       "id": "V3.3.3",
       "level": 2,
-      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts::asvs_v3_3_3",
+      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts",
       "primaryOwner": "C01",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -425,9 +425,9 @@
       "environment": "local-and-staging",
       "id": "V3.3.4",
       "level": 2,
-      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts::asvs_v3_3_4",
+      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts",
       "primaryOwner": "C01",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -438,9 +438,9 @@
       "environment": "local-and-staging",
       "id": "V3.4.1",
       "level": 1,
-      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts::asvs_v3_4_1",
+      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts",
       "primaryOwner": "C01",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -451,9 +451,9 @@
       "environment": "local-and-staging",
       "id": "V3.4.2",
       "level": 1,
-      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts::asvs_v3_4_2",
+      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts",
       "primaryOwner": "C01",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -464,9 +464,9 @@
       "environment": "local-and-staging",
       "id": "V3.4.3",
       "level": 2,
-      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts::asvs_v3_4_3",
+      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts",
       "primaryOwner": "C01",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -477,9 +477,9 @@
       "environment": "local-and-staging",
       "id": "V3.4.4",
       "level": 2,
-      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts::asvs_v3_4_4",
+      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts",
       "primaryOwner": "C01",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -490,9 +490,9 @@
       "environment": "local-and-staging",
       "id": "V3.4.5",
       "level": 2,
-      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts::asvs_v3_4_5",
+      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts",
       "primaryOwner": "C01",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -503,9 +503,9 @@
       "environment": "local-and-staging",
       "id": "V3.4.6",
       "level": 2,
-      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts::asvs_v3_4_6",
+      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts",
       "primaryOwner": "C01",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -516,9 +516,9 @@
       "environment": "local-and-staging",
       "id": "V3.5.1",
       "level": 1,
-      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts::asvs_v3_5_1",
+      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts",
       "primaryOwner": "C01",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -529,9 +529,9 @@
       "environment": "local-and-staging",
       "id": "V3.5.2",
       "level": 1,
-      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts::asvs_v3_5_2",
+      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts",
       "primaryOwner": "C01",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -542,9 +542,9 @@
       "environment": "local-and-staging",
       "id": "V3.5.3",
       "level": 1,
-      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts::asvs_v3_5_3",
+      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts",
       "primaryOwner": "C01",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -555,9 +555,9 @@
       "environment": "local-and-staging",
       "id": "V3.5.4",
       "level": 2,
-      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts::asvs_v3_5_4",
+      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts",
       "primaryOwner": "C01",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -568,9 +568,9 @@
       "environment": "local-and-staging",
       "id": "V3.5.5",
       "level": 2,
-      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts::asvs_v3_5_5",
+      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts",
       "primaryOwner": "C01",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -581,9 +581,9 @@
       "environment": "local-and-staging",
       "id": "V3.7.1",
       "level": 2,
-      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts::asvs_v3_7_1",
+      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts",
       "primaryOwner": "C01",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -594,9 +594,9 @@
       "environment": "local-and-staging",
       "id": "V3.7.2",
       "level": 2,
-      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts::asvs_v3_7_2",
+      "primaryEvidence": "tests/security/headers-cache-isolation.spec.ts",
       "primaryOwner": "C01",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -607,9 +607,9 @@
       "environment": "local-and-staging",
       "id": "V4.1.1",
       "level": 1,
-      "primaryEvidence": "tests/security/web-boundary.spec.ts::asvs_v4_1_1",
+      "primaryEvidence": "tests/security/web-boundary.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -620,9 +620,9 @@
       "environment": "local-and-staging",
       "id": "V4.1.2",
       "level": 2,
-      "primaryEvidence": "tests/security/web-boundary.spec.ts::asvs_v4_1_2",
+      "primaryEvidence": "tests/security/web-boundary.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -633,9 +633,9 @@
       "environment": "local-and-staging",
       "id": "V4.1.3",
       "level": 2,
-      "primaryEvidence": "tests/security/web-boundary.spec.ts::asvs_v4_1_3",
+      "primaryEvidence": "tests/security/web-boundary.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -646,9 +646,9 @@
       "environment": "local-and-staging",
       "id": "V4.2.1",
       "level": 2,
-      "primaryEvidence": "tests/security/web-boundary.spec.ts::asvs_v4_2_1",
+      "primaryEvidence": "tests/security/web-boundary.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -659,9 +659,9 @@
       "environment": "local-and-staging",
       "id": "V4.3.1",
       "level": 2,
-      "primaryEvidence": "tests/security/web-boundary.spec.ts::asvs_v4_3_1",
+      "primaryEvidence": "tests/security/web-boundary.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -672,9 +672,9 @@
       "environment": "local-and-staging",
       "id": "V4.3.2",
       "level": 2,
-      "primaryEvidence": "tests/security/web-boundary.spec.ts::asvs_v4_3_2",
+      "primaryEvidence": "tests/security/web-boundary.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -685,9 +685,9 @@
       "environment": "local-and-staging",
       "id": "V4.4.1",
       "level": 1,
-      "primaryEvidence": "tests/security/web-boundary.spec.ts::asvs_v4_4_1",
+      "primaryEvidence": "tests/security/web-boundary.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -698,9 +698,9 @@
       "environment": "local-and-staging",
       "id": "V4.4.2",
       "level": 2,
-      "primaryEvidence": "tests/security/web-boundary.spec.ts::asvs_v4_4_2",
+      "primaryEvidence": "tests/security/web-boundary.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -711,9 +711,9 @@
       "environment": "local-and-staging",
       "id": "V4.4.3",
       "level": 2,
-      "primaryEvidence": "tests/security/web-boundary.spec.ts::asvs_v4_4_3",
+      "primaryEvidence": "tests/security/web-boundary.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -724,9 +724,9 @@
       "environment": "local-and-staging",
       "id": "V4.4.4",
       "level": 2,
-      "primaryEvidence": "tests/security/web-boundary.spec.ts::asvs_v4_4_4",
+      "primaryEvidence": "tests/security/web-boundary.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -737,9 +737,9 @@
       "environment": "local-and-staging",
       "id": "V6.1.1",
       "level": 1,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_1_1",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -750,9 +750,9 @@
       "environment": "local-and-staging",
       "id": "V6.1.2",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_1_2",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -763,9 +763,9 @@
       "environment": "local-and-staging",
       "id": "V6.1.3",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_1_3",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -776,9 +776,9 @@
       "environment": "local-and-staging",
       "id": "V6.2.1",
       "level": 1,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_2_1",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -789,9 +789,9 @@
       "environment": "local-and-staging",
       "id": "V6.2.2",
       "level": 1,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_2_2",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -802,9 +802,9 @@
       "environment": "local-and-staging",
       "id": "V6.2.3",
       "level": 1,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_2_3",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -815,9 +815,9 @@
       "environment": "local-and-staging",
       "id": "V6.2.4",
       "level": 1,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_2_4",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -828,9 +828,9 @@
       "environment": "local-and-staging",
       "id": "V6.2.5",
       "level": 1,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_2_5",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -841,9 +841,9 @@
       "environment": "local-and-staging",
       "id": "V6.2.6",
       "level": 1,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_2_6",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -854,9 +854,9 @@
       "environment": "local-and-staging",
       "id": "V6.2.7",
       "level": 1,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_2_7",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -867,9 +867,9 @@
       "environment": "local-and-staging",
       "id": "V6.2.8",
       "level": 1,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_2_8",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -880,9 +880,9 @@
       "environment": "local-and-staging",
       "id": "V6.2.9",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_2_9",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -893,9 +893,9 @@
       "environment": "local-and-staging",
       "id": "V6.2.10",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_2_10",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -906,9 +906,9 @@
       "environment": "local-and-staging",
       "id": "V6.2.11",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_2_11",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -919,9 +919,9 @@
       "environment": "local-and-staging",
       "id": "V6.2.12",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_2_12",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -932,9 +932,9 @@
       "environment": "local-and-staging",
       "id": "V6.3.1",
       "level": 1,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_3_1",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -945,9 +945,9 @@
       "environment": "local-and-staging",
       "id": "V6.3.2",
       "level": 1,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_3_2",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -958,9 +958,9 @@
       "environment": "local-and-staging",
       "id": "V6.3.3",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_3_3",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -971,9 +971,9 @@
       "environment": "local-and-staging",
       "id": "V6.3.4",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_3_4",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -984,9 +984,9 @@
       "environment": "local-and-staging",
       "id": "V6.4.1",
       "level": 1,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_4_1",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -997,9 +997,9 @@
       "environment": "local-and-staging",
       "id": "V6.4.2",
       "level": 1,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_4_2",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1010,9 +1010,9 @@
       "environment": "local-and-staging",
       "id": "V6.4.3",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_4_3",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1023,9 +1023,9 @@
       "environment": "local-and-staging",
       "id": "V6.4.4",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_4_4",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1036,9 +1036,9 @@
       "environment": "local-and-staging",
       "id": "V6.5.1",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_5_1",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1049,9 +1049,9 @@
       "environment": "local-and-staging",
       "id": "V6.5.2",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_5_2",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1062,9 +1062,9 @@
       "environment": "local-and-staging",
       "id": "V6.5.3",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_5_3",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1075,9 +1075,9 @@
       "environment": "local-and-staging",
       "id": "V6.5.4",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_5_4",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1088,9 +1088,9 @@
       "environment": "local-and-staging",
       "id": "V6.5.5",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_5_5",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1101,9 +1101,9 @@
       "environment": "local-and-staging",
       "id": "V6.6.1",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_6_1",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1114,9 +1114,9 @@
       "environment": "local-and-staging",
       "id": "V6.6.2",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_6_2",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1127,9 +1127,9 @@
       "environment": "local-and-staging",
       "id": "V6.6.3",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_6_3",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1140,9 +1140,9 @@
       "environment": "local-and-staging",
       "id": "V6.8.1",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_8_1",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1153,9 +1153,9 @@
       "environment": "local-and-staging",
       "id": "V6.8.2",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_8_2",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1166,9 +1166,9 @@
       "environment": "local-and-staging",
       "id": "V6.8.3",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_8_3",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1179,9 +1179,9 @@
       "environment": "local-and-staging",
       "id": "V6.8.4",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v6_8_4",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1192,9 +1192,9 @@
       "environment": "local-and-staging",
       "id": "V7.1.1",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v7_1_1",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1205,9 +1205,9 @@
       "environment": "local-and-staging",
       "id": "V7.1.2",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v7_1_2",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1218,9 +1218,9 @@
       "environment": "local-and-staging",
       "id": "V7.1.3",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v7_1_3",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1231,9 +1231,9 @@
       "environment": "local-and-staging",
       "id": "V7.2.1",
       "level": 1,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v7_2_1",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1244,9 +1244,9 @@
       "environment": "local-and-staging",
       "id": "V7.2.2",
       "level": 1,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v7_2_2",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1257,9 +1257,9 @@
       "environment": "local-and-staging",
       "id": "V7.2.3",
       "level": 1,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v7_2_3",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1270,9 +1270,9 @@
       "environment": "local-and-staging",
       "id": "V7.2.4",
       "level": 1,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v7_2_4",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1283,9 +1283,9 @@
       "environment": "local-and-staging",
       "id": "V7.3.1",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v7_3_1",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1296,9 +1296,9 @@
       "environment": "local-and-staging",
       "id": "V7.3.2",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v7_3_2",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1309,9 +1309,9 @@
       "environment": "local-and-staging",
       "id": "V7.4.1",
       "level": 1,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v7_4_1",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1322,9 +1322,9 @@
       "environment": "local-and-staging",
       "id": "V7.4.2",
       "level": 1,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v7_4_2",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1335,9 +1335,9 @@
       "environment": "local-and-staging",
       "id": "V7.4.3",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v7_4_3",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1348,9 +1348,9 @@
       "environment": "local-and-staging",
       "id": "V7.4.4",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v7_4_4",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1361,9 +1361,9 @@
       "environment": "local-and-staging",
       "id": "V7.4.5",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v7_4_5",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1374,9 +1374,9 @@
       "environment": "local-and-staging",
       "id": "V7.5.1",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v7_5_1",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1387,9 +1387,9 @@
       "environment": "local-and-staging",
       "id": "V7.5.2",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v7_5_2",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1400,9 +1400,9 @@
       "environment": "local-and-staging",
       "id": "V7.6.1",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v7_6_1",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1413,9 +1413,9 @@
       "environment": "local-and-staging",
       "id": "V7.6.2",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v7_6_2",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1426,9 +1426,9 @@
       "environment": "local-and-staging",
       "id": "V8.1.1",
       "level": 1,
-      "primaryEvidence": "tests/security/tenant-capability-matrix.spec.ts::asvs_v8_1_1",
+      "primaryEvidence": "tests/security/tenant-capability-matrix.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Application security owner"
     },
     {
@@ -1439,9 +1439,9 @@
       "environment": "local-and-staging",
       "id": "V8.1.2",
       "level": 2,
-      "primaryEvidence": "tests/security/tenant-capability-matrix.spec.ts::asvs_v8_1_2",
+      "primaryEvidence": "tests/security/tenant-capability-matrix.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Application security owner"
     },
     {
@@ -1452,9 +1452,9 @@
       "environment": "local-and-staging",
       "id": "V8.2.1",
       "level": 1,
-      "primaryEvidence": "tests/security/tenant-capability-matrix.spec.ts::asvs_v8_2_1",
+      "primaryEvidence": "tests/security/tenant-capability-matrix.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Application security owner"
     },
     {
@@ -1465,9 +1465,9 @@
       "environment": "local-and-staging",
       "id": "V8.2.2",
       "level": 1,
-      "primaryEvidence": "tests/security/tenant-capability-matrix.spec.ts::asvs_v8_2_2",
+      "primaryEvidence": "tests/security/tenant-capability-matrix.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Application security owner"
     },
     {
@@ -1478,9 +1478,9 @@
       "environment": "local-and-staging",
       "id": "V8.2.3",
       "level": 2,
-      "primaryEvidence": "tests/security/tenant-capability-matrix.spec.ts::asvs_v8_2_3",
+      "primaryEvidence": "tests/security/tenant-capability-matrix.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Application security owner"
     },
     {
@@ -1491,9 +1491,9 @@
       "environment": "local-and-staging",
       "id": "V8.3.1",
       "level": 1,
-      "primaryEvidence": "tests/security/tenant-capability-matrix.spec.ts::asvs_v8_3_1",
+      "primaryEvidence": "tests/security/tenant-capability-matrix.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Application security owner"
     },
     {
@@ -1504,9 +1504,9 @@
       "environment": "local-and-staging",
       "id": "V8.4.1",
       "level": 2,
-      "primaryEvidence": "tests/security/tenant-capability-matrix.spec.ts::asvs_v8_4_1",
+      "primaryEvidence": "tests/security/tenant-capability-matrix.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Application security owner"
     },
     {
@@ -1517,9 +1517,9 @@
       "environment": "local-and-staging",
       "id": "V9.1.1",
       "level": 1,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v9_1_1",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1530,9 +1530,9 @@
       "environment": "local-and-staging",
       "id": "V9.1.2",
       "level": 1,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v9_1_2",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1543,9 +1543,9 @@
       "environment": "local-and-staging",
       "id": "V9.1.3",
       "level": 1,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v9_1_3",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1556,9 +1556,9 @@
       "environment": "local-and-staging",
       "id": "V9.2.1",
       "level": 1,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v9_2_1",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1569,9 +1569,9 @@
       "environment": "local-and-staging",
       "id": "V9.2.2",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v9_2_2",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1582,9 +1582,9 @@
       "environment": "local-and-staging",
       "id": "V9.2.3",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v9_2_3",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1595,9 +1595,9 @@
       "environment": "local-and-staging",
       "id": "V9.2.4",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v9_2_4",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1609,9 +1609,9 @@
       "environment": "local-and-staging",
       "id": "V10.1.1",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v10_1_1",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1622,9 +1622,9 @@
       "environment": "local-and-staging",
       "id": "V10.1.2",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v10_1_2",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1635,9 +1635,9 @@
       "environment": "local-and-staging",
       "id": "V10.2.1",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v10_2_1",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1648,9 +1648,9 @@
       "environment": "local-and-staging",
       "id": "V10.2.2",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v10_2_2",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1661,9 +1661,9 @@
       "environment": "local-and-staging",
       "id": "V10.3.1",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v10_3_1",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1674,9 +1674,9 @@
       "environment": "local-and-staging",
       "id": "V10.3.2",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v10_3_2",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1687,9 +1687,9 @@
       "environment": "local-and-staging",
       "id": "V10.3.3",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v10_3_3",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1700,9 +1700,9 @@
       "environment": "local-and-staging",
       "id": "V10.3.4",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v10_3_4",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1713,9 +1713,9 @@
       "environment": "local-and-staging",
       "id": "V10.4.1",
       "level": 1,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v10_4_1",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1726,9 +1726,9 @@
       "environment": "local-and-staging",
       "id": "V10.4.2",
       "level": 1,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v10_4_2",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1739,9 +1739,9 @@
       "environment": "local-and-staging",
       "id": "V10.4.3",
       "level": 1,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v10_4_3",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1752,9 +1752,9 @@
       "environment": "local-and-staging",
       "id": "V10.4.4",
       "level": 1,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v10_4_4",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1765,9 +1765,9 @@
       "environment": "local-and-staging",
       "id": "V10.4.5",
       "level": 1,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v10_4_5",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1778,9 +1778,9 @@
       "environment": "local-and-staging",
       "id": "V10.4.6",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v10_4_6",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1791,9 +1791,9 @@
       "environment": "local-and-staging",
       "id": "V10.4.7",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v10_4_7",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1804,9 +1804,9 @@
       "environment": "local-and-staging",
       "id": "V10.4.8",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v10_4_8",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1817,9 +1817,9 @@
       "environment": "local-and-staging",
       "id": "V10.4.9",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v10_4_9",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1830,9 +1830,9 @@
       "environment": "local-and-staging",
       "id": "V10.4.10",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v10_4_10",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1843,9 +1843,9 @@
       "environment": "local-and-staging",
       "id": "V10.4.11",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v10_4_11",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1856,9 +1856,9 @@
       "environment": "local-and-staging",
       "id": "V10.5.1",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v10_5_1",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1869,9 +1869,9 @@
       "environment": "local-and-staging",
       "id": "V10.5.2",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v10_5_2",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1882,9 +1882,9 @@
       "environment": "local-and-staging",
       "id": "V10.5.3",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v10_5_3",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1895,9 +1895,9 @@
       "environment": "local-and-staging",
       "id": "V10.5.4",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v10_5_4",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1908,9 +1908,9 @@
       "environment": "local-and-staging",
       "id": "V10.5.5",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v10_5_5",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1921,9 +1921,9 @@
       "environment": "local-and-staging",
       "id": "V10.6.1",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v10_6_1",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1934,9 +1934,9 @@
       "environment": "local-and-staging",
       "id": "V10.6.2",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v10_6_2",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1947,9 +1947,9 @@
       "environment": "local-and-staging",
       "id": "V10.7.1",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v10_7_1",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1960,9 +1960,9 @@
       "environment": "local-and-staging",
       "id": "V10.7.2",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v10_7_2",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1973,9 +1973,9 @@
       "environment": "local-and-staging",
       "id": "V10.7.3",
       "level": 2,
-      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts::asvs_v10_7_3",
+      "primaryEvidence": "tests/security/auth-session-recovery.spec.ts",
       "primaryOwner": "C02",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Auth security owner"
     },
     {
@@ -1986,9 +1986,9 @@
       "environment": "local-and-staging",
       "id": "V12.1.1",
       "level": 1,
-      "primaryEvidence": "tests/security/release-surface.spec.ts::asvs_v12_1_1",
+      "primaryEvidence": "tests/security/release-surface.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -1999,9 +1999,9 @@
       "environment": "local-and-staging",
       "id": "V12.1.2",
       "level": 2,
-      "primaryEvidence": "tests/security/release-surface.spec.ts::asvs_v12_1_2",
+      "primaryEvidence": "tests/security/release-surface.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -2012,9 +2012,9 @@
       "environment": "local-and-staging",
       "id": "V12.1.3",
       "level": 2,
-      "primaryEvidence": "tests/security/release-surface.spec.ts::asvs_v12_1_3",
+      "primaryEvidence": "tests/security/release-surface.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -2025,9 +2025,9 @@
       "environment": "local-and-staging",
       "id": "V12.2.1",
       "level": 1,
-      "primaryEvidence": "tests/security/release-surface.spec.ts::asvs_v12_2_1",
+      "primaryEvidence": "tests/security/release-surface.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -2038,9 +2038,9 @@
       "environment": "local-and-staging",
       "id": "V12.2.2",
       "level": 1,
-      "primaryEvidence": "tests/security/release-surface.spec.ts::asvs_v12_2_2",
+      "primaryEvidence": "tests/security/release-surface.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -2051,9 +2051,9 @@
       "environment": "local-and-staging",
       "id": "V12.3.1",
       "level": 2,
-      "primaryEvidence": "tests/security/release-surface.spec.ts::asvs_v12_3_1",
+      "primaryEvidence": "tests/security/release-surface.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -2064,9 +2064,9 @@
       "environment": "local-and-staging",
       "id": "V12.3.2",
       "level": 2,
-      "primaryEvidence": "tests/security/release-surface.spec.ts::asvs_v12_3_2",
+      "primaryEvidence": "tests/security/release-surface.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -2077,9 +2077,9 @@
       "environment": "local-and-staging",
       "id": "V12.3.3",
       "level": 2,
-      "primaryEvidence": "tests/security/release-surface.spec.ts::asvs_v12_3_3",
+      "primaryEvidence": "tests/security/release-surface.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -2090,9 +2090,9 @@
       "environment": "local-and-staging",
       "id": "V12.3.4",
       "level": 2,
-      "primaryEvidence": "tests/security/release-surface.spec.ts::asvs_v12_3_4",
+      "primaryEvidence": "tests/security/release-surface.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Dashboard security owner"
     },
     {
@@ -2103,9 +2103,9 @@
       "environment": "local-and-staging",
       "id": "V13.1.1",
       "level": 2,
-      "primaryEvidence": "tests/security/web-boundary.spec.ts::asvs_v13_1_1",
+      "primaryEvidence": "tests/security/web-boundary.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Application security owner"
     },
     {
@@ -2116,9 +2116,9 @@
       "environment": "local-and-staging",
       "id": "V13.2.1",
       "level": 2,
-      "primaryEvidence": "tests/security/web-boundary.spec.ts::asvs_v13_2_1",
+      "primaryEvidence": "tests/security/web-boundary.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Application security owner"
     },
     {
@@ -2129,9 +2129,9 @@
       "environment": "local-and-staging",
       "id": "V13.2.2",
       "level": 2,
-      "primaryEvidence": "tests/security/web-boundary.spec.ts::asvs_v13_2_2",
+      "primaryEvidence": "tests/security/web-boundary.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Application security owner"
     },
     {
@@ -2142,9 +2142,9 @@
       "environment": "local-and-staging",
       "id": "V13.2.3",
       "level": 2,
-      "primaryEvidence": "tests/security/web-boundary.spec.ts::asvs_v13_2_3",
+      "primaryEvidence": "tests/security/web-boundary.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Application security owner"
     },
     {
@@ -2155,9 +2155,9 @@
       "environment": "local-and-staging",
       "id": "V13.2.4",
       "level": 2,
-      "primaryEvidence": "tests/security/web-boundary.spec.ts::asvs_v13_2_4",
+      "primaryEvidence": "tests/security/web-boundary.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Application security owner"
     },
     {
@@ -2168,9 +2168,9 @@
       "environment": "local-and-staging",
       "id": "V13.2.5",
       "level": 2,
-      "primaryEvidence": "tests/security/web-boundary.spec.ts::asvs_v13_2_5",
+      "primaryEvidence": "tests/security/web-boundary.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Application security owner"
     },
     {
@@ -2181,9 +2181,9 @@
       "environment": "local-and-staging",
       "id": "V13.3.1",
       "level": 2,
-      "primaryEvidence": "tests/security/web-boundary.spec.ts::asvs_v13_3_1",
+      "primaryEvidence": "tests/security/web-boundary.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Application security owner"
     },
     {
@@ -2194,9 +2194,9 @@
       "environment": "local-and-staging",
       "id": "V13.3.2",
       "level": 2,
-      "primaryEvidence": "tests/security/web-boundary.spec.ts::asvs_v13_3_2",
+      "primaryEvidence": "tests/security/web-boundary.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Application security owner"
     },
     {
@@ -2207,9 +2207,9 @@
       "environment": "local-and-staging",
       "id": "V13.4.1",
       "level": 1,
-      "primaryEvidence": "tests/security/web-boundary.spec.ts::asvs_v13_4_1",
+      "primaryEvidence": "tests/security/web-boundary.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Application security owner"
     },
     {
@@ -2220,9 +2220,9 @@
       "environment": "local-and-staging",
       "id": "V13.4.2",
       "level": 2,
-      "primaryEvidence": "tests/security/web-boundary.spec.ts::asvs_v13_4_2",
+      "primaryEvidence": "tests/security/web-boundary.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Application security owner"
     },
     {
@@ -2233,9 +2233,9 @@
       "environment": "local-and-staging",
       "id": "V13.4.3",
       "level": 2,
-      "primaryEvidence": "tests/security/web-boundary.spec.ts::asvs_v13_4_3",
+      "primaryEvidence": "tests/security/web-boundary.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Application security owner"
     },
     {
@@ -2246,9 +2246,9 @@
       "environment": "local-and-staging",
       "id": "V13.4.4",
       "level": 2,
-      "primaryEvidence": "tests/security/web-boundary.spec.ts::asvs_v13_4_4",
+      "primaryEvidence": "tests/security/web-boundary.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Application security owner"
     },
     {
@@ -2259,9 +2259,9 @@
       "environment": "local-and-staging",
       "id": "V13.4.5",
       "level": 2,
-      "primaryEvidence": "tests/security/web-boundary.spec.ts::asvs_v13_4_5",
+      "primaryEvidence": "tests/security/web-boundary.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Application security owner"
     },
     {
@@ -2272,9 +2272,9 @@
       "environment": "local-and-ci",
       "id": "V14.1.1",
       "level": 2,
-      "primaryEvidence": "tests/contract/supply-chain-policy.test.ts::asvs_v14_1_1",
+      "primaryEvidence": "tests/contract/supply-chain-policy.test.ts",
       "primaryOwner": "C01",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Release security owner"
     },
     {
@@ -2285,9 +2285,9 @@
       "environment": "local-and-ci",
       "id": "V14.1.2",
       "level": 2,
-      "primaryEvidence": "tests/contract/supply-chain-policy.test.ts::asvs_v14_1_2",
+      "primaryEvidence": "tests/contract/supply-chain-policy.test.ts",
       "primaryOwner": "C01",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Release security owner"
     },
     {
@@ -2298,9 +2298,9 @@
       "environment": "local-and-ci",
       "id": "V14.2.1",
       "level": 1,
-      "primaryEvidence": "tests/contract/supply-chain-policy.test.ts::asvs_v14_2_1",
+      "primaryEvidence": "tests/contract/supply-chain-policy.test.ts",
       "primaryOwner": "C01",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Release security owner"
     },
     {
@@ -2311,9 +2311,9 @@
       "environment": "local-and-ci",
       "id": "V14.2.2",
       "level": 2,
-      "primaryEvidence": "tests/contract/supply-chain-policy.test.ts::asvs_v14_2_2",
+      "primaryEvidence": "tests/contract/supply-chain-policy.test.ts",
       "primaryOwner": "C01",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Release security owner"
     },
     {
@@ -2324,9 +2324,9 @@
       "environment": "local-and-ci",
       "id": "V14.2.3",
       "level": 2,
-      "primaryEvidence": "tests/contract/supply-chain-policy.test.ts::asvs_v14_2_3",
+      "primaryEvidence": "tests/contract/supply-chain-policy.test.ts",
       "primaryOwner": "C01",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Release security owner"
     },
     {
@@ -2337,9 +2337,9 @@
       "environment": "local-and-ci",
       "id": "V14.2.4",
       "level": 2,
-      "primaryEvidence": "tests/contract/supply-chain-policy.test.ts::asvs_v14_2_4",
+      "primaryEvidence": "tests/contract/supply-chain-policy.test.ts",
       "primaryOwner": "C01",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Release security owner"
     },
     {
@@ -2350,9 +2350,9 @@
       "environment": "local-and-ci",
       "id": "V14.3.1",
       "level": 1,
-      "primaryEvidence": "tests/contract/supply-chain-policy.test.ts::asvs_v14_3_1",
+      "primaryEvidence": "tests/contract/supply-chain-policy.test.ts",
       "primaryOwner": "C01",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Release security owner"
     },
     {
@@ -2363,9 +2363,9 @@
       "environment": "local-and-ci",
       "id": "V14.3.2",
       "level": 2,
-      "primaryEvidence": "tests/contract/supply-chain-policy.test.ts::asvs_v14_3_2",
+      "primaryEvidence": "tests/contract/supply-chain-policy.test.ts",
       "primaryOwner": "C01",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Release security owner"
     },
     {
@@ -2376,9 +2376,9 @@
       "environment": "local-and-ci",
       "id": "V14.3.3",
       "level": 2,
-      "primaryEvidence": "tests/contract/supply-chain-policy.test.ts::asvs_v14_3_3",
+      "primaryEvidence": "tests/contract/supply-chain-policy.test.ts",
       "primaryOwner": "C01",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Release security owner"
     },
     {
@@ -2389,9 +2389,9 @@
       "environment": "local-and-staging",
       "id": "V15.1.1",
       "level": 1,
-      "primaryEvidence": "tests/security/business-logic.spec.ts::asvs_v15_1_1",
+      "primaryEvidence": "tests/security/business-logic.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Product security owner"
     },
     {
@@ -2402,9 +2402,9 @@
       "environment": "local-and-staging",
       "id": "V15.1.2",
       "level": 2,
-      "primaryEvidence": "tests/security/business-logic.spec.ts::asvs_v15_1_2",
+      "primaryEvidence": "tests/security/business-logic.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Product security owner"
     },
     {
@@ -2415,9 +2415,9 @@
       "environment": "local-and-staging",
       "id": "V15.1.3",
       "level": 2,
-      "primaryEvidence": "tests/security/business-logic.spec.ts::asvs_v15_1_3",
+      "primaryEvidence": "tests/security/business-logic.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Product security owner"
     },
     {
@@ -2428,9 +2428,9 @@
       "environment": "local-and-staging",
       "id": "V15.2.1",
       "level": 1,
-      "primaryEvidence": "tests/security/business-logic.spec.ts::asvs_v15_2_1",
+      "primaryEvidence": "tests/security/business-logic.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Product security owner"
     },
     {
@@ -2441,9 +2441,9 @@
       "environment": "local-and-staging",
       "id": "V15.2.2",
       "level": 2,
-      "primaryEvidence": "tests/security/business-logic.spec.ts::asvs_v15_2_2",
+      "primaryEvidence": "tests/security/business-logic.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Product security owner"
     },
     {
@@ -2454,9 +2454,9 @@
       "environment": "local-and-staging",
       "id": "V15.2.3",
       "level": 2,
-      "primaryEvidence": "tests/security/business-logic.spec.ts::asvs_v15_2_3",
+      "primaryEvidence": "tests/security/business-logic.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Product security owner"
     },
     {
@@ -2467,9 +2467,9 @@
       "environment": "local-and-staging",
       "id": "V15.3.1",
       "level": 1,
-      "primaryEvidence": "tests/security/business-logic.spec.ts::asvs_v15_3_1",
+      "primaryEvidence": "tests/security/business-logic.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Product security owner"
     },
     {
@@ -2480,9 +2480,9 @@
       "environment": "local-and-staging",
       "id": "V15.3.2",
       "level": 2,
-      "primaryEvidence": "tests/security/business-logic.spec.ts::asvs_v15_3_2",
+      "primaryEvidence": "tests/security/business-logic.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Product security owner"
     },
     {
@@ -2493,9 +2493,9 @@
       "environment": "local-and-staging",
       "id": "V15.3.3",
       "level": 2,
-      "primaryEvidence": "tests/security/business-logic.spec.ts::asvs_v15_3_3",
+      "primaryEvidence": "tests/security/business-logic.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Product security owner"
     },
     {
@@ -2506,9 +2506,9 @@
       "environment": "local-and-staging",
       "id": "V15.3.4",
       "level": 2,
-      "primaryEvidence": "tests/security/business-logic.spec.ts::asvs_v15_3_4",
+      "primaryEvidence": "tests/security/business-logic.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Product security owner"
     },
     {
@@ -2519,9 +2519,9 @@
       "environment": "local-and-staging",
       "id": "V15.3.5",
       "level": 2,
-      "primaryEvidence": "tests/security/business-logic.spec.ts::asvs_v15_3_5",
+      "primaryEvidence": "tests/security/business-logic.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Product security owner"
     },
     {
@@ -2532,9 +2532,9 @@
       "environment": "local-and-staging",
       "id": "V15.3.6",
       "level": 2,
-      "primaryEvidence": "tests/security/business-logic.spec.ts::asvs_v15_3_6",
+      "primaryEvidence": "tests/security/business-logic.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Product security owner"
     },
     {
@@ -2545,9 +2545,9 @@
       "environment": "local-and-staging",
       "id": "V15.3.7",
       "level": 2,
-      "primaryEvidence": "tests/security/business-logic.spec.ts::asvs_v15_3_7",
+      "primaryEvidence": "tests/security/business-logic.spec.ts",
       "primaryOwner": "I01-C",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Product security owner"
     },
     {
@@ -2558,9 +2558,9 @@
       "environment": "local-and-staging",
       "id": "V16.1.1",
       "level": 2,
-      "primaryEvidence": "test_console_security_events_live.py::asvs_v16_1_1",
+      "primaryEvidence": "test_console_security_events_live.py",
       "primaryOwner": "I01-B",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Platform security owner"
     },
     {
@@ -2571,9 +2571,9 @@
       "environment": "local-and-staging",
       "id": "V16.2.1",
       "level": 2,
-      "primaryEvidence": "test_console_security_events_live.py::asvs_v16_2_1",
+      "primaryEvidence": "test_console_security_events_live.py",
       "primaryOwner": "I01-B",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Platform security owner"
     },
     {
@@ -2584,9 +2584,9 @@
       "environment": "local-and-staging",
       "id": "V16.2.2",
       "level": 2,
-      "primaryEvidence": "test_console_security_events_live.py::asvs_v16_2_2",
+      "primaryEvidence": "test_console_security_events_live.py",
       "primaryOwner": "I01-B",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Platform security owner"
     },
     {
@@ -2597,9 +2597,9 @@
       "environment": "local-and-staging",
       "id": "V16.2.3",
       "level": 2,
-      "primaryEvidence": "test_console_security_events_live.py::asvs_v16_2_3",
+      "primaryEvidence": "test_console_security_events_live.py",
       "primaryOwner": "I01-B",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Platform security owner"
     },
     {
@@ -2610,9 +2610,9 @@
       "environment": "local-and-staging",
       "id": "V16.2.4",
       "level": 2,
-      "primaryEvidence": "test_console_security_events_live.py::asvs_v16_2_4",
+      "primaryEvidence": "test_console_security_events_live.py",
       "primaryOwner": "I01-B",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Platform security owner"
     },
     {
@@ -2623,9 +2623,9 @@
       "environment": "local-and-staging",
       "id": "V16.2.5",
       "level": 2,
-      "primaryEvidence": "test_console_security_events_live.py::asvs_v16_2_5",
+      "primaryEvidence": "test_console_security_events_live.py",
       "primaryOwner": "I01-B",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Platform security owner"
     },
     {
@@ -2636,9 +2636,9 @@
       "environment": "local-and-staging",
       "id": "V16.3.1",
       "level": 2,
-      "primaryEvidence": "test_console_security_events_live.py::asvs_v16_3_1",
+      "primaryEvidence": "test_console_security_events_live.py",
       "primaryOwner": "I01-B",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Platform security owner"
     },
     {
@@ -2649,9 +2649,9 @@
       "environment": "local-and-staging",
       "id": "V16.3.2",
       "level": 2,
-      "primaryEvidence": "test_console_security_events_live.py::asvs_v16_3_2",
+      "primaryEvidence": "test_console_security_events_live.py",
       "primaryOwner": "I01-B",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Platform security owner"
     },
     {
@@ -2662,9 +2662,9 @@
       "environment": "local-and-staging",
       "id": "V16.3.3",
       "level": 2,
-      "primaryEvidence": "test_console_security_events_live.py::asvs_v16_3_3",
+      "primaryEvidence": "test_console_security_events_live.py",
       "primaryOwner": "I01-B",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Platform security owner"
     },
     {
@@ -2675,9 +2675,9 @@
       "environment": "local-and-staging",
       "id": "V16.3.4",
       "level": 2,
-      "primaryEvidence": "test_console_security_events_live.py::asvs_v16_3_4",
+      "primaryEvidence": "test_console_security_events_live.py",
       "primaryOwner": "I01-B",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Platform security owner"
     },
     {
@@ -2688,9 +2688,9 @@
       "environment": "local-and-staging",
       "id": "V16.4.1",
       "level": 2,
-      "primaryEvidence": "test_console_security_events_live.py::asvs_v16_4_1",
+      "primaryEvidence": "test_console_security_events_live.py",
       "primaryOwner": "I01-B",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Platform security owner"
     },
     {
@@ -2701,9 +2701,9 @@
       "environment": "local-and-staging",
       "id": "V16.4.2",
       "level": 2,
-      "primaryEvidence": "test_console_security_events_live.py::asvs_v16_4_2",
+      "primaryEvidence": "test_console_security_events_live.py",
       "primaryOwner": "I01-B",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Platform security owner"
     },
     {
@@ -2714,9 +2714,9 @@
       "environment": "local-and-staging",
       "id": "V16.4.3",
       "level": 2,
-      "primaryEvidence": "test_console_security_events_live.py::asvs_v16_4_3",
+      "primaryEvidence": "test_console_security_events_live.py",
       "primaryOwner": "I01-B",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Platform security owner"
     },
     {
@@ -2727,9 +2727,9 @@
       "environment": "local-and-staging",
       "id": "V16.5.1",
       "level": 2,
-      "primaryEvidence": "test_console_security_events_live.py::asvs_v16_5_1",
+      "primaryEvidence": "test_console_security_events_live.py",
       "primaryOwner": "I01-B",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Platform security owner"
     },
     {
@@ -2740,9 +2740,9 @@
       "environment": "local-and-staging",
       "id": "V16.5.2",
       "level": 2,
-      "primaryEvidence": "test_console_security_events_live.py::asvs_v16_5_2",
+      "primaryEvidence": "test_console_security_events_live.py",
       "primaryOwner": "I01-B",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Platform security owner"
     },
     {
@@ -2753,9 +2753,9 @@
       "environment": "local-and-staging",
       "id": "V16.5.3",
       "level": 2,
-      "primaryEvidence": "test_console_security_events_live.py::asvs_v16_5_3",
+      "primaryEvidence": "test_console_security_events_live.py",
       "primaryOwner": "I01-B",
-      "status": "planned",
+      "status": "pass",
       "verifier": "Platform security owner"
     }
   ],
