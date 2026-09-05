@@ -13,6 +13,7 @@
   "docs/HANDOFF.md",
   "docs/README.md",
   "docs/ROADMAP.md",
+  "docs/architecture/console-deployment.md",
   "docs/architecture/console-route-inventory.json",
   "docs/architecture/console-ui-conventions.md",
   "docs/architecture/design-partner-console-program-design.md",
