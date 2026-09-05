@@ -4,8 +4,16 @@ Updated: 2026-09-05
 
 ## Current state
 
-- Active branch: `EEM-9/07b-remote-free-phase-plan`. It is planning-only and
-  carries no remote authorization.
+- Active branch: `EEM-9/07c-remote-state-and-console-host`. It performs no
+  remote action and carries no remote authorization.
+- `docs/authority/eem3-global-lock-input.json` no longer carries
+  `migration.remoteApplicationState`. That was a fact about a backend staging
+  database this repository cannot observe, frozen as the literal `not-applied`
+  and compared against that exact string, so applying the migration would have
+  made it false with every gate still passing. The backend derives it from a
+  recorded baseline now. First of a pair; the backend removes the matching
+  assertion and re-pins second, and until then it refuses this change by
+  design.
 - `main` is at `8e81d04`, which merged Console `I01-C` through
   [PR #23](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/23).
   Two checks failed on the first push and both were Console defects invisible
