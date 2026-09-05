@@ -4,11 +4,16 @@ Updated: 2026-09-05
 
 ## Current state
 
-- Active branch: `EEM-9/07-free-integration`. Console `I01-C` is implemented and
-  locally verified; not merged, no pull request open, nothing pushed.
-- `main` is at `0c327bb`, which merged EEM-9/06 through
-  [PR #22](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/22).
-  `EEM-9/03h` and `EEM-9/02c` are merged; text here previously asked for an
+- Active branch: `EEM-9/07b-remote-free-phase-plan`. It is planning-only and
+  carries no remote authorization.
+- `main` is at `8e81d04`, which merged Console `I01-C` through
+  [PR #23](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/23).
+  Two checks failed on the first push and both were Console defects invisible
+  locally: the EEM-9/01 bootstrap contract still pinned the discarded
+  `::asvs_v1_1_1` evidence shape, and the rollback rehearsal test read the
+  canary profile from a sibling backend checkout no runner has. Both are fixed;
+  the sibling case now asserts its own precondition instead of skipping.
+- `EEM-9/03h` and `EEM-9/02c` are merged; text here previously asked for an
   `EEM-9/03h` pull request and a rebase of `EEM-9/06`, both of which had already
   landed, and EEM-9/07 corrected it against Git rather than leaving the next
   reader to discover it.
@@ -18,6 +23,21 @@ Updated: 2026-09-05
   [PR #73](https://github.com/Evirion/evirion-engineering-memory/pull/73) at
   `aa5bd83`. It moved no contract or migration byte, so no contract publication
   was needed between the two pull requests.
+- Step 7, the staging apply, deployment and free canary, remains unauthorized
+  and now has a written prerequisite plan. It is backend-owned, at
+  `docs/plans/active/eem-9-07-remote-free-phase-plan.md` in
+  `Evirion/evirion-engineering-memory`, because every action it describes is a
+  backend apply, deployment or observation.   One prerequisite remains open, and it is not a Step 7 decision to make on the
+  day: the recorded staging migration gap is itself stale, and the true applied
+  count can only be read from the project.
+- The other prerequisite is closed on this branch. The global lock supersession
+  read `pending-dashboard-reattestation` with `EEM-9/07` as its named owner, so
+  `docs/authority/eem3-global-lock-input.json` now re-attests the current
+  backend lock plane at `aa5bd83`, backend PR #73, instead of the EEM-3/13 bytes
+  merged by backend PR #24. This is the first pull request of the pair; the
+  backend re-pins this commit and drops the marker in the second. Until that
+  merges the backend verifier reads this file at its previously pinned commit,
+  so the two repositories stay consistent in between.
 
 ## What changed here and why
 

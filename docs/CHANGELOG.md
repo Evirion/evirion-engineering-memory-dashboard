@@ -1,5 +1,49 @@
 # Dashboard changelog
 
+## 2026-09-05 — EEM-9/07 re-attests the backend global lock plane
+
+- Why: [ADR 0011](https://github.com/Evirion/evirion-engineering-memory/blob/main/docs/decisions/0011-merged-and-current-global-lock-attestation.md)
+  named `EEM-9/07` the owner of a divergence it could not leave open. EEM-6/04
+  rewrote catalogued EEM-3 functions to enforce repository entitlement at the
+  webhook admission, source claim, source persistence, budget reservation and
+  backfill boundaries, so the manifest had to be regenerated and the Dashboard's
+  frozen input stopped describing the lock plane the backend runs.
+- What changed: `docs/authority/eem3-global-lock-input.json` moves from the
+  EEM-3/13 bytes merged by backend PR #24 at `b23f6ba2` to the current bytes at
+  `aa5bd83`, merged by backend PR #73. The manifest digest and all four catalog
+  digests are re-attested. `rankOrder` is unchanged at 37 ranks, because the
+  regenerated manifest introduced no new rank, and the lock `contract` block is
+  untouched.
+- Digests are read from the attested backend commit itself rather than copied
+  from the pointer under repair.
+- This is the first of the pair. The backend re-pins this commit and drops the
+  supersession marker in its own pull request, in the EEM-9/01 order. Until that
+  merges the backend verifier still reads this file at the previously pinned
+  commit, so nothing breaks in between.
+
+## 2026-09-05 — EEM-9/07 Step 7 prerequisites, planning only
+
+- Why: the catalog's planning-only request follows the local `/07` gates, and
+  merging `I01-C` made three Dashboard documents false in the same breath.
+- Corrected against Git: handoff, roadmap and the active-plan catalog each still
+  said `I01-C` was implemented but unmerged, with nothing pushed. It merged as
+  [PR #23](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/23)
+  at `8e81d04`.
+- Recorded for the next reader: two checks failed on the first push and both
+  were Console defects no local run could surface. The EEM-9/01 bootstrap
+  contract still pinned the discarded `::asvs_v1_1_1` evidence shape, and the
+  rollback rehearsal test read the canary profile from a sibling backend
+  checkout no runner has. The sibling case now asserts its own precondition
+  rather than skipping, so it proves something either way.
+- Step 7 prerequisites are backend-owned and written down at
+  `docs/plans/active/eem-9-07-remote-free-phase-plan.md` in
+  `Evirion/evirion-engineering-memory`. Two are open: the ADR 0011 global lock
+  supersession, whose closure needs a Dashboard-first re-pin of
+  `docs/authority/eem3-global-lock-input.json`, and a staging migration baseline
+  that can only be read from the project.
+- No product byte, contract byte or authority digest moved. Nothing deployed,
+  observed or authorized.
+
 ## 2026-09-05 — EEM-9/07 free integration and security certification (`I01-C`)
 
 - Why: the first task where the Console and the backend are exercised against

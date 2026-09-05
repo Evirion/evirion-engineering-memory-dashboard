@@ -1,15 +1,15 @@
 {
   "backend": {
-    "commit": "b23f6ba2b11f583b61200cec63500a782992f1f0",
-    "mergedPullRequest": 24,
-    "reviewedAndMergedTree": "48bd95459fa626af0c72133da9a9fc0cbe1dec50",
+    "commit": "aa5bd83af560f560e1a58e06decbd69464404cd1",
+    "mergedPullRequest": 73,
+    "reviewedAndMergedTree": "49c583fe1553de8f51a104ebdfab0076b76fa090",
     "repository": "Evirion/evirion-engineering-memory"
   },
   "catalogDigests": {
-    "foreignKey": "03bf2568291f3bb196020cd95a35c54d022b0567d6410d4d0ab7e17b954306bc",
-    "foreignKeyTrigger": "2a9cc1fbfeaa26b0c73a2e4d5033a68017925ecb3c0c4b1dd9fb64920a589f33",
-    "function": "32bd9e26482b2d9398d2fab5eaa889817b666a8880d97abc71185fae7720d45c",
-    "trigger": "585f0d63c7177fb3486ee0904899b1445cd363aca0ba5dbe6da84e050a6bc287"
+    "foreignKey": "ef1ca67fe39908629f16e87d80c26d3211021541073b3079ee8b86de42d9bc07",
+    "foreignKeyTrigger": "6b1af9751c9548e6fc7447ca9edf173519f1684d6ecc35172d9b6465f1cc7337",
+    "function": "090bdb2aef3e7aefb6c48419ccdd5cb4930f553339bb54c0072b9dafd5a96d3e",
+    "trigger": "148f9bb5db03d093fe66efee14a70c59ff6d03ecc22d48bf98cf1f9e49b6d606"
   },
   "contract": {
     "alreadyHeldException": "exact same lock key only",
@@ -23,7 +23,7 @@
   },
   "manifest": {
     "path": "services/model-orchestration/tests/database/fixtures/eem3_global_lock_contract.v1.json",
-    "sha256": "ff422f622d60f43e41bb78e77a01c665b0dd100b80b701f71296c88486956f8d"
+    "sha256": "795d4d0e93f7008338b0b4abf30f57ce11e0e9f062e23f95b2e0db254bd6eaf4"
   },
   "migration": {
     "path": "supabase/migrations/20260827133549_eem3_13_global_lock_order_remediation.sql",
