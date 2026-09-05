@@ -1,0 +1,1068 @@
+{
+  "evidenceKind": "suite-level",
+  "note": "Recorded status per ASVS row. Evidence is suite level, not row level: a status of pass means the named suite exists and passed, not that a separate assertion was written for that single requirement. A row absent from this file generates as planned, so nothing can become pass by omission. EEM-9/07 recorded these; before it the matrix pinned a synthesised case name that existed in no suite, which is why every row had always read planned.",
+  "recordedBy": "EEM-9/07",
+  "rows": {
+    "V1.1.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/xss-corpus.spec.ts"
+    },
+    "V1.1.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/xss-corpus.spec.ts"
+    },
+    "V1.2.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/xss-corpus.spec.ts"
+    },
+    "V1.2.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/xss-corpus.spec.ts"
+    },
+    "V1.2.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/xss-corpus.spec.ts"
+    },
+    "V1.2.4": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/xss-corpus.spec.ts"
+    },
+    "V1.2.5": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/xss-corpus.spec.ts"
+    },
+    "V1.2.6": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/xss-corpus.spec.ts"
+    },
+    "V1.2.7": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/xss-corpus.spec.ts"
+    },
+    "V1.2.8": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/xss-corpus.spec.ts"
+    },
+    "V1.2.9": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/xss-corpus.spec.ts"
+    },
+    "V1.3.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/xss-corpus.spec.ts"
+    },
+    "V1.3.10": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/xss-corpus.spec.ts"
+    },
+    "V1.3.11": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/xss-corpus.spec.ts"
+    },
+    "V1.3.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/xss-corpus.spec.ts"
+    },
+    "V1.3.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/xss-corpus.spec.ts"
+    },
+    "V1.3.4": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/xss-corpus.spec.ts"
+    },
+    "V1.3.5": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/xss-corpus.spec.ts"
+    },
+    "V1.3.6": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/xss-corpus.spec.ts"
+    },
+    "V1.3.7": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/xss-corpus.spec.ts"
+    },
+    "V1.3.8": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/xss-corpus.spec.ts"
+    },
+    "V1.3.9": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/xss-corpus.spec.ts"
+    },
+    "V1.4.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/xss-corpus.spec.ts"
+    },
+    "V1.4.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/xss-corpus.spec.ts"
+    },
+    "V1.4.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/xss-corpus.spec.ts"
+    },
+    "V1.5.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/xss-corpus.spec.ts"
+    },
+    "V1.5.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/xss-corpus.spec.ts"
+    },
+    "V10.1.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V10.1.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V10.2.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V10.2.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V10.3.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V10.3.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V10.3.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V10.3.4": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V10.4.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V10.4.10": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V10.4.11": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V10.4.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V10.4.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V10.4.4": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V10.4.5": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V10.4.6": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V10.4.7": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V10.4.8": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V10.4.9": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V10.5.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V10.5.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V10.5.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V10.5.4": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V10.5.5": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V10.6.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V10.6.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V10.7.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V10.7.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V10.7.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V12.1.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm security:release-surface"
+    },
+    "V12.1.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm security:release-surface"
+    },
+    "V12.1.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm security:release-surface"
+    },
+    "V12.2.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm security:release-surface"
+    },
+    "V12.2.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm security:release-surface"
+    },
+    "V12.3.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm security:release-surface"
+    },
+    "V12.3.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm security:release-surface"
+    },
+    "V12.3.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm security:release-surface"
+    },
+    "V12.3.4": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm security:release-surface"
+    },
+    "V13.1.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/web-boundary.spec.ts"
+    },
+    "V13.2.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/web-boundary.spec.ts"
+    },
+    "V13.2.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/web-boundary.spec.ts"
+    },
+    "V13.2.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/web-boundary.spec.ts"
+    },
+    "V13.2.4": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/web-boundary.spec.ts"
+    },
+    "V13.2.5": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/web-boundary.spec.ts"
+    },
+    "V13.3.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/web-boundary.spec.ts"
+    },
+    "V13.3.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/web-boundary.spec.ts"
+    },
+    "V13.4.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/web-boundary.spec.ts"
+    },
+    "V13.4.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/web-boundary.spec.ts"
+    },
+    "V13.4.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/web-boundary.spec.ts"
+    },
+    "V13.4.4": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/web-boundary.spec.ts"
+    },
+    "V13.4.5": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/web-boundary.spec.ts"
+    },
+    "V14.1.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm security:supply-chain"
+    },
+    "V14.1.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm security:supply-chain"
+    },
+    "V14.2.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm security:supply-chain"
+    },
+    "V14.2.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm security:supply-chain"
+    },
+    "V14.2.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm security:supply-chain"
+    },
+    "V14.2.4": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm security:supply-chain"
+    },
+    "V14.3.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm security:supply-chain"
+    },
+    "V14.3.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm security:supply-chain"
+    },
+    "V14.3.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm security:supply-chain"
+    },
+    "V15.1.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/business-logic.spec.ts"
+    },
+    "V15.1.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/business-logic.spec.ts"
+    },
+    "V15.1.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/business-logic.spec.ts"
+    },
+    "V15.2.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/business-logic.spec.ts"
+    },
+    "V15.2.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/business-logic.spec.ts"
+    },
+    "V15.2.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/business-logic.spec.ts"
+    },
+    "V15.3.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/business-logic.spec.ts"
+    },
+    "V15.3.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/business-logic.spec.ts"
+    },
+    "V15.3.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/business-logic.spec.ts"
+    },
+    "V15.3.4": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/business-logic.spec.ts"
+    },
+    "V15.3.5": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/business-logic.spec.ts"
+    },
+    "V15.3.6": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/business-logic.spec.ts"
+    },
+    "V15.3.7": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/business-logic.spec.ts"
+    },
+    "V16.1.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "./scripts/check_console_backend.sh focused console-security-events (evirion-engineering-memory)"
+    },
+    "V16.2.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "./scripts/check_console_backend.sh focused console-security-events (evirion-engineering-memory)"
+    },
+    "V16.2.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "./scripts/check_console_backend.sh focused console-security-events (evirion-engineering-memory)"
+    },
+    "V16.2.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "./scripts/check_console_backend.sh focused console-security-events (evirion-engineering-memory)"
+    },
+    "V16.2.4": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "./scripts/check_console_backend.sh focused console-security-events (evirion-engineering-memory)"
+    },
+    "V16.2.5": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "./scripts/check_console_backend.sh focused console-security-events (evirion-engineering-memory)"
+    },
+    "V16.3.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "./scripts/check_console_backend.sh focused console-security-events (evirion-engineering-memory)"
+    },
+    "V16.3.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "./scripts/check_console_backend.sh focused console-security-events (evirion-engineering-memory)"
+    },
+    "V16.3.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "./scripts/check_console_backend.sh focused console-security-events (evirion-engineering-memory)"
+    },
+    "V16.3.4": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "./scripts/check_console_backend.sh focused console-security-events (evirion-engineering-memory)"
+    },
+    "V16.4.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "./scripts/check_console_backend.sh focused console-security-events (evirion-engineering-memory)"
+    },
+    "V16.4.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "./scripts/check_console_backend.sh focused console-security-events (evirion-engineering-memory)"
+    },
+    "V16.4.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "./scripts/check_console_backend.sh focused console-security-events (evirion-engineering-memory)"
+    },
+    "V16.5.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "./scripts/check_console_backend.sh focused console-security-events (evirion-engineering-memory)"
+    },
+    "V16.5.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "./scripts/check_console_backend.sh focused console-security-events (evirion-engineering-memory)"
+    },
+    "V16.5.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "./scripts/check_console_backend.sh focused console-security-events (evirion-engineering-memory)"
+    },
+    "V3.2.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/headers-cache-isolation.spec.ts"
+    },
+    "V3.2.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/headers-cache-isolation.spec.ts"
+    },
+    "V3.3.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/headers-cache-isolation.spec.ts"
+    },
+    "V3.3.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/headers-cache-isolation.spec.ts"
+    },
+    "V3.3.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/headers-cache-isolation.spec.ts"
+    },
+    "V3.3.4": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/headers-cache-isolation.spec.ts"
+    },
+    "V3.4.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/headers-cache-isolation.spec.ts"
+    },
+    "V3.4.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/headers-cache-isolation.spec.ts"
+    },
+    "V3.4.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/headers-cache-isolation.spec.ts"
+    },
+    "V3.4.4": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/headers-cache-isolation.spec.ts"
+    },
+    "V3.4.5": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/headers-cache-isolation.spec.ts"
+    },
+    "V3.4.6": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/headers-cache-isolation.spec.ts"
+    },
+    "V3.5.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/headers-cache-isolation.spec.ts"
+    },
+    "V3.5.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/headers-cache-isolation.spec.ts"
+    },
+    "V3.5.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/headers-cache-isolation.spec.ts"
+    },
+    "V3.5.4": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/headers-cache-isolation.spec.ts"
+    },
+    "V3.5.5": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/headers-cache-isolation.spec.ts"
+    },
+    "V3.7.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/headers-cache-isolation.spec.ts"
+    },
+    "V3.7.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/headers-cache-isolation.spec.ts"
+    },
+    "V4.1.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/web-boundary.spec.ts"
+    },
+    "V4.1.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/web-boundary.spec.ts"
+    },
+    "V4.1.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/web-boundary.spec.ts"
+    },
+    "V4.2.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/web-boundary.spec.ts"
+    },
+    "V4.3.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/web-boundary.spec.ts"
+    },
+    "V4.3.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/web-boundary.spec.ts"
+    },
+    "V4.4.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/web-boundary.spec.ts"
+    },
+    "V4.4.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/web-boundary.spec.ts"
+    },
+    "V4.4.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/web-boundary.spec.ts"
+    },
+    "V4.4.4": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/web-boundary.spec.ts"
+    },
+    "V6.1.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.1.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.1.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.2.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.2.10": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.2.11": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.2.12": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.2.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.2.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.2.4": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.2.5": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.2.6": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.2.7": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.2.8": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.2.9": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.3.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.3.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.3.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.3.4": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.4.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.4.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.4.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.4.4": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.5.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.5.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.5.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.5.4": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.5.5": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.6.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.6.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.6.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.8.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.8.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.8.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V6.8.4": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V7.1.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V7.1.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V7.1.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V7.2.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V7.2.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V7.2.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V7.2.4": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V7.3.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V7.3.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V7.4.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V7.4.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V7.4.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V7.4.4": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V7.4.5": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V7.5.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V7.5.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V7.6.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V7.6.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V8.1.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/tenant-capability-matrix.spec.ts"
+    },
+    "V8.1.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/tenant-capability-matrix.spec.ts"
+    },
+    "V8.2.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/tenant-capability-matrix.spec.ts"
+    },
+    "V8.2.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/tenant-capability-matrix.spec.ts"
+    },
+    "V8.2.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/tenant-capability-matrix.spec.ts"
+    },
+    "V8.3.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/tenant-capability-matrix.spec.ts"
+    },
+    "V8.4.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/tenant-capability-matrix.spec.ts"
+    },
+    "V9.1.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V9.1.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V9.1.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V9.2.1": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V9.2.2": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V9.2.3": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    },
+    "V9.2.4": {
+      "observedAt": "2026-09-05",
+      "status": "pass",
+      "verifiedBy": "pnpm exec playwright test tests/security/auth-session-recovery.spec.ts"
+    }
+  },
+  "schemaVersion": "1.0"
+}

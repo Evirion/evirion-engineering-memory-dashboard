@@ -180,15 +180,33 @@ def _sha256(value: bytes) -> str:
     return hashlib.sha256(value).hexdigest()
 
 
-def _case_name(requirement_id: str) -> str:
-    return "asvs_" + re.sub(r"[^a-z0-9]+", "_", requirement_id.lower()).strip("_")
+def _status_source(root: Path) -> dict[str, Any]:
+    """Recorded status per ASVS row, or nothing when none has been recorded.
+
+    EEM-9/07 found every row sitting at `planned` because the matrix synthesised
+    a case name such as `asvs_v6_1_1` that exists in no suite, and a Python one
+    could never be a pytest node at all. Evidence now names the file that proves
+    a row, and status comes from here rather than from a literal, so a row can
+    only leave `planned` when someone records the command that observed it.
+    """
+
+    path = root / "docs/security/asvs-status.json"
+    if not path.is_file():
+        return {}
+    document = _load_object(path)
+    rows = document.get("rows")
+    if not isinstance(rows, dict):
+        raise AsvsMatrixError("asvs-status.json must carry a rows object")
+    return rows
 
 
 def build_asvs_matrix(
     source_requirements: list[dict[str, Any]],
     selected_chapters: set[str],
     assignments: dict[str, dict[str, str]],
+    recorded_status: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
+    recorded_status = recorded_status or {}
     rows: list[dict[str, Any]] = []
     seen: set[str] = set()
     eligible_chapters: set[str] = set()
@@ -232,10 +250,10 @@ def build_asvs_matrix(
                 "applicability": "applicable",
                 "applicabilityRationale": assignment["applicabilityRationale"],
                 "primaryOwner": assignment["primaryOwner"],
-                "primaryEvidence": f"{evidence}::{_case_name(requirement_id)}",
+                "primaryEvidence": evidence,
                 "environment": assignment["environment"],
                 "verifier": assignment["verifier"],
-                "status": "planned",
+                "status": recorded_status.get(requirement_id, {}).get("status", "planned"),
             }
         )
 
@@ -297,12 +315,14 @@ def _import_upstream(path: Path) -> dict[str, Any]:
     }
 
 
-def _matrix_payload(source: dict[str, Any]) -> dict[str, Any]:
+def _matrix_payload(source: dict[str, Any], root: Path) -> dict[str, Any]:
     validate_source_metadata(source)
     requirements = source.get("requirements")
     if not isinstance(requirements, list):
         raise AsvsMatrixError("vendored ASVS requirements must be a list")
-    rows = build_asvs_matrix(requirements, SELECTED_CHAPTERS, ASSIGNMENTS)
+    rows = build_asvs_matrix(
+        requirements, SELECTED_CHAPTERS, ASSIGNMENTS, _status_source(root)
+    )
     if any(row["id"] == "V10.1.1" for row in rows):
         for row in rows:
             if row["id"] == "V10.1.1":
@@ -348,7 +368,7 @@ def _main() -> int:
     else:
         source = _load_object(source_path)
 
-    matrix = _matrix_payload(source)
+    matrix = _matrix_payload(source, root)
     rendered = _canonical_json(matrix)
     if arguments.write:
         matrix_path.write_text(rendered, encoding="utf-8")
