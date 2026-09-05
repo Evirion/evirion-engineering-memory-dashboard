@@ -1,5 +1,39 @@
 # Dashboard changelog
 
+## 2026-09-05 — EEM-9/07 free integration and security certification (`I01-C`)
+
+- Why: the first task where the Console and the backend are exercised against
+  each other. Every surface through EEM-9/06 was verified against the double,
+  and the double was written from the contract while the backend implements it,
+  so nothing had checked the two readings agree.
+- Defect found and closed: the double knew 32 of the 38 error codes a Console
+  surface can receive, so `INVITATION_STATE_CONFLICT`,
+  `MODEL_PROFILE_NOT_OFFERED`, `PROVIDER_OUTCOME_UNKNOWN`, `RATE_LIMITED`,
+  `REQUEST_TOO_LARGE` and `UNSUPPORTED_SERVER_RESPONSE` could never be exercised
+  by any test. An unknown code became a 500, which is what hid it; it now throws.
+- Defect recorded, not fixed: `error.json` is shared with the operator contract,
+  so the generated Console validator accepts `BACKFILL_NOT_APPROVABLE` and
+  `NEW_MODEL_CALL_NOT_AUTHORIZED`, which reach no Console surface. Narrowing the
+  shared schema is a contract change neither pull request owns.
+- Contracts: no contract byte moved in either repository, so no publication was
+  needed between the paired pull requests.
+- Behavior: nine new security and journey suites covering `SEC-WEB-001`, `004`,
+  `008`, `009`, `NFR-SEC-003`, `NFR-ACC-001`, `AUTH-009`, `G-001` and ASVS V10;
+  a conformance tier that fails closed rather than skipping; the five Step 6
+  gate scripts that did not exist; OWASP ZAP pinned by index digest; a stale-port
+  guard; and a rollback rehearsal sharing one profile with the backend.
+- ASVS: all 212 rows had always read `planned` because the generator synthesised
+  a case name that existed in no suite. Evidence now names a file, status comes
+  from `docs/security/asvs-status.json` with a command and a date per row, and
+  the claim is explicitly suite level rather than row level.
+- Verification: `pnpm verify` exits `0` on the pinned Node 24.20.0 — 839 unit,
+  contract and conformance tests, 336 end-to-end and security tests, baseline
+  DAST at 60 rules pass, 7 warnings and nothing at High or above.
+- Deployment state: local only. Nothing pushed, tagged, signed, deployed or
+  observed. No provider call, paid operation or hosted Supabase mutation.
+- Remaining gates: Step 7 staging apply, deployment and source-only canary, each
+  needing explicit authorization; `SEC-2026-012`; Technical Design Partner Ready.
+
 ## 2026-09-05 — EEM-9/06 processing, settings, and metrics
 
 - Why: close the operational transparency slice — read-only processing with

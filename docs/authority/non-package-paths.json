@@ -10,8 +10,10 @@
   "pnpm-workspace.yaml",
   "postcss.config.mjs",
   "prettier.config.mjs",
+  "scripts/rehearse_console_rollback.sh",
   "src/**",
   "tests/component/**",
+  "tests/conformance/**",
   "tests/contract/**",
   "tests/e2e/**",
   "tests/security/**",
@@ -19,6 +21,7 @@
   "tests/unit/**",
   "tools/console-stub/**",
   "tools/local-tls/**",
+  "tools/security/dast-baseline.mjs",
   "tools/verify/**",
   "tsconfig.json",
   "vitest.config.ts"

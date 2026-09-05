@@ -19,3 +19,6 @@ next-env.d.ts
 coverage/
 test-results/
 playwright-report/
+
+# Local editor and agent configuration; never part of the authority package.
+.cursor/

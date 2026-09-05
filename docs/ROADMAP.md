@@ -9,6 +9,14 @@ the [controlling EEM-9 plan](plans/active/eem-9-design-partner-console-dashboard
 
 ## Current delivery
 
+EEM-9/07 `I01-C` is implemented and locally verified on
+`EEM-9/07-free-integration`; not merged. The paired backend `I01-B` is merged as
+[PR #73](https://github.com/Evirion/evirion-engineering-memory/pull/73) at
+`aa5bd83`, and moved no contract or migration byte, so no publication was needed
+between the pair. Step 7 staging apply, deployment and canary remain
+unauthorized. Trace:
+[`eem-9-07-acceptance-trace.md`](plans/active/eem-9-07-acceptance-trace.md).
+
 1. `EEM-9/01-dashboard-repo-bootstrap` — Dashboard authority PR
    [#1](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/1)
    merged at `6a489ccb84ce3bd0b17e0d42b983f8d15d238cef`.
