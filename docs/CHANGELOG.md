@@ -1,5 +1,29 @@
 # Dashboard changelog
 
+## 2026-09-05 — the Dashboard stops attesting the backend's deployment state
+
+- Why: `docs/authority/eem3-global-lock-input.json` carried
+  `migration.remoteApplicationState: "not-applied"`, and the backend verifier
+  compared it against that exact string. It is a fact about a staging database
+  the Dashboard cannot observe, cannot verify, and had no reason to assert.
+- The defect it caused: applying the migration to staging would have made the
+  record false **while every gate kept passing**, because the comparison was
+  against a hardcoded literal rather than evidence. Step 7 planning caught it
+  before the apply rather than after. This is the same shape as the ASVS matrix
+  whose rows all read `planned` against case names that existed in no suite: a
+  claim built so nothing can contradict it.
+- What changed: the field is removed. The Dashboard keeps attesting the
+  migration's path and bytes, which it can verify. The backend now derives
+  remote state from a baseline it reads from the project and commits as
+  evidence, so the claim became falsifiable.
+- Second benefit: the backend verifier reads this file at a pinned commit, so
+  while a deployment fact lived here every future apply would have forced a
+  cross-repository re-pin to update a field the Dashboard never knew. It will
+  not any more.
+- First of a pair. The backend removes the matching assertion and re-pins in its
+  own pull request. Until that merges the backend verifier refuses this change
+  by design, which is the ordering working rather than failing.
+
 ## 2026-09-05 — EEM-9/07 re-attests the backend global lock plane
 
 - Why: [ADR 0011](https://github.com/Evirion/evirion-engineering-memory/blob/main/docs/decisions/0011-merged-and-current-global-lock-attestation.md)

@@ -860,6 +860,12 @@ class CrossRepositoryAuthorityTests(unittest.TestCase):
             lock_input["catalogDigests"]["function"],
             "090bdb2aef3e7aefb6c48419ccdd5cb4930f553339bb54c0072b9dafd5a96d3e",
         )
+        # The Dashboard attests the lock contract, not the backend's deployment
+        # state. It carried `remoteApplicationState` as a frozen "not-applied"
+        # string it could neither observe nor falsify, which would have gone
+        # silently wrong the moment the migration reached staging. The backend
+        # now derives that from a baseline it reads from the project.
+        self.assertEqual(set(lock_input["migration"]), {"path", "sha256"})
         self.assertEqual(lock_input["verification"]["catalogAttestationTests"], 10)
         self.assertFalse(lock_input["contract"]["newLowerRankAfterHigherAllowed"])
         ranks = lock_input["rankOrder"]

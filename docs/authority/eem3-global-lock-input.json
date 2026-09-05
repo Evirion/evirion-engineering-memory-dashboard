@@ -27,8 +27,7 @@
   },
   "migration": {
     "path": "supabase/migrations/20260827133549_eem3_13_global_lock_order_remediation.sql",
-    "sha256": "9d195b22eacb221f9dbd120b23d259f8ad7163252f2348767c4d608dc37d44d5",
-    "remoteApplicationState": "not-applied"
+    "sha256": "9d195b22eacb221f9dbd120b23d259f8ad7163252f2348767c4d608dc37d44d5"
   },
   "rankOrder": [
     "0a.1",
