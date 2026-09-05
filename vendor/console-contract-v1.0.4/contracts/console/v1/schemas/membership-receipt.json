@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:membership-receipt",
+  "title": "Completed membership command receipt",
+  "description": "The receipt every organization membership mutation returns. Its four top-level keys are the same merged receipt envelope the entitlement receipt carries; only the response vocabulary differs, and command-receipt.json cannot describe these because its enum is closed against widening.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "receiptId",
+    "status",
+    "responseCode",
+    "responsePayload"
+  ],
+  "properties": {
+    "receiptId": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "core.console_command_receipts.id",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "status": {
+      "type": "string",
+      "const": "completed",
+      "description": "A receipt reaches the customer only once its command has completed.",
+      "x-evirion-backend-projection": "core.console_command_receipts.status",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "responseCode": {
+      "type": "string",
+      "enum": [
+        "ORGANIZATION_MEMBERSHIP_ROLE_CHANGED",
+        "ORGANIZATION_MEMBERSHIP_DISABLED",
+        "ORGANIZATION_OWNERSHIP_TRANSFERRED",
+        "UNSUPPORTED_SERVER_RESPONSE"
+      ],
+      "description": "One code per mutation, and the route pins the exact code it expects. UNSUPPORTED_SERVER_RESPONSE is the consumer's representation of a value it does not recognize; the backend never emits it.",
+      "x-evirion-unsupported-value": "UNSUPPORTED_SERVER_RESPONSE",
+      "x-evirion-backend-projection": "core.console_command_receipts.response_code",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "responsePayload": {
+      "type": "object",
+      "description": "The owning routine's own result. Its interior belongs to that routine's contract rather than to this envelope, so it is not restated here.",
+      "x-evirion-backend-projection": "core.console_command_receipts.response_payload",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    }
+  },
+  "examples": [
+    {
+      "receiptId": "00000000-0000-4000-8000-000000000601",
+      "status": "completed",
+      "responseCode": "ORGANIZATION_MEMBERSHIP_ROLE_CHANGED",
+      "responsePayload": {
+        "membershipId": "00000000-0000-4000-8000-000000000602",
+        "role": "reviewer",
+        "status": "ACTIVE",
+        "version": 2
+      }
+    },
+    {
+      "receiptId": "00000000-0000-4000-8000-000000000603",
+      "status": "completed",
+      "responseCode": "ORGANIZATION_OWNERSHIP_TRANSFERRED",
+      "responsePayload": {
+        "membershipId": "00000000-0000-4000-8000-000000000604",
+        "role": "owner",
+        "status": "ACTIVE",
+        "version": 3,
+        "previousOwnerMembershipId": "00000000-0000-4000-8000-000000000605",
+        "previousOwnerVersion": 4
+      }
+    }
+  ]
+}

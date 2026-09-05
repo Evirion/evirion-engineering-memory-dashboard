@@ -42,6 +42,11 @@
     { "path": "/repositories/:repositoryId", "owner": "EEM-9/03" },
     { "path": "/repositories/:repositoryId/import", "owner": "EEM-9/04" },
     { "path": "/repositories/:repositoryId/memory", "owner": "EEM-9/05" },
+    { "path": "/repositories/:repositoryId/pull-requests/:prNumber", "owner": "EEM-9/06" },
+    { "path": "/processing", "owner": "EEM-9/06" },
+    { "path": "/settings/github", "owner": "EEM-9/06" },
+    { "path": "/settings/members", "owner": "EEM-9/06" },
+    { "path": "/settings/usage", "owner": "EEM-9/06" },
     { "path": "/settings/sessions", "owner": "EEM-9/02" }
   ]
 }

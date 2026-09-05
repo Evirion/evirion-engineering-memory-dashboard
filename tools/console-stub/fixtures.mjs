@@ -1333,6 +1333,391 @@ const withImport = (run) =>
     importFailures: IMPORT_FAILURES(),
   })
 
+export const PROCESSING_JOBS = {
+  rejected: "00000000-0000-4000-8000-00000000b001",
+  quarantined: "00000000-0000-4000-8000-00000000b002",
+  failed: "00000000-0000-4000-8000-00000000b003",
+  evirionWait: "00000000-0000-4000-8000-00000000b004",
+  customerWait: "00000000-0000-4000-8000-00000000b005",
+}
+
+export const PROCESSING_PULL_REQUESTS = {
+  rejected: "00000000-0000-4000-8000-00000000c101",
+  quarantined: "00000000-0000-4000-8000-00000000c102",
+  failed: "00000000-0000-4000-8000-00000000c103",
+  evirionWait: "00000000-0000-4000-8000-00000000c104",
+  customerWait: "00000000-0000-4000-8000-00000000c105",
+}
+
+export const PROCESSING_RUNS = {
+  rejected: "00000000-0000-4000-8000-00000000d101",
+  quarantined: "00000000-0000-4000-8000-00000000d102",
+  failed: "00000000-0000-4000-8000-00000000d103",
+  evirionWait: "00000000-0000-4000-8000-00000000d104",
+  customerWait: "00000000-0000-4000-8000-00000000d105",
+}
+
+export const INVITATIONS = {
+  pending: "00000000-0000-4000-8000-00000000e301",
+}
+
+export const MEMBERSHIP = {
+  owner: "00000000-0000-4000-8000-00000000f001",
+  admin: "00000000-0000-4000-8000-00000000f002",
+  reviewer: "00000000-0000-4000-8000-00000000f003",
+}
+
+const PROCESSING_REPOSITORY = REPOSITORIES.activeAutoExtract
+
+const costBlock = (completeness, measuredUsd = "0.042000") => ({
+  completeness,
+  measuredUsd,
+  reservedUsd: completeness === "RESERVED" ? "0.010000" : "0.000000",
+  unresolvedUsd: completeness === "UNRESOLVED" ? "0.750000" : "0.000000",
+})
+
+const processingRow = (overrides) => ({
+  mappingVersion: "1",
+  extractionJobId: PROCESSING_JOBS.rejected,
+  effectiveJobId: PROCESSING_JOBS.rejected,
+  isAlias: false,
+  repositoryId: PROCESSING_REPOSITORY,
+  nameWithOwner: "acme/extraction",
+  pullRequestId: PROCESSING_PULL_REQUESTS.rejected,
+  pullRequestNumber: 401,
+  extractionRunId: PROCESSING_RUNS.rejected,
+  pullRequestTitle: "Add webhook handler",
+  jobStatus: "COMPLETED",
+  sourceStatus: "READY",
+  admissionDisposition: "ACCEPTED",
+  attempts: 1,
+  sourceAttempts: 1,
+  paidAuthorizationStatus: "AUTHORIZED",
+  processingState: "ACCEPTED",
+  lastErrorCode: null,
+  sourceLastErrorCode: null,
+  updatedAt: "2026-09-01T12:00:00Z",
+  cost: costBlock("MEASURED"),
+  latencyMs: 4120,
+  tokenUsage: { prompt: 6140, completion: 812 },
+  ...overrides,
+})
+
+const processingItemsWithCost = () => [
+  processingRow({
+    extractionJobId: PROCESSING_JOBS.rejected,
+    effectiveJobId: PROCESSING_JOBS.rejected,
+    pullRequestId: PROCESSING_PULL_REQUESTS.rejected,
+    pullRequestNumber: 401,
+    extractionRunId: PROCESSING_RUNS.rejected,
+    pullRequestTitle: "Retry budget decision",
+    processingState: "REJECTED",
+    admissionDisposition: "REJECTED",
+    lastErrorCode: "ADMISSION_REJECTED",
+  }),
+  processingRow({
+    extractionJobId: PROCESSING_JOBS.quarantined,
+    effectiveJobId: PROCESSING_JOBS.quarantined,
+    pullRequestId: PROCESSING_PULL_REQUESTS.quarantined,
+    pullRequestNumber: 402,
+    extractionRunId: PROCESSING_RUNS.quarantined,
+    pullRequestTitle: "Schema drift guard",
+    processingState: "QUARANTINED",
+    admissionDisposition: "QUARANTINED",
+    lastErrorCode: "VALIDATION_FAILED",
+  }),
+  processingRow({
+    extractionJobId: PROCESSING_JOBS.failed,
+    effectiveJobId: PROCESSING_JOBS.failed,
+    pullRequestId: PROCESSING_PULL_REQUESTS.failed,
+    pullRequestNumber: 403,
+    extractionRunId: PROCESSING_RUNS.failed,
+    pullRequestTitle: "Provider timeout path",
+    processingState: "FAILED",
+    admissionDisposition: null,
+    jobStatus: "DEAD_LETTER",
+    lastErrorCode: "PROVIDER_TIMEOUT",
+    cost: costBlock("UNRESOLVED", "0.000000"),
+  }),
+  processingRow({
+    extractionJobId: PROCESSING_JOBS.evirionWait,
+    effectiveJobId: PROCESSING_JOBS.evirionWait,
+    pullRequestId: PROCESSING_PULL_REQUESTS.evirionWait,
+    pullRequestNumber: 404,
+    extractionRunId: null,
+    pullRequestTitle: "Awaiting Evirion authorization",
+    processingState: "AWAITING_EVIRION_AUTHORIZATION",
+    admissionDisposition: null,
+    paidAuthorizationStatus: "AWAITING_OPERATIONAL_AUTHORIZATION",
+    jobStatus: "RETRY_WAIT",
+  }),
+  processingRow({
+    extractionJobId: PROCESSING_JOBS.customerWait,
+    effectiveJobId: PROCESSING_JOBS.customerWait,
+    pullRequestId: PROCESSING_PULL_REQUESTS.customerWait,
+    pullRequestNumber: 405,
+    extractionRunId: null,
+    pullRequestTitle: "Awaiting customer consent",
+    processingState: "AWAITING_CUSTOMER_CONSENT",
+    admissionDisposition: null,
+    paidAuthorizationStatus: "AWAITING_CUSTOMER_CONSENT",
+    jobStatus: "PENDING",
+  }),
+]
+
+const stripUsageFields = (row) => {
+  const { cost: _cost, latencyMs: _latency, tokenUsage: _tokens, ...rest } = row
+  return rest
+}
+
+/** Processing rows with cost for owners and admins. */
+export const PROCESSING_PAGE = () => ({
+  items: processingItemsWithCost(),
+  page: { nextCursor: null },
+})
+
+/** The authorized shape when organization.usage.read is absent. */
+export const PROCESSING_PAGE_VIEWER = () => ({
+  items: processingItemsWithCost().map(stripUsageFields),
+  page: { nextCursor: null },
+})
+
+export const GITHUB_SETTINGS_SUMMARY = () => {
+  const installation = installationConnected()
+  return {
+    organizationId: ORGANIZATION,
+    installation: installation.installation,
+    setupIntent: installation.setupIntent,
+    latestSyncRun: installation.latestSyncRun,
+    repositorySummary: installation.repositorySummary,
+    activeRepositories: baseRepositories().filter(
+      (entry) => entry.entitlement?.state === "ACTIVE",
+    ).length,
+    lastSuccessfulSyncAt: installation.latestSyncRun?.resolvedAt ?? null,
+  }
+}
+
+export const ORGANIZATION_MEMBERS = () => [
+  {
+    id: MEMBERSHIP.owner,
+    userId: PRINCIPALS["console-stub-owner"].actorId,
+    email: "owner@acme.example",
+    role: "owner",
+    status: "ACTIVE",
+    version: 1,
+    createdAt: "2026-08-01T09:00:00Z",
+    disabledAt: null,
+  },
+  {
+    id: MEMBERSHIP.admin,
+    userId: "00000000-0000-4000-8000-00000000c010",
+    email: "admin@acme.example",
+    role: "admin",
+    status: "ACTIVE",
+    version: 2,
+    createdAt: "2026-08-02T09:00:00Z",
+    disabledAt: null,
+  },
+  {
+    id: MEMBERSHIP.reviewer,
+    userId: "00000000-0000-4000-8000-00000000c011",
+    email: "reviewer@acme.example",
+    role: "reviewer",
+    status: "ACTIVE",
+    version: 1,
+    createdAt: "2026-08-03T09:00:00Z",
+    disabledAt: null,
+  },
+]
+
+export const ORGANIZATION_INVITATIONS = () => [
+  {
+    invitationId: INVITATIONS.pending,
+    email: "pending@acme.example",
+    role: "viewer",
+    state: "SENT",
+    generation: 1,
+    version: 1,
+    expiresAt: "2026-12-31T23:59:59Z",
+    createdAt: "2026-09-01T10:00:00Z",
+  },
+]
+
+export const OFFBOARDING_STATUS = () => ({
+  organizationId: ORGANIZATION,
+  offboarding: null,
+})
+
+export const ORGANIZATION_USAGE = () => ({
+  organizationId: ORGANIZATION,
+  basis: "OPERATIONAL_NOT_INVOICE",
+  period: {
+    timezone: "UTC",
+    start: "2026-09-01",
+    end: "2026-09-30",
+  },
+  activeRepositories: 4,
+  historicalPullRequestsProcessed: 128,
+  livePullRequestsProcessedInPeriod: 24,
+  acceptedKnowledgeObjects: 30,
+  cost: costBlock("MEASURED", "18.400000"),
+})
+
+export const ORGANIZATION_METRICS = () => ({
+  organizationId: ORGANIZATION,
+  repositoryId: null,
+  asOf: "2026-09-02T18:33:41.123456Z",
+  review: {
+    reviewedCount: 20,
+    approvedWithoutEditCount: 14,
+    editedCount: 3,
+    userRejectedCount: 3,
+    criticalOverclaimCount: 1,
+    approvalWithoutEditRate: 0.7,
+    editRate: 0.15,
+    userRejectionRate: 0.15,
+    criticalOverclaimRate: 0.05,
+  },
+  lifecycle: {
+    activeCount: 22,
+    supersededCount: 4,
+    unresolvedCount: 4,
+    withdrawnCount: 1,
+    lifecycleResolutionRate: 0.84,
+  },
+  admission: {
+    pullRequestsProcessed: 24,
+    terminalRuns: 20,
+    acceptedRuns: 16,
+    rejectedRuns: 2,
+    quarantinedRuns: 2,
+    failedJobs: 1,
+    acceptedKnowledgeObjects: 30,
+    quarantineRate: 0.1,
+    evidenceValidityRate: 0.95,
+    costPerPullRequest: {
+      completeness: "MEASURED",
+      denominator: 24,
+      measuredUsd: "0.766667",
+    },
+    costPerAcceptedKnowledgeObject: {
+      completeness: "MEASURED",
+      denominator: 30,
+      measuredUsd: "0.613333",
+    },
+    latencyPerPullRequest: {
+      denominator: 24,
+      seconds: 18.5,
+    },
+    totalCost: costBlock("MEASURED", "18.400000"),
+  },
+})
+
+export const PULL_REQUEST_DETAIL = () => ({
+  pullRequestId: PROCESSING_PULL_REQUESTS.quarantined,
+  repositoryId: PROCESSING_REPOSITORY,
+  nameWithOwner: "acme/extraction",
+  pullRequestNumber: 402,
+  title: "Schema drift guard",
+  authorLogin: "octocat",
+  currentState: "MERGED",
+  mergedAt: "2026-08-30T14:00:00Z",
+  headSha: "abc123def456",
+  mergeCommitSha: "def456abc123",
+  pullRequestUrl: "https://github.com/acme/extraction/pull/402",
+  admittedKnowledgeObjects: [],
+  runs: [
+    {
+      extractionRunId: PROCESSING_RUNS.quarantined,
+      effectiveJobId: PROCESSING_JOBS.quarantined,
+      disposition: "QUARANTINED",
+      sourceStatus: "READY",
+      jobStatus: "COMPLETED",
+      rejectionReason: null,
+      validationIssueCategories: ["EVIDENCE_QUOTE_NOT_A_SUBSTRING"],
+      completedAt: "2026-09-01T11:30:00Z",
+    },
+  ],
+  cost: costBlock("MEASURED"),
+})
+
+export const VALIDATION_ISSUES = () => ({
+  extractionRunId: PROCESSING_RUNS.quarantined,
+  admissionDisposition: "QUARANTINED",
+  issues: [
+    {
+      ordinal: 0,
+      stage: "schema",
+      code: "EVIDENCE_QUOTE_NOT_A_SUBSTRING",
+      path: "$.knowledge[0].evidence[1].quote",
+      message: "The quote is not an exact substring of the source.",
+    },
+  ],
+})
+
+const withProcessingSettings = () =>
+  withFreshSession({
+    repositories: baseRepositories(),
+    limit: {
+      maxActiveRepositories: 5,
+      mode: "FIXED",
+      replacementMode: "SELF_SERVICE",
+    },
+    installation: installationConnected(),
+    pageSize: 50,
+    processingItems: processingItemsWithCost(),
+    members: ORGANIZATION_MEMBERS(),
+    invitations: ORGANIZATION_INVITATIONS(),
+    offboarding: OFFBOARDING_STATUS(),
+    pullRequestDetails: {
+      [PROCESSING_PULL_REQUESTS.rejected]: {
+        ...PULL_REQUEST_DETAIL(),
+        pullRequestId: PROCESSING_PULL_REQUESTS.rejected,
+        pullRequestNumber: 401,
+        title: "Retry budget decision",
+        runs: [
+          {
+            extractionRunId: PROCESSING_RUNS.rejected,
+            effectiveJobId: PROCESSING_JOBS.rejected,
+            disposition: "REJECTED",
+            sourceStatus: "READY",
+            jobStatus: "COMPLETED",
+            rejectionReason: "Not durable enough for memory",
+            validationIssueCategories: [],
+            completedAt: "2026-09-01T11:00:00Z",
+          },
+        ],
+        admittedKnowledgeObjects: [],
+      },
+      [PROCESSING_PULL_REQUESTS.quarantined]: PULL_REQUEST_DETAIL(),
+      [PROCESSING_PULL_REQUESTS.failed]: {
+        ...PULL_REQUEST_DETAIL(),
+        pullRequestId: PROCESSING_PULL_REQUESTS.failed,
+        pullRequestNumber: 403,
+        title: "Provider timeout path",
+        runs: [
+          {
+            extractionRunId: PROCESSING_RUNS.failed,
+            effectiveJobId: PROCESSING_JOBS.failed,
+            disposition: "ACCEPTED",
+            sourceStatus: "READY",
+            jobStatus: "DEAD_LETTER",
+            rejectionReason: null,
+            validationIssueCategories: [],
+            completedAt: "2026-09-01T11:45:00Z",
+          },
+        ],
+        admittedKnowledgeObjects: [],
+      },
+    },
+    validationIssues: {
+      [PROCESSING_RUNS.quarantined]: VALIDATION_ISSUES(),
+    },
+    githubSettings: GITHUB_SETTINGS_SUMMARY(),
+    organizationUsage: ORGANIZATION_USAGE(),
+    organizationMetrics: ORGANIZATION_METRICS(),
+  })
+
 /**
  * The named states the browser gate drives. A scenario is loaded through the
  * control endpoint before the browser is pointed at the Console.
@@ -1657,5 +2042,17 @@ export const SCENARIOS = {
     ...withImport(IMPORT_RUNS.awaitingApproval),
     reauthenticationFreshUntil: null,
     invalidateChallengeOnComplete: true,
+  }),
+
+  processingSettings: () => withProcessingSettings(),
+
+  processingSettingsViewer: () => ({
+    ...withProcessingSettings(),
+    processingItems: processingItemsWithCost().map(stripUsageFields),
+  }),
+
+  processingUnavailable: () => ({
+    ...withProcessingSettings(),
+    processingError: "DEPENDENCY_UNAVAILABLE",
   }),
 }

@@ -103,13 +103,15 @@ exists.
 5. `EEM-9/05-memory-review-lifecycle` after EEM-8. Merged.
 6. `EEM-9/03g-console-contract-revision` — consume `console-contract-v1.0.3`.
    Merged.
-7. `EEM-9/02c-step-up-and-return` — shared step-up ceremony for issue #16
-   (implemented, not merged).
-8. `EEM-9/06-processing-settings-metrics` after `EEM-9/02c` merges.
-9. Paired `EEM-9/07-free-integration`.
-10. Separately approved `EEM-9/08-paid-certification`.
-11. Paired `EEM-9/09-design-partner-ready`.
-12. Separately scoped `EEM-9/10-first-design-partner-outcome`.
+7. `EEM-9/02c-step-up-and-return` — shared step-up ceremony for issue #16.
+   Merged.
+8. `EEM-9/03h-console-contract-revision` — consume `console-contract-v1.0.4`
+   (issue #71). Implemented, not merged.
+9. `EEM-9/06-processing-settings-metrics` after `EEM-9/03h` merges.
+10. Paired `EEM-9/07-free-integration`.
+11. Separately approved `EEM-9/08-paid-certification`.
+12. Paired `EEM-9/09-design-partner-ready`.
+13. Separately scoped `EEM-9/10-first-design-partner-outcome`.
 
 Backend EEM-3/13 is merged and locally reverified. Its EEM-3 global lock graph
 is a continuing release invariant for every later backend mutation.

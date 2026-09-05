@@ -17,9 +17,15 @@ import { createServer } from "node:https"
 import { readMaterial } from "../local-tls/generate-certificate.mjs"
 import {
   CAPABILITIES,
+  GITHUB_SETTINGS_SUMMARY,
   IMPORT_RUNS,
   MODEL_PROFILES,
   OVERVIEWS,
+  ORGANIZATION_INVITATIONS,
+  ORGANIZATION_MEMBERS,
+  ORGANIZATION_METRICS,
+  ORGANIZATION_USAGE,
+  PROCESSING_PAGE,
   PRINCIPALS,
   SCENARIOS,
 } from "./fixtures.mjs"
@@ -60,6 +66,7 @@ const ERRORS = {
   SUPERSESSION_INVALID: [409, false],
   SUPERSESSION_TRAVERSAL_LIMIT: [409, false],
   KNOWLEDGE_ACTION_NOT_ALLOWED: [409, false],
+  ORGANIZATION_CONTROL_CONFLICT: [409, false],
 }
 
 const MESSAGES = {
@@ -97,6 +104,21 @@ function load(name) {
     omitReauthenticationFreshUntil: scenario.omitReauthenticationFreshUntil ?? false,
     invalidateNextChallenge: scenario.invalidateNextChallenge ?? false,
     invalidateChallengeOnComplete: scenario.invalidateChallengeOnComplete ?? false,
+    members: [...(scenario.members ?? ORGANIZATION_MEMBERS())],
+    invitations: [...(scenario.invitations ?? ORGANIZATION_INVITATIONS())],
+    offboarding: structuredClone(
+      scenario.offboarding ?? {
+        organizationId: scenario.installation.organizationId,
+        offboarding: null,
+      },
+    ),
+    processingItems: scenario.processingItems,
+    processingError: scenario.processingError,
+    pullRequestDetails: { ...scenario.pullRequestDetails },
+    validationIssues: { ...scenario.validationIssues },
+    githubSettings: scenario.githubSettings,
+    organizationUsage: scenario.organizationUsage,
+    organizationMetrics: scenario.organizationMetrics,
   }
 }
 
@@ -261,6 +283,260 @@ const page = (state, after) => {
   }
 }
 
+const stripProcessingCost = (row) => {
+  const { cost: _cost, latencyMs: _latency, tokenUsage: _tokens, ...rest } = row
+  return rest
+}
+
+const stripPullRequestCost = (detail) => {
+  const { cost: _cost, ...rest } = detail
+  return rest
+}
+
+const routeOrganizationSettings = async (
+  request,
+  response,
+  { state, principal, organizationId, rest, url },
+) => {
+  if (rest === "/processing-activity" && request.method === "GET") {
+    if (!requireCapability(principal, "processing.read")) {
+      return fail(response, "CAPABILITY_REQUIRED")
+    }
+    if (state.processingError) return fail(response, state.processingError)
+    let items = state.processingItems ?? PROCESSING_PAGE().items
+    const repositoryId = url.searchParams.get("repositoryId")
+    if (repositoryId !== null && repositoryId !== "") {
+      if (!UUID.test(repositoryId)) return fail(response, "REQUEST_INVALID")
+      items = items.filter((row) => row.repositoryId === repositoryId)
+    }
+    const withUsage = requireCapability(principal, "organization.usage.read")
+    return succeed(response, {
+      items: withUsage ? items : items.map(stripProcessingCost),
+      page: { nextCursor: null },
+    })
+  }
+
+  if (rest === "/settings/github" && request.method === "GET") {
+    if (!requireCapability(principal, "organization.github.manage")) {
+      return fail(response, "CAPABILITY_REQUIRED")
+    }
+    return succeed(response, state.githubSettings ?? GITHUB_SETTINGS_SUMMARY())
+  }
+
+  if (rest === "/usage" && request.method === "GET") {
+    if (!requireCapability(principal, "organization.usage.read")) {
+      return fail(response, "CAPABILITY_REQUIRED")
+    }
+    return succeed(response, state.organizationUsage ?? ORGANIZATION_USAGE())
+  }
+
+  if (rest === "/metrics" && request.method === "GET") {
+    if (!requireCapability(principal, "organization.usage.read")) {
+      return fail(response, "CAPABILITY_REQUIRED")
+    }
+    return succeed(response, state.organizationMetrics ?? ORGANIZATION_METRICS())
+  }
+
+  if (rest === "/members" && request.method === "GET") {
+    if (!requireCapability(principal, "organization.members.read")) {
+      return fail(response, "CAPABILITY_REQUIRED")
+    }
+    return succeed(response, state.members)
+  }
+
+  if (rest === "/invitations" && request.method === "GET") {
+    if (!requireCapability(principal, "organization.members.manage")) {
+      return fail(response, "CAPABILITY_REQUIRED")
+    }
+    return succeed(response, state.invitations)
+  }
+
+  if (rest === "/offboarding" && request.method === "GET") {
+    if (!requireCapability(principal, "organization.members.read")) {
+      return fail(response, "CAPABILITY_REQUIRED")
+    }
+    return succeed(response, state.offboarding)
+  }
+
+  const pullRequestMatch = /^\/pull-requests\/([^/]+)$/.exec(rest)
+  if (pullRequestMatch && request.method === "GET") {
+    if (!requireCapability(principal, "processing.read")) {
+      return fail(response, "CAPABILITY_REQUIRED")
+    }
+    const detail = state.pullRequestDetails[pullRequestMatch[1]]
+    if (!detail) return fail(response, "RESOURCE_NOT_FOUND")
+    const withUsage = requireCapability(principal, "organization.usage.read")
+    return succeed(response, withUsage ? detail : stripPullRequestCost(detail))
+  }
+
+  const validationMatch = /^\/extraction-runs\/([^/]+)\/validation-issues$/.exec(rest)
+  if (validationMatch && request.method === "GET") {
+    if (!requireCapability(principal, "processing.read")) {
+      return fail(response, "CAPABILITY_REQUIRED")
+    }
+    const issues = state.validationIssues[validationMatch[1]]
+    if (!issues) return fail(response, "RESOURCE_NOT_FOUND")
+    return succeed(response, issues)
+  }
+
+  if (rest === "/invitations" && request.method === "POST") {
+    return withCommand(request, response, state, principal, organizationId, {
+      operation: "organization.invitation.create",
+      target: organizationId,
+      capability: "organization.members.manage",
+      requireReauthentication: true,
+      apply: (body) => {
+        if (
+          typeof body?.email !== "string" ||
+          !["admin", "reviewer", "viewer"].includes(body?.role)
+        ) {
+          return { error: "REQUEST_INVALID" }
+        }
+        const invitation = {
+          invitationId: randomUUID(),
+          email: body.email,
+          role: body.role,
+          state: "REQUESTED",
+          generation: 1,
+          version: 1,
+          expiresAt: "2026-12-31T23:59:59Z",
+          createdAt: new Date().toISOString().replace(/\.\d+Z$/, "Z"),
+        }
+        state.invitations.push(invitation)
+        return {
+          code: "ORGANIZATION_INVITATION_CREATED",
+          payload: { invitationId: invitation.invitationId },
+        }
+      },
+    })
+  }
+
+  const resendMatch = /^\/invitations\/([^/]+)\/resend$/.exec(rest)
+  if (resendMatch && request.method === "POST") {
+    return withCommand(request, response, state, principal, organizationId, {
+      operation: "organization.invitation.resend",
+      target: resendMatch[1],
+      capability: "organization.members.manage",
+      requireReauthentication: true,
+      apply: (body) => {
+        const invitation = state.invitations.find(
+          (entry) => entry.invitationId === resendMatch[1],
+        )
+        if (!invitation) return { error: "RESOURCE_NOT_FOUND" }
+        if (body?.expectedVersion !== invitation.version) {
+          return { error: "VERSION_CONFLICT", currentVersion: invitation.version }
+        }
+        invitation.version += 1
+        invitation.generation += 1
+        invitation.state = "SENT"
+        return {
+          code: "ORGANIZATION_INVITATION_RESEND_REQUESTED",
+          payload: {
+            invitationId: invitation.invitationId,
+            version: invitation.version,
+          },
+        }
+      },
+    })
+  }
+
+  const revokeMatch = /^\/invitations\/([^/]+)\/revoke$/.exec(rest)
+  if (revokeMatch && request.method === "POST") {
+    return withCommand(request, response, state, principal, organizationId, {
+      operation: "organization.invitation.revoke",
+      target: revokeMatch[1],
+      capability: "organization.members.manage",
+      requireReauthentication: true,
+      apply: (body) => {
+        const index = state.invitations.findIndex(
+          (entry) => entry.invitationId === revokeMatch[1],
+        )
+        if (index === -1) return { error: "RESOURCE_NOT_FOUND" }
+        const invitation = state.invitations[index]
+        if (body?.expectedVersion !== invitation.version) {
+          return { error: "VERSION_CONFLICT", currentVersion: invitation.version }
+        }
+        state.invitations.splice(index, 1)
+        return {
+          code: "ORGANIZATION_INVITATION_REVOKED",
+          payload: { invitationId: revokeMatch[1] },
+        }
+      },
+    })
+  }
+
+  const membershipMatch = /^\/members\/([^/]+)$/.exec(rest)
+  if (membershipMatch && request.method === "PATCH") {
+    return withCommand(request, response, state, principal, organizationId, {
+      operation: "organization.membership.update",
+      target: membershipMatch[1],
+      capability: "organization.members.manage",
+      requireReauthentication: true,
+      apply: (body) => {
+        const member = state.members.find((entry) => entry.id === membershipMatch[1])
+        if (!member) return { error: "RESOURCE_NOT_FOUND" }
+        if (body?.expectedVersion !== member.version) {
+          return { error: "VERSION_CONFLICT", currentVersion: member.version }
+        }
+        if (body?.action === "change_role") {
+          if (!["admin", "reviewer", "viewer"].includes(body?.role ?? "")) {
+            return { error: "REQUEST_INVALID" }
+          }
+          member.role = body.role
+          member.version += 1
+          return {
+            code: "ORGANIZATION_MEMBERSHIP_ROLE_CHANGED",
+            payload: {
+              membershipId: member.id,
+              role: member.role,
+              version: member.version,
+            },
+          }
+        }
+        return { error: "REQUEST_INVALID" }
+      },
+    })
+  }
+
+  if (rest === "/offboarding" && request.method === "POST") {
+    return withCommand(request, response, state, principal, organizationId, {
+      operation: "organization.offboarding.request",
+      target: organizationId,
+      capability: "organization.offboarding.request",
+      requireReauthentication: true,
+      apply: (body) => {
+        if (body?.confirmationAccepted !== true) return { error: "REQUEST_INVALID" }
+        if (state.offboarding.offboarding !== null) {
+          return { error: "ORGANIZATION_CONTROL_CONFLICT" }
+        }
+        state.offboarding.offboarding = {
+          id: randomUUID(),
+          origin: "CUSTOMER",
+          reason: typeof body?.reason === "string" ? body.reason : null,
+          requestedAt: new Date().toISOString().replace(/\.\d+Z$/, "Z"),
+          state: "REQUESTED",
+          version: 1,
+        }
+        return {
+          code: "ORGANIZATION_OFFBOARDING_REQUESTED",
+          payload: { offboardingId: state.offboarding.offboarding.id },
+        }
+      },
+    })
+  }
+
+  return false
+}
+
+/**
+ * Answered or not, as a boolean, which is the shape every sibling handler uses.
+ * Each branch above answers the response and returns undefined; only the fall
+ * through returns false, so the caller cannot mistake an answered request for
+ * an unrouted one.
+ */
+const handleOrganizationSettings = async (request, response, context) =>
+  (await routeOrganizationSettings(request, response, context)) !== false
+
 const handle = async (request, response, url) => {
   // Control surface. It exists only in this double and never in the product.
   if (url.pathname === "/__stub/ready" && request.method === "GET") {
@@ -408,6 +684,15 @@ const handle = async (request, response, url) => {
     rest,
   })
   if (imported) return undefined
+
+  const settings = await handleOrganizationSettings(request, response, {
+    state,
+    principal,
+    organizationId,
+    rest,
+    url,
+  })
+  if (settings) return undefined
 
   const repositoryMatch = /^\/repositories\/([^/]+)(\/[a-z-]+)?$/.exec(rest)
   if (!repositoryMatch) return fail(response, "RESOURCE_NOT_FOUND")

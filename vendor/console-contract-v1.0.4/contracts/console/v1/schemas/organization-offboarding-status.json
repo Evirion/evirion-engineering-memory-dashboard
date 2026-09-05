@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evirion:console:v1:schema:organization-offboarding-status",
+  "title": "Organization offboarding status",
+  "description": "Customer-safe offboarding read wrapper. The organization identifier is always present; offboarding is null when no request exists.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "organizationId",
+    "offboarding"
+  ],
+  "properties": {
+    "organizationId": {
+      "type": "string",
+      "format": "uuid",
+      "x-evirion-backend-projection": "api.get_organization_offboarding.organizationId",
+      "x-evirion-sensitivity": "customer-safe-summary"
+    },
+    "offboarding": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "organization-offboarding.json"
+        }
+      ],
+      "x-evirion-backend-projection": "api.get_organization_offboarding.offboarding",
+      "x-evirion-sensitivity": "customer-safe-detail"
+    }
+  },
+  "examples": [
+    {
+      "organizationId": "00000000-0000-4000-8000-000000000801",
+      "offboarding": null
+    },
+    {
+      "organizationId": "00000000-0000-4000-8000-000000000801",
+      "offboarding": {
+        "id": "00000000-0000-4000-8000-000000000802",
+        "state": "REQUESTED",
+        "origin": "CUSTOMER",
+        "version": 1,
+        "reason": "Partner requested exit",
+        "requestedAt": "2026-09-05T12:00:00.000Z",
+        "resolvedAt": null,
+        "failureCode": null
+      }
+    }
+  ]
+}

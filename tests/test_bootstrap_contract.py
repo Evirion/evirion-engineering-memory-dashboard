@@ -637,6 +637,7 @@ class RepositoryBootstrapFilesTests(unittest.TestCase):
             "docs/contracts/console-contract-v1.0-evidence.json",
             "docs/contracts/console-contract-v1.0.2-evidence.json",
             "docs/contracts/console-contract-v1.0.3-evidence.json",
+            "docs/contracts/console-contract-v1.0.4-evidence.json",
             "docs/decisions/0001-two-repository-contract-boundary.md",
             (
                 "docs/decisions/"
@@ -667,7 +668,7 @@ class RepositoryBootstrapFilesTests(unittest.TestCase):
             "docs/security/repository-governance-evidence.json",
             "docs/security/sigstore-trusted-root.json",
             "generated/console-contract/v1/index.ts",
-            "vendor/console-contract-v1.0.3/console-contract-v1.0.3.tar.gz",
+            "vendor/console-contract-v1.0.4/console-contract-v1.0.4.tar.gz",
         ]
 
         missing = [path for path in required if not (self.root / path).is_file()]

@@ -60,7 +60,13 @@ export const MUTATION_PATHS_FOR_GATE: Readonly<
     "/api/memory/supersede",
     "/api/memory/corrections",
   ],
-  membership_change: [],
+  membership_change: [
+    "/api/settings/invitations/create",
+    "/api/settings/invitations/resend",
+    "/api/settings/invitations/revoke",
+    "/api/settings/members/update",
+    "/api/settings/offboarding/request",
+  ],
 }
 
 export const isAllowedMutationPath = (

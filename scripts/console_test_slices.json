@@ -118,6 +118,28 @@
         "tests/e2e/reauthentication.spec.ts",
         "tests/security/reauthentication-boundary.spec.ts"
       ]
+    },
+    "processing-settings": {
+      "owner": "EEM-9/06 C06",
+      "focused": ["lint", "typecheck", "test:processing-settings"],
+      "affected": [
+        "lint",
+        "format:check",
+        "typecheck",
+        "test:unit",
+        "build",
+        "test:e2e"
+      ],
+      "testFiles": [
+        "tests/unit/processing",
+        "tests/unit/settings",
+        "tests/component/processing",
+        "tests/component/settings",
+        "tests/contract/console-stub-fixtures.test.ts",
+        "tests/unit/auth/capabilities.test.ts",
+        "tests/e2e/processing-settings.spec.ts",
+        "tests/security/processing-boundary.spec.ts"
+      ]
     }
   }
 }

@@ -37,8 +37,12 @@ export const NAVIGATION: readonly NavigationItem[] = [
     label: "Members",
     capability: "organization.members.manage",
   },
-  { href: "/settings/github", label: "GitHub", capability: "github.manage" },
-  { href: "/settings/usage", label: "Usage", capability: "usage.read" },
+  {
+    href: "/settings/github",
+    label: "GitHub",
+    capability: "organization.github.manage",
+  },
+  { href: "/settings/usage", label: "Usage", capability: "organization.usage.read" },
   { href: "/settings/sessions", label: "Your sessions" },
 ]
 
