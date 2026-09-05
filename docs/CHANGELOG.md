@@ -1,5 +1,26 @@
 # Dashboard changelog
 
+## 2026-09-05 — EEM-9/07 re-attests the backend global lock plane
+
+- Why: [ADR 0011](https://github.com/Evirion/evirion-engineering-memory/blob/main/docs/decisions/0011-merged-and-current-global-lock-attestation.md)
+  named `EEM-9/07` the owner of a divergence it could not leave open. EEM-6/04
+  rewrote catalogued EEM-3 functions to enforce repository entitlement at the
+  webhook admission, source claim, source persistence, budget reservation and
+  backfill boundaries, so the manifest had to be regenerated and the Dashboard's
+  frozen input stopped describing the lock plane the backend runs.
+- What changed: `docs/authority/eem3-global-lock-input.json` moves from the
+  EEM-3/13 bytes merged by backend PR #24 at `b23f6ba2` to the current bytes at
+  `aa5bd83`, merged by backend PR #73. The manifest digest and all four catalog
+  digests are re-attested. `rankOrder` is unchanged at 37 ranks, because the
+  regenerated manifest introduced no new rank, and the lock `contract` block is
+  untouched.
+- Digests are read from the attested backend commit itself rather than copied
+  from the pointer under repair.
+- This is the first of the pair. The backend re-pins this commit and drops the
+  supersession marker in its own pull request, in the EEM-9/01 order. Until that
+  merges the backend verifier still reads this file at the previously pinned
+  commit, so nothing breaks in between.
+
 ## 2026-09-05 — EEM-9/07 Step 7 prerequisites, planning only
 
 - Why: the catalog's planning-only request follows the local `/07` gates, and

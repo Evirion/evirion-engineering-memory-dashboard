@@ -836,7 +836,11 @@ class CrossRepositoryAuthorityTests(unittest.TestCase):
         self.assertEqual(set(plan_aliases), {f"{ordinal:02d}" for ordinal in range(1, 11)})
         self.assertEqual(catalog_aliases, plan_aliases)
 
-    def test_frozen_global_lock_input_matches_merged_prerequisite(self) -> None:
+    def test_global_lock_input_reattests_the_current_backend_lock_plane(self) -> None:
+        # EEM-9/07 closes the ADR 0011 supersession. This file used to pin the
+        # EEM-3/13 bytes merged by backend PR #24, which EEM-6/04 then moved by
+        # rewriting catalogued functions to enforce repository entitlement. The
+        # Dashboard now vouches for the lock plane the backend actually runs.
         lock_input = json.loads(
             (
                 self.root / "docs/authority/eem3-global-lock-input.json"
@@ -845,11 +849,16 @@ class CrossRepositoryAuthorityTests(unittest.TestCase):
 
         self.assertEqual(
             lock_input["backend"]["commit"],
-            "b23f6ba2b11f583b61200cec63500a782992f1f0",
+            "aa5bd83af560f560e1a58e06decbd69464404cd1",
         )
+        self.assertEqual(lock_input["backend"]["mergedPullRequest"], 73)
         self.assertEqual(
             lock_input["manifest"]["sha256"],
-            "ff422f622d60f43e41bb78e77a01c665b0dd100b80b701f71296c88486956f8d",
+            "795d4d0e93f7008338b0b4abf30f57ce11e0e9f062e23f95b2e0db254bd6eaf4",
+        )
+        self.assertEqual(
+            lock_input["catalogDigests"]["function"],
+            "090bdb2aef3e7aefb6c48419ccdd5cb4930f553339bb54c0072b9dafd5a96d3e",
         )
         self.assertEqual(lock_input["verification"]["catalogAttestationTests"], 10)
         self.assertFalse(lock_input["contract"]["newLowerRankAfterHigherAllowed"])

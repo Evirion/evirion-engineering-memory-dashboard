@@ -27,10 +27,17 @@ Updated: 2026-09-05
   and now has a written prerequisite plan. It is backend-owned, at
   `docs/plans/active/eem-9-07-remote-free-phase-plan.md` in
   `Evirion/evirion-engineering-memory`, because every action it describes is a
-  backend apply, deployment or observation. Two prerequisites are open and neither is a Step 7 decision to make on the
-  day: the global lock supersession still reads `pending-dashboard-reattestation`
-  with `EEM-9/07` as its named owner, and the recorded staging migration gap is
-  itself stale.
+  backend apply, deployment or observation.   One prerequisite remains open, and it is not a Step 7 decision to make on the
+  day: the recorded staging migration gap is itself stale, and the true applied
+  count can only be read from the project.
+- The other prerequisite is closed on this branch. The global lock supersession
+  read `pending-dashboard-reattestation` with `EEM-9/07` as its named owner, so
+  `docs/authority/eem3-global-lock-input.json` now re-attests the current
+  backend lock plane at `aa5bd83`, backend PR #73, instead of the EEM-3/13 bytes
+  merged by backend PR #24. This is the first pull request of the pair; the
+  backend re-pins this commit and drops the marker in the second. Until that
+  merges the backend verifier reads this file at its previously pinned commit,
+  so the two repositories stay consistent in between.
 
 ## What changed here and why
 
