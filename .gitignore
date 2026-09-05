@@ -22,3 +22,9 @@ playwright-report/
 
 # Local editor and agent configuration; never part of the authority package.
 .cursor/
+
+# Vercel project link and pulled environment. `vercel link` also appends a
+# blanket `.env*` here, which is both redundant against line 10 and harmful,
+# because it lands after `!.env.example` and re-ignores the one env file this
+# repository deliberately tracks.
+.vercel

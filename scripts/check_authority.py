@@ -18,6 +18,7 @@ EXCLUDED_PARTS = {
     ".local",
     ".next",
     ".venv",
+    ".vercel",
     "__pycache__",
     "coverage",
     "dist",
