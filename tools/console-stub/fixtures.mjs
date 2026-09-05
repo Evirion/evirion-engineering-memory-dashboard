@@ -1722,6 +1722,25 @@ const withProcessingSettings = () =>
  * The named states the browser gate drives. A scenario is loaded through the
  * control endpoint before the browser is pointed at the Console.
  */
+/**
+ * Hostile text a customer could put in a field the Console renders.
+ *
+ * EEM-9/07 found the double could not produce any of it, so no XSS assertion
+ * had ever been possible: a corpus is only a corpus if the double can serve it.
+ * These cover stored, reflected, attribute-break, DOM-sink and mutation shapes.
+ */
+export const XSS_PAYLOADS = [
+  "<script>globalThis.__xss = 'stored'</script>",
+  "<img src=x onerror=\"globalThis.__xss='attribute'\">",
+  "\"><svg/onload=globalThis.__xss='breakout'>",
+  // oxlint-disable-next-line no-script-url -- this is the attack being tested
+  "javascript:globalThis.__xss='scheme'",
+  "<iframe srcdoc=\"<script>parent.__xss='srcdoc'</script>\"></iframe>",
+  "<noscript><p title=\"</noscript><img src=x onerror=globalThis.__xss='mutation'>\">",
+  "{{constructor.constructor('globalThis.__xss=\\'template\\'')()}}",
+  "<a href=\"data:text/html,<script>globalThis.__xss='data'</script>\">link</a>",
+]
+
 export const SCENARIOS = {
   /** Every published product state, with one slot free of a capacity of five. */
   default: () =>
@@ -1938,6 +1957,26 @@ export const SCENARIOS = {
    * correction status, and a supersession chain long enough to exhaust the
    * traversal bound.
    */
+  /**
+   * Every customer-controlled string carries a hostile payload, so the corpus
+   * can assert the Console renders text rather than markup.
+   */
+  xssCorpus: () => {
+    const knowledge = KNOWLEDGE_OBJECTS()
+    const identifiers = Object.keys(knowledge)
+    for (const [index, identifier] of identifiers.entries()) {
+      const object = knowledge[identifier]
+      const payload = XSS_PAYLOADS[index % XSS_PAYLOADS.length]
+      object.shortClaim = payload
+      if (Array.isArray(object.reviews)) {
+        for (const entry of object.reviews) {
+          if (typeof entry.comment === "string") entry.comment = payload
+        }
+      }
+    }
+    return withFreshSession({ ...withKnowledge(), knowledge })
+  },
+
   memory: () =>
     withFreshSession({ ...withKnowledge(), knowledge: KNOWLEDGE_OBJECTS() }),
 

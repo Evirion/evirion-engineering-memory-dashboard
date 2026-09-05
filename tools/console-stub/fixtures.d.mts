@@ -309,6 +309,7 @@ export declare const SCENARIOS: {
   readonly importResumeBlocked: () => StubScenario
   readonly importStaleFreshness: () => StubScenario
   readonly importAbsentFreshnessField: () => StubScenario
+  readonly xssCorpus: () => StubScenario
   readonly memory: () => StubScenario
   readonly memoryEmpty: () => StubScenario
   readonly memoryUnavailable: () => StubScenario
@@ -322,5 +323,7 @@ export declare const SCENARIOS: {
   readonly processingSettingsViewer: () => StubScenario
   readonly processingUnavailable: () => StubScenario
 }
+
+export declare const XSS_PAYLOADS: readonly string[]
 
 export type StubScenarioName = keyof typeof SCENARIOS
