@@ -11,13 +11,26 @@ import { fileURLToPath } from "node:url"
 const repositoryRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..")
 const registryPath = join(repositoryRoot, "scripts", "console_test_slices.json")
 
+// `pnpm verify` is a local gate. CI runs its own explicit step list and never
+// invokes this file, so the security stages below may depend on Docker and on a
+// running backend without ever reaching a runner that has neither.
 const FULL_GATE = [
+  // First, because a stale listener would let every later stage assert against
+  // a build nobody just made.
+  ["pnpm", ["gate:ports"]],
   ["pnpm", ["lint"]],
   ["pnpm", ["format:check"]],
   ["pnpm", ["typecheck"]],
   ["pnpm", ["test:unit"]],
   ["pnpm", ["build"]],
   ["pnpm", ["test:e2e"]],
+  ["pnpm", ["audit", "--audit-level", "high"]],
+  ["pnpm", ["security:sast"]],
+  ["pnpm", ["security:secrets"]],
+  ["pnpm", ["security:supply-chain"]],
+  ["pnpm", ["security:release-surface"]],
+  ["pnpm", ["security:asvs"]],
+  ["pnpm", ["security:dast:baseline"]],
 ]
 
 const usage = () => {

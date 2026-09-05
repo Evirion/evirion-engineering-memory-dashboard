@@ -21,6 +21,16 @@
       "version": "1.176.0",
       "source": "tools/security/uv.lock",
       "note": "uv resolves and hash-verifies Semgrep from the committed lockfile, so no separate binary digest is needed."
+    },
+    "zap": {
+      "image": "ghcr.io/zaproxy/zaproxy",
+      "tag": "stable",
+      "digest": "sha256:781a2bdaea47324e7bab583e2263f21d257b0aee61ed51521a5be45f5f5081ef",
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "note": "Baseline DAST only. The runner pulls by digest, never by tag, so a moved stable tag cannot change what scanned the build. The index digest is pinned rather than a platform manifest, so the same lock entry is correct on both architectures."
     }
   }
 }

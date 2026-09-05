@@ -62,7 +62,16 @@ const server = createServer({ cert: certificate, key }, (incoming, outgoing) => 
   incoming.pipe(upstream)
 })
 
-server.listen(LOCAL_PORT, "127.0.0.1", () => {
+/**
+ * Loopback by default, because nothing outside this machine has any business
+ * reaching a development edge. The baseline DAST is the one exception: ZAP runs
+ * in a container and cannot reach the host's loopback, so that runner sets this
+ * to 0.0.0.0 for the length of the scan and nothing else does.
+ */
+const bindAddress = process.env.CONSOLE_EDGE_BIND_ADDRESS ?? "127.0.0.1"
+
+server.listen(LOCAL_PORT, bindAddress, () => {
   console.log(`local edge listening on https://${LOCAL_HOSTNAME}:${LOCAL_PORT}`)
+  console.log(`bound to ${bindAddress}`)
   console.log(`proxying to http://${upstreamHost}:${upstreamPort}`)
 })
