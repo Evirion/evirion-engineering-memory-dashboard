@@ -31,7 +31,8 @@
     "security:dast:baseline": "node tools/security/dast-baseline.mjs",
     "verify:focused": "node tools/verify/run.mjs focused",
     "verify:affected": "node tools/verify/run.mjs affected",
-    "verify": "node tools/verify/run.mjs full"
+    "verify": "node tools/verify/run.mjs full",
+    "rollback:rehearse": "bash scripts/rehearse_console_rollback.sh"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.112.4",
