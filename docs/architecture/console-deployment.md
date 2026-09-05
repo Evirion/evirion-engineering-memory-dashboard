@@ -67,17 +67,19 @@ deployment is what turns this section from an argument into evidence.
 ## Automatic deployment
 
 A Vercel project connected to a GitHub repository builds and deploys on push by
-default. That would make merging a pull request a deployment, which no plan
-authorizes and which the release rules require to be a separate, explicit act.
+default, which makes merging a pull request a deployment.
 
-Before the project is pointed at anything real, either disable automatic
-deployment for `main` and preview branches, or accept in writing that every
-merge is an authorized deployment. The first is consistent with how every other
-remote action in this program is gated.
+**The owner accepted this on 2026-09-05: every merge to the connected branch is
+an authorized Console deployment.** That is the written acceptance the release
+rules require, and it applies to the Console only. It authorizes nothing in the
+backend: migrations, Edge functions, and hosted Auth each still need their own
+explicit authorization.
 
-A deployment that runs without the variables above fails closed rather than
-serving an insecure Console, so an accidental build is not a security incident.
-It is still an unauthorized deployment.
+Two consequences worth stating plainly. A merge is now a release, so a change
+that would be unsafe to serve must not be merged before its configuration is in
+place. And a deployment that runs without the variables above fails closed
+rather than serving an insecure Console, so an accidental build is a broken
+deployment rather than a security incident.
 
 ## Hosted Auth follows the hostname
 
@@ -91,15 +93,34 @@ Applying that configuration is a hosted mutation and needs its own explicit
 authorization. `SEC-2026-009` stays open until the configuration is applied and
 verified.
 
+## The Console cannot be deployed first
+
+Read from the staging project on 2026-09-05: the only Edge function deployed is
+`github-webhook`, at version 4, last updated 2026-08-19. `console-api` and
+`organization-invitations` are not deployed at all, and the webhook that is
+deployed predates EEM-3/13 and everything after it. The database is at 29 of 52
+migrations.
+
+`CONSOLE_API_BASE_URL` therefore has nothing to point at. A Console deployed
+today would be a working interface in front of an API that does not exist, and
+its failures would look like Console defects rather than a missing backend.
+
+So the Console deployment is near the end of Step 7, not the start of it.
+
 ## Order
 
-1. Provision the project and decide the hostname.
-2. Set the server-only variables, generating both signing keys.
-3. Confirm automatic deployment is disabled or explicitly authorized.
-4. Deploy.
-5. Run the web boundary and accessibility suites against the deployment.
-6. Only then set hosted Auth to the hostname, under its own authorization.
-7. Only then run the canary scenarios, which need a real session.
+1. Apply the 23 pending migrations to staging. Backend, forward-only, its own
+   authorization.
+2. Deploy `console-api` and `organization-invitations`, and redeploy
+   `github-webhook` at the current revision. Backend, its own authorization.
+3. Decide the Console hostname and set the server-only variables, generating
+   both signing keys. `CONSOLE_API_BASE_URL` is real only after step 2.
+4. Deploy the Console, which now happens by merging.
+5. Run the web boundary and accessibility suites against the deployment. This is
+   what turns the trusted-edge argument above into evidence.
+6. Set hosted Auth `siteUrl` and redirect URLs to the hostname, under its own
+   authorization.
+7. Run the canary scenarios, which need a real session and therefore step 6.
 
-Applying backend migrations depends on none of this and can be authorized
-separately.
+Steps 1 and 2 are independent of the Console and can be authorized on their own.
+Nothing from step 3 onward is reachable before them.
