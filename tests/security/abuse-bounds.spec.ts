@@ -40,7 +40,7 @@ test.describe("page and query bounds belong to the contract", () => {
       // Whatever the answer, it is never a page rendered with the caller's
       // bound: either the parameter is refused, or it is ignored entirely.
       expect(response?.status()).toBeLessThan(500)
-      const rows = await page.locator("[data-testid$='-row']").count()
+      const rows = await page.getByRole("listitem").count()
       expect(rows).toBeLessThan(1000)
     })
 
