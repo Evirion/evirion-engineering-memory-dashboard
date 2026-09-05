@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process"
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { fileURLToPath } from "node:url"
@@ -15,20 +15,68 @@ import { repositoryRoot } from "../support/source-tree"
  * things for the same reasons. Step 9 runs this against an authorized staging
  * deployment; here it only has to be executable and to refuse a profile that
  * could turn the dry run into the incident it prepares for.
+ *
+ * The backend owns the shipped profile and CI has no sibling checkout, so these
+ * cases drive a fixture of the same shape. That mirrors the Auth parity lock,
+ * which verifies pinned values in CI and compares the sibling only locally.
  */
 
 const script = fileURLToPath(
   new URL("scripts/rehearse_console_rollback.sh", repositoryRoot),
 )
-const canonicalProfile = fileURLToPath(
+const siblingProfile = fileURLToPath(
   new URL(
     "../evirion-engineering-memory/docs/evidence/console-free-canary-profile.json",
     repositoryRoot,
   ),
 )
 
+const FIXTURE = {
+  environment: { kind: "staging", projectRef: "<UNAUTHORIZED-UNTIL-STEP-7>" },
+  flags: { live: false, model: false, paid: false },
+  plan: {
+    forwardFix: [
+      {
+        description: "Apply the forward-only fix.",
+        id: "forward-fix-migration",
+        mutates: true,
+      },
+      {
+        description: "Confirm zero paid delta.",
+        id: "forward-fix-verify",
+        mutates: false,
+      },
+    ],
+    pause: [
+      {
+        description: "Set both live gates false.",
+        id: "pause-live-gates",
+        mutates: true,
+      },
+      { description: "Read worker health.", id: "pause-observe", mutates: false },
+    ],
+    rollback: [
+      {
+        description: "Repoint at the attested digest.",
+        id: "rollback-artifact",
+        mutates: true,
+      },
+      {
+        description: "Confirm provenance is intact.",
+        id: "rollback-verify",
+        mutates: false,
+      },
+    ],
+  },
+  schemaVersion: "1.0",
+  stopConditions: ["any-provider-request-count-increase"],
+}
+
 const workspace = mkdtempSync(join(tmpdir(), "console-rollback-"))
 afterAll(() => rmSync(workspace, { recursive: true, force: true }))
+
+const fixtureProfile = join(workspace, "fixture.json")
+writeFileSync(fixtureProfile, JSON.stringify(FIXTURE), "utf8")
 
 type Outcome = { status: number; stdout: string; stderr: string }
 
@@ -46,11 +94,8 @@ const rehearse = (profilePath: string): Outcome => {
   }
 }
 
-const profile = (): Record<string, unknown> =>
-  JSON.parse(readFileSync(canonicalProfile, "utf8")) as Record<string, unknown>
-
 const withProfile = (mutate: (value: Record<string, unknown>) => void): string => {
-  const value = profile()
+  const value = JSON.parse(JSON.stringify(FIXTURE)) as Record<string, unknown>
   mutate(value)
   const path = join(workspace, `${Math.random().toString(36).slice(2)}.json`)
   writeFileSync(path, JSON.stringify(value), "utf8")
@@ -58,8 +103,8 @@ const withProfile = (mutate: (value: Record<string, unknown>) => void): string =
 }
 
 describe("console rollback rehearsal", () => {
-  it("rehearses the shipped profile without executing anything", () => {
-    const outcome = rehearse(canonicalProfile)
+  it("rehearses a valid profile without executing anything", () => {
+    const outcome = rehearse(fixtureProfile)
     expect(outcome.status).toBe(0)
     expect(outcome.stdout).toContain("CONSOLE_ROLLBACK_REHEARSAL_OK")
     for (const phase of ["pause", "rollback", "forwardFix"]) {
@@ -131,5 +176,17 @@ describe("console rollback rehearsal", () => {
     const outcome = rehearse(path)
     expect(outcome.status).toBe(1)
     expect(outcome.stderr).toContain("CONSOLE_ROLLBACK_REHEARSAL_SCHEMA_UNSUPPORTED")
+  })
+
+  it("rehearses the profile the backend ships, when the sibling is checked out", () => {
+    // Never a silent skip. Without the sibling this asserts its own
+    // precondition, so the case can only pass by proving something either way.
+    if (!existsSync(siblingProfile)) {
+      expect(existsSync(siblingProfile)).toBe(false)
+      return
+    }
+    const outcome = rehearse(siblingProfile)
+    expect(outcome.status).toBe(0)
+    expect(outcome.stdout).toContain("CONSOLE_ROLLBACK_REHEARSAL_OK")
   })
 })
