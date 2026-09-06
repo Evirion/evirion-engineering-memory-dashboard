@@ -3307,7 +3307,15 @@ components:
     OrganizationSelection:
       name: organizationId
       in: query
-      required: true
+      required: false
+      description: >-
+        Which organization the context should describe. Omitting it means the
+        one organization the caller belongs to: the backend resolves a single
+        active membership, answers ORGANIZATION_MEMBERSHIP_REQUIRED when there
+        is none, and REQUEST_INVALID when there is a choice, because a caller
+        with more than one must state which. Required until 1.0.5, which no
+        client could satisfy on a first session — the bootstrap receipt carries
+        no organization and no operation lists a caller's own.
       schema:
         type: string
         format: uuid
