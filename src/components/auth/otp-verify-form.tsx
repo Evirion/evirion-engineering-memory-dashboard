@@ -14,8 +14,11 @@
 export const OtpVerifyForm = ({
   csrfToken,
   email = "",
+  invitationId = "",
 }: {
   csrfToken: string
+  /** Carried from the invitation link so the invited path runs. */
+  invitationId?: string
   /**
    * Read from the sealed pre-auth cookie. When it is known the address is shown
    * rather than asked for, and travels in a hidden field; the server still
@@ -27,6 +30,9 @@ export const OtpVerifyForm = ({
 }) => (
   <form action="/api/auth/verify-otp" method="post" className="flex flex-col gap-5">
     <input type="hidden" name="csrfToken" value={csrfToken} />
+    {invitationId ? (
+      <input type="hidden" name="invitationId" value={invitationId} />
+    ) : null}
 
     {email ? (
       <input type="hidden" name="email" value={email} />

@@ -4,7 +4,18 @@ Updated: 2026-09-05
 
 ## Current state
 
-- Active branch: `EEM-9/07w-invited-reader-can-ask`.
+- Active branch: `EEM-9/07x-carry-the-invitation`.
+- **An invited reader signs in through a link that names their invitation.**
+  `/auth/sign-in?invitation=<id>`. The backend routes on it: with an invitation
+  it uses `api.issue_console_pre_auth`, without one
+  `api.issue_console_member_pre_auth`, and the latter requires a membership in
+  `active` which an invited reader does not have until they accept. Accepting
+  needs a session, so without the link the invited path is unreachable and the
+  reader is refused after a correct code.
+- **Nothing sends that link yet.** The invitation email carries no links at
+  all, so the URL must be handed over by other means until the branded Resend
+  invitation exists. That is the next task, and this is why it is not
+  cosmetic.
 - **An invited reader can now ask for a code.** Their address is unconfirmed
   until they use one, and Supabase answers a code request for an unconfirmed
   account with `signup_disabled`, so the button refused exactly the people it

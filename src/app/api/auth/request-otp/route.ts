@@ -2,9 +2,11 @@ import { NextResponse, type NextRequest } from "next/server"
 
 import { createSupabaseAuthProvider } from "@/lib/auth/auth-provider"
 import {
+  OPAQUE_INVITATION_ID,
   PRE_AUTH_ADDRESS_COOKIE,
   PRE_AUTH_CSRF_COOKIE,
   PRE_AUTH_EMAIL_COOKIE,
+  PRE_AUTH_INVITATION_COOKIE,
   PRE_AUTH_TRANSACTION_COOKIE,
   preAuthCookieOptions,
 } from "@/lib/auth/pre-auth-cookies"
@@ -72,6 +74,17 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
   )
 
   const response = NextResponse.redirect(canonicalRedirect("/auth/verify"), 303)
+  // An unrecognisable value is dropped rather than refused: it decides which
+  // sign-in path runs, not whether the reader may sign in, and the backend
+  // rechecks the invitation against the verified identity regardless.
+  const invitationId = guard.form.get("invitationId")
+  if (typeof invitationId === "string" && OPAQUE_INVITATION_ID.test(invitationId)) {
+    response.cookies.set({
+      name: PRE_AUTH_INVITATION_COOKIE,
+      value: invitationId,
+      ...preAuthCookieOptions,
+    })
+  }
   response.cookies.set({
     name: PRE_AUTH_EMAIL_COOKIE,
     value: emailIdentityHmac,

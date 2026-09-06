@@ -35,12 +35,31 @@ export const PRE_AUTH_EMAIL_COOKIE = `${PRE_AUTH_COOKIE_BASE}-eid`
  */
 export const PRE_AUTH_ADDRESS_COOKIE = `${PRE_AUTH_COOKIE_BASE}-addr`
 
+/**
+ * The invitation a reader arrived holding, if any.
+ *
+ * An invited reader has a membership in `invited`, and the member sign-in path
+ * requires `active`. The backend has a second path keyed by invitation, and
+ * the only way to reach it is to name the invitation in the bootstrap. So the
+ * identifier has to survive the redirect from sign-in to verify, and it
+ * travels the way the address already does rather than in a URL: the redirect
+ * target stays a fixed path with nothing caller-supplied in it.
+ *
+ * The value is opaque and already known to whoever holds the invitation link,
+ * so this cookie discloses nothing they did not already have.
+ */
+export const PRE_AUTH_INVITATION_COOKIE = `${PRE_AUTH_COOKIE_BASE}-inv`
+
 export const preAuthCookieNames = [
   PRE_AUTH_ADDRESS_COOKIE,
   PRE_AUTH_CSRF_COOKIE,
   PRE_AUTH_EMAIL_COOKIE,
+  PRE_AUTH_INVITATION_COOKIE,
   PRE_AUTH_TRANSACTION_COOKIE,
 ] as const
+
+/** Opaque, as the backend treats it: never parsed, only carried. */
+export const OPAQUE_INVITATION_ID = /^[A-Za-z0-9_-]{1,128}$/
 
 export const createTransactionId = (): string => {
   const bytes = new Uint8Array(16)
