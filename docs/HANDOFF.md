@@ -4,8 +4,14 @@ Updated: 2026-09-05
 
 ## Current state
 
-- Active branch: `EEM-9/07c-remote-state-and-console-host`. It performs no
-  remote action and carries no remote authorization.
+- Active branch: `EEM-9/07g-handoff-refresh`. Documentation only.
+- **The Console is deployed and reachable at `https://console.evirion.dev`.**
+  Public routes answer, protected routes redirect to sign-in on that origin, and
+  mail is delivered by Resend from `Evirion <no-reply@evirion.dev>` to any
+  address. The previous `.vercel.app` hostname still resolves and stays in the
+  Auth redirect allow-list while the move settles.
+- Merging to the connected branch is an authorized Console deployment by owner
+  decision of 2026-09-05. That covers the Console only.
 - `docs/authority/eem3-global-lock-input.json` no longer carries
   `migration.remoteApplicationState`. That was a fact about a backend staging
   database this repository cannot observe, frozen as the literal `not-applied`
