@@ -1,5 +1,38 @@
 # Dashboard changelog
 
+## 2026-09-06 — the BFF was calling the wrong address, and no log said so
+
+- **The defect.** `callConsoleApi` built its target with
+  `new URL(request.path, baseUrl)`. An absolute path replaces the base's path
+  entirely, so with `CONSOLE_API_BASE_URL` set to the deployed
+  `https://<project>.supabase.co/functions/v1/console-api`, every request went
+  to `https://<project>.supabase.co/v1/...` — the project root. Supabase answers
+  `404 {"error":"requested path is invalid"}`, which no contract validator
+  accepts, so the Console failed closed with an unknown outcome. The first real
+  session showed **Console unavailable** on `/onboarding`.
+- **Why the backend logs were empty.** They were correct. The request never
+  arrived; the absence was the evidence, and it was mistaken for a gap in
+  logging before the URL was checked.
+- **Why nothing caught it.** Every adapter test used `https://api.evirion.test`,
+  a bare origin with no path to lose, and `tools/console-stub` is likewise
+  mounted at a host root. The defect was invisible to a test double by
+  construction and could only appear against a real Supabase deployment.
+- **The fix.** `resolveConsoleUrl` appends the contract path to the base path.
+  Three cases cover a base with a prefix, a base with a trailing separator, and
+  a bare origin. A fourth covers a query string: the first fix assigned to
+  `URL.pathname`, which percent-encodes `?` and broke every paged read — caught
+  by two existing adapter tests before it left the branch.
+- **Open behind it, not fixed here.** `/v1/session/context` requires
+  `organizationId` and the Console sends none, so the corrected address will
+  return `REQUEST_INVALID`. There is no source for that value: the bootstrap
+  receipt is `{registered: true}`, the contract publishes no endpoint listing a
+  caller's organizations, and `__Host-console-organization` is written by
+  `/api/auth/organization` and read by nothing. Reported rather than designed
+  around.
+- **Verification.** Complete Console gate with captured exit codes: lint,
+  typecheck, format, 853 unit and contract tests, 336 end-to-end tests, 101
+  authority tests, and the authority check.
+
 ## 2026-09-06 — the Console never asked for a code, and now does
 
 - **The defect.** `/api/auth/request-otp` bound a pre-auth proof, set cookies

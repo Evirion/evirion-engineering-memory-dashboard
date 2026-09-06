@@ -93,6 +93,72 @@ describe("what the BFF forwards", () => {
   })
 })
 
+describe("where the BFF sends the request", () => {
+  /**
+   * Supabase serves an Edge Function under `/functions/v1/<name>`, so the
+   * deployed base carries a path. Every other case here uses a bare origin,
+   * where a base path cannot be lost because there is none — which is why the
+   * deployed Console spent its first session calling the project root and
+   * failing closed on Supabase's `requested path is invalid`, with nothing in
+   * the backend logs to show for it.
+   */
+  const DEPLOYED_BASE = "https://project.supabase.co/functions/v1/console-api"
+
+  it("keeps the base path when the request path is absolute", async () => {
+    const transport = transportReturning(200, enveloped(sessionContext))
+
+    await callConsoleApi(DEPLOYED_BASE, baseRequest, isSessionContext, transport)
+
+    expect(transport).toHaveBeenCalledWith(
+      "https://project.supabase.co/functions/v1/console-api/v1/session/context",
+      expect.anything(),
+    )
+  })
+
+  it("does not double a base that already ends in a separator", async () => {
+    const transport = transportReturning(200, enveloped(sessionContext))
+
+    await callConsoleApi(`${DEPLOYED_BASE}/`, baseRequest, isSessionContext, transport)
+
+    expect(transport).toHaveBeenCalledWith(
+      "https://project.supabase.co/functions/v1/console-api/v1/session/context",
+      expect.anything(),
+    )
+  })
+
+  it("carries a query string through unencoded", async () => {
+    const transport = transportReturning(200, enveloped(sessionContext))
+
+    await callConsoleApi(
+      DEPLOYED_BASE,
+      { ...baseRequest, path: "/v1/session/context?organizationId=abc" },
+      isSessionContext,
+      transport,
+    )
+
+    expect(transport).toHaveBeenCalledWith(
+      "https://project.supabase.co/functions/v1/console-api/v1/session/context?organizationId=abc",
+      expect.anything(),
+    )
+  })
+
+  it("still resolves against a bare origin", async () => {
+    const transport = transportReturning(200, enveloped(sessionContext))
+
+    await callConsoleApi(
+      "https://api.evirion.test",
+      baseRequest,
+      isSessionContext,
+      transport,
+    )
+
+    expect(transport).toHaveBeenCalledWith(
+      "https://api.evirion.test/v1/session/context",
+      expect.anything(),
+    )
+  })
+})
+
 describe("what the BFF accepts back", () => {
   it("unwraps the success envelope and returns the contract-valid projection", async () => {
     const result = await callConsoleApi(
