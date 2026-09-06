@@ -108,6 +108,31 @@ export const buildConsoleHeaders = (request: ConsoleRequest): Headers => {
   return headers
 }
 
+/**
+ * Join a contract path onto the configured base.
+ *
+ * `new URL("/v1/session/context", base)` looks like it does this and does not:
+ * an absolute path replaces the base's own path entirely. Supabase serves an
+ * Edge Function under `/functions/v1/<name>`, so that silently addressed the
+ * project root, which answers `requested path is invalid` in a shape no
+ * contract validator accepts. The Console then failed closed with an unknown
+ * outcome, and the backend logged nothing because it was never reached.
+ *
+ * Contract paths stay absolute, as the contract writes them; the base keeps
+ * whatever prefix it carries.
+ */
+export const resolveConsoleUrl = (baseUrl: string, path: string): string => {
+  const target = new URL(baseUrl)
+  // Split path from query against a throwaway origin: assigning a path that
+  // still carries `?` to `pathname` percent-encodes the separator, which turns
+  // a paged read into a request for one absurdly named collection.
+  const relative = new URL(path, "https://console.invalid")
+
+  target.pathname = `${target.pathname.replace(/\/+$/, "")}${relative.pathname}`
+  target.search = relative.search
+  return target.toString()
+}
+
 export const callConsoleApi = async <T>(
   baseUrl: string,
   request: ConsoleRequest,
@@ -117,7 +142,7 @@ export const callConsoleApi = async <T>(
   let response: { status: number; json: () => Promise<unknown> }
 
   try {
-    response = await transport(new URL(request.path, baseUrl).toString(), {
+    response = await transport(resolveConsoleUrl(baseUrl, request.path), {
       method: request.method,
       headers: buildConsoleHeaders(request),
       ...(request.body === undefined ? {} : { body: JSON.stringify(request.body) }),
