@@ -50,7 +50,12 @@ export type ServerEnvironment = {
   readonly trustedProxyHops: number
   /** 256-bit minimum. Signs the double-submit CSRF proof. */
   readonly csrfSigningKey: string
-  /** 256-bit minimum. Signs the one-time backend bootstrap proof. */
+  /**
+   * An Ed25519 private JWK carrying a `kid`, serialised as JSON. The backend
+   * verifies with the matching public JWK and selects it by that identifier, so
+   * a key without one signs proofs nothing can check. Shape is enforced where
+   * it is imported rather than here, because this module owns presence.
+   */
   readonly bootstrapProofSigningKey: string
   /** Loopback origin for server-to-server replays through the BFF. */
   readonly internalOrigin: string

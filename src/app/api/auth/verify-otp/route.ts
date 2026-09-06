@@ -113,7 +113,7 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
         guard.binding.kind === "pre-auth" ? guard.binding.transactionId : "",
       invitationId: body.invitationId,
       idempotencyKey,
-      body: JSON.stringify(body),
+      body,
       issuedAt: now,
     },
   )
