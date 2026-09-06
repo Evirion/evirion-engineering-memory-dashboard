@@ -1,5 +1,47 @@
 # Dashboard changelog
 
+## 2026-09-06 — the Auth flow says what happened
+
+Six findings from walking the deployed sign-in flow, owned by the contract
+packet at `docs/plans/active/eem-9-07-auth-flow-feedback-contract.md`.
+
+- **Silence was not the security property.** Every failure was a bare `303` to
+  sign-in: a wrong code, an expired code, a failed CSRF check and a refused
+  admission were indistinguishable to the reader, not only to an attacker. The
+  reply stays uniform — that is what stops account enumeration — but OWASP A07
+  asks for the *same message* for all outcomes, not for none. One published
+  outcome code now carries one sentence. An unrecognised value renders nothing,
+  because the parameter travels in a URL and a crafted link must not put text on
+  the page.
+- **The code is single-use, and the page says so before the reader types.** A
+  counter was considered and rejected: a signed cookie is unforgeable but
+  replayable, and a backend transaction does not exist for plain sign-in, only
+  for invitation acceptance. Both were priced against a fresh code, which cost
+  something at two mails an hour and costs nothing at thirty.
+- **A signed-in reader is no longer offered the door again.** `/auth/sign-in`,
+  `/auth/verify`, `/auth/invite`, `/auth/recovery` and the placeholder root now
+  redirect. The guard had only ever been written in the other direction: the two
+  MFA pages check for a session because they need one.
+- **Top-level navigations only, which a security test taught.** Twenty-eight
+  refusal paths redirect to `/auth/sign-in`, and `import-boundary.spec.ts` reads
+  that landing to prove a forged CSRF proof never reached the backend. The first
+  implementation redirected those onward and broke it. `sec-fetch-mode` is a
+  forbidden header this codebase already trusts in `request-origin.ts`; a client
+  sending none keeps today's behaviour, because this guard is a courtesy rather
+  than a control.
+- **No half-formed session survives.** A transient bootstrap failure kept the
+  session cookies for a retry the comment promised and no code performed —
+  `pre-auth-transaction.ts` is imported by its own test and by nothing else. A
+  reader reached exactly that state on staging: Supabase held a session, the
+  Console backend had none, and nothing recovered it. The failure is now
+  terminal.
+- **`ORGANIZATION_MEMBERSHIP_REQUIRED` stopped claiming a selection.** It
+  rendered as "not available for the selected organization" to a reader who
+  belongs to none, which is the common case on a first session.
+- **Verification.** Complete Console gate with captured exit codes: lint,
+  typecheck, format, 867 unit and contract tests, 336 end-to-end tests, 101
+  authority tests, the contract lock and the authority package.
+
 ## 2026-09-06 — the Console consumes console-contract-v1.0.5
 
 - **Why.** `/v1/session/context` stopped requiring `organizationId`, which is

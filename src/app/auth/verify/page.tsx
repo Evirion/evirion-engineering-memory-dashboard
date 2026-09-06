@@ -25,8 +25,9 @@ const VerifyPage = async () => {
           )}
         </p>
         <p className="text-sm text-slate-600">
-          It is valid for {SESSION_POLICY.emailOtpLifetimeSeconds / 60} minutes. You can
-          ask for a new one after {SESSION_POLICY.otpResendCooldownSeconds} seconds.
+          It works once and is valid for {SESSION_POLICY.emailOtpLifetimeSeconds / 60}{" "}
+          minutes. If it does not go through, ask for a new one after{" "}
+          {SESSION_POLICY.otpResendCooldownSeconds} seconds.
         </p>
       </div>
 

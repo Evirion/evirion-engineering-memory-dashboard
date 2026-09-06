@@ -4,7 +4,7 @@ Updated: 2026-09-05
 
 ## Current state
 
-- Active branch: `EEM-9/07p-a-document-cannot-quote-its-own-digest`.
+- Active branch: `EEM-9/07r-say-what-went-wrong`.
 - **The Console is deployed and reachable at `https://console.evirion.dev`.**
   Public routes answer, protected routes redirect to sign-in on that origin, and
   mail is delivered by Resend from `Evirion <no-reply@evirion.dev>` to any

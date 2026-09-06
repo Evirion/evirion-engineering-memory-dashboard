@@ -146,10 +146,26 @@ neither may hold a lock across the provider call.
 
 Every row above is currently unwritten. None of them passes today.
 
-## 8. The two decisions
+## 8. The two decisions, taken 2026-09-06
 
-1. **A2**: candidate 1, 2 or 3 for the attempt counter.
-2. **A5**: retry on the next protected request, or fail closed and clear.
+**A2: candidate 3.** One attempt, stated before the reader types and explained
+when it fails. No new state.
 
-A1, A3, A4 and A6 are unblocked and can be written against this packet as it
-stands.
+**A5: fail closed.** A transient bootstrap failure clears the session cookies
+and returns the reader to sign-in with the A1 sentence. No retry, no mutation on
+a read path, no half-formed session.
+
+Both were chosen for the same reason, and it is worth recording because it will
+expire. The complexity in either direction existed to avoid spending an emailed
+code, and that was expensive when `GOTRUE_RATE_LIMIT_EMAIL_SENT` was **2 an
+hour** — the setting that returned 429 to the first sign-in attempt after the
+template fix. It is now 30. A fresh code costs nothing, so paying for one with
+either a replayable counter or a writing read is a bad trade.
+
+**When that reasoning stops holding.** A real design partner mistyping codes,
+or any reason to lower the limit again, brings candidate 2 back: the backend
+already has `private.console_pre_auth_transactions` and only needs sign-in to
+write to it. The comment in `verify-otp` that promises a retry is removed rather
+than left describing behaviour that no longer exists.
+
+All six rows are now unblocked.

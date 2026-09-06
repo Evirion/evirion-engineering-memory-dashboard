@@ -14,6 +14,7 @@ import { readServerEnvironment } from "@/lib/env/server"
 import { resolveSafeRedirect } from "@/lib/security/request-origin"
 import { guardMutation } from "@/server/actions/mutation-guard"
 import { hmacEmailIdentity } from "@/server/actions/pre-auth"
+import { AUTH_OUTCOME_PARAMETER, AUTH_OUTCOMES } from "@/lib/auth/auth-outcome"
 import { canonicalRedirect } from "@/server/actions/redirects"
 import { SESSION_BOOTSTRAP_PATH, bootstrapSession } from "@/server/adapters/console-api"
 
@@ -25,7 +26,13 @@ export const dynamic = "force-dynamic"
  * survives into the next request.
  */
 const denied = (): NextResponse => {
-  const response = NextResponse.redirect(canonicalRedirect("/auth/sign-in"), 303)
+  // One sentence for every cause. The reply stays indistinguishable between a
+  // wrong code, an expired one, a failed CSRF check and a refused admission,
+  // which is the enumeration property; what changes is that the reader is now
+  // told something rather than bounced in silence.
+  const target = canonicalRedirect("/auth/sign-in")
+  target.searchParams.set(AUTH_OUTCOME_PARAMETER, AUTH_OUTCOMES.verificationFailed)
+  const response = NextResponse.redirect(target, 303)
   for (const instruction of clearPreAuthCookies()) {
     response.cookies.set({
       ...instruction,
@@ -119,10 +126,12 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
     bootstrapProof: proof,
   })
 
-  // A terminal refusal registers nothing, so the cookies must not survive it.
-  // A transient failure keeps them, because the contract requires the BFF to
-  // retry bootstrap without consuming another OTP.
-  if (!bootstrap.ok && bootstrap.failure.kind === "error") return denied()
+  // No bootstrap, no session. A transient failure used to keep the cookies for
+  // a retry the contract described and no code performed, which left the
+  // browser signed in against a backend that had never heard of the session —
+  // exactly the state a reader reached on staging on 2026-09-06. Failing closed
+  // costs one more emailed code, and a code costs nothing at thirty an hour.
+  if (!bootstrap.ok) return denied()
   const target = resolveSafeRedirect(guard.form.get("next") as string | null)
   const response = NextResponse.redirect(
     canonicalRedirect(target === "/" ? "/onboarding" : target),

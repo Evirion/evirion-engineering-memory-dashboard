@@ -1,4 +1,5 @@
 import { EmailOtpRequestForm } from "@/components/auth/email-otp-request-form"
+import { AUTH_OUTCOME_PARAMETER, describeAuthOutcome } from "@/lib/auth/auth-outcome"
 import { readPreAuthCsrfToken } from "@/server/actions/pre-auth"
 
 export const dynamic = "force-dynamic"
@@ -8,8 +9,16 @@ export const dynamic = "force-dynamic"
  * the address is known: an unknown address and a known one produce the same
  * response, because a distinguishable one is an enumeration oracle.
  */
-const SignInPage = async () => {
+const SignInPage = async ({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}) => {
   const csrfToken = await readPreAuthCsrfToken()
+  const parameter = (await searchParams)[AUTH_OUTCOME_PARAMETER]
+  const outcome = describeAuthOutcome(
+    typeof parameter === "string" ? parameter : undefined,
+  )
 
   return (
     <section className="flex flex-col gap-4">
@@ -20,6 +29,14 @@ const SignInPage = async () => {
           code.
         </p>
       </div>
+      {outcome === undefined ? null : (
+        <p
+          role="alert"
+          className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-700"
+        >
+          {outcome}
+        </p>
+      )}
       <EmailOtpRequestForm csrfToken={csrfToken} />
     </section>
   )
