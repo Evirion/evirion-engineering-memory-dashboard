@@ -1,4 +1,7 @@
+import { AlertCircleIcon } from "lucide-react"
+
 import { EmailOtpRequestForm } from "@/components/auth/email-otp-request-form"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AUTH_OUTCOME_PARAMETER, describeAuthOutcome } from "@/lib/auth/auth-outcome"
 import { readPreAuthCsrfToken } from "@/server/actions/pre-auth"
 
@@ -30,12 +33,11 @@ const SignInPage = async ({
         </p>
       </div>
       {outcome === undefined ? null : (
-        <p
-          role="alert"
-          className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-700"
-        >
-          {outcome}
-        </p>
+        <Alert variant="destructive">
+          <AlertCircleIcon />
+          <AlertTitle>{outcome.title}</AlertTitle>
+          <AlertDescription>{outcome.description}</AlertDescription>
+        </Alert>
       )}
       <EmailOtpRequestForm csrfToken={csrfToken} />
     </section>
