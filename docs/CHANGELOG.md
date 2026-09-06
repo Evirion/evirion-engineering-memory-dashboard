@@ -18,8 +18,12 @@
   moves after the proof, or if the reply starts branching on the provider
   result. Proven by deleting the call and watching two cases fail.
 - **Recorded departure, accepted by the owner for staging.** The verify page now
-  fills in the address from a new `__Host-` pre-auth cookie holding it under
-  AES-GCM, so it is typed once. Every other layer holds only the HMAC — the
+  reads the address from a new `__Host-` pre-auth cookie holding it under
+  AES-GCM, so it is typed once: the page states which address the code went to
+  and carries it in a hidden field, and changing it restarts sign-in rather than
+  editing it in place, because the proof is bound to one identity. When the
+  cookie is absent — an expired or cleared transaction — the field returns and
+  the reader types the address, as before. Every other layer holds only the HMAC — the
   backend column is `email_hmac` with no plaintext counterpart — and the
   accepted requirements bind the proof to that HMAC. **The binding is
   unchanged**; the cookie is additive and authorises nothing. The cost is real:
@@ -28,9 +32,19 @@
   be revisited before a real design partner signs in. The alternative that keeps
   the property is a server-side transaction store, which needs a backend column
   that does not exist today.
+- **Code entry, and a styling trap worth knowing.** The six digits are one wide,
+  spaced input rather than six boxes, so pasting from the mail client, the
+  `one-time-code` autofill iOS offers above the keyboard, and a screen reader
+  announcing one field instead of six all keep working. The spacing lives in an
+  `@utility otp-entry` in `globals.css`, not in Tailwind arbitrary values:
+  `tracking-[0.5em]` and `indent-[0.5em]` were written first and **silently
+  failed to reach the built stylesheet**, while ordinary utilities in the same
+  `className` did. No arbitrary value exists anywhere else in `src`, so nothing
+  would have caught it, and the styling would have been absent in production
+  while passing every check. Named utilities are the safe form here.
 - **Verification.** Complete Console gate: lint, format, typecheck, 849 unit and
-  contract tests, build, 101 bootstrap tests, and all six documentation and
-  authority checks.
+  contract tests, 336 end-to-end tests, build, 101 bootstrap tests, and all six
+  documentation and authority checks.
 
 ## 2026-09-05 — the Dashboard stops attesting the backend's deployment state
 
