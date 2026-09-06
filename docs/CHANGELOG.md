@@ -34,8 +34,12 @@
   authority tests, the contract lock, the authority package, the documentation
   link check, and the tracked-secret scan.
 - **Open behind this.** The backend pins this repository's authority package
-  digest, which is now `9222dcf13d…`, so the backend pointer needs re-pinning in
-  its own pull request.
+  digest, so the backend pointer needs re-pinning in its own pull request. The
+  value is read from `docs/authority/manifest.json` at the merge commit and is
+  deliberately not quoted here: this file is **inside** the package it would be
+  describing, so any digest written here is stale the moment it is written. A
+  first draft quoted `9222dcf13d…`, which was the digest before this very entry
+  was added.
 
 ## 2026-09-06 — the BFF was calling the wrong address, and no log said so
 

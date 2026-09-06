@@ -4,7 +4,7 @@ Updated: 2026-09-05
 
 ## Current state
 
-- Active branch: `EEM-9/07o-vendor-contract-v1.0.5`.
+- Active branch: `EEM-9/07p-a-document-cannot-quote-its-own-digest`.
 - **The Console is deployed and reachable at `https://console.evirion.dev`.**
   Public routes answer, protected routes redirect to sign-in on that origin, and
   mail is delivered by Resend from `Evirion <no-reply@evirion.dev>` to any
@@ -37,8 +37,10 @@ Updated: 2026-09-05
   digest. The revision made `organizationId` optional on `/v1/session/context`,
   which is why a first session can now resolve a context at all.
 - **The backend pins this repository's authority package digest**, which this
-  branch moves to `9222dcf13d…`. Re-pinning the backend pointer is a separate
-  pull request in that repository and belongs immediately after this one.
+  branch moved. Re-pinning the backend pointer is a separate pull request in
+  that repository and belongs immediately after this one. Read the value from
+  `docs/authority/manifest.json` rather than from prose: this file is inside the
+  package, so a digest quoted here describes the state before it was quoted.
 - The paired backend `I01-B` is merged through
   [PR #73](https://github.com/Evirion/evirion-engineering-memory/pull/73) at
   `aa5bd83`. It moved no contract or migration byte, so no contract publication
