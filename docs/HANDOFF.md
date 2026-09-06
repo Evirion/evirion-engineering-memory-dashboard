@@ -4,7 +4,22 @@ Updated: 2026-09-05
 
 ## Current state
 
-- Active branch: `EEM-9/07r-say-what-went-wrong`.
+- Active branch: `EEM-9/07w-invited-reader-can-ask`.
+- **An invited reader can now ask for a code.** Their address is unconfirmed
+  until they use one, and Supabase answers a code request for an unconfirmed
+  account with `signup_disabled`, so the button refused exactly the people it
+  exists for. `requestEmailOtp` falls back to resending the signup
+  confirmation. Without this, the ten-minute code inside a seven-day invitation
+  is the only one an invited reader ever gets.
+- **The root redirects to sign-in.** The ADR-0003 placeholder outlived the Auth
+  phase that was meant to replace it, and the first design partner landed on
+  it.
+- **Next: the invitation should be our own email.** Supabase keys templates by
+  event type, so the invitation and the resent code are the same message today.
+  A branded invitation sent through Resend, carrying the organization name and
+  a plain link to sign-in and no code at all, is the accepted direction. It
+  depends on the fallback above, or an announcement would leave the reader with
+  no way to get a code.
 - **The Console is deployed and reachable at `https://console.evirion.dev`.**
   Public routes answer, protected routes redirect to sign-in on that origin, and
   mail is delivered by Resend from `Evirion <no-reply@evirion.dev>` to any

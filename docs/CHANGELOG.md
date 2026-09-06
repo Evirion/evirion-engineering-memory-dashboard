@@ -1,5 +1,32 @@
 # Dashboard changelog
 
+## 2026-09-06 — an invited reader can ask for a code, and the root is a door
+
+- **The button refused the people it exists for.** An invitation carries a code
+  that lives ten minutes while the invitation lives seven days, so nearly every
+  invited reader arrives with a dead one. Asking for another was impossible:
+  the address exists but is unconfirmed, Supabase treats a code request for an
+  unconfirmed account as a signup, and this project disables signups. The
+  answer was `signup_disabled` forever, and the only way out was to ask an
+  operator to redeliver. `requestEmailOtp` now falls back to resending the
+  signup confirmation, which reaches the same code by the route that is
+  allowed. Verified against the project: the ordinary request answers 422 and
+  the resend answers 200 for the same unconfirmed address.
+- **Both outcomes still answer identically.** The fallback changes what is
+  sent, not what is observable, so the response remains useless for deciding
+  whether an address is registered.
+- **The root stopped being a dead end.** ADR-0003 declared the route with a
+  placeholder and said the Auth phase would replace it with a redirect. The
+  phase shipped and the placeholder stayed, so the first design partner pointed
+  at the Console read `This deployment carries no customer functionality yet`
+  and stopped. A reader holding a session never reaches that body — the proxy
+  sends them to their landing first — so the redirect to sign-in is
+  unconditional.
+- **Verification.** Six new tests covering the fallback, the unchanged
+  responses, the transport failure, and the redirect; the fallback proven
+  RED/GREEN. Unit suite 883 passed, lint and typecheck clean.
+- **Deployment state.** Implemented and locally verified. Not deployed.
+
 ## 2026-09-06 — shadcn, and a message that stopped blaming the reader
 
 - **The refusal is a real alert now.** shadcn/ui is installed and
