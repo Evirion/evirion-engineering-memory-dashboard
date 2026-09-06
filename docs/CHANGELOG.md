@@ -3,10 +3,11 @@
 ## 2026-09-06 — shadcn, and a message that stopped blaming the reader
 
 - **The refusal is a real alert now.** shadcn/ui is installed and
-  `components/ui/alert.tsx` carries the destructive variant. Four packages came
-  with it and two did not earn their place: `lucide-react` and `radix-ui` were
-  installed by the initialiser and imported by nothing, so they were removed.
-  Everything kept is pinned exactly, as the supply-chain policy requires.
+  `components/ui/alert.tsx` carries the destructive variant with
+  `AlertCircleIcon`, `AlertTitle`, and `AlertDescription` as in the shadcn
+  docs. `lucide-react` is pinned for that icon; `radix-ui` was installed by the
+  initialiser and imported by nothing, so it was removed. Everything kept is
+  pinned exactly, as the supply-chain policy requires.
 - **The initialiser also added a Google font and it was reverted.**
   `next/font/google` fetches Geist from Google at build time; this project loads
   no third-party font. Reverting it exposed that the shadcn preset writes

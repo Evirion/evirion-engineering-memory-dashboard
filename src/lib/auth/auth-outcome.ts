@@ -35,17 +35,31 @@ export const AUTH_OUTCOMES = {
 
 export type AuthOutcome = (typeof AUTH_OUTCOMES)[keyof typeof AUTH_OUTCOMES]
 
-const SENTENCES: Readonly<Record<AuthOutcome, string>> = {
-  // The headline lives in the alert's title; this is what to do next. Both are
-  // identical for every cause, which is the enumeration property.
-  [AUTH_OUTCOMES.verificationFailed]:
-    "Each code can only be used once. Enter your address to get a new one.",
-  [AUTH_OUTCOMES.sessionNotRegistered]:
-    "Your code was accepted, but the session could not be started. Try again; if it keeps happening the problem is ours, not yours.",
+export type AuthOutcomePresentation = {
+  readonly title: string
+  readonly description: string
+}
+
+const PRESENTATIONS: Readonly<Record<AuthOutcome, AuthOutcomePresentation>> = {
+  // The headline lives in the alert's title; description is what to do next.
+  // Both stay identical for every cause of a failed verification, which is the
+  // enumeration property.
+  [AUTH_OUTCOMES.verificationFailed]: {
+    title: "That code did not work",
+    description:
+      "Each code can only be used once. Enter your address to get a new one.",
+  },
+  [AUTH_OUTCOMES.sessionNotRegistered]: {
+    title: "The session could not be started",
+    description:
+      "Your code was accepted, but the session could not be started. Try again; if it keeps happening the problem is ours, not yours.",
+  },
 }
 
 const isAuthOutcome = (value: string): value is AuthOutcome =>
-  Object.hasOwn(SENTENCES, value)
+  Object.hasOwn(PRESENTATIONS, value)
 
-export const describeAuthOutcome = (value: string | undefined): string | undefined =>
-  value !== undefined && isAuthOutcome(value) ? SENTENCES[value] : undefined
+export const describeAuthOutcome = (
+  value: string | undefined,
+): AuthOutcomePresentation | undefined =>
+  value !== undefined && isAuthOutcome(value) ? PRESENTATIONS[value] : undefined

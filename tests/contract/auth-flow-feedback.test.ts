@@ -23,7 +23,9 @@ const source = (relative: string): string =>
 
 describe("A1: a failure says what to do next", () => {
   it("renders one sentence for the only published outcome", () => {
-    expect(describeAuthOutcome(AUTH_OUTCOMES.verificationFailed)).toMatch(/\S/)
+    expect(
+      describeAuthOutcome(AUTH_OUTCOMES.verificationFailed)?.description,
+    ).toMatch(/\S/)
   })
 
   it("renders nothing for a value the Console does not publish", () => {
@@ -48,23 +50,28 @@ describe("A1: a failure says what to do next", () => {
     // enumerate. Blaming the code for it sent a reader hunting a typo that did
     // not exist.
     expect(Object.values(AUTH_OUTCOMES)).toHaveLength(2)
-    expect(describeAuthOutcome(AUTH_OUTCOMES.sessionNotRegistered)).not.toBe(
-      describeAuthOutcome(AUTH_OUTCOMES.verificationFailed),
+    expect(describeAuthOutcome(AUTH_OUTCOMES.sessionNotRegistered)?.description).not.toBe(
+      describeAuthOutcome(AUTH_OUTCOMES.verificationFailed)?.description,
     )
   })
 
   it("blames the code only when the code was the problem", () => {
-    expect(describeAuthOutcome(AUTH_OUTCOMES.verificationFailed)).toMatch(/code/i)
-    expect(describeAuthOutcome(AUTH_OUTCOMES.sessionNotRegistered)).toMatch(
-      /accepted|not your/i,
+    expect(describeAuthOutcome(AUTH_OUTCOMES.verificationFailed)?.title).toMatch(
+      /code/i,
     )
+    expect(
+      describeAuthOutcome(AUTH_OUTCOMES.sessionNotRegistered)?.description,
+    ).toMatch(/accepted|not your/i)
   })
 
   it("is carried by the verify route and read by the sign-in page", () => {
     expect(source("src/app/api/auth/verify-otp/route.ts")).toContain(
       "AUTH_OUTCOME_PARAMETER",
     )
-    expect(source("src/app/auth/sign-in/page.tsx")).toContain("describeAuthOutcome")
+    const page = source("src/app/auth/sign-in/page.tsx")
+    expect(page).toContain("describeAuthOutcome")
+    expect(page).toContain("AlertCircleIcon")
+    expect(page).toContain("AlertTitle")
   })
 })
 
