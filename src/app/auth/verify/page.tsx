@@ -2,13 +2,18 @@ import Link from "next/link"
 
 import { OtpVerifyForm } from "@/components/auth/otp-verify-form"
 import { SESSION_POLICY } from "@/lib/auth/session-policy"
-import { readPreAuthCsrfToken, readSealedEmailAddress } from "@/server/actions/pre-auth"
+import {
+  readCarriedInvitationId,
+  readPreAuthCsrfToken,
+  readSealedEmailAddress,
+} from "@/server/actions/pre-auth"
 
 export const dynamic = "force-dynamic"
 
 const VerifyPage = async () => {
   const csrfToken = await readPreAuthCsrfToken()
   const email = await readSealedEmailAddress()
+  const invitationId = await readCarriedInvitationId()
 
   return (
     <section className="flex flex-col gap-5">
@@ -31,7 +36,7 @@ const VerifyPage = async () => {
         </p>
       </div>
 
-      <OtpVerifyForm csrfToken={csrfToken} email={email} />
+      <OtpVerifyForm csrfToken={csrfToken} email={email} invitationId={invitationId} />
 
       {/*
         Changing the address restarts the transaction rather than editing it in

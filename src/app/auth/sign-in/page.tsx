@@ -3,9 +3,13 @@ import { AlertCircleIcon } from "lucide-react"
 import { EmailOtpRequestForm } from "@/components/auth/email-otp-request-form"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AUTH_OUTCOME_PARAMETER, describeAuthOutcome } from "@/lib/auth/auth-outcome"
+import { OPAQUE_INVITATION_ID } from "@/lib/auth/pre-auth-cookies"
 import { readPreAuthCsrfToken } from "@/server/actions/pre-auth"
 
 export const dynamic = "force-dynamic"
+
+/** The query name an invitation link uses. */
+export const INVITATION_PARAMETER = "invitation"
 
 /**
  * Sign-in requests a bounded email code. It discloses nothing about whether
@@ -18,10 +22,17 @@ const SignInPage = async ({
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) => {
   const csrfToken = await readPreAuthCsrfToken()
-  const parameter = (await searchParams)[AUTH_OUTCOME_PARAMETER]
+  const query = await searchParams
+  const parameter = query[AUTH_OUTCOME_PARAMETER]
   const outcome = describeAuthOutcome(
     typeof parameter === "string" ? parameter : undefined,
   )
+  // An invited reader arrives by a link naming their invitation. Without it
+  // they are indistinguishable from a stranger, and the member sign-in path
+  // refuses them: their membership is still `invited`, not `active`.
+  const carried = query[INVITATION_PARAMETER]
+  const invitationId =
+    typeof carried === "string" && OPAQUE_INVITATION_ID.test(carried) ? carried : ""
 
   return (
     <section className="flex flex-col gap-4">
@@ -39,7 +50,7 @@ const SignInPage = async ({
           <AlertDescription>{outcome.description}</AlertDescription>
         </Alert>
       )}
-      <EmailOtpRequestForm csrfToken={csrfToken} />
+      <EmailOtpRequestForm csrfToken={csrfToken} invitationId={invitationId} />
     </section>
   )
 }

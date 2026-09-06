@@ -7,7 +7,18 @@ import { useState } from "react"
  * unknown address, so nothing here can be used to enumerate accounts. The
  * code is never placed in a URL and never stored in the browser.
  */
-export const EmailOtpRequestForm = ({ csrfToken }: { csrfToken: string }) => {
+export const EmailOtpRequestForm = ({
+  csrfToken,
+  invitationId = "",
+}: {
+  csrfToken: string
+  /**
+   * Present when the reader followed an invitation link. It selects the backend
+   * sign-in path that an invited reader needs, because their membership is
+   * still `invited` and the member path requires `active`.
+   */
+  invitationId?: string
+}) => {
   const [status, setStatus] = useState<"idle" | "sending" | "sent">("idle")
 
   const handleSubmit = () => {
@@ -30,6 +41,9 @@ export const EmailOtpRequestForm = ({ csrfToken }: { csrfToken: string }) => {
       className="flex flex-col gap-4"
     >
       <input type="hidden" name="csrfToken" value={csrfToken} />
+      {invitationId ? (
+        <input type="hidden" name="invitationId" value={invitationId} />
+      ) : null}
       <div className="flex flex-col gap-2">
         <label htmlFor="email" className="text-sm font-medium">
           Email address

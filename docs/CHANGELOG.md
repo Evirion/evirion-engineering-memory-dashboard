@@ -1,5 +1,32 @@
 # Dashboard changelog
 
+## 2026-09-06 — the invitation reaches the bootstrap that needs it
+
+- **Why.** The first design partner entered a correct code and read *the session
+  could not be started*. The backend has two sign-in paths: one for a member,
+  which requires a membership in `active`, and one keyed by invitation. An
+  invited reader holds `invited` until they accept, and accepting needs a
+  session, so the member path can never admit them. The invitation path is
+  selected by naming the invitation in the bootstrap.
+- **What was missing.** Only the entry point. `verify-otp` already forwarded
+  `invitationId` to the backend and signed it into the proof, and `/auth/invite`
+  already listed choices — but nothing ever put an identifier into the form, so
+  every invited reader took the member path and was refused.
+- **What changed.** Sign-in reads `?invitation=` from the link the reader
+  followed, the request form carries it, `request-otp` puts it in a pre-auth
+  cookie, and the verify form submits it. The cookie rather than the redirect
+  target, because that target is deliberately a fixed path with nothing
+  caller-supplied in it. An unrecognisable value is dropped rather than
+  refused: it selects a path, not permission, and the backend rechecks the
+  invitation against the verified identity regardless.
+- **Verification.** Seven new tests holding each link of the chain and the
+  opaque-identifier boundary. Unit suite 890 passed; lint, typecheck and format
+  clean.
+- **Deployment state.** Implemented and locally verified. Not deployed.
+- **Still open.** Nothing yet sends an invitation link, because the invitation
+  email carries no links. Until the branded Resend invitation exists, the URL
+  has to be handed over by other means.
+
 ## 2026-09-06 — an invited reader can ask for a code, and the root is a door
 
 - **The button refused the people it exists for.** An invitation carries a code

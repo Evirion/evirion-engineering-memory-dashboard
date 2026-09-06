@@ -3,8 +3,10 @@ import "server-only"
 import { cookies } from "next/headers"
 
 import {
+  OPAQUE_INVITATION_ID,
   PRE_AUTH_ADDRESS_COOKIE,
   PRE_AUTH_CSRF_COOKIE,
+  PRE_AUTH_INVITATION_COOKIE,
 } from "@/lib/auth/pre-auth-cookies"
 import { readServerEnvironment } from "@/lib/env/server"
 
@@ -67,6 +69,18 @@ export const sealEmailAddress = async (email: string): Promise<string> => {
   packed.set(nonce)
   packed.set(new Uint8Array(sealed), nonce.length)
   return Buffer.from(packed).toString("base64url")
+}
+
+/**
+ * The invitation the reader arrived holding, if the sign-in form carried one.
+ *
+ * Opaque and unverified here on purpose: it selects which backend sign-in path
+ * runs, and the backend rechecks the invitation against the verified identity
+ * before it grants anything.
+ */
+export const readCarriedInvitationId = async (): Promise<string> => {
+  const value = (await cookies()).get(PRE_AUTH_INVITATION_COOKIE)?.value ?? ""
+  return OPAQUE_INVITATION_ID.test(value) ? value : ""
 }
 
 export const readSealedEmailAddress = async (): Promise<string> => {
