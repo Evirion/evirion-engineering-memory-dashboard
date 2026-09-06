@@ -106,13 +106,23 @@ const asAal = (value: unknown): "aal1" | "aal2" => (value === "aal2" ? "aal2" : 
 export const createSupabaseAuthProvider = (): AuthProvider => ({
   async requestEmailOtp(email) {
     try {
-      const { error } = await anonymousClient().auth.signInWithOtp({
+      const client = anonymousClient()
+      const { error } = await client.auth.signInWithOtp({
         email,
         options: { shouldCreateUser: false },
       })
-      // The response is generic on purpose: a distinguishable error here is an
-      // account-enumeration oracle.
-      return error
+      if (!error) return { status: "ok", value: null }
+
+      // An invited reader has an account but has never confirmed the address,
+      // and Supabase treats a code for one as a signup, which this project
+      // disables. Without this the invitation's code is the only one they will
+      // ever get: it lives ten minutes, the invitation lives seven days, and
+      // pressing the button here would refuse them forever. Resending the
+      // signup confirmation is the same code by another route.
+      const resent = await client.auth.resend({ type: "signup", email })
+      // Both outcomes answer the same, on purpose: a distinguishable response
+      // is an account-enumeration oracle.
+      return resent.error
         ? { status: "denied", reason: "otp-request-denied" }
         : { status: "ok", value: null }
     } catch {

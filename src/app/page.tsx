@@ -1,20 +1,18 @@
+import { redirect } from "next/navigation"
+
 export const dynamic = "force-dynamic"
 
 /**
- * Declared root entry. It carries no customer data and reaches no backend:
- * the Auth phase replaces this body with a server-side redirect to the
- * authorized destination. See ADR-0003 for why the route is declared rather
- * than frozen.
+ * Root entry. A reader holding a session never reaches this body: the proxy
+ * sends them to their landing first. So everyone who does arrive here needs a
+ * session, and the only honest answer is the door.
+ *
+ * This replaces the placeholder that ADR-0003 declared and the Auth phase was
+ * meant to retire. It outlived that phase, and the first partner sent to the
+ * Console landed on it and found nothing.
  */
-const HomePage = () => (
-  <main className="mx-auto flex min-h-dvh max-w-2xl flex-col justify-center gap-4 p-8">
-    <h1 className="text-2xl font-semibold tracking-tight">
-      Evirion Engineering Memory Console
-    </h1>
-    <p className="text-sm text-slate-600">
-      This deployment carries no customer functionality yet.
-    </p>
-  </main>
-)
+const HomePage = () => {
+  redirect("/auth/sign-in")
+}
 
 export default HomePage
