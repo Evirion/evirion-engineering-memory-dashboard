@@ -2,7 +2,10 @@ import "server-only"
 
 import { cookies } from "next/headers"
 
-import { PRE_AUTH_CSRF_COOKIE } from "@/lib/auth/pre-auth-cookies"
+import {
+  PRE_AUTH_ADDRESS_COOKIE,
+  PRE_AUTH_CSRF_COOKIE,
+} from "@/lib/auth/pre-auth-cookies"
 import { readServerEnvironment } from "@/lib/env/server"
 
 /**
@@ -34,4 +37,54 @@ export const hmacEmailIdentity = async (email: string): Promise<string> => {
     new TextEncoder().encode(email.trim().toLowerCase()),
   )
   return Buffer.from(new Uint8Array(signature)).toString("base64url")
+}
+
+/**
+ * Seal and open the address the verify page fills in.
+ *
+ * AES-GCM under a key derived from the signing key, so only this server can
+ * read it and a tampered value fails to open rather than decoding to something
+ * attacker-chosen. The HMAC binding still decides whether a code may be
+ * verified; this only spares the reader a second typing of their own address.
+ */
+const addressKey = async (): Promise<CryptoKey> => {
+  const material = new TextEncoder().encode(readServerEnvironment().csrfSigningKey)
+  const digest = await crypto.subtle.digest("SHA-256", material)
+  return crypto.subtle.importKey("raw", digest, { name: "AES-GCM" }, false, [
+    "encrypt",
+    "decrypt",
+  ])
+}
+
+export const sealEmailAddress = async (email: string): Promise<string> => {
+  const nonce = crypto.getRandomValues(new Uint8Array(12))
+  const sealed = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: nonce },
+    await addressKey(),
+    new TextEncoder().encode(email.trim().toLowerCase()),
+  )
+  const packed = new Uint8Array(nonce.length + sealed.byteLength)
+  packed.set(nonce)
+  packed.set(new Uint8Array(sealed), nonce.length)
+  return Buffer.from(packed).toString("base64url")
+}
+
+export const readSealedEmailAddress = async (): Promise<string> => {
+  const jar = await cookies()
+  const value = jar.get(PRE_AUTH_ADDRESS_COOKIE)?.value
+  if (!value) return ""
+  try {
+    const packed = new Uint8Array(Buffer.from(value, "base64url"))
+    if (packed.length <= 12) return ""
+    const opened = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: packed.subarray(0, 12) },
+      await addressKey(),
+      packed.subarray(12),
+    )
+    return new TextDecoder().decode(opened)
+  } catch {
+    // A cookie that does not open is treated as absent: the reader simply types
+    // the address, which is what happened before this existed.
+    return ""
+  }
 }

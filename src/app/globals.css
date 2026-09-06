@@ -5,3 +5,22 @@
     ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
     Arial, sans-serif;
 }
+
+/*
+ * One-time code entry.
+ *
+ * Wide tracking gives the six digits the separation that a row of boxes would,
+ * while staying a single input: pasting from the mail client works, the
+ * `one-time-code` autofill iOS offers above the keyboard works, and a screen
+ * reader announces one field rather than six.
+ *
+ * The right padding compensates for the trailing letter-space, which would
+ * otherwise push the digits visibly left of centre. Tabular figures keep the
+ * columns from shifting as the reader types.
+ */
+@utility otp-entry {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.5em;
+  padding-left: 0.5em;
+  text-align: center;
+}
