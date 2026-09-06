@@ -33,8 +33,8 @@
 ## Consumed backend contract
 
 - [Console contract lock](contracts/console-contract-lock.json)
-- [Recorded release evidence](contracts/console-contract-v1.0.4-evidence.json)
-- [Pinned release bytes](../vendor/console-contract-v1.0.4/console-contract-v1.0.4.tar.gz)
+- [Recorded release evidence](contracts/console-contract-v1.0.5-evidence.json)
+- [Pinned release bytes](../vendor/console-contract-v1.0.5/console-contract-v1.0.5.tar.gz)
 - [Generated client](../generated/console-contract/v1/index.ts)
 - [Superseded `console-contract-v1.0.3` evidence, kept as history](contracts/console-contract-v1.0.3-evidence.json)
 - [Superseded `console-contract-v1.0` evidence, kept as history](contracts/console-contract-v1.0-evidence.json)

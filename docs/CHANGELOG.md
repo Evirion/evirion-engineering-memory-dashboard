@@ -1,5 +1,42 @@
 # Dashboard changelog
 
+## 2026-09-06 — the Console consumes console-contract-v1.0.5
+
+- **Why.** `/v1/session/context` stopped requiring `organizationId`, which is
+  the parameter no client could supply on a first session. The Console already
+  omitted it and the deployed backend already accepts it, so nothing was broken
+  while the lock stayed a revision behind — but a lock that describes a package
+  the Console is not consuming is the kind of quiet drift this repository spends
+  its checks on.
+- **Verified rather than trusted.** The release archive was downloaded and its
+  digest compared with the release API before anything was vendored. The
+  signature was then verified **offline** — `docker run --network none` — with
+  the Cosign binary the policy pins by digest, against the pinned Sigstore
+  trusted root and every certificate identity constraint. `Verified OK`.
+- **The Rekor UUID was derived, then checked.** The first derivation used the
+  RFC 6962 leaf hash and produced the wrong value. Running the same derivation
+  against v1.0.4, whose UUID this repository already records, showed the answer
+  is `sha256(canonicalizedBody)`. The recorded UUID for v1.0.5 comes from the
+  method that reproduces the known one.
+- **What moved.** `docs/contracts/console-contract-lock.json`,
+  `vendor/console-contract-v1.0.5/` replacing v1.0.4, a new evidence file, the
+  regenerated client, the authority manifest and file list, and the pinned
+  literals in the bootstrap tests. The generated client **surface digest is
+  unchanged** at `cfbb7934be…`: relaxing a query parameter changes no type and
+  no validator, and only the provenance headers moved.
+- **`backend-auth-config-lock.json` moved with it.** Its pinned commit is the
+  attestation-verified contract source commit, so it advanced to `924d1c47`,
+  and the recorded digest of `supabase/auth-template-manifest.v1.json` changed
+  because the backend added the email rate limit to it. Parity re-verified
+  against the backend checkout at that commit.
+- **Verification.** Complete Console gate with captured exit codes: lint,
+  typecheck, format, 853 unit and contract tests, 336 end-to-end tests, 101
+  authority tests, the contract lock, the authority package, the documentation
+  link check, and the tracked-secret scan.
+- **Open behind this.** The backend pins this repository's authority package
+  digest, which is now `9222dcf13d…`, so the backend pointer needs re-pinning in
+  its own pull request.
+
 ## 2026-09-06 — the BFF was calling the wrong address, and no log said so
 
 - **The defect.** `callConsoleApi` built its target with

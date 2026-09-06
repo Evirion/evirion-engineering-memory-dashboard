@@ -4,7 +4,7 @@ Updated: 2026-09-05
 
 ## Current state
 
-- Active branch: `EEM-9/07g-handoff-refresh`. Documentation only.
+- Active branch: `EEM-9/07o-vendor-contract-v1.0.5`.
 - **The Console is deployed and reachable at `https://console.evirion.dev`.**
   Public routes answer, protected routes redirect to sign-in on that origin, and
   mail is delivered by Resend from `Evirion <no-reply@evirion.dev>` to any
@@ -31,8 +31,14 @@ Updated: 2026-09-05
   `EEM-9/03h` pull request and a rebase of `EEM-9/06`, both of which had already
   landed, and EEM-9/07 corrected it against Git rather than leaving the next
   reader to discover it.
-- The Console contract lock pins `console-contract-v1.0.4` at backend source
-  commit `b4011580`. That release is tagged, signed and published.
+- The Console contract lock pins `console-contract-v1.0.5` at backend source
+  commit `924d1c47`. The release is tagged, signed, published and immutable; the
+  signature was verified offline here with the Cosign binary the policy pins by
+  digest. The revision made `organizationId` optional on `/v1/session/context`,
+  which is why a first session can now resolve a context at all.
+- **The backend pins this repository's authority package digest**, which this
+  branch moves to `9222dcf13d…`. Re-pinning the backend pointer is a separate
+  pull request in that repository and belongs immediately after this one.
 - The paired backend `I01-B` is merged through
   [PR #73](https://github.com/Evirion/evirion-engineering-memory/pull/73) at
   `aa5bd83`. It moved no contract or migration byte, so no contract publication

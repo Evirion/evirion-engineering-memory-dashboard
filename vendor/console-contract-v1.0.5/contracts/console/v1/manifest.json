@@ -4,7 +4,7 @@
   "files": [
     {
       "path": "contracts/console/v1/openapi.yaml",
-      "sha256": "b2ef52358bfdec765d0b7273e94c5a277d5c44b3c04fbe729762d9f4cb70bbf6"
+      "sha256": "50b1b0dddfbee6c1c3840cc2faccec69c87b5d52e60a90ef8e7a977a6917e67c"
     },
     {
       "path": "contracts/console/v1/schemas/command-receipt.json",
@@ -183,6 +183,6 @@
       "sha256": "94a0b134a959a3ae220150f25fb7ec98f71da1a7a9fa2e7be30295625ca7018f"
     }
   ],
-  "packageSha256": "72ce0da16e89f7272a5c0ca2bc8d6e1d877e0c3b9ae5f3c039ccb59b298969d7",
+  "packageSha256": "370502025b9de08ed355450594edd1c2e04026b0b002bf3ef30246a8dcdd06af",
   "schemaVersion": "1.0"
 }
