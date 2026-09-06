@@ -169,3 +169,92 @@ write to it. The comment in `verify-otp` that promises a retry is removed rather
 than left describing behaviour that no longer exists.
 
 All six rows are now unblocked.
+
+---
+
+# A7: the bootstrap proof has never been verifiable
+
+Found on 2026-09-06 while answering "how do I clear my sign-in and start over".
+The answer was "nothing needs clearing", and the reason was worse than the
+question: three sign-ins had produced **zero** rows in
+`core.console_auth_sessions`, including one after every other fix was deployed.
+
+This is larger than the six above and is stated separately.
+
+## What each side does
+
+| | Console produces | Backend requires |
+|---|---|---|
+| Segments | 2: `payload.signature` | 3: `header.payload.signature` |
+| Header | none | `{ alg: "EdDSA", kid, typ: "JWT" }` |
+| Signature | HMAC-SHA256, shared secret | Ed25519, public JWK matched by `kid` |
+| Claim names | camelCase: `idempotencyKey`, `preAuthTransactionId`, `bodyDigest`, `tokenDigest` | snake_case: `idempotency_key`, `pre_auth_id`, `request_sha256`, `token_sha256` |
+
+These cannot interoperate under any configuration. `CONSOLE_BFF_PUBLIC_JWKS`,
+`CONSOLE_BFF_PROOF_ISSUER`, `CONSOLE_BFF_PROOF_AUDIENCE` and
+`CONSOLE_PRE_AUTH_HMAC_KEY` are also unset on the deployed Edge Function, but
+setting them would change nothing: an HMAC blob has no `kid` to match.
+
+## Why it survived every gate
+
+`tools/console-stub` does not implement `/internal/console/v1/session/bootstrap`
+at all. The call 404s, the adapter classifies that as `unsupported`, and the
+route treated `unsupported` as transient and kept the cookies. Every Console
+test therefore signed in "successfully" while the bootstrap failed, in a double
+that could not have succeeded.
+
+A5 makes this visible rather than fixing it: once a failed bootstrap is
+terminal, sign-in stops working outright instead of half-working. **PR #32 is
+held until this is closed.**
+
+## Direction, decided 2026-09-06
+
+The Console moves to EdDSA. Asymmetric signing means the backend holds only a
+public key, so no shared secret has to exist in two deployments at once.
+
+## Claim contract
+
+Exactly fifteen keys, no more and no fewer, since the backend uses an exact-key
+check:
+
+`aud`, `exp`, `iat`, `idempotency_key`, `invitation_id`, `iss`, `method`,
+`nonce`, `path`, `pre_auth_id`, `request_sha256`, `session_id`, `sub`,
+`token_sha256`.
+
+| Claim | Value |
+|---|---|
+| `iss` / `aud` | `console-bff` / `evirion-console-bootstrap` unless the Edge Function overrides them |
+| `nonce` | a UUID; the backend rejects any other shape |
+| `token_sha256` | `sha256(accessToken)` |
+| `request_sha256` | canonical hash of the body, see below |
+| `invitation_id` | `null` for sign-in, a UUID for invitation acceptance |
+| `exp - iat` | at most 120 seconds; both sides already agree |
+
+## Parity row that is currently true by luck
+
+The backend hashes `JSON.stringify(canonicalValue(body))`, sorting object keys
+recursively. The Console hashes the caller's `JSON.stringify(body)` in insertion
+order.
+
+Both current bodies carry **one key** — `{ preAuthTransactionId }` and
+`{ invitationId }` — so sorted and unsorted are identical and the digests agree.
+The first two-key body would break sign-in with no other change, and no test
+would say why. The Console must canonicalise, and a test must use a body whose
+insertion order differs from its sorted order.
+
+## Acceptance map
+
+| Row | Test |
+|---|---|
+| Shape | The proof parses as three segments with an `EdDSA` header carrying a `kid`. |
+| Keys | The payload has exactly the fifteen keys, asserted as a set. |
+| Signature | The backend verifier accepts a Console-produced proof against the published JWKS. |
+| Canonical parity | A two-key body whose insertion order differs from sorted order produces the digest the backend computes. |
+| Nonce | A non-UUID nonce is refused. |
+| Lifetime | A proof older than 120 seconds is refused. |
+| Stub | The double implements the route and refuses a proof it cannot verify, so a Console test can no longer pass on a 404. |
+
+## Deployment consequence
+
+A private key reaches Vercel and a public JWKS reaches the Supabase Edge
+Function. Neither is a code change and both need separate authorization.
