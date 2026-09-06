@@ -1,5 +1,37 @@
 # Dashboard changelog
 
+## 2026-09-06 — the Console never asked for a code, and now does
+
+- **The defect.** `/api/auth/request-otp` bound a pre-auth proof, set cookies
+  and redirected to the verify page **without ever asking the provider to send
+  a code**. It did not import the provider at all, while the neighbouring
+  `verify-otp` route did. Sign-in could not succeed for any address, operator or
+  partner.
+- **Why nothing caught it.** The reply is identical whatever happens, which is
+  the property that stops account enumeration and also makes a missing send
+  indistinguishable from a successful one. Every Console check before EEM-9/07
+  ran against `tools/console-stub`, which answered as the contract described
+  without anyone asking whether a call had been made. There was no test over the
+  auth routes at all; that absence was the root.
+- **The fix.** The route calls `requestEmailOtp` before it mints the proof, and
+  `tests/contract/auth-request-otp.test.ts` fails if the call is removed, if it
+  moves after the proof, or if the reply starts branching on the provider
+  result. Proven by deleting the call and watching two cases fail.
+- **Recorded departure, accepted by the owner for staging.** The verify page now
+  fills in the address from a new `__Host-` pre-auth cookie holding it under
+  AES-GCM, so it is typed once. Every other layer holds only the HMAC — the
+  backend column is `email_hmac` with no plaintext counterpart — and the
+  accepted requirements bind the proof to that HMAC. **The binding is
+  unchanged**; the cookie is additive and authorises nothing. The cost is real:
+  a stolen pre-auth cookie now discloses the address, where before it disclosed
+  nothing. Accepted on the grounds that no partner data exists yet, and it must
+  be revisited before a real design partner signs in. The alternative that keeps
+  the property is a server-side transaction store, which needs a backend column
+  that does not exist today.
+- **Verification.** Complete Console gate: lint, format, typecheck, 849 unit and
+  contract tests, build, 101 bootstrap tests, and all six documentation and
+  authority checks.
+
 ## 2026-09-05 — the Dashboard stops attesting the backend's deployment state
 
 - Why: `docs/authority/eem3-global-lock-input.json` carried

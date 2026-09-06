@@ -5,7 +5,19 @@
  * a URL, and the browser stores nothing: verification happens server-side and
  * the resulting tokens stay in `__Host-` cookies the browser cannot read.
  */
-export const OtpVerifyForm = ({ csrfToken }: { csrfToken: string }) => (
+export const OtpVerifyForm = ({
+  csrfToken,
+  email = "",
+}: {
+  csrfToken: string
+  /**
+   * Filled from the sealed pre-auth cookie so the address is typed once. It
+   * stays editable: the server still checks it against the HMAC the proof is
+   * bound to, so correcting a typo here fails closed rather than signing
+   * someone else in.
+   */
+  email?: string
+}) => (
   <form action="/api/auth/verify-otp" method="post" className="flex flex-col gap-4">
     <input type="hidden" name="csrfToken" value={csrfToken} />
     <div className="flex flex-col gap-2">
@@ -18,6 +30,7 @@ export const OtpVerifyForm = ({ csrfToken }: { csrfToken: string }) => (
         type="email"
         required
         autoComplete="email"
+        defaultValue={email}
         className="rounded border border-slate-300 px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
       />
     </div>

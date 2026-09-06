@@ -1,11 +1,12 @@
 import { OtpVerifyForm } from "@/components/auth/otp-verify-form"
 import { SESSION_POLICY } from "@/lib/auth/session-policy"
-import { readPreAuthCsrfToken } from "@/server/actions/pre-auth"
+import { readPreAuthCsrfToken, readSealedEmailAddress } from "@/server/actions/pre-auth"
 
 export const dynamic = "force-dynamic"
 
 const VerifyPage = async () => {
   const csrfToken = await readPreAuthCsrfToken()
+  const email = await readSealedEmailAddress()
 
   return (
     <section className="flex flex-col gap-4">
@@ -17,7 +18,7 @@ const VerifyPage = async () => {
           seconds.
         </p>
       </div>
-      <OtpVerifyForm csrfToken={csrfToken} />
+      <OtpVerifyForm csrfToken={csrfToken} email={email} />
     </section>
   )
 }
