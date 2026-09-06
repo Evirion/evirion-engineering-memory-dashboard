@@ -1,5 +1,31 @@
 # Dashboard changelog
 
+## 2026-09-06 — shadcn, and a message that stopped blaming the reader
+
+- **The refusal is a real alert now.** shadcn/ui is installed and
+  `components/ui/alert.tsx` carries the destructive variant. Four packages came
+  with it and two did not earn their place: `lucide-react` and `radix-ui` were
+  installed by the initialiser and imported by nothing, so they were removed.
+  Everything kept is pinned exactly, as the supply-chain policy requires.
+- **The initialiser also added a Google font and it was reverted.**
+  `next/font/google` fetches Geist from Google at build time; this project loads
+  no third-party font. Reverting it exposed that the shadcn preset writes
+  `--font-sans: var(--font-sans)` inside `@theme inline`, expecting the font
+  variable on `<html>` to break the cycle. Without it the reference resolved to
+  nothing and every heading silently fell back to serif. The system stack now
+  stands on its own.
+- **The message stopped lying.** A reader whose code was accepted, and whose
+  session then failed to register, was told "that code did not work" and went
+  hunting for a typo that did not exist. That is what happened on staging: the
+  Auth log shows two successful `Login` events for codes the reader was told
+  were wrong. A failed registration now has its own sentence. It distinguishes
+  nothing an attacker can use, because it can only occur after the address is
+  already proven.
+- **Verification.** Complete Console gate with captured exit codes: lint,
+  typecheck, format, 877 unit and contract tests, 336 end-to-end tests, 101
+  authority tests, the contract lock, the authority package and the supply-chain
+  policy.
+
 ## 2026-09-06 — the bootstrap proof becomes one the backend can verify
 
 - **It never was.** The Console signed a two-segment HMAC blob with camelCase

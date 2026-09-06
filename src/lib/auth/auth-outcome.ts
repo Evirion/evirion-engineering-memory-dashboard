@@ -17,17 +17,31 @@ export const AUTH_OUTCOME_PARAMETER = "status"
 
 export const AUTH_OUTCOMES = {
   /**
-   * Every failed verification, whatever caused it. A second code here would
-   * have to argue why the distinction it draws is not an oracle.
+   * Every failed verification, whatever caused it. A third code here would have
+   * to argue why the distinction it draws is not an oracle.
    */
   verificationFailed: "verification-failed",
+  /**
+   * The code was accepted and the session could not be registered afterwards.
+   *
+   * This is a separate sentence because the first one lies about it. A reader
+   * whose code worked was told "that code did not work" and went hunting for a
+   * typo that did not exist — which is exactly what happened on staging on
+   * 2026-09-06. Distinguishing it leaks nothing: by the time it can occur the
+   * address has already been proven, so there is no identity left to enumerate.
+   */
+  sessionNotRegistered: "session-not-registered",
 } as const
 
 export type AuthOutcome = (typeof AUTH_OUTCOMES)[keyof typeof AUTH_OUTCOMES]
 
 const SENTENCES: Readonly<Record<AuthOutcome, string>> = {
+  // The headline lives in the alert's title; this is what to do next. Both are
+  // identical for every cause, which is the enumeration property.
   [AUTH_OUTCOMES.verificationFailed]:
-    "That code did not work, and each code can only be used once. Enter your address to get a new one.",
+    "Each code can only be used once. Enter your address to get a new one.",
+  [AUTH_OUTCOMES.sessionNotRegistered]:
+    "Your code was accepted, but the session could not be started. Try again; if it keeps happening the problem is ours, not yours.",
 }
 
 const isAuthOutcome = (value: string): value is AuthOutcome =>

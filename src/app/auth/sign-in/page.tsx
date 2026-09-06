@@ -1,4 +1,5 @@
 import { EmailOtpRequestForm } from "@/components/auth/email-otp-request-form"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AUTH_OUTCOME_PARAMETER, describeAuthOutcome } from "@/lib/auth/auth-outcome"
 import { readPreAuthCsrfToken } from "@/server/actions/pre-auth"
 
@@ -30,12 +31,16 @@ const SignInPage = async ({
         </p>
       </div>
       {outcome === undefined ? null : (
-        <p
-          role="alert"
-          className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-700"
-        >
-          {outcome}
-        </p>
+        <Alert variant="destructive">
+          <svg aria-hidden="true" viewBox="0 0 20 20" fill="currentColor">
+            <path
+              fillRule="evenodd"
+              d="M10 1.5a8.5 8.5 0 1 0 0 17 8.5 8.5 0 0 0 0-17ZM9.25 5.75a.75.75 0 0 1 1.5 0v5a.75.75 0 0 1-1.5 0v-5ZM10 15a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"
+              clipRule="evenodd"
+            />
+          </svg>
+          <AlertDescription>{outcome}</AlertDescription>
+        </Alert>
       )}
       <EmailOtpRequestForm csrfToken={csrfToken} />
     </section>
