@@ -68,7 +68,7 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
       preAuthTransactionId: guard.binding.transactionId,
       invitationId,
       idempotencyKey,
-      body: JSON.stringify(body),
+      body,
       issuedAt: Math.floor(Date.now() / 1000),
     },
   )

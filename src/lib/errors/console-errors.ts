@@ -171,7 +171,10 @@ export const describeTreatment = (treatment: ErrorTreatment): string => {
     case "reauthentication-required":
       return "Confirm your identity to continue."
     case "switch-organization":
-      return "This is not available for the selected organization."
+      // True whether the reader belongs to no organization or to several.
+      // The former reading is the common one on a first session, and the
+      // old wording claimed a selection that had never been made.
+      return "This needs an organization membership your account does not have."
     case "not-permitted":
       return "This is not available for your account."
     case "reload-and-resubmit":

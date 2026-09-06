@@ -1,5 +1,87 @@
 # Dashboard changelog
 
+## 2026-09-06 — the bootstrap proof becomes one the backend can verify
+
+- **It never was.** The Console signed a two-segment HMAC blob with camelCase
+  claims. The backend has always required a three-segment EdDSA JWT carrying a
+  `kid`, verified against a public JWK, with snake_case claims. Three staging
+  sign-ins produced **zero** rows in `core.console_auth_sessions`, including one
+  after every other fix was deployed.
+- **Why every gate passed.** `tools/console-stub` did not implement
+  `/internal/console/v1/session/bootstrap`. The call 404'd, the adapter read
+  that as `unsupported`, and the route treated `unsupported` as transient and
+  kept the cookies. Every Console test signed in "successfully" against a double
+  that could not have succeeded.
+- **The Console now signs EdDSA.** Asymmetric, so the backend holds only a
+  public key and no shared secret exists in two deployments at once. The key is
+  an Ed25519 private JWK carrying a `kid`, because the backend selects the
+  verifying JWK by that identifier: a key without one signs proofs nothing can
+  check.
+- **Two further divergences closed on the way.** The nonce was 16 random bytes
+  in base64url where the backend requires a UUID, and the issuer and audience
+  were `evirion-console-bff` / `evirion-console-backend` against the backend's
+  `console-bff` / `evirion-console-bootstrap`. Either alone would have refused
+  every proof.
+- **The parity that held by luck.** The backend hashes the body with object keys
+  sorted; the Console hashed insertion order. Both bodies carry one key, so the
+  digests agreed. The Console canonicalises now, and a case signs a two-key body
+  whose insertion order differs from its sorted order.
+- **The double checks the envelope, and something drives the double.** The
+  checks live in `tools/console-stub/bootstrap-proof-envelope.mjs` so a contract
+  test can feed them a proof this repository actually produces — a double
+  nothing exercises is the same hazard as a double that checks nothing, which is
+  how this survived.
+- **Verification.** Complete Console gate with captured exit codes: lint,
+  typecheck, format, 876 unit and contract tests, 336 end-to-end tests, 101
+  authority tests, the contract lock and the authority package. A generated
+  keypair was round-tripped through the exact import and verify calls both sides
+  make before anything was deployed.
+- **Deployment, still pending.** An Ed25519 private JWK to Vercel and the
+  matching public JWKS to the Supabase Edge Function. Until both are set, no
+  bootstrap can succeed on staging.
+
+## 2026-09-06 — the Auth flow says what happened
+
+Six findings from walking the deployed sign-in flow, owned by the contract
+packet at `docs/plans/active/eem-9-07-auth-flow-feedback-contract.md`.
+
+- **Silence was not the security property.** Every failure was a bare `303` to
+  sign-in: a wrong code, an expired code, a failed CSRF check and a refused
+  admission were indistinguishable to the reader, not only to an attacker. The
+  reply stays uniform — that is what stops account enumeration — but OWASP A07
+  asks for the *same message* for all outcomes, not for none. One published
+  outcome code now carries one sentence. An unrecognised value renders nothing,
+  because the parameter travels in a URL and a crafted link must not put text on
+  the page.
+- **The code is single-use, and the page says so before the reader types.** A
+  counter was considered and rejected: a signed cookie is unforgeable but
+  replayable, and a backend transaction does not exist for plain sign-in, only
+  for invitation acceptance. Both were priced against a fresh code, which cost
+  something at two mails an hour and costs nothing at thirty.
+- **A signed-in reader is no longer offered the door again.** `/auth/sign-in`,
+  `/auth/verify`, `/auth/invite`, `/auth/recovery` and the placeholder root now
+  redirect. The guard had only ever been written in the other direction: the two
+  MFA pages check for a session because they need one.
+- **Top-level navigations only, which a security test taught.** Twenty-eight
+  refusal paths redirect to `/auth/sign-in`, and `import-boundary.spec.ts` reads
+  that landing to prove a forged CSRF proof never reached the backend. The first
+  implementation redirected those onward and broke it. `sec-fetch-mode` is a
+  forbidden header this codebase already trusts in `request-origin.ts`; a client
+  sending none keeps today's behaviour, because this guard is a courtesy rather
+  than a control.
+- **No half-formed session survives.** A transient bootstrap failure kept the
+  session cookies for a retry the comment promised and no code performed —
+  `pre-auth-transaction.ts` is imported by its own test and by nothing else. A
+  reader reached exactly that state on staging: Supabase held a session, the
+  Console backend had none, and nothing recovered it. The failure is now
+  terminal.
+- **`ORGANIZATION_MEMBERSHIP_REQUIRED` stopped claiming a selection.** It
+  rendered as "not available for the selected organization" to a reader who
+  belongs to none, which is the common case on a first session.
+- **Verification.** Complete Console gate with captured exit codes: lint,
+  typecheck, format, 867 unit and contract tests, 336 end-to-end tests, 101
+  authority tests, the contract lock and the authority package.
+
 ## 2026-09-06 — the Console consumes console-contract-v1.0.5
 
 - **Why.** `/v1/session/context` stopped requiring `organizationId`, which is

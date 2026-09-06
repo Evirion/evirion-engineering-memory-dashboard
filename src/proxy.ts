@@ -6,6 +6,7 @@ import {
   createTransactionId,
   preAuthCookieOptions,
 } from "@/lib/auth/pre-auth-cookies"
+import { landingForAuthenticatedReader } from "@/lib/auth/authenticated-landing"
 import { readSession } from "@/lib/auth/session-broker"
 import { SESSION_POLICY } from "@/lib/auth/session-policy"
 import { readServerEnvironment } from "@/lib/env/server"
@@ -69,6 +70,21 @@ export const proxy = async (request: NextRequest): Promise<NextResponse> => {
       request.cookies.getAll().map((cookie) => [cookie.name, cookie.value]),
     ),
   )
+  // A live session makes the pre-auth pages and the placeholder root wrong, and
+  // nothing stopped a signed-in reader walking back into sign-in and opening a
+  // second transaction against their own session. The decision is taken here
+  // because the session is already read for the CSRF binding, and it writes
+  // nothing: a redirect must not clear or refresh a cookie on its way past.
+  if (session.status === "active") {
+    const landing = landingForAuthenticatedReader(
+      request.nextUrl.pathname,
+      request.headers.get("sec-fetch-mode"),
+    )
+    if (landing !== undefined) {
+      return NextResponse.redirect(new URL(landing, request.nextUrl.origin), 303)
+    }
+  }
+
   const sessionCsrf =
     session.status === "active" &&
     !request.cookies.has(SESSION_CSRF_COOKIE) &&

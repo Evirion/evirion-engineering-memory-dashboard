@@ -11,6 +11,7 @@
 // retryability the backend declares, tenant-obscured refusal of a foreign
 // resource, durable idempotency keyed by actor/organization/operation/target,
 // and optimistic version conflicts carrying the current version.
+import { describeBootstrapProofEnvelope } from "./bootstrap-proof-envelope.mjs"
 import { createHash, randomUUID } from "node:crypto"
 import { createServer } from "node:https"
 
@@ -516,6 +517,22 @@ const handle = async (request, response, url) => {
   if (!principal) return fail(response, "AUTHENTICATION_REQUIRED")
 
   const state = stateFor(principal.isolation)
+
+  // The bootstrap route. This double did not implement it at all, so every
+  // Console test signed in against a 404 that the adapter read as a transient
+  // failure — which is how a proof the backend could never verify survived
+  // every gate. The envelope checks live in a module a test can drive with a
+  // proof this repository actually produced.
+  if (
+    url.pathname === "/internal/console/v1/session/bootstrap" &&
+    request.method === "POST"
+  ) {
+    const envelope = describeBootstrapProofEnvelope(
+      request.headers["x-console-bff-proof"],
+    )
+    if (!envelope.ok) return fail(response, "AUTHENTICATION_REQUIRED")
+    return succeed(response, { registered: true })
+  }
 
   if (url.pathname === "/v1/session/context" && request.method === "GET") {
     return succeed(response, sessionContextPayload(principal, state))
