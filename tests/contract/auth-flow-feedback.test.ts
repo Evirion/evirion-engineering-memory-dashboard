@@ -23,9 +23,9 @@ const source = (relative: string): string =>
 
 describe("A1: a failure says what to do next", () => {
   it("renders one sentence for the only published outcome", () => {
-    expect(
-      describeAuthOutcome(AUTH_OUTCOMES.verificationFailed)?.description,
-    ).toMatch(/\S/)
+    expect(describeAuthOutcome(AUTH_OUTCOMES.verificationFailed)?.description).toMatch(
+      /\S/,
+    )
   })
 
   it("renders nothing for a value the Console does not publish", () => {
@@ -50,9 +50,9 @@ describe("A1: a failure says what to do next", () => {
     // enumerate. Blaming the code for it sent a reader hunting a typo that did
     // not exist.
     expect(Object.values(AUTH_OUTCOMES)).toHaveLength(2)
-    expect(describeAuthOutcome(AUTH_OUTCOMES.sessionNotRegistered)?.description).not.toBe(
-      describeAuthOutcome(AUTH_OUTCOMES.verificationFailed)?.description,
-    )
+    expect(
+      describeAuthOutcome(AUTH_OUTCOMES.sessionNotRegistered)?.description,
+    ).not.toBe(describeAuthOutcome(AUTH_OUTCOMES.verificationFailed)?.description)
   })
 
   it("blames the code only when the code was the problem", () => {
