@@ -1,5 +1,28 @@
 # Dashboard changelog
 
+## 2026-09-07 — the GitHub commands accept the receipt the backend sends
+
+- **Why.** Pressing Connect GitHub answered "The service is busy. Try again
+  shortly." with `DEPENDENCY_UNAVAILABLE`, while the backend had answered `200`
+  and written the setup intent. Both GitHub commands return the durable receipt
+  every Console mutation carries, with the command's own result inside
+  `responsePayload`; the BFF validated that interior as if it were the whole
+  body, so a successful start was discarded as unrecognisable.
+- **Why no gate saw it.** The stub returned the bare interior too — it agreed
+  with the caller instead of the contract, which is the fourth time in one day
+  a double has done that. It now answers the receipt, so the journey exercises
+  the shape staging sends.
+- **Scope.** `startGithubInstallation` and `startGithubRepositorySync`. The
+  generated `isCommandReceipt` cannot stand in for either: its `responseCode` is
+  closed over four entitlement codes and widening it is refused by the
+  published-bytes comparison, which is the defect ADR 0016 records. The two
+  guards are handwritten beside the calls, as the bootstrap receipt already is.
+- **Verification.** 942 unit tests, the eight GitHub browser journeys, and three
+  new tests covering the receipt, a bare intent and a receipt with no intent.
+  Lint, typecheck and format clean.
+- **Deployment state.** Implemented and locally verified.
+
+
 ## 2026-09-07 — the authenticator entry says what it is
 
 - **Why.** A reader who had enrolled more than once held several identical

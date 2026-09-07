@@ -31,8 +31,9 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
     )
   }
 
-  const state = intent.value.state
-  if (intent.value.status !== "CREATED" || !state) {
+  const { setupIntent } = intent.value.responsePayload
+  const state = setupIntent.state
+  if (setupIntent.status !== "CREATED" || !state) {
     // A consumed, expired or failed intent is not a handoff. Sending the
     // customer to GitHub anyway would produce a callback the backend refuses.
     return backToRepositories("GITHUB_SYNC_INCOMPLETE")
