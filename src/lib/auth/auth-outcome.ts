@@ -31,6 +31,21 @@ export const AUTH_OUTCOMES = {
    * address has already been proven, so there is no identity left to enumerate.
    */
   sessionNotRegistered: "session-not-registered",
+  /**
+   * An authenticator code the provider refused, or a challenge it would not
+   * start.
+   *
+   * The uniformity above exists to stop an unauthenticated caller learning
+   * whether an address is known. Nothing is left to enumerate here: the reader
+   * has already proved that address with an emailed code, and this says only
+   * that the six digits did not match a factor they hold themselves.
+   *
+   * Without it the page reloaded unchanged and said nothing, which reads as a
+   * broken button. Observed on the deployed Console on 2026-09-07, where a
+   * reader pressed Verify repeatedly and had no way to learn that the factor
+   * their app held no longer existed.
+   */
+  factorCodeRefused: "factor-code-refused",
 } as const
 
 export type AuthOutcome = (typeof AUTH_OUTCOMES)[keyof typeof AUTH_OUTCOMES]
@@ -53,6 +68,11 @@ const PRESENTATIONS: Readonly<Record<AuthOutcome, AuthOutcomePresentation>> = {
     title: "The session could not be started",
     description:
       "Your code was accepted, but the session could not be started. Try again; if it keeps happening the problem is ours, not yours.",
+  },
+  [AUTH_OUTCOMES.factorCodeRefused]: {
+    title: "That code did not match",
+    description:
+      "Codes change every thirty seconds, so enter the one showing now. If none of them work, set up your authenticator again.",
   },
 }
 

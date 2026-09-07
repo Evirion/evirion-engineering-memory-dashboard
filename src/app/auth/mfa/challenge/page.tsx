@@ -1,3 +1,8 @@
+import { AlertCircleIcon } from "lucide-react"
+
+import { TotpCodeForm } from "@/components/auth/totp-code-form"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { AUTH_OUTCOME_PARAMETER, describeAuthOutcome } from "@/lib/auth/auth-outcome"
 import { readSessionCsrfToken } from "@/server/actions/session-csrf-read"
 
 export const dynamic = "force-dynamic"
@@ -9,8 +14,16 @@ export const fetchCache = "force-no-store"
  * backend enforces `aal2` for every privileged mutation, and a stale token
  * that still claims `aal2` after a factor change is refused there.
  */
-const MfaChallengePage = async () => {
+const MfaChallengePage = async ({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}) => {
   const csrfToken = await readSessionCsrfToken()
+  const parameter = (await searchParams)[AUTH_OUTCOME_PARAMETER]
+  const outcome = describeAuthOutcome(
+    typeof parameter === "string" ? parameter : undefined,
+  )
 
   return (
     <section className="flex flex-col gap-4">
@@ -22,33 +35,38 @@ const MfaChallengePage = async () => {
           Open your authenticator app and enter the current six-digit code.
         </p>
       </div>
-      <form
+
+      {outcome === undefined ? null : (
+        <Alert variant="destructive">
+          <AlertCircleIcon />
+          <AlertTitle>{outcome.title}</AlertTitle>
+          <AlertDescription>{outcome.description}</AlertDescription>
+        </Alert>
+      )}
+
+      <TotpCodeForm
         action="/api/auth/mfa/challenge"
+        csrfToken={csrfToken}
+        label="Authenticator code"
+        submitLabel="Verify"
+      />
+
+      {/*
+        The way out of a lost or mis-scanned authenticator. Without it a reader
+        whose app holds a factor the account no longer has can only press Verify
+        again, which is exactly the dead end this page used to be.
+      */}
+      <form
+        action="/api/auth/mfa/restart"
         method="post"
-        className="flex flex-col gap-4"
+        className="border-t border-slate-200 pt-4"
       >
         <input type="hidden" name="csrfToken" value={csrfToken} />
-        <div className="flex flex-col gap-2">
-          <label htmlFor="totp" className="text-sm font-medium">
-            Authenticator code
-          </label>
-          <input
-            id="totp"
-            name="totp"
-            type="text"
-            required
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            pattern="[0-9]{6}"
-            maxLength={6}
-            className="rounded border border-slate-300 px-3 py-2 font-mono text-sm tracking-widest focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-          />
-        </div>
         <button
           type="submit"
-          className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+          className="text-sm text-slate-600 underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
         >
-          Verify
+          Set up a new authenticator instead
         </button>
       </form>
     </section>

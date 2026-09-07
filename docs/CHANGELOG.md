@@ -1,5 +1,36 @@
 # Dashboard changelog
 
+## 2026-09-07 — a refused authenticator code says so, and the code entry looks like one
+
+- **Why.** Pressing Verify with a code the provider refused redirected back to
+  the same page, which rendered unchanged. It read as a broken button, and a
+  reader whose authenticator held a factor the account no longer had could not
+  learn that from the Console at all. Three separate refusals — a malformed
+  code, a challenge that would not start, and a code the provider rejected —
+  were all the same silent bounce.
+- **What changed.** One published outcome, `factor-code-refused`, rendered as an
+  alert on the challenge page. It names the real cause, which discloses nothing:
+  the address is already proven by an emailed code, so the enumeration property
+  the uniform sign-in wording protects is not in play here.
+- **A way out.** `POST /api/auth/mfa/restart` discards a factor that was never
+  confirmed and returns to enrolment, so a reader who mis-scanned is not stuck
+  pressing Verify against a secret nobody shares. An established factor is not
+  reachable from there; replacing one is account recovery.
+- **A reload no longer takes away a scanned code.** Enrolment used to discard
+  and re-create the factor on every visit, so reloading after scanning silently
+  invalidated the secret in the reader's app. It now creates one only when the
+  account has none and otherwise sends the reader to confirm what they have.
+- **The six digits are six cells.** `input-otp` renders them from a single real
+  input, so pasting, the `one-time-code` autofill and a screen reader announcing
+  one field all keep working; six separate inputs would break all three. The
+  form submits itself on the sixth digit, because a code is valid for half a
+  minute and a second deliberate act spends part of it. The button stays.
+- **Verification.** 935 unit tests and the browser journeys; lint, typecheck and
+  format clean. Nine new tests cover the message, the escape hatch, the reload,
+  and the single-input property.
+- **Deployment state.** Implemented and locally verified.
+
+
 ## 2026-09-07 — sign-in stays reachable from a half-finished session
 
 - **Why.** Opening `/auth/mfa/enroll` with a session that cannot enrol ended in

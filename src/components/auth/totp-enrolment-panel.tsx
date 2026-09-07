@@ -1,5 +1,7 @@
 import Image from "next/image"
 
+import { TotpCodeForm } from "@/components/auth/totp-code-form"
+
 /**
  * Shows a new TOTP seed once, and takes the code that confirms it.
  *
@@ -62,35 +64,13 @@ export const TotpEnrolmentPanel = ({
       </li>
     </ol>
 
-    <form
-      action="/api/auth/mfa/challenge"
-      method="post"
-      className="flex flex-col gap-4 border-t border-slate-200 pt-5"
-    >
-      <input type="hidden" name="csrfToken" value={csrfToken} />
-      <div className="flex flex-col gap-2">
-        <label htmlFor="totp" className="text-sm font-medium">
-          3. Enter the six-digit code the app shows
-        </label>
-        <input
-          id="totp"
-          name="totp"
-          type="text"
-          required
-          inputMode="numeric"
-          autoComplete="one-time-code"
-          pattern="[0-9]{6}"
-          maxLength={6}
-          placeholder="------"
-          className="otp-entry w-full rounded-lg border border-slate-300 bg-white py-5 text-3xl font-semibold text-slate-900 placeholder:text-slate-300 focus-visible:border-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-        />
-      </div>
-      <button
-        type="submit"
-        className="rounded-lg bg-slate-900 px-4 py-3 text-sm font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-      >
-        Confirm and continue
-      </button>
-    </form>
+    <div className="border-t border-slate-200 pt-5">
+      <TotpCodeForm
+        action="/api/auth/mfa/challenge"
+        csrfToken={csrfToken}
+        label="3. Enter the six-digit code the app shows"
+        submitLabel="Confirm and continue"
+      />
+    </div>
   </section>
 )
