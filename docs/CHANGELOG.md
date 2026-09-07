@@ -28,9 +28,9 @@
   security specs that fail on `main` — four in `headers-cache-isolation.spec.ts`, one in
   `release-surface.spec.ts` — still fail identically and are not diagnosed here.
 - **Depends on.** Backend [PR #95](https://github.com/Evirion/evirion-engineering-memory/pull/95),
-  which merges first. Its migration is already applied to `EEC-staging`, but `console-api` there
-  still runs the pre-merge bytes, so the callback still expects `accountLogin` and does not adapt
-  `GITHUB_INSTALLATION_PENDING_PROVIDER`.
+  which merges first. Its half is already live on `EEC-staging`: migration `20260907170000` is
+  applied and `console-api` is at version 30, so the callback accepts a body without `accountLogin`
+  and can answer `GITHUB_INSTALLATION_PENDING_PROVIDER`.
 - **Operator deliverable.** GitHub App Setup URL:
   `https://console.evirion.dev/api/github/installed`.
 - **State.** Implemented, locally verified, and open as

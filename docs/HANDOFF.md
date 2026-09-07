@@ -15,9 +15,11 @@ Updated: 2026-09-07
 - **Depends on backend.** Open as
   [PR #53](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/53), paired with
   backend [PR #95](https://github.com/Evirion/evirion-engineering-memory/pull/95), which merges
-  first. The backend migration is already applied to `EEC-staging`, but `console-api` there still
-  runs the pre-merge bytes, so the callback still expects `accountLogin` and does not adapt
-  `GITHUB_INSTALLATION_PENDING_PROVIDER`. The journey works only once that function is deployed.
+  first. **The backend half is already live on `EEC-staging`** — migration `20260907170000` applied
+  and `console-api` at version 30 — so the callback there accepts a body without `accountLogin` and
+  can answer `GITHUB_INSTALLATION_PENDING_PROVIDER`. What remains is deploying this Console and
+  setting the GitHub App Setup URL to `https://console.evirion.dev/api/github/installed`. Nothing
+  is observed end to end yet.
 - **Operator action after deploy.** GitHub App Setup URL:
   `https://console.evirion.dev/api/github/installed`.
 - **A partner can sign in and use the Console, observed end to end on
