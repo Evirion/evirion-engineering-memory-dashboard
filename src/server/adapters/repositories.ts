@@ -3,7 +3,6 @@ import "server-only"
 import {
   type CommandReceipt,
   type GithubInstallation,
-  type GithubSetupIntent,
   type GithubSyncRun,
   type OrganizationModelProfiles,
   type Repository,
@@ -11,7 +10,6 @@ import {
   type RepositoryPage,
   isCommandReceipt,
   isGithubInstallation,
-  isGithubSetupIntent,
   isGithubSyncRun,
   isOrganizationModelProfiles,
   isRepository,
@@ -228,12 +226,81 @@ export const fetchGithubSyncRun = (
     transport,
   )
 
+/**
+ * What the two GitHub commands actually answer.
+ *
+ * Both return the durable receipt every Console mutation carries, with the
+ * command's own result inside `responsePayload`. The generated
+ * `isCommandReceipt` cannot describe them: its `responseCode` is closed over
+ * four entitlement codes and widening it is refused by the published-bytes
+ * comparison, which is the defect ADR 0016 records.
+ *
+ * The Console validated the interior as if it were the whole body, so a
+ * successful start was discarded as unrecognisable and the reader was told the
+ * service was busy. Observed on the deployed Console: the backend answered
+ * `200` and wrote the intent, and the Console showed
+ * `DEPENDENCY_UNAVAILABLE`.
+ */
+type GithubReceipt<Payload> = {
+  readonly receiptId: string
+  readonly status: "completed"
+  readonly responseCode: string
+  readonly responsePayload: Payload
+}
+
+export type GithubInstallationStart = GithubReceipt<{
+  readonly setupIntent: {
+    readonly id: string
+    readonly status: string
+    readonly state: string | null
+    readonly expiresAt: string
+  }
+}>
+
+export type GithubSyncStart = GithubReceipt<{
+  readonly syncRun: Record<string, unknown>
+}>
+
+const isReceiptEnvelope = (value: unknown): value is GithubReceipt<unknown> => {
+  if (typeof value !== "object" || value === null) return false
+  const candidate = value as Record<string, unknown>
+  return (
+    typeof candidate["receiptId"] === "string" &&
+    candidate["status"] === "completed" &&
+    typeof candidate["responseCode"] === "string" &&
+    typeof candidate["responsePayload"] === "object" &&
+    candidate["responsePayload"] !== null
+  )
+}
+
+const isGithubInstallationStart = (
+  value: unknown,
+): value is GithubInstallationStart => {
+  if (!isReceiptEnvelope(value)) return false
+  const payload = value.responsePayload as Record<string, unknown>
+  const intent = payload["setupIntent"]
+  if (typeof intent !== "object" || intent === null) return false
+  const candidate = intent as Record<string, unknown>
+  return (
+    typeof candidate["id"] === "string" &&
+    typeof candidate["status"] === "string" &&
+    typeof candidate["expiresAt"] === "string" &&
+    (candidate["state"] === null || typeof candidate["state"] === "string")
+  )
+}
+
+const isGithubSyncStart = (value: unknown): value is GithubSyncStart => {
+  if (!isReceiptEnvelope(value)) return false
+  const payload = value.responsePayload as Record<string, unknown>
+  return typeof payload["syncRun"] === "object" && payload["syncRun"] !== null
+}
+
 export const startGithubInstallation = (
   scope: RepositoryScope,
   idempotencyKey: string,
   transport?: ConsoleTransport,
-): Promise<ConsoleResult<GithubSetupIntent>> =>
-  callConsoleApi<GithubSetupIntent>(
+): Promise<ConsoleResult<GithubInstallationStart>> =>
+  callConsoleApi<GithubInstallationStart>(
     scope.baseUrl,
     {
       method: "POST",
@@ -243,7 +310,7 @@ export const startGithubInstallation = (
       idempotencyKey: identifier(idempotencyKey, "idempotency key"),
       body: {},
     },
-    isGithubSetupIntent,
+    isGithubInstallationStart,
     transport,
   )
 
@@ -251,8 +318,8 @@ export const startGithubRepositorySync = (
   scope: RepositoryScope,
   idempotencyKey: string,
   transport?: ConsoleTransport,
-): Promise<ConsoleResult<GithubSyncRun>> =>
-  callConsoleApi<GithubSyncRun>(
+): Promise<ConsoleResult<GithubSyncStart>> =>
+  callConsoleApi<GithubSyncStart>(
     scope.baseUrl,
     {
       method: "POST",
@@ -262,7 +329,7 @@ export const startGithubRepositorySync = (
       idempotencyKey: identifier(idempotencyKey, "idempotency key"),
       body: {},
     },
-    isGithubSyncRun,
+    isGithubSyncStart,
     transport,
   )
 

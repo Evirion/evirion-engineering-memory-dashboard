@@ -606,7 +606,28 @@ const handle = async (request, response, url) => {
           status: "CREATED",
         }
         state.setupIntents.set(intent.id, intent)
-        return { data: intent }
+        // The receipt the backend actually answers, with the intent inside.
+        // This returned the bare intent, which agreed with what the BFF
+        // expected and with nothing the backend has ever sent, so the journey
+        // passed here and failed against staging.
+        return {
+          data: {
+            receiptId: randomUUID(),
+            status: "completed",
+            responseCode: "GITHUB_INSTALLATION_SETUP_STARTED",
+            responsePayload: {
+              changed: true,
+              organizationId,
+              currentInstallationId: null,
+              setupIntent: {
+                id: intent.id,
+                status: intent.status,
+                state: intent.state,
+                expiresAt: intent.expiresAt,
+              },
+            },
+          },
+        }
       },
     })
   }
@@ -635,7 +656,14 @@ const handle = async (request, response, url) => {
         }
         state.syncRuns.set(run.id, run)
         state.installation = { ...state.installation, latestSyncRun: run }
-        return { data: run }
+        return {
+          data: {
+            receiptId: randomUUID(),
+            status: "completed",
+            responseCode: "GITHUB_REPOSITORY_SYNC_QUEUED",
+            responsePayload: { changed: true, organizationId, syncRun: run },
+          },
+        }
       },
     })
   }
