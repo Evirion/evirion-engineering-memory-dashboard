@@ -12,8 +12,12 @@ Updated: 2026-09-07
   refresh loop. `pnpm lint`, `pnpm typecheck` and `pnpm format:check` pass; 968 unit/contract tests
   across 66 files and 334 Playwright tests pass. The five security specs that fail on `main` still
   fail identically.
-- **Depends on backend.** Merge and deploy backend branch `EEM-9/07-github-installation-return`
-  before the live journey works.
+- **Depends on backend.** Open as
+  [PR #53](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/53), paired with
+  backend [PR #95](https://github.com/Evirion/evirion-engineering-memory/pull/95), which merges
+  first. The backend migration is already applied to `EEC-staging`, but `console-api` there still
+  runs the pre-merge bytes, so the callback still expects `accountLogin` and does not adapt
+  `GITHUB_INSTALLATION_PENDING_PROVIDER`. The journey works only once that function is deployed.
 - **Operator action after deploy.** GitHub App Setup URL:
   `https://console.evirion.dev/api/github/installed`.
 - **A partner can sign in and use the Console, observed end to end on

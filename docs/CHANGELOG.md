@@ -27,12 +27,15 @@
   `tests/unit/repositories/installation-pending.test.ts`; 334 Playwright tests pass. The five
   security specs that fail on `main` — four in `headers-cache-isolation.spec.ts`, one in
   `release-surface.spec.ts` — still fail identically and are not diagnosed here.
-- **Depends on.** Backend branch `EEM-9/07-github-installation-return` must merge and deploy before
-  the live handshake works end to end.
+- **Depends on.** Backend [PR #95](https://github.com/Evirion/evirion-engineering-memory/pull/95),
+  which merges first. Its migration is already applied to `EEC-staging`, but `console-api` there
+  still runs the pre-merge bytes, so the callback still expects `accountLogin` and does not adapt
+  `GITHUB_INSTALLATION_PENDING_PROVIDER`.
 - **Operator deliverable.** GitHub App Setup URL:
   `https://console.evirion.dev/api/github/installed`.
-- **State.** Implemented and locally verified on branch `EEM-9/07-github-installation-return`.
-  Not merged, not deployed.
+- **State.** Implemented, locally verified, and open as
+  [PR #53](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/53). Not merged,
+  not deployed, not observed.
 
 ## 2026-09-07 — the Console renders next to the backend it reads
 
