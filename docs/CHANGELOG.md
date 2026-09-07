@@ -1,5 +1,31 @@
 # Dashboard changelog
 
+## 2026-09-07 — one context read per page, and no control that cannot work
+
+- **Why it was slow.** Every navigation took three or four backend round trips
+  in series. The protected shell reads the session context to learn who the
+  caller is, and each page query reads it again to learn their organization —
+  the members page three times over. Measured on staging: about 500 ms per call,
+  so a single tab change spent roughly a second and a half asking the same
+  question. `requireSessionContext` is now memoized for the life of one request
+  with React's `cache`, which collapses those reads into one. Freshness is
+  unchanged: the projection is still re-derived per request, never cached across
+  requests and never shared between readers.
+- **Why an admin was offered a role picker for their own row.**
+  `api.update_organization_membership` lets an owner re-role anyone but an
+  owner, and lets an admin re-role only a reviewer or a viewer, and only into
+  one of those. The panel offered the control to every non-owner row, so an
+  admin could try to demote themselves and meet `CAPABILITY_REQUIRED`. Nothing
+  was ever at risk — the backend refused — but the Console was inviting an
+  impossible action, which its own rule forbids.
+- **What changed.** The panel mirrors the backend rule: the picker appears only
+  where the reader may use it, an admin is never offered the ability to mint
+  another admin, and a row they cannot change says why.
+- **Verification.** 948 unit tests and the browser journeys; lint, typecheck and
+  format clean. Six new tests pin the rule against the backend's own conditions.
+- **Deployment state.** Implemented and locally verified.
+
+
 ## 2026-09-07 — a session outlives its access token
 
 - **Why.** Fifteen minutes after signing in, the Console became an unbreakable
