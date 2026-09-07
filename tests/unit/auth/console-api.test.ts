@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest"
 import { isSessionContext } from "@contracts/console"
 
 import {
+  BOOTSTRAP_PROOF_HEADER,
   type ConsoleTransport,
   bootstrapSession,
   buildConsoleHeaders,
@@ -98,12 +99,20 @@ describe("what the BFF forwards", () => {
   })
 
   it("sends no bootstrap proof unless one was minted", () => {
-    expect(buildConsoleHeaders(baseRequest).has("x-console-bff-proof")).toBe(false)
+    expect(buildConsoleHeaders(baseRequest).has(BOOTSTRAP_PROOF_HEADER)).toBe(false)
     expect(
       buildConsoleHeaders({ ...baseRequest, bootstrapProof: "proof" }).get(
-        "x-console-bff-proof",
+        BOOTSTRAP_PROOF_HEADER,
       ),
     ).toBe("proof")
+  })
+
+  it("names the proof header the way the backend reads it", () => {
+    // Spelled out rather than compared to the constant: the point is the exact
+    // name `supabase/functions/console-api/index.ts` looks for. The BFF sent
+    // `x-console-bff-proof`, the backend read `x-evirion-bff-proof`, and the
+    // test double read the BFF's name, so nothing ever compared the two.
+    expect(BOOTSTRAP_PROOF_HEADER).toBe("x-evirion-bff-proof")
   })
 })
 

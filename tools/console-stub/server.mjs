@@ -528,7 +528,9 @@ const handle = async (request, response, url) => {
     request.method === "POST"
   ) {
     const envelope = describeBootstrapProofEnvelope(
-      request.headers["x-console-bff-proof"],
+      // The name the backend reads. Reading the BFF's name instead is how this
+      // double agreed with the caller rather than with the contract.
+      request.headers["x-evirion-bff-proof"],
     )
     if (!envelope.ok) return fail(response, "AUTHENTICATION_REQUIRED")
     // The receipt the backend actually returns. This double used to answer

@@ -1,5 +1,23 @@
 # Dashboard changelog
 
+## 2026-09-07 — the proof is sent under the name the backend reads
+
+- **Why the bootstrap was still refused.** The BFF sent the signed proof as
+  `x-console-bff-proof`. The backend reads `x-evirion-bff-proof`, so it saw a
+  request carrying no proof at all and refused it. Everything else about the
+  request was correct by then: the same values sent by hand, under the right
+  header, answer `201`.
+- **Why no gate saw it.** The test double read `x-console-bff-proof` too. That
+  is the third time in one day a double agreed with the caller instead of the
+  contract: the receipt shape, the pre-auth transaction, and now the header. A
+  double written from the BFF cannot fail when the BFF is wrong.
+- **What changed.** One exported constant names the header, the adapter and the
+  double both use it, and a test pins the literal against what
+  `supabase/functions/console-api/index.ts` reads.
+- **Verification.** Unit suite 902 passed; lint, typecheck and format clean.
+- **Deployment state.** Implemented and locally verified. Not deployed.
+
+
 ## 2026-09-07 — the BFF accepts the receipt the backend sends
 
 - **Why sign-in still failed after the ceremony was fixed.** The bootstrap
