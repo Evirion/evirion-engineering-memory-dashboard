@@ -1,5 +1,37 @@
 # Dashboard changelog
 
+## 2026-09-07 — a partner can sign in and use the Console
+
+Walking the deployed journey as the partner, rather than reading the code,
+found two further defects that no local gate could have caught. Both are fixed
+and deployed; the journey now runs end to end against the live Console.
+
+- **`listFactors` hides a factor until it is verified.** It files a factor under
+  its type only once `status === 'verified'`, so `data.totp` cannot see the one
+  a first enrolment just created. Both callers read that bucket, so the
+  challenge found nothing to challenge on the one occasion it matters, and the
+  enrolment page's cleanup swept an always-empty list. The factor row carried
+  **zero challenges**: confirmation had not failed, it had never begun.
+  `data.all` is the whole list.
+- **The backend refuses a correlation identifier that is not a UUID**, before it
+  looks at the route or the caller. Six read paths each carried their own
+  eight-byte hex generator, so every protected page answered `422` and rendered
+  "Check the highlighted fields and try again" on pages that have no fields.
+  **No protected page had ever loaded against the real backend**; the browser
+  journeys pass because the double does not apply that rule. One definition now
+  lives in the adapter beside the header it fills, and a test refuses a seventh
+  copy.
+- **Evidence.** Against `console.evirion.dev` with a real invited member:
+  code requested, code accepted, enrolment page showing a QR and a 32-character
+  key, that key's code confirmed, session activated in the backend, and
+  `/onboarding` rendering the Console shell with navigation, the organization,
+  the `Admin` badge and the GitHub connection card. The walkthrough's factor and
+  sessions were removed afterwards, leaving the account with its membership and
+  nothing else.
+- **Deployment state.** Implemented, locally verified, merged, deployed and
+  observed on staging. Not exercised by the partner themselves.
+
+
 ## 2026-09-07 — the second factor becomes something a reader can actually do
 
 - **Why the Console was empty for a partner who had just signed in.** The

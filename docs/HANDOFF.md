@@ -4,21 +4,30 @@ Updated: 2026-09-07
 
 ## Current state
 
-- Active branch: `EEM-9/07-second-factor-journey`.
-- **A signed-in reader can now reach the Console.** An email code alone is
-  `aal1`; the backend creates such a session awaiting a second factor and
-  refuses every read until one arrives, so a partner who signed in met an
-  onboarding page that could only fail. `/auth/mfa/enroll` now shows a QR and
-  the key to type, the challenge accepts a first unverified factor, and the
-  backend session is activated once the token carries `aal2`.
-- **Activation needs a backend release.** It calls
-  `POST /v1/session/activations`, added to the backend contract the same day
-  and **not released**: the last tag is `console-contract-v1.0.5`, which this
-  repository vendors. The call therefore follows the handwritten adapter
-  pattern the pre-auth and bootstrap calls already use. Cutting
-  `console-contract-v1.0.6`, vendoring it and regenerating the client is the
-  follow-up, and until the backend route is deployed the Console session stays
-  in `reauth_required` even after a correct authenticator code.
+- Active branch: `main`; the second-factor work is merged and deployed.
+- **A partner can sign in and use the Console, observed end to end on
+  staging.** An email code alone is `aal1`; the backend creates such a session
+  awaiting a second factor and refuses every read until one arrives.
+  `/auth/mfa/enroll` shows a QR and the key to type, the challenge accepts a
+  first unverified factor, and the backend session is activated once the token
+  carries `aal2`. Merged as [#39](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/39),
+  [#40](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/40)
+  and [#41](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/41).
+- **Two defects were found by walking the deployed journey, not by reading.**
+  `listFactors` hides an unverified factor from `data.totp`, so the first
+  confirmation could never begin; and the backend refuses a correlation
+  identifier that is not a UUID, so every protected page answered `422`. The
+  second means no protected page had ever loaded against the real backend. Both
+  are fixed, and the browser doubles that let them through do not apply either
+  rule.
+- **Activation is unreleased as a contract tag.** It calls
+  `POST /v1/session/activations`, merged and deployed in the backend, but the
+  last tag is `console-contract-v1.0.5`, which this repository vendors. The call
+  follows the handwritten adapter pattern pre-auth and bootstrap already use.
+  Cutting `console-contract-v1.0.6`, vendoring it and regenerating the client is
+  the follow-up; it is blocked while GitHub Actions refuses to start jobs
+  because account payments have failed, which is also why every recent pull
+  request shows red checks.
 - **Five security specs fail on `main`** — four in
   `headers-cache-isolation.spec.ts` and one in `release-surface.spec.ts` — and
   fail identically before and after this branch. They are not diagnosed.
