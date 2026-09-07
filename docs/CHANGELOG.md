@@ -1,5 +1,27 @@
 # Dashboard changelog
 
+## 2026-09-07 — sign-in stays reachable from a half-finished session
+
+- **Why.** Opening `/auth/mfa/enroll` with a session that cannot enrol ended in
+  `ERR_TOO_MANY_REDIRECTS`. The enrolment page cannot proceed — the provider
+  session had been ended underneath it — so it sends the reader to sign in; the
+  landing guard sees a session that has not proved a second factor, decides
+  sign-in is the wrong place for them, and sends them back. Neither side is
+  wrong alone; together they deadlock. The guard introduced that reading the
+  same day, and the end-to-end walkthrough missed it because every session it
+  created was healthy.
+- **What changed.** The guard leaves every `/auth/` and `/api/` path alone for a
+  reader who still owes a factor. Sign-in is the way out of every half-finished
+  session, so it has to stay reachable, and nothing is lost: such a reader is
+  not a signed-in reader being offered the door again, and every Console page
+  still sends them to finish.
+- **Verification.** Reproduced against `console.evirion.dev` before the change
+  at eight hops and still climbing; one hop to a rendered sign-in page after.
+  The whole journey re-walked afterwards and still ends on the Console. 921
+  unit tests and the browser journeys pass; lint, typecheck and format clean.
+- **Deployment state.** Implemented, merged, deployed and observed on staging.
+
+
 ## 2026-09-07 — a partner can sign in and use the Console
 
 Walking the deployed journey as the partner, rather than reading the code,
