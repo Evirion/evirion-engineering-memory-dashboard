@@ -137,17 +137,24 @@ describe("A3 and A4: a signed-in reader is not offered the door again", () => {
     // The backend creates an `aal1` session awaiting that proof and refuses
     // every read until it arrives, so the Console is not a place this reader
     // can be sent: they would meet a page that could only fail.
-    for (const pathname of ["/", "/onboarding", "/repositories", "/auth/sign-in"]) {
+    for (const pathname of ["/", "/onboarding", "/repositories", "/settings/members"]) {
       expect(landingForAuthenticatedReader(pathname, "navigate", false)).toBe(
         "/auth/mfa/enroll",
       )
     }
   })
 
-  it("lets that reader reach the pages and route handlers that finish it", () => {
-    // A form POST carries `sec-fetch-mode: navigate` exactly like a page visit,
-    // so redirecting these would break the submission rather than guide it.
+  it("never redirects that reader away from an Auth path", () => {
+    // Sending them off sign-in deadlocked an enrolment that could not proceed:
+    // the page sent them to sign in, this sent them back, and the browser gave
+    // up with ERR_TOO_MANY_REDIRECTS. Sign-in is the way out of every
+    // half-finished session, so it stays reachable. A form POST also carries
+    // `sec-fetch-mode: navigate`, so the handlers cannot be assumed to be
+    // fetches.
     for (const pathname of [
+      "/auth/sign-in",
+      "/auth/verify",
+      "/auth/recovery",
       "/auth/mfa/enroll",
       "/auth/mfa/challenge",
       "/api/auth/mfa/challenge",
