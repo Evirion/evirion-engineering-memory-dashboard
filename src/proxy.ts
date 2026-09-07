@@ -12,7 +12,7 @@ import { readSession } from "@/lib/auth/session-broker"
 import { SESSION_POLICY } from "@/lib/auth/session-policy"
 import { readServerEnvironment } from "@/lib/env/server"
 import { NONCE_HEADER, buildSecurityHeaders, createNonce } from "@/lib/security/headers"
-import { importCsrfKey, issueCsrfToken } from "@/lib/security/csrf"
+import { csrfBoundSessionId, importCsrfKey, issueCsrfToken } from "@/lib/security/csrf"
 import {
   SESSION_CSRF_COOKIE,
   issueSessionCsrfToken,
@@ -87,17 +87,27 @@ export const proxy = async (request: NextRequest): Promise<NextResponse> => {
     }
   }
 
+  // The proof is bound to one provider session, and a browser that signs in a
+  // second time keeps the cookie from the first. Issuing it only when absent
+  // therefore handed a returning reader a proof bound to a session they no
+  // longer hold, and every mutation was refused as forged — observed on the
+  // deployed Console, where a correct authenticator code landed back on
+  // sign-in. Replacing it whenever it names another session is what this file
+  // already claimed to do.
   const sessionCsrf =
     session.status === "active" &&
-    !request.cookies.has(SESSION_CSRF_COOKIE) &&
-    !request.nextUrl.pathname.startsWith("/api/")
+    !request.nextUrl.pathname.startsWith("/api/") &&
+    csrfBoundSessionId(request.cookies.get(SESSION_CSRF_COOKIE)?.value) !==
+      session.session.providerSessionId
       ? await issueSessionCsrfToken(session.session.providerSessionId)
       : undefined
 
   if (sessionCsrf !== undefined) {
+    // Replaced rather than appended: a duplicate name would leave the page
+    // reading whichever copy the parser reaches first, which is the stale one.
     requestHeaders.set(
       "cookie",
-      appendCookies(requestHeaders.get("cookie"), [[SESSION_CSRF_COOKIE, sessionCsrf]]),
+      withCookie(requestHeaders.get("cookie"), SESSION_CSRF_COOKIE, sessionCsrf),
     )
   }
 
@@ -139,6 +149,15 @@ const appendCookies = (existing: string | null, pairs: [string, string][]): stri
   [existing, ...pairs.map(([name, value]) => `${name}=${value}`)]
     .filter((part): part is string => Boolean(part))
     .join("; ")
+
+const withCookie = (existing: string | null, name: string, value: string): string =>
+  appendCookies(
+    (existing ?? "")
+      .split("; ")
+      .filter((pair) => pair !== "" && !pair.startsWith(`${name}=`))
+      .join("; ") || null,
+    [[name, value]],
+  )
 
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
