@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server"
 
+import { AUTH_OUTCOMES, AUTH_OUTCOME_PARAMETER } from "@/lib/auth/auth-outcome"
 import { createAuthProviderForAccessToken } from "@/lib/auth/create-auth-provider"
 import { readSession, writeSession } from "@/lib/auth/session-broker"
 import { SESSION_POLICY } from "@/lib/auth/session-policy"
@@ -11,6 +12,19 @@ import { activateSession } from "@/server/adapters/console-api"
 export const dynamic = "force-dynamic"
 
 const SIX_DIGITS = /^\d{6}$/
+
+/**
+ * Every refusal the reader can act on says so.
+ *
+ * These all used to be a bare redirect back to the same page, which rendered
+ * unchanged: pressing Verify appeared to do nothing at all, and a reader whose
+ * authenticator held a factor that no longer existed had no way to learn it.
+ */
+const refused = (): NextResponse => {
+  const target = new URL(canonicalRedirect("/auth/mfa/challenge"))
+  target.searchParams.set(AUTH_OUTCOME_PARAMETER, AUTH_OUTCOMES.factorCodeRefused)
+  return NextResponse.redirect(target, 303)
+}
 
 /**
  * Complete the AAL2 step-up.
@@ -27,9 +41,7 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
   }
 
   const code = guard.form.get("totp")
-  if (typeof code !== "string" || !SIX_DIGITS.test(code)) {
-    return NextResponse.redirect(canonicalRedirect("/auth/mfa/challenge"), 303)
-  }
+  if (typeof code !== "string" || !SIX_DIGITS.test(code)) return refused()
 
   const outcome = readSession(
     Object.fromEntries(
@@ -42,18 +54,14 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
 
   const provider = createAuthProviderForAccessToken(outcome.session.accessToken)
   const challenge = await provider.challengeTotp(outcome.session.accessToken)
-  if (challenge.status !== "ok") {
-    return NextResponse.redirect(canonicalRedirect("/auth/mfa/challenge"), 303)
-  }
+  if (challenge.status !== "ok") return refused()
 
   const verified = await provider.verifyTotp(
     outcome.session.accessToken,
     challenge.value,
     code,
   )
-  if (verified.status !== "ok") {
-    return NextResponse.redirect(canonicalRedirect("/auth/mfa/challenge"), 303)
-  }
+  if (verified.status !== "ok") return refused()
 
   // The provider now says `aal2`, but the backend session is still the one the
   // email code opened, and it stays unusable until this transition runs. A

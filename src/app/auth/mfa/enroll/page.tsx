@@ -21,10 +21,10 @@ export const fetchCache = "force-no-store"
  * that created them, so the creation and the render are one request under
  * `private, no-store`.
  *
- * That makes this a GET with an effect, so it is made repeatable rather than
- * merely guarded: an unconfirmed factor left by an abandoned attempt is
- * removed before a new one is created. A reader who reloads therefore sees a
- * secret that works, and the account never accumulates factors nobody holds.
+ * That makes this a GET with an effect, so it creates a factor only when the
+ * account has none. A reader who reloads after scanning keeps the secret their
+ * app holds and is sent to confirm it; abandoning it is an explicit choice on
+ * the challenge page, not something a refresh does to them.
  */
 const MfaEnrollPage = async () => {
   const jar = await cookies()
@@ -40,13 +40,17 @@ const MfaEnrollPage = async () => {
   // An established factor is never replaced from here. Its holder proves it on
   // the challenge page; replacing one is account recovery, which is its own
   // ceremony with its own evidence.
-  if (factors.value.verified.length > 0) redirect("/auth/mfa/challenge")
-
-  await Promise.all(
-    factors.value.unverified.map((factorId) =>
-      provider.unenrollTotp(outcome.session.accessToken, factorId),
-    ),
-  )
+  //
+  // An unconfirmed one is not replaced either, and that is the whole point. It
+  // used to be discarded and re-created on every visit, so a reader who had
+  // already scanned the code and then reloaded — or arrived here twice for any
+  // other reason — silently lost the secret their app held, and every code
+  // they entered was for a factor that no longer existed. They are sent to
+  // confirm the one they have, and `/api/auth/mfa/restart` is the explicit way
+  // to abandon it.
+  if (factors.value.verified.length + factors.value.unverified.length > 0) {
+    redirect("/auth/mfa/challenge")
+  }
 
   const enrolment = await provider.enrollTotp(outcome.session.accessToken)
   if (enrolment.status !== "ok") redirect("/auth/sign-in")

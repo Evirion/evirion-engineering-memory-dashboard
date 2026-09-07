@@ -64,12 +64,16 @@ describe("form actions", () => {
   })
 
   it("carries a CSRF proof in every form that posts", () => {
+    // The proof is either the hidden field itself or handed to the bounded
+    // component that renders the form. Both are checked, because a page that
+    // names an action without either has no proof anywhere in its reach, and
+    // the receiving component's own test proves it renders the field.
     const withoutProof = sources
       .filter((file) => file.endsWith(".tsx"))
       .filter((file) => {
         const source = read(file)
         if (!/action="\/api\//.test(source)) return false
-        return !source.includes('name="csrfToken"')
+        return !source.includes('name="csrfToken"') && !source.includes("csrfToken={")
       })
 
     expect(withoutProof).toEqual([])

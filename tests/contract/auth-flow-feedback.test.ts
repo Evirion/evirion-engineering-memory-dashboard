@@ -45,14 +45,18 @@ describe("A1: a failure says what to do next", () => {
 
   it("keeps one sentence for every cause of a failed verification", () => {
     // OWASP A07 asks for the same message for all outcomes, not for no message.
-    // The second code is not an exception to that: a failed registration can
-    // only happen after the address is proven, so there is no identity left to
-    // enumerate. Blaming the code for it sent a reader hunting a typo that did
-    // not exist.
-    expect(Object.values(AUTH_OUTCOMES)).toHaveLength(2)
-    expect(
-      describeAuthOutcome(AUTH_OUTCOMES.sessionNotRegistered)?.description,
-    ).not.toBe(describeAuthOutcome(AUTH_OUTCOMES.verificationFailed)?.description)
+    // The property this protects is the sign-in one: an unauthenticated caller
+    // must not learn whether an address is known. Neither of the other two
+    // codes touches it, because both can only occur after the address has been
+    // proven by an emailed code, so no identity is left to enumerate. Blaming
+    // the code for either sent a reader hunting a typo that did not exist.
+    expect(Object.values(AUTH_OUTCOMES)).toHaveLength(3)
+    const distinct = new Set(
+      Object.values(AUTH_OUTCOMES).map(
+        (outcome) => describeAuthOutcome(outcome)?.description,
+      ),
+    )
+    expect(distinct.size).toBe(3)
   })
 
   it("blames the code only when the code was the problem", () => {

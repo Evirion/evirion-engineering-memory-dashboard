@@ -58,14 +58,15 @@ describe("the seed is shown by the request that creates it", () => {
     expect(page).toContain("secret={enrolment.value.secret}")
   })
 
-  it("clears an unconfirmed factor first, so a reload shows a seed that works", () => {
-    expect(page).toContain("unenrollTotp")
-    expect(page).toContain("factors.value.unverified")
-  })
-
-  it("never replaces an established factor from here", () => {
-    expect(page).toContain("factors.value.verified.length > 0")
+  it("never replaces a factor the account already has", () => {
+    // Established or merely unconfirmed, replacing it is not a refresh's
+    // business: a reader who had scanned the code and reloaded lost the secret
+    // their app held. Abandoning it is an explicit act on the challenge page.
+    expect(page).toContain(
+      "factors.value.verified.length + factors.value.unverified.length > 0",
+    )
     expect(page).toContain('redirect("/auth/mfa/challenge")')
+    expect(page).not.toContain("unenrollTotp")
   })
 
   it("keeps the seed out of every store the page could reach", () => {
