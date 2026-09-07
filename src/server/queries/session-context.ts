@@ -8,7 +8,7 @@ import type { SessionContext } from "@contracts/console"
 import { readSession } from "@/lib/auth/session-broker"
 import { readServerEnvironment } from "@/lib/env/server"
 import { describeTreatment, mapConsoleError } from "@/lib/errors/console-errors"
-import { fetchSessionContext } from "@/server/adapters/console-api"
+import { fetchSessionContext, newCorrelationId } from "@/server/adapters/console-api"
 
 /**
  * The one place a protected page learns who the caller is.
@@ -21,12 +21,6 @@ import { fetchSessionContext } from "@/server/adapters/console-api"
 export type ProtectedContext =
   | { readonly status: "ready"; readonly context: SessionContext }
   | { readonly status: "unavailable"; readonly message: string }
-
-const correlationId = (): string => {
-  const bytes = new Uint8Array(8)
-  crypto.getRandomValues(bytes)
-  return Buffer.from(bytes).toString("hex")
-}
 
 export const requireSessionContext = async (): Promise<ProtectedContext> => {
   const jar = await cookies()
@@ -48,7 +42,7 @@ export const requireSessionContext = async (): Promise<ProtectedContext> => {
   const environment = readServerEnvironment()
   const result = await fetchSessionContext(environment.consoleApiBaseUrl, {
     accessToken: outcome.session.accessToken,
-    correlationId: correlationId(),
+    correlationId: newCorrelationId(),
   })
 
   if (result.ok) return { status: "ready", context: result.value }

@@ -20,6 +20,7 @@ import {
   mapConsoleError,
 } from "@/lib/errors/console-errors"
 import type { ConsoleFailure } from "@/server/adapters/console-api"
+import { newCorrelationId } from "@/server/adapters/console-api"
 import {
   type RepositoryScope,
   fetchGithubInstallation,
@@ -87,12 +88,6 @@ export type RepositoryDetailView =
       readonly modelProfiles: ModelProfileCatalogueView
     }
   | { readonly status: "unavailable"; readonly failure: ViewFailure }
-
-const correlationId = (): string => {
-  const bytes = new Uint8Array(8)
-  crypto.getRandomValues(bytes)
-  return Buffer.from(bytes).toString("hex")
-}
 
 /** An unrecognised document is an explicit unknown state, never a partial one. */
 export const describeFailure = (
@@ -173,7 +168,7 @@ const resolveScope = async (): Promise<ResolvedScope> => {
       baseUrl: readServerEnvironment().consoleApiBaseUrl,
       organizationId: context.context.organizationId,
       accessToken: outcome.session.accessToken,
-      correlationId: correlationId(),
+      correlationId: newCorrelationId(),
     },
   }
 }

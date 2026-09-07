@@ -17,6 +17,7 @@ import {
   mapConsoleError,
 } from "@/lib/errors/console-errors"
 import type { ConsoleFailure } from "@/server/adapters/console-api"
+import { newCorrelationId } from "@/server/adapters/console-api"
 import {
   type ProcessingActivityQuery,
   fetchProcessingActivity,
@@ -33,12 +34,6 @@ export type ProcessingActivityView =
       readonly query: ProcessingActivityQuery
     }
   | { readonly status: "unavailable"; readonly failure: ViewFailure }
-
-const correlationId = (): string => {
-  const bytes = new Uint8Array(8)
-  crypto.getRandomValues(bytes)
-  return Buffer.from(bytes).toString("hex")
-}
 
 export const describeFailure = (
   failure: ConsoleFailure,
@@ -96,7 +91,7 @@ const resolveScope = async (): Promise<
       baseUrl: environment.consoleApiBaseUrl,
       organizationId: context.context.organizationId,
       accessToken: outcome.session.accessToken,
-      correlationId: correlationId(),
+      correlationId: newCorrelationId(),
     },
   }
 }

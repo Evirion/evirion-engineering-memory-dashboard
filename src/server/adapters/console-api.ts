@@ -96,6 +96,18 @@ export const BOOTSTRAP_PROOF_HEADER = "x-evirion-bff-proof"
 
 const bounded = (value: string, limit: number): string => value.slice(0, limit)
 
+/**
+ * A correlation identifier the backend will accept.
+ *
+ * It refuses anything that is not a UUID before it looks at the route:
+ * `if (suppliedCorrelationId !== null && !isUuid(suppliedCorrelationId))`.
+ * Six read paths each carried their own eight-byte hex generator, so every
+ * protected page answered `REQUEST_INVALID` — rendered as "Check the
+ * highlighted fields" on pages that have no fields. One definition lives here,
+ * beside the header it fills, because this is the boundary that knows the rule.
+ */
+export const newCorrelationId = (): string => crypto.randomUUID()
+
 export const buildConsoleHeaders = (request: ConsoleRequest): Headers => {
   const headers = new Headers({
     accept: "application/json",
