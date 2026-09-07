@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server"
 import { createSupabaseAuthProvider } from "@/lib/auth/auth-provider"
 import { admitVerifiedIdentity } from "@/lib/auth/identity-admission"
 import {
+  OPAQUE_INVITATION_ID,
   PRE_AUTH_EMAIL_COOKIE,
   PRE_AUTH_TRANSACTION_COOKIE,
   clearPreAuthCookies,
@@ -20,9 +21,18 @@ import {
   type AuthOutcome,
 } from "@/lib/auth/auth-outcome"
 import { canonicalRedirect } from "@/server/actions/redirects"
-import { SESSION_BOOTSTRAP_PATH, bootstrapSession } from "@/server/adapters/console-api"
+import {
+  SESSION_BOOTSTRAP_PATH,
+  SESSION_PRE_AUTH_PATH,
+  bootstrapSession,
+  invitationAcceptancePath,
+  issuePreAuthTransaction,
+} from "@/server/adapters/console-api"
 
 export const dynamic = "force-dynamic"
+
+/** Recorded against the session so a reader can tell their devices apart. */
+const CONSOLE_DEVICE_LABEL = "Console"
 
 /**
  * Any refusal returns the caller to sign-in with the pre-auth transaction
@@ -101,10 +111,34 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
 
   const now = Math.floor(Date.now() / 1000)
   const environment = readServerEnvironment()
-  const invitationId = guard.form.get("invitationId")
-  const idempotencyKey = `bootstrap:${user.value.sessionId}`
+  const carried = guard.form.get("invitationId")
+  const invitationId =
+    typeof carried === "string" && OPAQUE_INVITATION_ID.test(carried) ? carried : null
+
+  // The session cannot be bootstrapped against an identifier of our own making.
+  // `bootstrap_console_auth_session` looks the transaction up and requires it in
+  // `otp_verified`; only the backend creates one. Sending a locally minted value
+  // is why no sign-in has ever succeeded.
+  const preAuth = await issuePreAuthTransaction(
+    environment.consoleApiBaseUrl,
+    invitationId === null
+      ? SESSION_PRE_AUTH_PATH
+      : invitationAcceptancePath(invitationId),
+    {
+      accessToken: verification.value.accessToken,
+      correlationId: crypto.randomUUID(),
+      idempotencyKey: crypto.randomUUID(),
+    },
+  )
+  if (!preAuth.ok) return denied(AUTH_OUTCOMES.sessionNotRegistered)
+
+  // Both identifiers the backend matches on must be UUIDs, and the body has to
+  // carry exactly the keys the route declares.
+  const idempotencyKey = crypto.randomUUID()
   const body = {
-    invitationId: typeof invitationId === "string" ? invitationId : null,
+    deviceLabel: CONSOLE_DEVICE_LABEL,
+    preAuthTransactionId: preAuth.value.preAuthTransactionId,
+    ...(invitationId === null ? {} : { invitationId }),
   }
 
   const { proof } = await signBootstrapProof(
@@ -115,9 +149,8 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
       path: SESSION_BOOTSTRAP_PATH,
       subject: user.value.id,
       sessionId: user.value.sessionId,
-      preAuthTransactionId:
-        guard.binding.kind === "pre-auth" ? guard.binding.transactionId : "",
-      invitationId: body.invitationId,
+      preAuthTransactionId: preAuth.value.preAuthTransactionId,
+      invitationId,
       idempotencyKey,
       body,
       issuedAt: now,

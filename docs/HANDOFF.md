@@ -4,7 +4,14 @@ Updated: 2026-09-05
 
 ## Current state
 
-- Active branch: `EEM-9/07x-carry-the-invitation`.
+- Active branch: `EEM-9/08-perform-the-pre-auth-ceremony`.
+- **Sign-in works.** The BFF was missing the middle step of the ceremony: the
+  backend issues the pre-auth transaction and the bootstrap must name that
+  identifier, in `otp_verified`. The BFF invented one, so no session had ever
+  been created. It now calls `/v1/session/pre-auth` for a member and
+  `/v1/invitations/{id}/accept` for an invited reader, and sends the identifier
+  it receives together with `deviceLabel` and a UUID idempotency key.
+- **Staging needed `CONSOLE_PRE_AUTH_HMAC_KEY`** and now has it.
 - **An invited reader signs in through a link that names their invitation.**
   `/auth/sign-in?invitation=<id>`. The backend routes on it: with an invitation
   it uses `api.issue_console_pre_auth`, without one
