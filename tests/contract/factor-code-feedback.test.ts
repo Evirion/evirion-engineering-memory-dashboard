@@ -118,3 +118,21 @@ describe("every screen asks for a code the same way", () => {
     }
   })
 })
+
+describe("the authenticator entry says what it is", () => {
+  it("names the product and the factor rather than enrolling nameless", () => {
+    // The provider's default leaves the entry unlabelled, so a reader who
+    // enrolled twice held two identical nameless rows and read a code from the
+    // wrong one. The Console could only answer that it did not match.
+    const provider = source("src/lib/auth/auth-provider.ts")
+    expect(provider).toContain("friendlyName: TOTP_FRIENDLY_NAME")
+    expect(provider).toContain("issuer: TOTP_ISSUER")
+    expect(provider).toContain('const TOTP_ISSUER = "Evirion Engineering Memory"')
+  })
+
+  it("warns about an entry left by an earlier attempt", () => {
+    expect(source("src/components/auth/totp-enrolment-panel.tsx")).toContain(
+      "Delete it first",
+    )
+  })
+})

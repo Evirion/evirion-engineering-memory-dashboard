@@ -41,6 +41,17 @@ export const TotpEnrolmentPanel = ({
           <span className="font-medium">1.</span> Open an authenticator app — Google
           Authenticator, 1Password, Bitwarden or any other — and scan this code.
         </span>
+        {/*
+          Only this seed works. An entry left by an earlier attempt still shows
+          codes, and reading one from it is indistinguishable from typing the
+          wrong number: the Console can only say the code did not match.
+        */}
+        <span className="rounded border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          Already have an{" "}
+          <span className="font-medium">Evirion Engineering Memory</span> entry from an
+          earlier attempt? Delete it first. Its codes no longer work, and only this one
+          does.
+        </span>
         <Image
           src={qrCode}
           alt="QR code for your authenticator app"
