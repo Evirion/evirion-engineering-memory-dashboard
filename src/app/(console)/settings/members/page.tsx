@@ -62,6 +62,7 @@ const MembersSettingsPage = async ({
         />
       ) : (
         <MembersPanel
+          actorRole={context.context.role}
           members={view.members}
           invitations={view.invitations}
           offboarding={view.offboarding}

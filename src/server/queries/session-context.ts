@@ -1,6 +1,7 @@
 import "server-only"
 
 import { cookies } from "next/headers"
+import { cache } from "react"
 import { redirect } from "next/navigation"
 
 import type { SessionContext } from "@contracts/console"
@@ -22,7 +23,20 @@ export type ProtectedContext =
   | { readonly status: "ready"; readonly context: SessionContext }
   | { readonly status: "unavailable"; readonly message: string }
 
-export const requireSessionContext = async (): Promise<ProtectedContext> => {
+/**
+ * Memoized for the life of one request, not cached across requests.
+ *
+ * The protected shell reads the context to learn who the caller is, and every
+ * page query reads it again to learn their organization — the settings page
+ * three times over. Each was a separate round trip taken in series, so a single
+ * navigation spent about a second and a half asking the same question. React's
+ * per-request memo collapses them into one call.
+ *
+ * This changes nothing about freshness. The projection is still re-derived on
+ * every request, never written to a cookie, never held at module scope, and
+ * never shared between two readers: `cache` is scoped to one render pass.
+ */
+export const requireSessionContext = cache(async (): Promise<ProtectedContext> => {
   const jar = await cookies()
   const outcome = readSession(
     Object.fromEntries(jar.getAll().map((cookie) => [cookie.name, cookie.value])),
@@ -63,4 +77,4 @@ export const requireSessionContext = async (): Promise<ProtectedContext> => {
       throw new Error(`unhandled console failure: ${JSON.stringify(exhaustive)}`)
     }
   }
-}
+})

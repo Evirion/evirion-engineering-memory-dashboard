@@ -17,6 +17,43 @@ const button =
   "rounded border border-slate-400 px-3 py-1 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
 const card = "flex flex-col gap-3 rounded border border-slate-200 bg-white px-4 py-3"
 
+/**
+ * Whether this reader may change this member's role, on the backend's terms.
+ *
+ * `api.update_organization_membership` lets an owner re-role anyone but an
+ * owner, and lets an admin re-role only a reviewer or a viewer, and only into
+ * one of those. The panel offered the control to every non-owner row, so an
+ * admin was shown a picker for their own row and for other admins — actions the
+ * backend answers `CAPABILITY_REQUIRED`. Nothing was ever at risk; the reader
+ * was simply invited to do something impossible.
+ */
+const ASSIGNABLE_BY_ADMIN = ["reviewer", "viewer"] as const
+
+export const roleControl = (
+  actorRole: Member["role"],
+  member: Member,
+): "editable" | "owner-fixed" | "owner-only" => {
+  if (member.role === "owner") return "owner-fixed"
+  if (actorRole === "owner") return "editable"
+  return (ASSIGNABLE_BY_ADMIN as readonly string[]).includes(member.role)
+    ? "editable"
+    : "owner-only"
+}
+
+export const assignableRoles = (
+  actorRole: Member["role"],
+): readonly { readonly value: string; readonly label: string }[] =>
+  actorRole === "owner"
+    ? [
+        { value: "admin", label: "Admin" },
+        { value: "reviewer", label: "Reviewer" },
+        { value: "viewer", label: "Viewer" },
+      ]
+    : [
+        { value: "reviewer", label: "Reviewer" },
+        { value: "viewer", label: "Viewer" },
+      ]
+
 const Hidden = ({
   csrfToken,
   idempotencyKey,
@@ -36,6 +73,7 @@ const Hidden = ({
 )
 
 export const MembersPanel = ({
+  actorRole,
   members,
   invitations,
   offboarding,
@@ -46,6 +84,8 @@ export const MembersPanel = ({
   idempotencyKeys,
   reauthenticationFreshUntil,
 }: {
+  /** The reader's own role, which decides what the backend will accept. */
+  actorRole: Member["role"]
   members: readonly Member[]
   invitations: OrganizationInvitations
   offboarding: OrganizationOffboarding | null
@@ -97,7 +137,7 @@ export const MembersPanel = ({
                 ) : null}
                 <td className="px-2 py-2">{memberRoleLabel(member.role)}</td>
                 <td className="px-2 py-2">{memberStatusLabel(member.status)}</td>
-                {canManage && member.role !== "owner" ? (
+                {canManage && roleControl(actorRole, member) === "editable" ? (
                   <td className="px-2 py-2">
                     <GatedForm
                       action="/api/settings/members/update"
@@ -127,9 +167,11 @@ export const MembersPanel = ({
                         defaultValue={member.role}
                         className={field}
                       >
-                        <option value="admin">Admin</option>
-                        <option value="reviewer">Reviewer</option>
-                        <option value="viewer">Viewer</option>
+                        {assignableRoles(actorRole).map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
                       </select>
                       <button type="submit" className={button}>
                         Update role
@@ -137,7 +179,11 @@ export const MembersPanel = ({
                     </GatedForm>
                   </td>
                 ) : canManage ? (
-                  <td className="px-2 py-2 text-slate-500">Owner role is fixed here</td>
+                  <td className="px-2 py-2 text-slate-500">
+                    {roleControl(actorRole, member) === "owner-fixed"
+                      ? "Owner role is fixed here"
+                      : "Only an owner can change this role"}
+                  </td>
                 ) : null}
               </tr>
             ))}
