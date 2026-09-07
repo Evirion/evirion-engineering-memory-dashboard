@@ -1,5 +1,30 @@
 # Dashboard changelog
 
+## 2026-09-07 — a session outlives its access token
+
+- **Why.** Fifteen minutes after signing in, the Console became an unbreakable
+  loop between `/onboarding` and `/auth/sign-in`. The access token lives fifteen
+  minutes; nothing renewed it. The backend refused the stale token with `401`,
+  the protected shell sent the reader to sign in, and the landing guard sent
+  them straight back. Observed on the deployed Console with a live, unexpired
+  backend session and a healthy provider session.
+- **What was missing.** `accessTokenNeedsRefresh` and the provider's `refresh`
+  were both written, both covered by tests, and **called from nowhere**. The
+  proxy now exchanges the refresh token while the access token still has a
+  minute left, rewrites the session cookies and forwards the new token to the
+  render. Renewal extends the token, never the absolute window sign-in opened.
+- **A failed renewal is not a dead session.** The carried token may still be
+  good for that final minute and the backend decides; turning a provider hiccup
+  into a forced sign-out would be the worse answer.
+- **The loop itself is closed too.** The landing guard no longer redirects away
+  from any Auth path, whatever the reader holds. Offering sign-in to someone who
+  already has a session is untidy; a loop is a broken product, and the guard was
+  always a courtesy rather than a control.
+- **Verification.** 942 unit tests and the browser journeys; lint, typecheck and
+  format clean.
+- **Deployment state.** Implemented and locally verified.
+
+
 ## 2026-09-07 — the GitHub commands accept the receipt the backend sends
 
 - **Why.** Pressing Connect GitHub answered "The service is busy. Try again

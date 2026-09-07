@@ -13,14 +13,6 @@
  * binding and is the one place every request passes through.
  */
 
-/** Pages that exist to establish a session, so a live one makes them wrong. */
-const PRE_AUTH_PATHS: ReadonlySet<string> = new Set([
-  "/auth/sign-in",
-  "/auth/verify",
-  "/auth/invite",
-  "/auth/recovery",
-])
-
 /** The placeholder root, which is not a customer surface for a member. */
 const PLACEHOLDER_ROOT = "/"
 
@@ -70,14 +62,16 @@ export const landingForAuthenticatedReader = (
   hasSecondFactor: boolean,
 ): string | undefined => {
   if (fetchMode !== "navigate") return undefined
+  // Never off an Auth path, whatever the reader holds. The protected shell
+  // sends a reader whose session the backend refuses to sign-in, and sending
+  // them back produced an unbreakable loop between the two — observed on the
+  // deployed Console once the fifteen-minute access token expired. This guard
+  // is a courtesy; the loop it caused was not.
+  if (isAuthPath(pathname)) return undefined
   // A session established by an email code alone is real but powerless: the
   // backend creates it awaiting a second factor and refuses every read until
   // one arrives. Landing such a reader on the Console showed them a page that
   // could only fail, so they are sent to finish what they started instead.
-  if (!hasSecondFactor) {
-    return isAuthPath(pathname) ? undefined : SECOND_FACTOR
-  }
-  return pathname === PLACEHOLDER_ROOT || PRE_AUTH_PATHS.has(pathname)
-    ? LANDING
-    : undefined
+  if (!hasSecondFactor) return SECOND_FACTOR
+  return pathname === PLACEHOLDER_ROOT ? LANDING : undefined
 }
