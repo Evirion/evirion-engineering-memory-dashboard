@@ -20,6 +20,7 @@ import type { RepositoryScope } from "@/server/adapters/repositories"
 import { fetchRepository } from "@/server/adapters/repositories"
 import { describeFailure } from "@/server/queries/repositories"
 import { requireSessionContext } from "@/server/queries/session-context"
+import { newCorrelationId } from "@/server/adapters/console-api"
 
 /**
  * Historical-import reads for a server-rendered page.
@@ -57,12 +58,6 @@ export type ImportView =
  */
 const ABSENT = new Set(["REPOSITORY_IMPORT_NOT_FOUND", "RESOURCE_NOT_FOUND"])
 
-const correlationId = (): string => {
-  const bytes = new Uint8Array(8)
-  crypto.getRandomValues(bytes)
-  return Buffer.from(bytes).toString("hex")
-}
-
 type ResolvedScope =
   | {
       readonly status: "ready"
@@ -98,7 +93,7 @@ const resolveScope = async (): Promise<ResolvedScope> => {
       baseUrl: readServerEnvironment().consoleApiBaseUrl,
       organizationId: context.context.organizationId,
       accessToken: outcome.session.accessToken,
-      correlationId: correlationId(),
+      correlationId: newCorrelationId(),
     },
   }
 }

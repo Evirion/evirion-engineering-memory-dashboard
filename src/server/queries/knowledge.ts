@@ -36,6 +36,7 @@ import { type RepositoryScope, isUuid } from "@/server/adapters/repositories"
 import { fetchRepository, fetchRepositoryPage } from "@/server/adapters/repositories"
 import { describeFailure } from "@/server/queries/repositories"
 import { requireSessionContext } from "@/server/queries/session-context"
+import { newCorrelationId } from "@/server/adapters/console-api"
 
 /**
  * Knowledge review and lifecycle reads for a server-rendered page.
@@ -132,12 +133,6 @@ export type KnowledgeDetailView =
   | { readonly status: "not-found" }
   | { readonly status: "unavailable"; readonly failure: ViewFailure }
 
-const correlationId = (): string => {
-  const bytes = new Uint8Array(8)
-  crypto.getRandomValues(bytes)
-  return Buffer.from(bytes).toString("hex")
-}
-
 type ResolvedScope =
   | {
       readonly status: "ready"
@@ -173,7 +168,7 @@ const resolveScope = async (): Promise<ResolvedScope> => {
       baseUrl: readServerEnvironment().consoleApiBaseUrl,
       organizationId: context.context.organizationId,
       accessToken: outcome.session.accessToken,
-      correlationId: correlationId(),
+      correlationId: newCorrelationId(),
     },
   }
 }
