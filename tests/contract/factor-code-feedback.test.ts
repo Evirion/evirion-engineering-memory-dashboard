@@ -77,20 +77,44 @@ describe("a reload does not take away a code already scanned", () => {
 })
 
 describe("the six digits stay one field", () => {
-  const form = source("src/components/auth/totp-code-form.tsx")
+  const cells = source("src/components/auth/otp-cells.tsx")
 
   it("renders cells from a single input rather than six inputs", () => {
     // Six inputs would break pasting, the `one-time-code` autofill and a
     // screen reader announcing one field.
-    expect(form).toContain("InputOTP")
-    expect(form).toContain('autoComplete="one-time-code"')
+    expect(cells).toContain("InputOTP")
+    expect(cells).toContain('autoComplete="one-time-code"')
+  })
+
+  it("lays the real input over the cells rather than beside them", () => {
+    // The library's own inline styles did not take effect: the input rendered
+    // in normal flow and showed the typed digits a second time.
+    expect(cells).toContain("relative")
+    expect(cells).toContain("absolute inset-0 size-full opacity-0")
   })
 
   it("submits itself once the last digit lands", () => {
     // The digits are valid for half a minute; asking for a second deliberate
     // act spends part of it. The button stays for anyone who fills the field
     // another way.
+    const form = source("src/components/auth/totp-code-form.tsx")
     expect(form).toContain("onComplete")
     expect(form).toContain('type="submit"')
+  })
+})
+
+describe("every screen asks for a code the same way", () => {
+  it("uses the shared field and defines no second one", () => {
+    // Three screens ask for six digits — the emailed code, first enrolment and
+    // the step-up — and each had its own markup and its own styling.
+    for (const file of [
+      "src/components/auth/otp-verify-form.tsx",
+      "src/components/auth/totp-code-form.tsx",
+      "src/components/auth/reauthentication-ceremony.tsx",
+    ]) {
+      const component = source(file)
+      expect(component, file).toContain("OtpCells")
+      expect(component, file).not.toContain('autoComplete="one-time-code"')
+    }
   })
 })
