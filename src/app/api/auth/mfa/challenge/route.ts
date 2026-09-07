@@ -1,10 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server"
 
-import { createSupabaseAuthProvider } from "@/lib/auth/auth-provider"
+import { createAuthProviderForAccessToken } from "@/lib/auth/create-auth-provider"
 import { readSession, writeSession } from "@/lib/auth/session-broker"
 import { SESSION_POLICY } from "@/lib/auth/session-policy"
+import { readServerEnvironment } from "@/lib/env/server"
 import { guardMutation, sessionBindingFrom } from "@/server/actions/mutation-guard"
 import { canonicalRedirect } from "@/server/actions/redirects"
+import { activateSession } from "@/server/adapters/console-api"
 
 export const dynamic = "force-dynamic"
 
@@ -38,7 +40,7 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
     return NextResponse.redirect(canonicalRedirect("/auth/sign-in"), 303)
   }
 
-  const provider = createSupabaseAuthProvider()
+  const provider = createAuthProviderForAccessToken(outcome.session.accessToken)
   const challenge = await provider.challengeTotp(outcome.session.accessToken)
   if (challenge.status !== "ok") {
     return NextResponse.redirect(canonicalRedirect("/auth/mfa/challenge"), 303)
@@ -52,6 +54,17 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
   if (verified.status !== "ok") {
     return NextResponse.redirect(canonicalRedirect("/auth/mfa/challenge"), 303)
   }
+
+  // The provider now says `aal2`, but the backend session is still the one the
+  // email code opened, and it stays unusable until this transition runs. A
+  // refusal here is not reported as a failed code: the reader's factor is
+  // confirmed either way, and the Console reads its context next, which either
+  // works or sends them back with a reason of its own.
+  await activateSession(readServerEnvironment().consoleApiBaseUrl, {
+    accessToken: verified.value.accessToken,
+    correlationId: crypto.randomUUID(),
+    idempotencyKey: crypto.randomUUID(),
+  })
 
   const now = Math.floor(Date.now() / 1000)
   const response = NextResponse.redirect(canonicalRedirect("/onboarding"), 303)

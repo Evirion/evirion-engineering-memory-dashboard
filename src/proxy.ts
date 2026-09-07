@@ -6,6 +6,7 @@ import {
   createTransactionId,
   preAuthCookieOptions,
 } from "@/lib/auth/pre-auth-cookies"
+import { extractAal } from "@/lib/auth/auth-provider"
 import { landingForAuthenticatedReader } from "@/lib/auth/authenticated-landing"
 import { readSession } from "@/lib/auth/session-broker"
 import { SESSION_POLICY } from "@/lib/auth/session-policy"
@@ -79,6 +80,7 @@ export const proxy = async (request: NextRequest): Promise<NextResponse> => {
     const landing = landingForAuthenticatedReader(
       request.nextUrl.pathname,
       request.headers.get("sec-fetch-mode"),
+      extractAal(session.session.accessToken) !== "aal1",
     )
     if (landing !== undefined) {
       return NextResponse.redirect(new URL(landing, request.nextUrl.origin), 303)

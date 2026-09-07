@@ -5,6 +5,24 @@ import type { AuthProvider, TotpChallenge } from "./auth-provider"
 const STUB_TOTP_CODE = "123456"
 
 /**
+ * A fixed seed shaped like the provider's, so the enrolment page renders the
+ * same way it will against GoTrue. It is a fixture, not a working factor: the
+ * stub accepts one documented code and nothing derives anything from this.
+ */
+const STUB_SEED = {
+  qrCode:
+    "data:image/svg+xml;utf-8," +
+    encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 8" shape-rendering="crispEdges">' +
+        '<rect width="8" height="8" fill="#fff"/>' +
+        '<path fill="#000" d="M0 0h3v3H0zM5 0h3v3H5zM0 5h3v3H0zM4 4h1v1H4zM6 5h1v1H6zM5 6h1v1H5zM7 7h1v1H7z"/>' +
+        '<path fill="#fff" d="M1 1h1v1H1zM6 1h1v1H6zM1 6h1v1H1z"/>' +
+        "</svg>",
+    ),
+  secret: "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP",
+} as const
+
+/**
  * Auth behaviour for the browser gate's stub principal tokens.
  *
  * The Console API double does not implement GoTrue, but the ceremony still
@@ -41,7 +59,16 @@ export const createStubAuthProvider = (accessToken: string): AuthProvider => {
       return { status: "ok", value: null }
     },
     async enrollTotp() {
-      return { status: "denied", reason: "stub-provider" }
+      return { status: "ok", value: { factorId: challenge.factorId, ...STUB_SEED } }
+    },
+    async listTotpFactors() {
+      // No factor yet, which is what makes the enrolment page reachable in the
+      // harness. The challenge below answers regardless, so the step-up
+      // journeys that never visit enrolment are unaffected.
+      return { status: "ok", value: { verified: [], unverified: [] } }
+    },
+    async unenrollTotp() {
+      return { status: "ok", value: null }
     },
     async challengeTotp() {
       return { status: "ok", value: challenge }

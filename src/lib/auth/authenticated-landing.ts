@@ -26,6 +26,20 @@ const PLACEHOLDER_ROOT = "/"
 
 const LANDING = "/onboarding"
 
+/** Where a session that has not yet proved a second factor has to go. */
+const SECOND_FACTOR = "/auth/mfa/enroll"
+
+/**
+ * The pages that complete the second factor, plus the route handlers they post
+ * to. Sending either of these to the second factor would be a loop, and a form
+ * POST carries `sec-fetch-mode: navigate` exactly like a page visit, so the
+ * route handlers have to be named here rather than assumed to be fetches.
+ */
+const isSecondFactorPath = (pathname: string): boolean =>
+  pathname.startsWith("/auth/mfa/") ||
+  pathname.startsWith("/api/auth/") ||
+  pathname === "/auth/logout"
+
 /**
  * Exact paths only. A prefix match would also capture `/auth/sign-in-elsewhere`
  * and, worse, `/auth/mfa/challenge`, which a signed-in reader must reach.
@@ -45,8 +59,17 @@ const LANDING = "/onboarding"
 export const landingForAuthenticatedReader = (
   pathname: string,
   fetchMode: string | null,
-): string | undefined =>
-  fetchMode === "navigate" &&
-  (pathname === PLACEHOLDER_ROOT || PRE_AUTH_PATHS.has(pathname))
+  hasSecondFactor: boolean,
+): string | undefined => {
+  if (fetchMode !== "navigate") return undefined
+  // A session established by an email code alone is real but powerless: the
+  // backend creates it awaiting a second factor and refuses every read until
+  // one arrives. Landing such a reader on the Console showed them a page that
+  // could only fail, so they are sent to finish what they started instead.
+  if (!hasSecondFactor) {
+    return isSecondFactorPath(pathname) ? undefined : SECOND_FACTOR
+  }
+  return pathname === PLACEHOLDER_ROOT || PRE_AUTH_PATHS.has(pathname)
     ? LANDING
     : undefined
+}

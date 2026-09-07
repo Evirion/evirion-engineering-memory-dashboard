@@ -173,9 +173,14 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
   // The code was accepted; only registration failed. Saying otherwise sends
   // the reader hunting for a typo they did not make.
   if (!bootstrap.ok) return denied(AUTH_OUTCOMES.sessionNotRegistered)
+  // The session this registered is not usable yet. An email code alone is
+  // `aal1`, and the backend creates such a session awaiting a second factor
+  // and refuses every read until one arrives. Sending the reader to the
+  // Console here landed them on a page that could only fail, so they are sent
+  // to finish the second factor and arrive at their destination afterwards.
   const target = resolveSafeRedirect(guard.form.get("next") as string | null)
   const response = NextResponse.redirect(
-    canonicalRedirect(target === "/" ? "/onboarding" : target),
+    canonicalRedirect(target === "/" ? "/auth/mfa/enroll" : target),
     303,
   )
 

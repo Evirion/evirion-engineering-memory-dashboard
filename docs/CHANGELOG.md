@@ -1,5 +1,45 @@
 # Dashboard changelog
 
+## 2026-09-07 — the second factor becomes something a reader can actually do
+
+- **Why the Console was empty for a partner who had just signed in.** The
+  session was real and powerless. An email code alone is `aal1`, the backend
+  creates such a session awaiting a second factor, and it refuses every read
+  until one arrives — including the reader's own context. The Console sent
+  them to `/onboarding` regardless, so they met a page that could only fail.
+- **Three gaps meant nobody could ever cross that line.** The enrolment route
+  called the provider and threw the answer away, so the reader registered a
+  factor they had no way to hold; the page said so in its own comment and
+  deferred the fix to this task. `challengeTotp` accepted only an
+  already-verified factor, so the first confirmation was unreachable and the
+  only way to own a verified factor was to already own one. And nothing
+  activated the backend session afterwards.
+- **What a reader now does.** Verification lands them on `/auth/mfa/enroll`,
+  which shows a QR and the key to type, takes the six digits, and continues to
+  the Console. The seed is created by the request that renders it, because the
+  provider returns it exactly once and it may not enter a cookie, a URL, a log
+  or any cacheable response. That makes the page a GET with an effect, so it is
+  repeatable instead: an unconfirmed factor from an abandoned attempt is
+  removed before a new one is created.
+- **Routing.** The proxy sends a reader who still owes a factor to finish it,
+  from anywhere except the pages and route handlers that finish it. A form POST
+  carries `sec-fetch-mode: navigate` like a page visit, so those handlers are
+  named rather than assumed to be fetches. The decision acts on positive
+  evidence: a token that does not carry `aal` at all is not treated as owing a
+  factor, which is the same fail-open stance the guard already documented.
+- **Backend dependency.** Activation calls `POST /v1/session/activations`, added
+  by the backend the same day. It is not released yet, so the Console vendors
+  `console-contract-v1.0.5` and this adapter follows the handwritten pattern the
+  pre-auth and bootstrap calls already use. Vendoring `v1.0.6` and regenerating
+  from it is the follow-up.
+- **Verification.** Full unit suite and the browser journeys pass; three new
+  browser tests cover the enrolment page and eleven contract tests cover the
+  journey. Five security specs fail identically on `main` and are untouched by
+  this change. Lint, typecheck and format clean.
+- **Deployment state.** Implemented and locally verified. Not deployed, not
+  observed, not exercised by a real partner.
+
+
 ## 2026-09-07 — the proof is sent under the name the backend reads
 
 - **Why the bootstrap was still refused.** The BFF sent the signed proof as

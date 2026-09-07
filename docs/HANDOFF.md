@@ -1,10 +1,28 @@
 # Dashboard handoff
 
-Updated: 2026-09-05
+Updated: 2026-09-07
 
 ## Current state
 
-- Active branch: `EEM-9/08-perform-the-pre-auth-ceremony`.
+- Active branch: `EEM-9/07-second-factor-journey`.
+- **A signed-in reader can now reach the Console.** An email code alone is
+  `aal1`; the backend creates such a session awaiting a second factor and
+  refuses every read until one arrives, so a partner who signed in met an
+  onboarding page that could only fail. `/auth/mfa/enroll` now shows a QR and
+  the key to type, the challenge accepts a first unverified factor, and the
+  backend session is activated once the token carries `aal2`.
+- **Activation needs a backend release.** It calls
+  `POST /v1/session/activations`, added to the backend contract the same day
+  and **not released**: the last tag is `console-contract-v1.0.5`, which this
+  repository vendors. The call therefore follows the handwritten adapter
+  pattern the pre-auth and bootstrap calls already use. Cutting
+  `console-contract-v1.0.6`, vendoring it and regenerating the client is the
+  follow-up, and until the backend route is deployed the Console session stays
+  in `reauth_required` even after a correct authenticator code.
+- **Five security specs fail on `main`** — four in
+  `headers-cache-isolation.spec.ts` and one in `release-surface.spec.ts` — and
+  fail identically before and after this branch. They are not diagnosed.
+- Previous branch: `EEM-9/08-perform-the-pre-auth-ceremony`.
 - **Sign-in works.** The BFF was missing the middle step of the ceremony: the
   backend issues the pre-auth transaction and the bootstrap must name that
   identifier, in `otp_verified`. The BFF invented one, so no session had ever

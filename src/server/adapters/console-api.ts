@@ -239,6 +239,48 @@ export const issuePreAuthTransaction = async (
   )
 
 /**
+ * Finish becoming a session.
+ *
+ * A session bootstrapped from an email code alone is created awaiting a second
+ * factor and authorizes nothing, so its holder cannot read even their own
+ * context. This is the transition that makes it usable, and it is refused
+ * unless the presented token already carries `aal2`.
+ *
+ * It is not the step-up ceremony. `issueSessionReauthentication` restores
+ * freshness for a session that is already active; this is how a session
+ * becomes active at all.
+ */
+export const SESSION_ACTIVATION_PATH = "/v1/session/activations"
+
+export type SessionActivation = {
+  readonly sessionId: string
+  readonly status: "ACTIVE"
+  readonly version: number
+}
+
+const isSessionActivation = (value: unknown): value is SessionActivation => {
+  if (typeof value !== "object" || value === null) return false
+  const candidate = value as Record<string, unknown>
+  return (
+    typeof candidate["sessionId"] === "string" &&
+    candidate["status"] === "ACTIVE" &&
+    typeof candidate["version"] === "number"
+  )
+}
+
+export const activateSession = async (
+  baseUrl: string,
+  request: Omit<ConsoleRequest, "method" | "path" | "body">,
+  transport?: ConsoleTransport,
+): Promise<ConsoleResult<SessionActivation>> =>
+  callConsoleApi<SessionActivation>(
+    baseUrl,
+    { ...request, method: "POST", path: SESSION_ACTIVATION_PATH, body: {} },
+    isSessionActivation,
+    transport,
+  )
+
+/**
  * What the backend actually answers, which is a command receipt.
  *
  * The BFF used to require `registered: true`, a field no route has ever sent.
