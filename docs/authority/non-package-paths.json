@@ -24,5 +24,6 @@
   "tools/security/dast-baseline.mjs",
   "tools/verify/**",
   "tsconfig.json",
+  "vercel.json",
   "vitest.config.ts"
 ]

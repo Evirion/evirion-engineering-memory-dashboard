@@ -67,6 +67,33 @@ export const isSyncInProgress = (installation: GithubInstallation | null): boole
   installation?.latestSyncRun?.status === "QUEUED" ||
   installation?.latestSyncRun?.status === "RUNNING"
 
+/**
+ * How long a consumed setup intent may still be waiting for the signed webhook.
+ *
+ * GitHub delivers `installation.created` within seconds, so a consumed intent
+ * older than this is not waiting for anything. Without the bound, an
+ * organization that connected and later uninstalled matches the same shape —
+ * the projection reports no installation once the row is `removed`, while the
+ * intent stays `CONSUMED` forever — and the page would poll for good.
+ */
+export const PENDING_PROOF_WINDOW_MS = 15 * 60 * 1000
+
+export const isInstallationPending = (
+  installation: GithubInstallation | null,
+  now: number = Date.now(),
+): boolean => {
+  if (installation === null || installation.installation !== null) return false
+  const intent = installation.setupIntent
+  if (!intent || intent.status !== "CONSUMED") return false
+  if (typeof intent.resolvedAt !== "string") return false
+  const resolvedAt = Date.parse(intent.resolvedAt)
+  return (
+    Number.isFinite(resolvedAt) &&
+    now >= resolvedAt &&
+    now - resolvedAt < PENDING_PROOF_WINDOW_MS
+  )
+}
+
 export const GithubConnection = ({
   installation,
   csrfToken,
@@ -143,3 +170,11 @@ export const GithubConnection = ({
  * renders this while the status is queued or running.
  */
 export const SyncPoll = () => <meta httpEquiv="refresh" content="5" />
+
+/**
+ * Refresh while the backend waits for the signed webhook proof.
+ *
+ * `isInstallationPending` stops being true once the proof window closes, so the
+ * refresh ends whether or not the delivery ever arrives.
+ */
+export const InstallationPendingPoll = () => <meta httpEquiv="refresh" content="5" />

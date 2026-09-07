@@ -4,7 +4,24 @@ Updated: 2026-09-07
 
 ## Current state
 
-- Active branch: `main`; the second-factor work is merged and deployed.
+- Active branch: `EEM-9/07-github-installation-return` (from `main`).
+- **EEM-9/07g — GitHub App installation return.** `GET /api/github/installed` completes the
+  browser half of the handshake and redirects to `/settings/github?result=…`, which now renders
+  that outcome through the shared command-outcome notice. The pending poll is bounded by the
+  fifteen-minute proof window, so an organization that uninstalled no longer sits in a permanent
+  refresh loop. `pnpm lint`, `pnpm typecheck` and `pnpm format:check` pass; 968 unit/contract tests
+  across 66 files and 334 Playwright tests pass. The five security specs that fail on `main` still
+  fail identically.
+- **Depends on backend.** Open as
+  [PR #53](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/53), paired with
+  backend [PR #95](https://github.com/Evirion/evirion-engineering-memory/pull/95), which merges
+  first. **The backend half is already live on `EEC-staging`** — migration `20260907170000` applied
+  and `console-api` at version 30 — so the callback there accepts a body without `accountLogin` and
+  can answer `GITHUB_INSTALLATION_PENDING_PROVIDER`. What remains is deploying this Console and
+  setting the GitHub App Setup URL to `https://console.evirion.dev/api/github/installed`. Nothing
+  is observed end to end yet.
+- **Operator action after deploy.** GitHub App Setup URL:
+  `https://console.evirion.dev/api/github/installed`.
 - **A partner can sign in and use the Console, observed end to end on
   staging.** An email code alone is `aal1`; the backend creates such a session
   awaiting a second factor and refuses every read until one arrives.

@@ -606,10 +606,6 @@ const handle = async (request, response, url) => {
           status: "CREATED",
         }
         state.setupIntents.set(intent.id, intent)
-        // The receipt the backend actually answers, with the intent inside.
-        // This returned the bare intent, which agreed with what the BFF
-        // expected and with nothing the backend has ever sent, so the journey
-        // passed here and failed against staging.
         return {
           data: {
             receiptId: randomUUID(),
@@ -625,6 +621,74 @@ const handle = async (request, response, url) => {
                 state: intent.state,
                 expiresAt: intent.expiresAt,
               },
+            },
+          },
+        }
+      },
+    })
+  }
+
+  if (rest === "/github/installation-callbacks" && request.method === "POST") {
+    return withCommand(request, response, state, principal, organizationId, {
+      operation: "github.installation-complete",
+      target: organizationId,
+      capability: "organization.github.manage",
+      apply: async () => {
+        const body = await readBody(request)
+        if (
+          typeof body !== "object" ||
+          body === null ||
+          typeof body.state !== "string" ||
+          typeof body.providerInstallationId !== "number" ||
+          body.accountLogin !== undefined
+        ) {
+          return { error: "REQUEST_INVALID" }
+        }
+
+        const pending = state.installation.installation === null
+        const responseCode = pending
+          ? "GITHUB_INSTALLATION_PENDING_PROVIDER"
+          : "GITHUB_INSTALLATION_CONNECTED"
+        const installation = pending
+          ? null
+          : {
+              id: randomUUID(),
+              status: "ACTIVE",
+              accountLogin: "acme",
+              connectedAt: new Date().toISOString().replace(/\.\d+Z$/, "Z"),
+            }
+
+        if (!pending) {
+          state.installation = {
+            ...state.installation,
+            installation,
+            setupIntent: {
+              ...state.installation.setupIntent,
+              status: "CONSUMED",
+              resolvedAt: new Date().toISOString().replace(/\.\d+Z$/, "Z"),
+            },
+          }
+        } else {
+          state.installation = {
+            ...state.installation,
+            setupIntent: {
+              ...state.installation.setupIntent,
+              status: "CONSUMED",
+              resolvedAt: new Date().toISOString().replace(/\.\d+Z$/, "Z"),
+            },
+          }
+        }
+
+        return {
+          data: {
+            receiptId: randomUUID(),
+            status: "completed",
+            responseCode,
+            responsePayload: {
+              changed: true,
+              organizationId,
+              setupIntent: state.installation.setupIntent,
+              installation,
             },
           },
         }

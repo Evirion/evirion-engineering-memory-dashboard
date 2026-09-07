@@ -261,6 +261,21 @@ export type GithubSyncStart = GithubReceipt<{
   readonly syncRun: Record<string, unknown>
 }>
 
+export type GithubInstallationComplete = GithubReceipt<{
+  readonly setupIntent: {
+    readonly id: string
+    readonly status: string
+    readonly resolvedAt: string | null
+    readonly failureCode: string | null
+  }
+  readonly installation: {
+    readonly id: string
+    readonly status: string
+    readonly accountLogin: string
+    readonly connectedAt: string
+  } | null
+}>
+
 const isReceiptEnvelope = (value: unknown): value is GithubReceipt<unknown> => {
   if (typeof value !== "object" || value === null) return false
   const candidate = value as Record<string, unknown>
@@ -293,6 +308,32 @@ const isGithubSyncStart = (value: unknown): value is GithubSyncStart => {
   if (!isReceiptEnvelope(value)) return false
   const payload = value.responsePayload as Record<string, unknown>
   return typeof payload["syncRun"] === "object" && payload["syncRun"] !== null
+}
+
+const isGithubInstallationComplete = (
+  value: unknown,
+): value is GithubInstallationComplete => {
+  if (!isReceiptEnvelope(value)) return false
+  const payload = value.responsePayload as Record<string, unknown>
+  const intent = payload["setupIntent"]
+  if (typeof intent !== "object" || intent === null) return false
+  const setupIntent = intent as Record<string, unknown>
+  if (
+    typeof setupIntent["id"] !== "string" ||
+    typeof setupIntent["status"] !== "string"
+  ) {
+    return false
+  }
+  const installation = payload["installation"]
+  if (installation === null) return true
+  if (typeof installation !== "object" || installation === null) return false
+  const candidate = installation as Record<string, unknown>
+  return (
+    typeof candidate["id"] === "string" &&
+    typeof candidate["status"] === "string" &&
+    typeof candidate["accountLogin"] === "string" &&
+    typeof candidate["connectedAt"] === "string"
+  )
 }
 
 export const startGithubInstallation = (
@@ -330,6 +371,36 @@ export const startGithubRepositorySync = (
       body: {},
     },
     isGithubSyncStart,
+    transport,
+  )
+
+export const completeGithubInstallation = (
+  scope: RepositoryScope,
+  input: {
+    readonly state: string
+    readonly providerInstallationId: number
+    readonly idempotencyKey: string
+    readonly accountLogin?: string
+  },
+  transport?: ConsoleTransport,
+): Promise<ConsoleResult<GithubInstallationComplete>> =>
+  callConsoleApi<GithubInstallationComplete>(
+    scope.baseUrl,
+    {
+      method: "POST",
+      path: organizationPath(scope, "/github/installation-callbacks"),
+      accessToken: scope.accessToken,
+      correlationId: scope.correlationId,
+      idempotencyKey: identifier(input.idempotencyKey, "idempotency key"),
+      body: {
+        state: input.state,
+        providerInstallationId: input.providerInstallationId,
+        ...(input.accountLogin === undefined
+          ? {}
+          : { accountLogin: input.accountLogin }),
+      },
+    },
+    isGithubInstallationComplete,
     transport,
   )
 
