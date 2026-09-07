@@ -926,7 +926,7 @@ class CrossRepositoryAuthorityTests(unittest.TestCase):
                 "concurrentSessionMaximum": 3,
                 "dangerousOperationReauthentication": "10m",
                 "emailOtpLifetime": "10m",
-                "idleExpiry": "30m-visible-tab-human-activity",
+                "idleExpiry": "2h-visible-tab-human-activity",
                 "idleWarning": "5m",
                 "jwtLifetime": "15m",
                 "oldestSessionReplacementNoticeRequired": True,
