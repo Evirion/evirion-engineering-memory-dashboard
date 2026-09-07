@@ -6,7 +6,9 @@ import {
 import {
   GithubConnection,
   SyncPoll,
+  SyncStalledNotice,
   isSyncInProgress,
+  isSyncStalled,
 } from "@/components/repositories/github-connection"
 import {
   RepositoryCapacity,
@@ -66,6 +68,7 @@ const RepositoriesPage = async ({
       ) : (
         <>
           {isSyncInProgress(view.installation) ? <SyncPoll /> : null}
+          {isSyncStalled(view.installation) ? <SyncStalledNotice /> : null}
           <GithubConnection
             installation={view.installation}
             csrfToken={csrfToken}

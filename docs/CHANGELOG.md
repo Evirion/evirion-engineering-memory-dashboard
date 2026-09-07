@@ -1,5 +1,23 @@
 # Dashboard changelog
 
+## 2026-09-07 — stop reloading for a run that may never finish
+
+- **Why.** A partner pressed Synchronize repositories and both the GitHub and
+  Repositories pages reloaded every five seconds without end. Observed on
+  staging, where the run sat `QUEUED` with `attempt_count = 0` because no
+  executor is deployed to claim it.
+- **The assumption that failed.** `SyncPoll` carried the comment "It stops the
+  moment the run reaches a terminal state", which holds only while something
+  reaches that state for it. Whether a run is ever claimed is a deployment fact
+  the browser cannot see, so the status alone is not a stopping condition.
+- **What changed.** `isSyncInProgress` also requires the run to have been
+  requested within `SYNC_WATCH_WINDOW_MS`. Past that, `isSyncStalled` renders a
+  notice that reports the state and claims nothing about whether it will ever
+  finish. This is the same bound already applied to the installation pending
+  poll; that one was fixed and this sibling was missed.
+- **Verification.** `pnpm lint`, `pnpm typecheck`, `pnpm format:check`, 986 unit
+  and contract tests across 69 files, 334 Playwright tests.
+
 ## 2026-09-07 — say which step is actually left
 
 - **Why.** A partner finished connecting the GitHub App, saw `Connected to

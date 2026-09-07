@@ -9,7 +9,9 @@ import {
   InstallationPendingPoll,
   isInstallationPending,
   isSyncInProgress,
+  isSyncStalled,
   SyncPoll,
+  SyncStalledNotice,
 } from "@/components/repositories/github-connection"
 import { hasCapability } from "@/lib/auth/capabilities"
 import { githubInstallationStatusLabel } from "@/lib/settings/presentation"
@@ -106,6 +108,7 @@ export const GithubSettingsPanel = ({
         <>
           {pendingInstallation ? <InstallationPendingPoll /> : null}
           {isSyncInProgress(installation) ? <SyncPoll /> : null}
+          {isSyncStalled(installation) ? <SyncStalledNotice /> : null}
           <GithubConnection
             installation={installation}
             csrfToken={csrfToken}

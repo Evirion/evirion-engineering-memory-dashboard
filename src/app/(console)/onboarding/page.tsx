@@ -3,7 +3,9 @@ import Link from "next/link"
 import {
   GithubConnection,
   isSyncInProgress,
+  isSyncStalled,
   SyncPoll,
+  SyncStalledNotice,
 } from "@/components/repositories/github-connection"
 import { readSessionCsrfToken } from "@/server/actions/session-csrf-read"
 import { readRepositoryList } from "@/server/queries/repositories"
@@ -47,6 +49,7 @@ const OnboardingPage = async () => {
       ) : (
         <>
           {isSyncInProgress(view.installation) ? <SyncPoll /> : null}
+          {isSyncStalled(view.installation) ? <SyncStalledNotice /> : null}
           <GithubConnection
             installation={view.installation}
             csrfToken={csrfToken}

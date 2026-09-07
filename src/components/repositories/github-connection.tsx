@@ -63,9 +63,49 @@ const syncLine = (run: GithubSyncRun): string => {
   }
 }
 
-export const isSyncInProgress = (installation: GithubInstallation | null): boolean =>
-  installation?.latestSyncRun?.status === "QUEUED" ||
-  installation?.latestSyncRun?.status === "RUNNING"
+/**
+ * How long a queued or running synchronization is still worth watching.
+ *
+ * A run reaches a terminal state only if something claims it. Nothing in this
+ * repository guarantees that: the executor is a separate service, and if it is
+ * not deployed the run stays `QUEUED` for ever. Polling on the status alone
+ * therefore reloads the page every five seconds until the reader navigates
+ * away, which is what happened on staging with no worker running.
+ */
+export const SYNC_WATCH_WINDOW_MS = 15 * 60 * 1000
+
+export const isSyncInProgress = (
+  installation: GithubInstallation | null,
+  now: number = Date.now(),
+): boolean => {
+  const run = installation?.latestSyncRun
+  if (!run) return false
+  if (run.status !== "QUEUED" && run.status !== "RUNNING") return false
+  if (typeof run.requestedAt !== "string") return false
+
+  const requestedAt = Date.parse(run.requestedAt)
+  return (
+    Number.isFinite(requestedAt) &&
+    now >= requestedAt &&
+    now - requestedAt < SYNC_WATCH_WINDOW_MS
+  )
+}
+
+/**
+ * A run that is still unfinished after the watch window.
+ *
+ * Distinct from `isSyncInProgress` so the page can stop reloading and still say
+ * something true, rather than falling silent as if nothing had been requested.
+ */
+export const isSyncStalled = (
+  installation: GithubInstallation | null,
+  now: number = Date.now(),
+): boolean => {
+  const run = installation?.latestSyncRun
+  if (!run) return false
+  if (run.status !== "QUEUED" && run.status !== "RUNNING") return false
+  return !isSyncInProgress(installation, now)
+}
 
 /**
  * How long a consumed setup intent may still be waiting for the signed webhook.
@@ -170,6 +210,23 @@ export const GithubConnection = ({
  * renders this while the status is queued or running.
  */
 export const SyncPoll = () => <meta httpEquiv="refresh" content="5" />
+
+/**
+ * What the page says once it stops reloading on its own.
+ *
+ * It reports the state and stops there. Whether a run will ever be claimed is
+ * a deployment fact the browser cannot see, so this claims nothing about it.
+ */
+export const SyncStalledNotice = () => (
+  <output
+    aria-live="polite"
+    data-testid="sync-stalled"
+    className="rounded border border-amber-400 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+  >
+    This synchronization was requested a while ago and has not finished. The page has
+    stopped checking on its own; reload it to see the current state.
+  </output>
+)
 
 /**
  * Refresh while the backend waits for the signed webhook proof.
