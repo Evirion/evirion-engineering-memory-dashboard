@@ -73,7 +73,7 @@ const RepositoriesPage = async ({
             syncKey={crypto.randomUUID()}
           />
           <RepositoryCapacity summary={view.page.summary} />
-          <RepositoryList page={view.page} />
+          <RepositoryList page={view.page} installation={view.installation} />
           <RepositoryPagination page={view.page} />
         </>
       )}

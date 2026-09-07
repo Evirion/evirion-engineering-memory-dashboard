@@ -1,5 +1,23 @@
 # Dashboard changelog
 
+## 2026-09-07 — say which step is actually left
+
+- **Why.** A partner finished connecting the GitHub App, saw `Connected to
+  svg-dd`, and was then told to connect the GitHub App. The empty repository
+  inventory printed one sentence for four different causes, and the one it
+  named was the only one that could not apply.
+- **What changed.** `emptyRepositoryReason` names the step that is genuinely
+  left: connect when nothing is connected, synchronize when a live installation
+  has never run one, wait while a run is under way, synchronize again after one
+  that did not finish, and adjust GitHub access when a completed run still found
+  nothing. An unpublished run state fails closed rather than guessing.
+- **Not a behaviour change.** Nothing about access, entitlement or
+  synchronization moves; this is what the page says about state it already had.
+- **Verification.** `pnpm lint`, `pnpm typecheck`, `pnpm format:check`, 981 unit
+  and contract tests across 68 files, 334 Playwright tests. The end-to-end
+  expectation now asserts the misleading instruction is absent rather than
+  matching on it.
+
 ## 2026-09-07 — reading is presence
 
 - **Why.** A partner looking at a page without clicking was signed out. The idle

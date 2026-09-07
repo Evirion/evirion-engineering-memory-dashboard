@@ -73,15 +73,20 @@ test.describe("journey_review_repository_inventory", () => {
 })
 
 test.describe("repository inventory states", () => {
-  test("renders no accessible repository as an empty state", async ({
+  test("tells a connected organization to synchronize, not to connect again", async ({
     context,
     page,
   }) => {
+    // The `empty` scenario is a live installation that has never synchronized,
+    // which is what a partner sees the moment they finish connecting.
     await signIn(context, { scenario: "empty" })
 
     await page.goto("/repositories")
 
-    await expect(page.getByText("No repository is accessible yet")).toBeVisible()
+    await expect(
+      page.getByText("no repository has been read yet", { exact: false }),
+    ).toBeVisible()
+    await expect(page.getByText("Connect the GitHub App")).toHaveCount(0)
   })
 
   test("renders an unprovisioned allowance as a refusal, never as zero", async ({
