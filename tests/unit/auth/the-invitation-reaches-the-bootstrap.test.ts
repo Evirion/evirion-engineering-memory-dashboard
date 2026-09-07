@@ -64,7 +64,10 @@ describe("the invitation identifier survives the whole sign-in", () => {
     const route = source(VERIFY_OTP)
 
     expect(route).toMatch(/guard\.form\.get\("invitationId"\)/)
-    expect(route).toContain("invitationId: body.invitationId")
+    // It reaches both the request the backend routes on and the proof that
+    // binds it, so neither can be forged without the other.
+    expect(route).toContain("invitationAcceptancePath(invitationId)")
+    expect(route).toContain("invitationId,")
   })
 
   it("is cleared with the rest of the pre-auth state", () => {

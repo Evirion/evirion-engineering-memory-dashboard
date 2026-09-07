@@ -188,6 +188,46 @@ export const callConsoleApi = async <T>(
  */
 export const SESSION_BOOTSTRAP_PATH = "/internal/console/v1/session/bootstrap"
 
+/**
+ * The step between a verified code and a session.
+ *
+ * `bootstrap_console_auth_session` will not create a session unless a pre-auth
+ * transaction already exists in `otp_verified`, keyed by the identifier the
+ * bootstrap names. Only the backend can create one, and it does so here. The
+ * BFF used to invent an identifier of its own and send that, so the row was
+ * never found and every sign-in was refused.
+ *
+ * Two routes issue it. An established member takes `/v1/session/pre-auth`. A
+ * reader holding an invitation takes the acceptance route, which additionally
+ * turns their membership from `invited` into `active` — the only way that
+ * transition ever happens. Both answer with a transaction already advanced to
+ * `otp_verified`.
+ */
+export const SESSION_PRE_AUTH_PATH = "/v1/session/pre-auth"
+
+export const invitationAcceptancePath = (invitationId: string): string =>
+  `/v1/invitations/${invitationId}/accept`
+
+export type PreAuthTransaction = { readonly preAuthTransactionId: string }
+
+const isPreAuthTransaction = (value: unknown): value is PreAuthTransaction =>
+  typeof value === "object" &&
+  value !== null &&
+  typeof (value as { preAuthTransactionId?: unknown }).preAuthTransactionId === "string"
+
+export const issuePreAuthTransaction = async (
+  baseUrl: string,
+  path: string,
+  request: Omit<ConsoleRequest, "method" | "path" | "body">,
+  transport?: ConsoleTransport,
+): Promise<ConsoleResult<PreAuthTransaction>> =>
+  callConsoleApi<PreAuthTransaction>(
+    baseUrl,
+    { ...request, method: "POST", path, body: {} },
+    isPreAuthTransaction,
+    transport,
+  )
+
 export type BootstrapReceipt = { readonly registered: true }
 
 const isBootstrapReceipt = (value: unknown): value is BootstrapReceipt =>

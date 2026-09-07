@@ -1,5 +1,38 @@
 # Dashboard changelog
 
+## 2026-09-07 — the BFF performs the whole sign-in ceremony
+
+- **Why no one had ever signed in.** `api.bootstrap_console_auth_session` looks
+  the pre-auth transaction up by the identifier the bootstrap names and requires
+  it in `otp_verified`. Only the backend can create one. The BFF minted its own
+  identifier in a cookie and sent that, so the row was never found and every
+  attempt ended in `AUTHENTICATION_REQUIRED`. The permanently empty
+  `private.console_pre_auth_transactions` looked like an unused table rather
+  than a ceremony missing its middle step.
+- **Two more mismatches in the same request.** The body omitted `deviceLabel`
+  and `preAuthTransactionId`, which the route requires exactly, and the
+  idempotency key was `bootstrap:<sessionId>` where a UUID is required. Sent
+  verbatim, today's request answers `422`; that is how the shape was confirmed
+  before anything was changed.
+- **What changed.** After the code is verified the BFF now issues the
+  transaction and uses the identifier it receives. An established member takes
+  `POST /v1/session/pre-auth`; a reader holding an invitation takes
+  `POST /v1/invitations/{id}/accept`, which additionally turns their membership
+  from `invited` into `active` — the only way that transition happens. Both
+  answer with a transaction already in `otp_verified`. A refusal fails closed
+  before anything is signed.
+- **Verification.** Ten new tests plus the corrected chain assertions; unit
+  suite 900 passed, lint, typecheck and format clean. Proven against staging by
+  performing the corrected sequence by hand: acceptance answered `200` with an
+  `OTP_VERIFIED` transaction, bootstrap answered `201`, and the database moved
+  from no session at all to one active membership, an accepted invitation and a
+  consumed transaction.
+- **Staging also lacked `CONSOLE_PRE_AUTH_HMAC_KEY`,** without which both
+  issuing routes answer `REQUEST_INVALID`. It is set now.
+- **Deployment state.** Implemented and locally verified; the sequence is proven
+  against staging outside the Console. Not deployed.
+
+
 ## 2026-09-06 — the invitation reaches the bootstrap that needs it
 
 - **Why.** The first design partner entered a correct code and read *the session
