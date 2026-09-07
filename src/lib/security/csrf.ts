@@ -117,6 +117,21 @@ const parsePayload = (body: string): CsrfPayload | undefined => {
 }
 
 /**
+ * Which session a carried proof claims, for deciding whether to replace it.
+ *
+ * The claim is read without verifying the signature, and that is safe because
+ * nothing is authorized on it: the only consumer mints a correctly signed proof
+ * for the live session whenever the answer is not that session. A forged or
+ * expired cookie is therefore replaced rather than trusted, and `verifyCsrfToken`
+ * remains the only thing that decides whether a proof is good.
+ */
+export const csrfBoundSessionId = (token: string | undefined): string | undefined => {
+  const body = token?.split(".")[0]
+  const payload = body === undefined ? undefined : parsePayload(body)
+  return payload?.b.kind === "session" ? payload.b.sessionId : undefined
+}
+
+/**
  * Verify the signature, the lifetime, the exact binding, and that the header
  * or form copy equals the cookie copy. All four must hold.
  */
