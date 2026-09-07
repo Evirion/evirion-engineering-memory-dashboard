@@ -60,6 +60,25 @@ export type TotpFactors = {
   readonly unverified: readonly string[]
 }
 
+type ListedFactor = { readonly id: string; readonly status: string }
+
+/**
+ * Every TOTP factor, including one that has not been confirmed yet.
+ *
+ * `listFactors` buckets a factor under its type only once it is `verified`, so
+ * `data.totp` cannot see the factor a first enrolment just created. Reading it
+ * meant the enrolment page never cleaned up an abandoned attempt and the
+ * challenge never found the factor it was meant to confirm, which left the
+ * first enrolment impossible to complete. `data.all` is the whole list.
+ */
+const everyTotpFactor = (factors: {
+  readonly all: readonly { readonly factor_type: string }[]
+}): readonly ListedFactor[] =>
+  factors.all.filter(
+    (factor): factor is ListedFactor & { readonly factor_type: string } =>
+      factor.factor_type === "totp",
+  )
+
 export type TotpChallenge = { readonly factorId: string; readonly challengeId: string }
 
 export type AuthProvider = {
@@ -258,7 +277,7 @@ export const createSupabaseAuthProvider = (): AuthProvider => ({
       const { data, error } = await callerClient(accessToken).auth.mfa.listFactors()
       if (error || !data) return { status: "denied", reason: "factor-list-denied" }
 
-      const totp = data.totp ?? []
+      const totp = everyTotpFactor(data)
       return {
         status: "ok",
         value: {
@@ -298,7 +317,7 @@ export const createSupabaseAuthProvider = (): AuthProvider => ({
       // verified factor here made the first challenge unreachable, so the only
       // way to own a verified factor was to already own one. A verified factor
       // still wins when both exist, because that is the established one.
-      const totp = factors?.totp ?? []
+      const totp = factors === null ? [] : everyTotpFactor(factors)
       const factor =
         totp.find((candidate) => candidate.status === "verified") ?? totp[0]
       if (listError || !factor) return { status: "denied", reason: "no-factor" }

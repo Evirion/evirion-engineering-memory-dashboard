@@ -86,6 +86,16 @@ describe("a first factor can be confirmed", () => {
       'totp.find((candidate) => candidate.status === "verified") ?? totp[0]',
     )
   })
+
+  it("reads the whole factor list rather than the verified bucket", () => {
+    // `listFactors` files a factor under its type only once it is verified, so
+    // `data.totp` cannot see the factor a first enrolment just created. Against
+    // the deployed Console this produced a factor with zero challenges: the
+    // page created a seed and the confirmation could not find it.
+    expect(provider).toContain("factors.all.filter")
+    expect(provider).not.toContain("factors?.totp")
+    expect(provider).not.toContain("data.totp ?? []")
+  })
 })
 
 describe("the session is activated once the factor is proved", () => {
