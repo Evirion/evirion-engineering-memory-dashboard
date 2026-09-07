@@ -74,11 +74,19 @@ describe("frozen Auth session policy", () => {
   })
 
   it("ties the idle window to visible-tab human activity", () => {
-    expect(baseline.authSession["idleExpiry"]).toBe("30m-visible-tab-human-activity")
-    expect(SESSION_POLICY.idleExpirySeconds).toBe(30 * 60)
+    expect(baseline.authSession["idleExpiry"]).toBe("2h-visible-tab-human-activity")
+    expect(SESSION_POLICY.idleExpirySeconds).toBe(2 * 3600)
     // The warning precedes expiry; a warning longer than the window is a bug.
     expect(SESSION_POLICY.idleWarningSeconds).toBeLessThan(
       SESSION_POLICY.idleExpirySeconds,
+    )
+  })
+
+  it("never lets the idle window outlive the absolute session", () => {
+    // Every extension is clamped to the absolute expiry in the database. A
+    // window longer than that ceiling would be unreachable and misleading here.
+    expect(SESSION_POLICY.idleExpirySeconds).toBeLessThan(
+      SESSION_POLICY.absoluteSessionSeconds,
     )
   })
 

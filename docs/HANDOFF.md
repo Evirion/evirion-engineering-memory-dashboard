@@ -4,7 +4,24 @@ Updated: 2026-09-07
 
 ## Current state
 
-- Active branch: `EEM-9/07-github-installation-return` (from `main`).
+- Active branch: `EEM-9/07i-session-idle-window` (from `main`).
+- **Reading now counts as presence.** Pointer, keyboard and scroll input in a visible tab sends one
+  heartbeat to `POST /api/session/activity`, coalesced to the interval the database applies, and
+  the shell warns five minutes before the window closes instead of signing the reader out with no
+  notice. `idleExpiry` moves from `30m` to `2h` here and in the paired backend migration
+  `20260907200000`; the database still owns the deadline. The authority package digest moves with
+  it — the literal is not repeated here, because recording it inside a package file would change
+  the value it records. It does not disturb the backend pointer, which pins the EEM-9/01 package at
+  Dashboard commit `f7d43d2d` rather than at whatever `main` holds.
+- **EEM-9/07g is merged and the Console is deployed.**
+  [PR #53](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/53) merged as
+  `d4cae0c` after backend [PR #95](https://github.com/Evirion/evirion-engineering-memory/pull/95),
+  and `https://console.evirion.dev/api/github/installed` answers, redirecting an unauthenticated
+  caller to sign-in. Setting the GitHub App Setup URL to that address is the remaining operator
+  step; no real installation has been observed.
+- **The frozen-authority check is green again.** It had failed on every pull request since
+  `vercel.json` arrived with the region pin without being named in either inventory. It is
+  deployment configuration and now sits in `non-package-paths.json`.
 - **EEM-9/07g — GitHub App installation return.** `GET /api/github/installed` completes the
   browser half of the handshake and redirects to `/settings/github?result=…`, which now renders
   that outcome through the shared command-outcome notice. The pending poll is bounded by the
