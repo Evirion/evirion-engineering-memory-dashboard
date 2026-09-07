@@ -4,15 +4,22 @@ Updated: 2026-09-07
 
 ## Current state
 
-- Active branch: `EEM-9/07i-session-idle-window` (from `main`).
-- **Reading now counts as presence.** Pointer, keyboard and scroll input in a visible tab sends one
-  heartbeat to `POST /api/session/activity`, coalesced to the interval the database applies, and
-  the shell warns five minutes before the window closes instead of signing the reader out with no
-  notice. `idleExpiry` moves from `30m` to `2h` here and in the paired backend migration
-  `20260907200000`; the database still owns the deadline. The authority package digest moves with
-  it — the literal is not repeated here, because recording it inside a package file would change
-  the value it records. It does not disturb the backend pointer, which pins the EEM-9/01 package at
-  Dashboard commit `f7d43d2d` rather than at whatever `main` holds.
+- Active branch: `main`. Nothing is in flight.
+- **Reading counts as presence, and it is deployed.** Pointer, keyboard and scroll input in a
+  visible tab sends one heartbeat to `POST /api/session/activity`, coalesced to the interval the
+  database applies, and the shell warns five minutes before the window closes instead of signing
+  the reader out with no notice. `idleExpiry` is `2h` here and in backend migration
+  `20260907200000`, which is applied to `EEC-staging`; the database still owns the deadline.
+  Merged as [PR #54](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/54)
+  (`e0298a5`) after backend [PR #96](https://github.com/Evirion/evirion-engineering-memory/pull/96)
+  (`df1ffe2`). The deployed route refuses an unauthenticated POST at the mutation guard, which is
+  the boundary answering rather than a handler running.
+  **Not observed:** no session has been watched surviving past the old thirty-minute mark, and the
+  warning has not been seen by a real reader.
+- **The authority package digest moves with the baseline.** The literal is not repeated in this
+  file, because recording it inside a package file would change the value it records. It does not
+  disturb the backend pointer, which pins the EEM-9/01 package at Dashboard commit `f7d43d2d`
+  rather than at whatever `main` holds.
 - **EEM-9/07g is merged and the Console is deployed.**
   [PR #53](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/53) merged as
   `d4cae0c` after backend [PR #95](https://github.com/Evirion/evirion-engineering-memory/pull/95),
