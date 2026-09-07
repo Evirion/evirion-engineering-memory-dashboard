@@ -1,5 +1,25 @@
 # Dashboard changelog
 
+## 2026-09-07 — the Console renders next to the backend it reads
+
+- **Why it was still slow.** Removing the duplicate session-context read
+  measurably worked — one call per navigation instead of two or three — and the
+  reader felt nothing, because the remaining calls were the problem. Each was
+  taking 500–900 ms, and a page makes two or three of them in series.
+- **The cause is geography.** `x-vercel-id: arn1::iad1::…` on every response:
+  the request lands in Stockholm and the render runs in **Washington**, while
+  the Supabase project is `eu-north-1`, **Stockholm**. Every backend call
+  crossed the Atlantic and came back. Nobody chose that pairing; `iad1` is
+  Vercel's default and the project never overrode it.
+- **What changed.** `vercel.json` pins `arn1`. A test pins the choice and names
+  the backend region it matches, because moving either one means moving both.
+- **What this does not fix.** A page still makes its calls in series, and the
+  Edge function still validates the token online on each one. Those are worth
+  attention next; the ocean was worth removing first.
+- **Deployment state.** Implemented and locally verified. The effect is only
+  observable once deployed, and is measured by the same header.
+
+
 ## 2026-09-07 — one context read per page, and no control that cannot work
 
 - **Why it was slow.** Every navigation took three or four backend round trips
