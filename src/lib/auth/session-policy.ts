@@ -15,8 +15,8 @@ export const SESSION_POLICY = {
   jwtLifetimeSeconds: 15 * MINUTE,
   /** `absoluteApplicationSession: "8h"` */
   absoluteSessionSeconds: 8 * HOUR,
-  /** `idleExpiry: "30m-visible-tab-human-activity"` */
-  idleExpirySeconds: 30 * MINUTE,
+  /** `idleExpiry: "2h-visible-tab-human-activity"` */
+  idleExpirySeconds: 2 * HOUR,
   /** `idleWarning: "5m"`, shown before idle expiry, not after it. */
   idleWarningSeconds: 5 * MINUTE,
   /** `emailOtpLifetime: "10m"` */

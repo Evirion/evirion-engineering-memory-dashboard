@@ -1,6 +1,7 @@
 import type { ReactNode } from "react"
 
 import { ConsoleNavigation } from "@/components/layout/console-navigation"
+import { SessionActivity } from "@/components/session/session-activity"
 import { readSessionCsrfToken } from "@/server/actions/session-csrf-read"
 import { requireSessionContext } from "@/server/queries/session-context"
 
@@ -30,7 +31,10 @@ const ConsoleLayout = async ({ children }: { children: ReactNode }) => {
   return (
     <div className="flex min-h-dvh flex-col">
       <ConsoleNavigation context={result.context} csrfToken={csrfToken} />
-      <main className="mx-auto w-full max-w-5xl flex-1 p-6">{children}</main>
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-4 p-6">
+        <SessionActivity csrfToken={csrfToken} />
+        {children}
+      </main>
     </div>
   )
 }

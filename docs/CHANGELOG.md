@@ -1,5 +1,34 @@
 # Dashboard changelog
 
+## 2026-09-07 — reading is presence
+
+- **Why.** A partner looking at a page without clicking was signed out. The idle
+  window is extended only by requests that reach the backend, and reading is not
+  a request; the frozen contract also excludes token refresh, polling and an
+  untouched tab from activity. So the Console had no way to say that someone was
+  still there. The separate fifteen-minute symptom was the missing token refresh
+  fixed in [#50](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/50).
+- **What changed.** Pointer, keyboard and scroll input in a visible tab sends one
+  heartbeat to `POST /api/session/activity`, no more often than the coalescing
+  interval the database itself applies. The route performs one ordinary
+  session-context read, which is what extends the window; it is a POST behind the
+  frozen mutation guard rather than a GET, because extending a session is a state
+  change and a cross-site page must not be able to keep someone signed in.
+- **The warning exists now.** `idleWarning: "5m"` was in the frozen baseline and
+  mirrored in `SESSION_POLICY`, but nothing used it, so the sign-out arrived with
+  no notice at all. The shell now warns before the window closes and offers to
+  stay signed in.
+- **The window is two hours.** `idleExpiry` moves from `30m` to `2h` in
+  `toolchain-baseline.json` and its `SESSION_POLICY` mirror, matching the paired
+  backend migration. The database still owns the deadline; nothing here decides
+  it. The authority package digest moves accordingly, which does not disturb the
+  backend pointer — that pins the EEM-9/01 package at Dashboard commit
+  `f7d43d2d`, not at whatever `main` holds.
+- **Verification.** `pnpm lint`, `pnpm typecheck`, `pnpm format:check`, the
+  authority check, 975 unit and contract tests across 67 files, and 334 Playwright
+  tests. The five security specs that fail on `main` still fail identically.
+- **State.** Implemented and locally verified. Not merged, not deployed.
+
 ## 2026-09-07 — GitHub App installation return route (EEM-9/07g)
 
 - **Why.** The GitHub App had no Setup URL because the Console had no return handler. After a
