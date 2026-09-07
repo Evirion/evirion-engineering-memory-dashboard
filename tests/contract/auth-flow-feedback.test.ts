@@ -96,12 +96,14 @@ describe("A3 and A4: a signed-in reader is not offered the door again", () => {
       "/auth/invite",
       "/auth/recovery",
     ]) {
-      expect(landingForAuthenticatedReader(pathname, "navigate")).toBe("/onboarding")
+      expect(landingForAuthenticatedReader(pathname, "navigate", true)).toBe(
+        "/onboarding",
+      )
     }
   })
 
   it("sends an authenticated reader off the placeholder root", () => {
-    expect(landingForAuthenticatedReader("/", "navigate")).toBe("/onboarding")
+    expect(landingForAuthenticatedReader("/", "navigate", true)).toBe("/onboarding")
   })
 
   it("leaves every other path alone, including the pages that need a session", () => {
@@ -112,13 +114,13 @@ describe("A3 and A4: a signed-in reader is not offered the door again", () => {
       "/auth/mfa/enroll",
       "/api/auth/verify-otp",
     ]) {
-      expect(landingForAuthenticatedReader(pathname, "navigate")).toBeUndefined()
+      expect(landingForAuthenticatedReader(pathname, "navigate", true)).toBeUndefined()
     }
   })
 
   it("does not match a path that merely starts with a guarded one", () => {
     expect(
-      landingForAuthenticatedReader("/auth/sign-in-elsewhere", "navigate"),
+      landingForAuthenticatedReader("/auth/sign-in-elsewhere", "navigate", true),
     ).toBeUndefined()
   })
 
@@ -127,7 +129,32 @@ describe("A3 and A4: a signed-in reader is not offered the door again", () => {
     // one is the application refusing, not a reader at the wrong door, and a
     // security test reads that landing to prove a forged proof went nowhere.
     for (const mode of ["cors", "no-cors", "same-origin", null]) {
-      expect(landingForAuthenticatedReader("/auth/sign-in", mode)).toBeUndefined()
+      expect(landingForAuthenticatedReader("/auth/sign-in", mode, true)).toBeUndefined()
+    }
+  })
+
+  it("sends a session that has not proved a second factor to finish it", () => {
+    // The backend creates an `aal1` session awaiting that proof and refuses
+    // every read until it arrives, so the Console is not a place this reader
+    // can be sent: they would meet a page that could only fail.
+    for (const pathname of ["/", "/onboarding", "/repositories", "/auth/sign-in"]) {
+      expect(landingForAuthenticatedReader(pathname, "navigate", false)).toBe(
+        "/auth/mfa/enroll",
+      )
+    }
+  })
+
+  it("lets that reader reach the pages and route handlers that finish it", () => {
+    // A form POST carries `sec-fetch-mode: navigate` exactly like a page visit,
+    // so redirecting these would break the submission rather than guide it.
+    for (const pathname of [
+      "/auth/mfa/enroll",
+      "/auth/mfa/challenge",
+      "/api/auth/mfa/challenge",
+      "/api/auth/verify-otp",
+      "/api/auth/logout",
+    ]) {
+      expect(landingForAuthenticatedReader(pathname, "navigate", false)).toBeUndefined()
     }
   })
 

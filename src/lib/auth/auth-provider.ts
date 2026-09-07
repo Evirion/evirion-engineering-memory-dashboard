@@ -55,6 +55,11 @@ export type TotpEnrolment = {
   readonly secret: string
 }
 
+export type TotpFactors = {
+  readonly verified: readonly string[]
+  readonly unverified: readonly string[]
+}
+
 export type TotpChallenge = { readonly factorId: string; readonly challengeId: string }
 
 export type AuthProvider = {
@@ -66,6 +71,8 @@ export type AuthProvider = {
   refresh(refreshToken: string): Promise<AuthOutcome<IssuedTokens>>
   signOut(accessToken: string, scope: SignOutScope): Promise<AuthOutcome<null>>
   enrollTotp(accessToken: string): Promise<AuthOutcome<TotpEnrolment>>
+  listTotpFactors(accessToken: string): Promise<AuthOutcome<TotpFactors>>
+  unenrollTotp(accessToken: string, factorId: string): Promise<AuthOutcome<null>>
   challengeTotp(accessToken: string): Promise<AuthOutcome<TotpChallenge>>
   verifyTotp(
     accessToken: string,
@@ -246,13 +253,55 @@ export const createSupabaseAuthProvider = (): AuthProvider => ({
     }
   },
 
+  async listTotpFactors(accessToken) {
+    try {
+      const { data, error } = await callerClient(accessToken).auth.mfa.listFactors()
+      if (error || !data) return { status: "denied", reason: "factor-list-denied" }
+
+      const totp = data.totp ?? []
+      return {
+        status: "ok",
+        value: {
+          verified: totp
+            .filter((factor) => factor.status === "verified")
+            .map((factor) => factor.id),
+          unverified: totp
+            .filter((factor) => factor.status !== "verified")
+            .map((factor) => factor.id),
+        },
+      }
+    } catch {
+      return { status: "unknown" }
+    }
+  },
+
+  async unenrollTotp(accessToken, factorId) {
+    try {
+      const { error } = await callerClient(accessToken).auth.mfa.unenroll({ factorId })
+      return error
+        ? { status: "denied", reason: "unenrolment-denied" }
+        : {
+            status: "ok",
+            value: null,
+          }
+    } catch {
+      return { status: "unknown" }
+    }
+  },
+
   async challengeTotp(accessToken) {
     try {
       const client = callerClient(accessToken)
       const { data: factors, error: listError } = await client.auth.mfa.listFactors()
-      const factor = factors?.totp?.find((candidate) => candidate.status === "verified")
-      if (listError || !factor)
-        return { status: "denied", reason: "no-verified-factor" }
+      // A first enrolment has to be confirmable, and the factor it creates is
+      // unverified until exactly that confirmation succeeds. Requiring a
+      // verified factor here made the first challenge unreachable, so the only
+      // way to own a verified factor was to already own one. A verified factor
+      // still wins when both exist, because that is the established one.
+      const totp = factors?.totp ?? []
+      const factor =
+        totp.find((candidate) => candidate.status === "verified") ?? totp[0]
+      if (listError || !factor) return { status: "denied", reason: "no-factor" }
 
       const { data, error } = await client.auth.mfa.challenge({ factorId: factor.id })
       if (error || !data) return { status: "denied", reason: "challenge-denied" }
@@ -306,4 +355,18 @@ export const decodeClaims = (accessToken: string): Record<string, unknown> => {
 export const extractSessionId = (accessToken: string): string => {
   const value = decodeClaims(accessToken)["session_id"]
   return typeof value === "string" ? value : ""
+}
+
+/**
+ * Routing only, on the same terms as `decodeClaims`.
+ *
+ * Absence is reported as absence rather than folded into `aal1`. The one
+ * consumer sends a reader away on positive evidence that a second factor is
+ * still owed, and a token that simply does not carry the claim is not that
+ * evidence. Authorization never reads this; the backend decides.
+ */
+export const extractAal = (accessToken: string): "aal1" | "aal2" | undefined => {
+  const value = decodeClaims(accessToken)["aal"]
+  if (value === "aal2") return "aal2"
+  return value === "aal1" ? "aal1" : undefined
 }

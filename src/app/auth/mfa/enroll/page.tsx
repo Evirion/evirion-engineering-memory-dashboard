@@ -1,3 +1,9 @@
+import { cookies } from "next/headers"
+import { redirect } from "next/navigation"
+
+import { TotpEnrolmentPanel } from "@/components/auth/totp-enrolment-panel"
+import { createAuthProviderForAccessToken } from "@/lib/auth/create-auth-provider"
+import { readSession } from "@/lib/auth/session-broker"
 import { readSessionCsrfToken } from "@/server/actions/session-csrf-read"
 
 export const dynamic = "force-dynamic"
@@ -5,45 +11,52 @@ export const revalidate = 0
 export const fetchCache = "force-no-store"
 
 /**
- * First TOTP enrolment starts from the freshly email-OTP-verified AAL1
- * session and grants no privileged capability until challenge and verify plus
- * a refreshed current and next AAL prove `aal2`.
+ * First TOTP enrolment, starting from the email-code session and granting
+ * nothing until one challenge succeeds.
  *
- * The QR image and raw seed are one-time browser-visible privileged material.
- * Displaying them is deliberately not done here yet: it requires rendering the
- * enrolment response itself under `private, no-store` without it reaching
- * router cache, prefetch, analytics, logs or error capture, and that lands
- * with the live MFA flow in EEM-9/07. This page therefore promises only what
- * it does, which is to register the factor and move to confirmation.
+ * The seed is created here rather than by the form that led here, and that is
+ * deliberate. Supabase returns the QR and the raw secret exactly once, at
+ * creation, and neither may enter a cookie, a URL, a log or any cacheable
+ * response. The only place they can be shown is the response of the request
+ * that created them, so the creation and the render are one request under
+ * `private, no-store`.
+ *
+ * That makes this a GET with an effect, so it is made repeatable rather than
+ * merely guarded: an unconfirmed factor left by an abandoned attempt is
+ * removed before a new one is created. A reader who reloads therefore sees a
+ * secret that works, and the account never accumulates factors nobody holds.
  */
 const MfaEnrollPage = async () => {
-  const csrfToken = await readSessionCsrfToken()
+  const jar = await cookies()
+  const outcome = readSession(
+    Object.fromEntries(jar.getAll().map((cookie) => [cookie.name, cookie.value])),
+  )
+  if (outcome.status !== "active") redirect("/auth/sign-in")
+
+  const provider = createAuthProviderForAccessToken(outcome.session.accessToken)
+  const factors = await provider.listTotpFactors(outcome.session.accessToken)
+  if (factors.status !== "ok") redirect("/auth/sign-in")
+
+  // An established factor is never replaced from here. Its holder proves it on
+  // the challenge page; replacing one is account recovery, which is its own
+  // ceremony with its own evidence.
+  if (factors.value.verified.length > 0) redirect("/auth/mfa/challenge")
+
+  await Promise.all(
+    factors.value.unverified.map((factorId) =>
+      provider.unenrollTotp(outcome.session.accessToken, factorId),
+    ),
+  )
+
+  const enrolment = await provider.enrollTotp(outcome.session.accessToken)
+  if (enrolment.status !== "ok") redirect("/auth/sign-in")
 
   return (
-    <section className="flex flex-col gap-4">
-      <div className="flex flex-col gap-1">
-        <h2 className="text-lg font-semibold tracking-tight">
-          Set up two-factor authentication
-        </h2>
-        <p className="text-sm text-slate-600">
-          Owner and Admin actions require a second factor. Enrolling does not grant
-          those actions until you complete one challenge.
-        </p>
-      </div>
-      <p className="rounded border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-700">
-        Enrolling registers a factor against your account and then asks you to confirm
-        one code. Nothing privileged becomes available until that confirmation succeeds.
-      </p>
-      <form action="/api/auth/mfa/enroll" method="post" className="flex flex-col gap-4">
-        <input type="hidden" name="csrfToken" value={csrfToken} />
-        <button
-          type="submit"
-          className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-        >
-          Begin enrolment
-        </button>
-      </form>
-    </section>
+    <TotpEnrolmentPanel
+      csrfToken={await readSessionCsrfToken()}
+      qrCode={enrolment.value.qrCode}
+      secret={enrolment.value.secret}
+    />
   )
 }
 
