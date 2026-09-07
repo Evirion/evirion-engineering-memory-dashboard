@@ -86,6 +86,14 @@ export type ConsoleTransport = (
   init: RequestInit,
 ) => Promise<{ status: number; json: () => Promise<unknown> }>
 
+/**
+ * The name the backend reads. It reads `x-evirion-bff-proof`; the BFF sent
+ * `x-console-bff-proof`, so the proof never arrived and the route refused a
+ * request that carried none. The test double read the BFF's name too, which is
+ * why no check ever compared the two.
+ */
+export const BOOTSTRAP_PROOF_HEADER = "x-evirion-bff-proof"
+
 const bounded = (value: string, limit: number): string => value.slice(0, limit)
 
 export const buildConsoleHeaders = (request: ConsoleRequest): Headers => {
@@ -103,7 +111,9 @@ export const buildConsoleHeaders = (request: ConsoleRequest): Headers => {
     // Optimistic versions come from the backend and are forwarded unchanged.
     headers.set(`expected-${name}-version`, String(version))
   }
-  if (request.bootstrapProof) headers.set("x-console-bff-proof", request.bootstrapProof)
+  if (request.bootstrapProof) {
+    headers.set(BOOTSTRAP_PROOF_HEADER, request.bootstrapProof)
+  }
 
   return headers
 }
