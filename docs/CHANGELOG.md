@@ -1,5 +1,23 @@
 # Dashboard changelog
 
+## 2026-09-07 — the authenticator entry says what it is
+
+- **Why.** A reader who had enrolled more than once held several identical
+  nameless rows in their authenticator app, read a code from an older one, and
+  met "That code did not match" — which was true and useless. The provider's
+  default leaves the entry unlabelled, so nothing distinguished this account's
+  row from a dead one.
+- **What changed.** Enrolment names the issuer and the factor, so the app shows
+  `Evirion Engineering Memory` beside the code. The enrolment page also warns
+  that an entry from an earlier attempt must be deleted, because its codes still
+  appear and reading one is indistinguishable from typing the wrong number.
+- **Verification.** 939 unit tests and the browser journeys; lint, typecheck and
+  format clean. Confirmed against the provider's own records that the refusals
+  were real code mismatches — three challenges reached it and none verified —
+  rather than anything the Console did wrong on the way there.
+- **Deployment state.** Implemented and locally verified.
+
+
 ## 2026-09-07 — one way to ask for a code, on every screen that asks
 
 - **Why.** Three screens ask for six digits — the emailed code, first enrolment

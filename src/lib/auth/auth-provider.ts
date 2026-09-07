@@ -60,6 +60,16 @@ export type TotpFactors = {
   readonly unverified: readonly string[]
 }
 
+/**
+ * What an authenticator app shows for this account.
+ *
+ * The issuer is what the app displays beside the code, so it has to name the
+ * product rather than a hostname. The friendly name is the provider's own
+ * label; only one factor exists at a time, so it never collides.
+ */
+const TOTP_ISSUER = "Evirion Engineering Memory"
+const TOTP_FRIENDLY_NAME = "Console"
+
 type ListedFactor = { readonly id: string; readonly status: string }
 
 /**
@@ -254,8 +264,15 @@ export const createSupabaseAuthProvider = (): AuthProvider => ({
 
   async enrollTotp(accessToken) {
     try {
+      // Named, because the provider's default leaves the entry unlabelled. A
+      // reader who enrolled more than once ended up with several identical
+      // nameless rows in their authenticator and no way to tell which one this
+      // account expects — they read a code from an older row, the Console said
+      // it did not match, and it was right.
       const { data, error } = await callerClient(accessToken).auth.mfa.enroll({
         factorType: "totp",
+        friendlyName: TOTP_FRIENDLY_NAME,
+        issuer: TOTP_ISSUER,
       })
       if (error || !data) return { status: "denied", reason: "enrolment-denied" }
 
