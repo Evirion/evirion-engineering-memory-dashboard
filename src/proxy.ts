@@ -6,9 +6,15 @@ import {
   createTransactionId,
   preAuthCookieOptions,
 } from "@/lib/auth/pre-auth-cookies"
-import { extractAal } from "@/lib/auth/auth-provider"
+import { createSupabaseAuthProvider, extractAal } from "@/lib/auth/auth-provider"
 import { landingForAuthenticatedReader } from "@/lib/auth/authenticated-landing"
-import { readSession } from "@/lib/auth/session-broker"
+import { SESSION_COOKIE_BASE, type CookieInstruction } from "@/lib/auth/session-cookies"
+import {
+  accessTokenNeedsRefresh,
+  readSession,
+  writeSession,
+  type SessionReadOutcome,
+} from "@/lib/auth/session-broker"
 import { SESSION_POLICY } from "@/lib/auth/session-policy"
 import { readServerEnvironment } from "@/lib/env/server"
 import { NONCE_HEADER, buildSecurityHeaders, createNonce } from "@/lib/security/headers"
@@ -66,11 +72,26 @@ export const proxy = async (request: NextRequest): Promise<NextResponse> => {
   // The post-authentication proof is bound to the live session, so it is
   // reissued whenever the session identity changes. A proof that survived a
   // logout or a session swap therefore no longer matches the expected binding.
-  const session = readSession(
+  const carried = readSession(
     Object.fromEntries(
       request.cookies.getAll().map((cookie) => [cookie.name, cookie.value]),
     ),
   )
+
+  // The access token lives fifteen minutes and nothing renewed it, so every
+  // session died a quarter of an hour after sign-in: the backend refused the
+  // stale token, the protected shell sent the reader to sign in, and the guard
+  // below sent them back. `accessTokenNeedsRefresh` was written for this and
+  // never called. The proxy is where it belongs — it already reads the session
+  // and is one of the two places allowed to write a cookie.
+  const renewal = await renewIfDue(carried)
+  const session = renewal?.session ?? carried
+  if (renewal !== undefined) {
+    requestHeaders.set(
+      "cookie",
+      withSessionCookies(requestHeaders.get("cookie"), renewal.instructions),
+    )
+  }
   // A live session makes the pre-auth pages and the placeholder root wrong, and
   // nothing stopped a signed-in reader walking back into sign-in and opening a
   // second transaction against their own session. The decision is taken here
@@ -113,6 +134,10 @@ export const proxy = async (request: NextRequest): Promise<NextResponse> => {
 
   const response = NextResponse.next({ request: { headers: requestHeaders } })
 
+  for (const instruction of renewal?.instructions ?? []) {
+    response.cookies.set({ ...instruction, sameSite: "lax" })
+  }
+
   if (sessionCsrf !== undefined) {
     response.cookies.set(sessionCsrfCookie(sessionCsrf))
   }
@@ -144,6 +169,60 @@ export const proxy = async (request: NextRequest): Promise<NextResponse> => {
 
   return response
 }
+
+type Renewal = {
+  readonly session: SessionReadOutcome
+  readonly instructions: CookieInstruction[]
+}
+
+/**
+ * Exchange the refresh token while the access token still has a minute left.
+ *
+ * A failure is not treated as a dead session. The carried token may still be
+ * good for that final minute, and the backend is the authority on whether it
+ * is; turning a transient provider hiccup into a forced sign-out would be a
+ * worse answer than letting the request through and being refused honestly.
+ */
+const renewIfDue = async (
+  outcome: SessionReadOutcome,
+): Promise<Renewal | undefined> => {
+  if (outcome.status !== "active" || !accessTokenNeedsRefresh(outcome.session)) {
+    return undefined
+  }
+
+  const issued = await createSupabaseAuthProvider().refresh(
+    outcome.session.refreshToken,
+  )
+  if (issued.status !== "ok") return undefined
+
+  const session = {
+    ...outcome.session,
+    accessToken: issued.value.accessToken,
+    refreshToken: issued.value.refreshToken,
+    accessTokenExpiresAt: issued.value.accessTokenExpiresAt,
+  }
+  return {
+    session: { ...outcome, session },
+    // The absolute window is the one sign-in opened. Renewal extends the
+    // token, never the session.
+    instructions: writeSession(session),
+  }
+}
+
+/** Replace every chunk of the session cookie, since a renewal rewrites them all. */
+const withSessionCookies = (
+  existing: string | null,
+  instructions: readonly CookieInstruction[],
+): string =>
+  appendCookies(
+    (existing ?? "")
+      .split("; ")
+      .filter((pair) => pair !== "" && !pair.startsWith(`${SESSION_COOKIE_BASE}.`))
+      .join("; ") || null,
+    instructions
+      .filter((instruction) => instruction.value !== "")
+      .map((instruction): [string, string] => [instruction.name, instruction.value]),
+  )
 
 const appendCookies = (existing: string | null, pairs: [string, string][]): string =>
   [existing, ...pairs.map(([name, value]) => `${name}=${value}`)]

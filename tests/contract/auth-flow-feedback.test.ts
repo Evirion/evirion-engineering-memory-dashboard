@@ -93,16 +93,20 @@ describe("A2: the code is single-use, and the page says so first", () => {
 })
 
 describe("A3 and A4: a signed-in reader is not offered the door again", () => {
-  it("sends an authenticated reader away from every pre-auth page", () => {
+  it("leaves an authenticated reader on an Auth page rather than looping them", () => {
+    // This used to send them to the Console, and that was the wrong trade. The
+    // protected shell sends a reader whose session the backend refuses to
+    // sign-in, so bouncing them back produced an unbreakable loop between the
+    // two — observed on the deployed Console once the access token expired.
+    // Offering sign-in to someone who already holds a session is untidy; a loop
+    // is a broken product.
     for (const pathname of [
       "/auth/sign-in",
       "/auth/verify",
       "/auth/invite",
       "/auth/recovery",
     ]) {
-      expect(landingForAuthenticatedReader(pathname, "navigate", true)).toBe(
-        "/onboarding",
-      )
+      expect(landingForAuthenticatedReader(pathname, "navigate", true)).toBeUndefined()
     }
   })
 
