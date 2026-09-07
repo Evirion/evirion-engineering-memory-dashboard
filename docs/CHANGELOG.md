@@ -1,5 +1,39 @@
 # Dashboard changelog
 
+## 2026-09-07 — GitHub App installation return route (EEM-9/07g)
+
+- **Why.** The GitHub App had no Setup URL because the Console had no return handler. After a
+  partner installs the App, GitHub redirects the browser to the Console with `installation_id`
+  and `state`; without a route, the tenant half of the handshake never reached the backend.
+- **What changed.** `GET /api/github/installed` validates the GitHub callback query, requires a
+  member session, calls `completeGithubInstallation` with `{ state, providerInstallationId }` only
+  (no `accountLogin`), and redirects to `/settings/github?result=…`. Settings renders that outcome
+  and a pending poll when the webhook has not arrived yet.
+- **The outcome is readable, because the route is where the journey lands.** The settings page now
+  reads `result` and renders it through the shared `CommandOutcomeNotice`, so an expired state, a
+  replay or an unavailable dependency says so. It previously took no `searchParams` at all, which
+  made every refusal indistinguishable from having never connected.
+- **Waiting for provider proof is bounded by the proof window.** `isInstallationPending` also
+  required the consumed intent to have resolved recently. An organization that connected and later
+  uninstalled has no installation in the projection and a `CONSUMED` intent for good, so it matched
+  the pending shape and the page refreshed every five seconds forever.
+- **The installation identifier must round-trip.** GitHub's identifier pattern reaches past
+  `Number.MAX_SAFE_INTEGER`, where `Number` rounds silently and would name a different
+  installation. The reader is in `src/lib/repositories/github-installation-return.ts` so it can be
+  tested without a request.
+- **Verification.** `pnpm lint`, `pnpm typecheck` and `pnpm format:check` pass. 968 unit and
+  contract tests pass across 66 files, including the new
+  `tests/unit/repositories/github-installation-return.test.ts` and
+  `tests/unit/repositories/installation-pending.test.ts`; 334 Playwright tests pass. The five
+  security specs that fail on `main` — four in `headers-cache-isolation.spec.ts`, one in
+  `release-surface.spec.ts` — still fail identically and are not diagnosed here.
+- **Depends on.** Backend branch `EEM-9/07-github-installation-return` must merge and deploy before
+  the live handshake works end to end.
+- **Operator deliverable.** GitHub App Setup URL:
+  `https://console.evirion.dev/api/github/installed`.
+- **State.** Implemented and locally verified on branch `EEM-9/07-github-installation-return`.
+  Not merged, not deployed.
+
 ## 2026-09-07 — the Console renders next to the backend it reads
 
 - **Why it was still slow.** Removing the duplicate session-context read

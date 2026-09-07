@@ -1,4 +1,8 @@
 import { ConsoleUnavailable } from "@/components/console/console-unavailable"
+import {
+  CommandOutcomeNotice,
+  readCommandResult,
+} from "@/components/repositories/command-outcome"
 import { GithubSettingsPanel } from "@/components/settings/github-settings-panel"
 import { readSessionCsrfToken } from "@/server/actions/session-csrf-read"
 import { readGithubSettings } from "@/server/queries/settings"
@@ -8,12 +12,30 @@ export const dynamic = "force-dynamic"
 export const revalidate = 0
 export const fetchCache = "force-no-store"
 
-const GithubSettingsPage = async () => {
-  const [context, view, csrfToken] = await Promise.all([
+/**
+ * The installation return lands here, so its outcome has to be readable.
+ *
+ * `pending` is not a refusal and the panel already says so from the committed
+ * projection beside it, which is the authority. Everything else goes through
+ * the shared reader, so an unpublished code fails closed instead of printing.
+ */
+const readReturnOutcome = (raw: string | string[] | undefined) => {
+  if (typeof raw !== "string" || raw === "pending") return undefined
+  return readCommandResult(raw)
+}
+
+const GithubSettingsPage = async ({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}) => {
+  const [context, view, csrfToken, parameters] = await Promise.all([
     requireSessionContext(),
     readGithubSettings(),
     readSessionCsrfToken(),
+    searchParams,
   ])
+  const outcome = readReturnOutcome(parameters["result"])
 
   if (context.status === "unavailable") {
     return <p className="text-sm text-slate-600">{context.message}</p>
@@ -28,6 +50,8 @@ const GithubSettingsPage = async () => {
           not entitlement.
         </p>
       </div>
+
+      {outcome ? <CommandOutcomeNotice result={outcome} /> : null}
 
       {view.status === "unavailable" ? (
         <ConsoleUnavailable

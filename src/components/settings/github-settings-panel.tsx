@@ -6,6 +6,8 @@ import type {
 
 import {
   GithubConnection,
+  InstallationPendingPoll,
+  isInstallationPending,
   isSyncInProgress,
   SyncPoll,
 } from "@/components/repositories/github-connection"
@@ -48,6 +50,7 @@ export const GithubSettingsPanel = ({
 }) => {
   const canManage = hasCapability(context, "organization.github.manage")
   const installation = asInstallation(summary)
+  const pendingInstallation = isInstallationPending(installation)
 
   return (
     <section aria-label="GitHub settings" className="flex flex-col gap-4">
@@ -90,12 +93,18 @@ export const GithubSettingsPanel = ({
           {githubInstallationStatusLabel(summary.installation.status)}. Access is not
           entitlement.
         </p>
+      ) : pendingInstallation ? (
+        <p className="text-sm text-slate-700">
+          GitHub confirmed the installation request. Waiting for provider proof before
+          the connection becomes active.
+        </p>
       ) : (
         <p className="text-sm text-slate-700">No GitHub installation is connected.</p>
       )}
 
       {canManage ? (
         <>
+          {pendingInstallation ? <InstallationPendingPoll /> : null}
           {isSyncInProgress(installation) ? <SyncPoll /> : null}
           <GithubConnection
             installation={installation}

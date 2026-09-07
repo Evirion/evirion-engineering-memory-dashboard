@@ -4,7 +4,18 @@ Updated: 2026-09-07
 
 ## Current state
 
-- Active branch: `main`; the second-factor work is merged and deployed.
+- Active branch: `EEM-9/07-github-installation-return` (from `main`).
+- **EEM-9/07g — GitHub App installation return.** `GET /api/github/installed` completes the
+  browser half of the handshake and redirects to `/settings/github?result=…`, which now renders
+  that outcome through the shared command-outcome notice. The pending poll is bounded by the
+  fifteen-minute proof window, so an organization that uninstalled no longer sits in a permanent
+  refresh loop. `pnpm lint`, `pnpm typecheck` and `pnpm format:check` pass; 968 unit/contract tests
+  across 66 files and 334 Playwright tests pass. The five security specs that fail on `main` still
+  fail identically.
+- **Depends on backend.** Merge and deploy backend branch `EEM-9/07-github-installation-return`
+  before the live journey works.
+- **Operator action after deploy.** GitHub App Setup URL:
+  `https://console.evirion.dev/api/github/installed`.
 - **A partner can sign in and use the Console, observed end to end on
   staging.** An email code alone is `aal1`; the backend creates such a session
   awaiting a second factor and refuses every read until one arrives.
