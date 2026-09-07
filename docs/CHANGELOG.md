@@ -27,7 +27,12 @@
 - **Verification.** `pnpm lint`, `pnpm typecheck`, `pnpm format:check`, the
   authority check, 975 unit and contract tests across 67 files, and 334 Playwright
   tests. The five security specs that fail on `main` still fail identically.
-- **State.** Implemented and locally verified. Not merged, not deployed.
+- **State.** Merged as
+  [PR #54](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/54) (`e0298a5`)
+  after backend [PR #96](https://github.com/Evirion/evirion-engineering-memory/pull/96), and
+  deployed: the route on `console.evirion.dev` refuses an unauthenticated POST at the mutation
+  guard. Not observed — no session has been watched surviving past the old thirty-minute mark and
+  no reader has seen the warning.
 
 ## 2026-09-07 — GitHub App installation return route (EEM-9/07g)
 
