@@ -1,5 +1,25 @@
 # Dashboard changelog
 
+## 2026-09-07 — the BFF accepts the receipt the backend sends
+
+- **Why sign-in still failed after the ceremony was fixed.** The bootstrap
+  succeeded, the session row was written, and the BFF then threw the result
+  away: it required `registered: true`, a field no backend route has ever sent.
+  The backend answers with a command receipt carrying the session. Observed on
+  staging as a session created at 07:29:24 that the reader was told did not
+  exist.
+- **Why nothing caught it.** The test double answered `{ registered: true }`
+  too. It had been written to agree with the BFF's expectation instead of the
+  backend, so the fixture and the code were wrong together and every gate
+  passed. The double now answers the real receipt, and the adapter test asserts
+  that shape.
+- **What changed.** `isBootstrapReceipt` validates the receipt: `completed`,
+  `CONSOLE_AUTH_SESSION_BOOTSTRAPPED`, and a session carrying an identifier. A
+  receipt without a session is refused.
+- **Verification.** Unit suite 901 passed; lint, typecheck and format clean.
+- **Deployment state.** Implemented and locally verified. Not deployed.
+
+
 ## 2026-09-07 — the BFF performs the whole sign-in ceremony
 
 - **Why no one had ever signed in.** `api.bootstrap_console_auth_session` looks
