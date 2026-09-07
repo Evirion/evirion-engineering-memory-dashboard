@@ -1,19 +1,11 @@
 "use client"
 
-import { REGEXP_ONLY_DIGITS } from "input-otp"
 import { useRef } from "react"
 
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
-
-const SLOTS = [0, 1, 2, 3, 4, 5]
+import { OtpCells } from "@/components/auth/otp-cells"
 
 /**
  * The six digits from an authenticator app.
- *
- * Six visible cells over one real input: `input-otp` renders the cells from a
- * single field, so pasting a code, the `one-time-code` autofill offered above
- * the keyboard, and a screen reader announcing one field all keep working.
- * Six separate inputs would break all three.
  *
  * The form submits itself once the sixth digit lands, because the digits are
  * only valid for the half-minute they are shown and asking for a second
@@ -41,26 +33,11 @@ export const TotpCodeForm = ({
         <label htmlFor="totp" className="text-sm font-medium">
           {label}
         </label>
-        <InputOTP
+        <OtpCells
           id="totp"
           name="totp"
-          maxLength={6}
-          required
-          pattern={REGEXP_ONLY_DIGITS}
-          autoComplete="one-time-code"
           onComplete={() => form.current?.requestSubmit()}
-          containerClassName="gap-3"
-        >
-          <InputOTPGroup className="gap-3">
-            {SLOTS.map((slot) => (
-              <InputOTPSlot
-                key={slot}
-                index={slot}
-                className="size-14 rounded-lg border border-slate-300 bg-white text-2xl font-semibold text-slate-900 first:rounded-lg last:rounded-lg data-[active=true]:border-slate-900 data-[active=true]:ring-slate-900/20"
-              />
-            ))}
-          </InputOTPGroup>
-        </InputOTP>
+        />
       </div>
       <button
         type="submit"

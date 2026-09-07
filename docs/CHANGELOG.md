@@ -1,5 +1,33 @@
 # Dashboard changelog
 
+## 2026-09-07 — one way to ask for a code, on every screen that asks
+
+- **Why.** Three screens ask for six digits — the emailed code, first enrolment
+  and the step-up — and each had its own markup and its own styling: a wide
+  tracked box, a second wide box, and a small monospace field. Nothing told a
+  reader they were the same act, and on the pale outlines it was not obvious
+  where the code went.
+- **What changed.** One `OtpCells` component, six cells drawn by `input-otp`
+  from a single real input, used by all three. The single input is the property
+  the earlier wide box existed to protect: pasting from the mail client, the
+  `one-time-code` autofill offered above the keyboard, and a screen reader
+  announcing one field rather than six. The border is deliberately heavy,
+  because on each of those screens entering the code is the only thing to do.
+- **A leak the library did not prevent.** Its own inline styles for the real
+  input did not take effect, so the input rendered in normal flow beside the
+  cells and showed the typed digits a second time. The overlay is now stated in
+  our own classes rather than inherited from the library.
+- **Auto-submit where it is safe.** The factor screens submit on the sixth
+  digit, because a code lives half a minute. The emailed-code screen does so
+  only when the address is already carried; with the address field visible the
+  reader may still be filling it.
+- **Removed.** The `otp-entry` utility, which nothing uses now, and the unused
+  separator shadcn generates, which puts `role="separator"` on a `div`.
+- **Verification.** 937 unit tests and the browser journeys; lint, typecheck and
+  format clean. Rendered and inspected on all three screens.
+- **Deployment state.** Implemented and locally verified.
+
+
 ## 2026-09-07 — a refused authenticator code says so, and the code entry looks like one
 
 - **Why.** Pressing Verify with a code the provider refused redirected back to

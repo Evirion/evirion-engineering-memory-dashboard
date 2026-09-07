@@ -1,3 +1,4 @@
+import { OtpCells } from "@/components/auth/otp-cells"
 import { describeTreatment } from "@/lib/errors/console-errors"
 import {
   INVALID_CHALLENGE,
@@ -106,17 +107,7 @@ export const ReauthenticationCeremony = ({
           <label htmlFor="reauth-totp" className="text-sm font-medium text-slate-900">
             Authenticator code
           </label>
-          <input
-            id="reauth-totp"
-            name="totp"
-            type="text"
-            required
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            pattern="[0-9]{6}"
-            maxLength={6}
-            className="rounded border border-slate-300 px-3 py-2 font-mono text-sm tracking-widest focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-          />
+          <OtpCells id="reauth-totp" name="totp" />
         </div>
         <button
           type="submit"
