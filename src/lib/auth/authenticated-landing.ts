@@ -30,15 +30,23 @@ const LANDING = "/onboarding"
 const SECOND_FACTOR = "/auth/mfa/enroll"
 
 /**
- * The pages that complete the second factor, plus the route handlers they post
- * to. Sending either of these to the second factor would be a loop, and a form
- * POST carries `sec-fetch-mode: navigate` exactly like a page visit, so the
- * route handlers have to be named here rather than assumed to be fetches.
+ * Everything the Auth phase owns, which this guard never redirects.
+ *
+ * It first named only the second-factor pages and their handlers, and that
+ * deadlocked a reader whose enrolment could not proceed: the page sent them to
+ * sign in, the guard sent them back to enrol, and the browser gave up with
+ * `ERR_TOO_MANY_REDIRECTS`. Observed on the deployed Console with a session
+ * whose provider session had been ended underneath it.
+ *
+ * Sign-in is the way out of every half-finished session, so it has to stay
+ * reachable. Nothing is lost by leaving these alone: a reader who has not
+ * proved a second factor is not a signed-in reader being offered the door
+ * again, and every Console page still sends them to finish. A form POST also
+ * carries `sec-fetch-mode: navigate` exactly like a page visit, so the route
+ * handlers cannot be assumed to be fetches.
  */
-const isSecondFactorPath = (pathname: string): boolean =>
-  pathname.startsWith("/auth/mfa/") ||
-  pathname.startsWith("/api/auth/") ||
-  pathname === "/auth/logout"
+const isAuthPath = (pathname: string): boolean =>
+  pathname.startsWith("/auth/") || pathname.startsWith("/api/")
 
 /**
  * Exact paths only. A prefix match would also capture `/auth/sign-in-elsewhere`
@@ -67,7 +75,7 @@ export const landingForAuthenticatedReader = (
   // one arrives. Landing such a reader on the Console showed them a page that
   // could only fail, so they are sent to finish what they started instead.
   if (!hasSecondFactor) {
-    return isSecondFactorPath(pathname) ? undefined : SECOND_FACTOR
+    return isAuthPath(pathname) ? undefined : SECOND_FACTOR
   }
   return pathname === PLACEHOLDER_ROOT || PRE_AUTH_PATHS.has(pathname)
     ? LANDING
