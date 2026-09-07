@@ -531,7 +531,23 @@ const handle = async (request, response, url) => {
       request.headers["x-console-bff-proof"],
     )
     if (!envelope.ok) return fail(response, "AUTHENTICATION_REQUIRED")
-    return succeed(response, { registered: true })
+    // The receipt the backend actually returns. This double used to answer
+    // `{ registered: true }`, a shape no route has ever sent, so it agreed
+    // with the BFF's mistaken expectation instead of with the backend and
+    // every test passed over a sign-in that could not work.
+    return succeed(response, {
+      status: "completed",
+      receiptId: "00000000-0000-4000-8000-0000000009aa",
+      responseCode: "CONSOLE_AUTH_SESSION_BOOTSTRAPPED",
+      responsePayload: {
+        session: {
+          id: "00000000-0000-4000-8000-0000000009bb",
+          status: "ACTIVE",
+          version: 1,
+        },
+        invitationId: null,
+      },
+    })
   }
 
   if (url.pathname === "/v1/session/context" && request.method === "GET") {

@@ -23,6 +23,20 @@ const sessionContext = {
   capabilities: ["knowledge.read"],
 }
 
+const bootstrapReceipt = {
+  status: "completed",
+  receiptId: "00000000-0000-4000-8000-0000000009aa",
+  responseCode: "CONSOLE_AUTH_SESSION_BOOTSTRAPPED",
+  responsePayload: {
+    session: {
+      id: "00000000-0000-4000-8000-0000000009bb",
+      status: "ACTIVE",
+      version: 1,
+    },
+    invitationId: null,
+  },
+}
+
 const REQUEST_ID = "00000000-0000-4000-8000-0000000001aa"
 
 /**
@@ -337,18 +351,20 @@ describe("the private session bootstrap", () => {
     bootstrapProof: "proof",
   }
 
-  it("accepts the receipt through the same envelope as every customer route", async () => {
+  it("accepts the receipt the backend actually sends", async () => {
     // The internal route is absent from the customer OpenAPI, but the backend
-    // answers it with the one `succeed` responder, so it is enveloped too.
+    // answers it with the one `succeed` responder, so it is enveloped too. The
+    // fixture used to be `{ registered: true }`, a shape no route has ever
+    // sent, so this test agreed with the BFF's mistake rather than the backend.
     const result = await bootstrapSession(
       "https://api.evirion.test",
       bootstrapRequest,
-      transportReturning(200, enveloped({ registered: true })),
+      transportReturning(200, enveloped(bootstrapReceipt)),
     )
 
     expect(result).toEqual({
       ok: true,
-      value: { registered: true },
+      value: bootstrapReceipt,
       requestId: REQUEST_ID,
     })
   })
@@ -357,7 +373,20 @@ describe("the private session bootstrap", () => {
     const result = await bootstrapSession(
       "https://api.evirion.test",
       bootstrapRequest,
-      transportReturning(200, { registered: true }),
+      transportReturning(200, bootstrapReceipt),
+    )
+
+    expect(result).toEqual({ ok: false, failure: { kind: "unsupported", status: 200 } })
+  })
+
+  it("rejects a receipt that carries no session", async () => {
+    const result = await bootstrapSession(
+      "https://api.evirion.test",
+      bootstrapRequest,
+      transportReturning(
+        200,
+        enveloped({ ...bootstrapReceipt, responsePayload: { invitationId: null } }),
+      ),
     )
 
     expect(result).toEqual({ ok: false, failure: { kind: "unsupported", status: 200 } })

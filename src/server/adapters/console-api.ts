@@ -228,12 +228,29 @@ export const issuePreAuthTransaction = async (
     transport,
   )
 
-export type BootstrapReceipt = { readonly registered: true }
+/**
+ * What the backend actually answers, which is a command receipt.
+ *
+ * The BFF used to require `registered: true`, a field no route has ever sent.
+ * Once the request finally became well formed the bootstrap succeeded, the
+ * session row was written, and the BFF then discarded the result as
+ * unrecognisable and told the reader their session could not be started.
+ */
+export type BootstrapReceipt = { readonly sessionId: string }
 
-const isBootstrapReceipt = (value: unknown): value is BootstrapReceipt =>
-  typeof value === "object" &&
-  value !== null &&
-  (value as { registered?: unknown }).registered === true
+const BOOTSTRAP_RESPONSE_CODE = "CONSOLE_AUTH_SESSION_BOOTSTRAPPED"
+
+const isBootstrapReceipt = (value: unknown): value is BootstrapReceipt => {
+  if (typeof value !== "object" || value === null) return false
+  const receipt = value as Record<string, unknown>
+  if (receipt.status !== "completed") return false
+  if (receipt.responseCode !== BOOTSTRAP_RESPONSE_CODE) return false
+  const payload = receipt.responsePayload
+  if (typeof payload !== "object" || payload === null) return false
+  const session = (payload as Record<string, unknown>).session
+  if (typeof session !== "object" || session === null) return false
+  return typeof (session as Record<string, unknown>).id === "string"
+}
 
 export const bootstrapSession = async (
   baseUrl: string,
