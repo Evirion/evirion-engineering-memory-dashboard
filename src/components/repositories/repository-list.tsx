@@ -1,4 +1,4 @@
-import type { RepositoryPage } from "@contracts/console"
+import type { GithubInstallation, RepositoryPage } from "@contracts/console"
 
 import { capacitySummary, productStateLabel } from "@/lib/repositories/presentation"
 
@@ -53,12 +53,53 @@ export const RepositoryCapacity = ({
   )
 }
 
-export const RepositoryList = ({ page }: { page: RepositoryPage }) => {
+/**
+ * Why the inventory is empty, in terms of the one thing left to do.
+ *
+ * An empty list has four different causes and only one of them is "connect the
+ * App". Telling a reader who has just connected to connect again is how the
+ * page loses their trust, so each state names its own next step.
+ */
+export const emptyRepositoryReason = (
+  installation: GithubInstallation | null,
+): string => {
+  if (installation === null || installation.installation === null) {
+    return "No repository is accessible yet. Connect the GitHub App, then synchronize."
+  }
+
+  const run = installation.latestSyncRun
+  if (run === null) {
+    return "Connected, but no repository has been read yet. Synchronize to find out which ones this installation can see."
+  }
+
+  switch (run.status) {
+    case "QUEUED":
+    case "RUNNING":
+      return "Reading which repositories this installation can see."
+    case "FAILED":
+      return "The last synchronization did not finish, so no repository has been read. Synchronize again."
+    case "COMPLETED":
+      return "This installation can see no repository. Adjust which repositories it may access on GitHub, then synchronize again."
+    case "UNSUPPORTED":
+      return "No repository is accessible yet, and the last synchronization reported a state this Console does not recognize."
+    default: {
+      const exhaustive: never = run.status
+      throw new Error(`unhandled sync run status: ${String(exhaustive)}`)
+    }
+  }
+}
+
+export const RepositoryList = ({
+  page,
+  installation = null,
+}: {
+  page: RepositoryPage
+  installation?: GithubInstallation | null
+}) => {
   if (page.items.length === 0) {
     return (
       <p className="rounded border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-        No repository is accessible yet. Connect the GitHub App, or adjust which
-        repositories the installation can see, then synchronize.
+        {emptyRepositoryReason(installation)}
       </p>
     )
   }
