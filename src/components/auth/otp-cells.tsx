@@ -46,15 +46,24 @@ export const OtpCells = ({
     // library's own inline styles, which did not take effect: it rendered in
     // normal flow beside the cells and showed the typed digits a second time.
     // The cells draw the value and the caret, so the input itself carries none.
-    containerClassName="relative gap-2.5"
+    containerClassName="relative w-full gap-2"
     className="absolute inset-0 size-full opacity-0"
   >
-    <InputOTPGroup className="gap-2.5">
+    {/*
+     * The cells share the row rather than each claiming a fixed 56px. Six of
+     * those plus their gaps came to 386px, which fitted while the form sat
+     * directly on the page and overflowed the moment it moved onto a panel —
+     * the panel's padding leaves 336px. Sizing from the container instead of
+     * from a number means the row cannot outgrow whatever it is placed in,
+     * and `aspect-square` keeps each cell square as it scales. The cap stops
+     * them stretching into lozenges in a wider container.
+     */}
+    <InputOTPGroup className="w-full gap-2">
       {SLOTS.map((slot) => (
         <InputOTPSlot
           key={slot}
           index={slot}
-          className="border-input bg-card text-foreground data-[active=true]:border-ring data-[active=true]:ring-ring/15 size-14 rounded-xl border-2 text-2xl font-semibold tabular-nums shadow-xs transition-colors first:rounded-xl last:rounded-xl data-[active=true]:ring-4"
+          className="border-input bg-card text-foreground data-[active=true]:border-ring data-[active=true]:ring-ring/15 aspect-square h-auto w-full max-w-14 min-w-0 flex-1 rounded-xl border-2 text-2xl font-semibold tabular-nums shadow-xs transition-colors first:rounded-xl last:rounded-xl data-[active=true]:ring-4"
         />
       ))}
     </InputOTPGroup>

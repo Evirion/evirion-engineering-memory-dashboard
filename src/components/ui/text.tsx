@@ -11,7 +11,19 @@ import { cn } from "cn"
  */
 
 /**
- * Section eyebrow. Mono and letterspaced, so it reads as a label, not prose.
+ * Section eyebrow.
+ *
+ * Sans, not mono. An earlier cut set these in Geist Mono, and small uppercase
+ * mono at 12px reads tall and soft — the letterforms are drawn for a fixed
+ * advance width, which is worth paying for in a column of identifiers and
+ * costs a lot of clarity in a two-word heading. It is also the wrong role:
+ * the Brand Book puts navigation and status labels in the interface font and
+ * reserves mono for identifiers, versions, timestamps and confidence, which
+ * is what `Technical` is for.
+ *
+ * Semibold with tighter tracking so the words separate at this size, and the
+ * secondary ink rather than the tertiary so a section heading is not fainter
+ * than the links beneath it.
  *
  * The classes are exported separately because a kicker is very often the
  * `<dt>` of a description list, and nesting a paragraph inside the `<dt>`
@@ -19,7 +31,7 @@ import { cn } from "cn"
  */
 export const kickerClasses = (className?: string): string =>
   cn(
-    "text-muted-foreground font-mono text-xs font-medium tracking-[0.08em] uppercase",
+    "text-ink-secondary text-[0.6875rem] font-semibold tracking-[0.06em] uppercase",
     className,
   )
 

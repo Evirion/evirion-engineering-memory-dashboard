@@ -199,6 +199,13 @@ test.describe("a warm instance carries nothing between callers", () => {
       await ownerPage.goto("/settings/members")
       await viewerPage.goto("/settings/members")
 
+      // Both documents have to be settled before they are compared. The route
+      // renders a skeleton first, and two pages sampled inside that window
+      // hold the same placeholder — which would fail this row for the one
+      // reason it does not test.
+      await expect(ownerPage.getByRole("heading", { level: 1 })).toBeVisible()
+      await expect(viewerPage.getByRole("heading", { level: 1 })).toBeVisible()
+
       const ownerText = await ownerPage.locator("body").innerText()
       const viewerText = await viewerPage.locator("body").innerText()
 

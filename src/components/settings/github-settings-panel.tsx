@@ -71,10 +71,14 @@ export const GithubSettingsPanel = ({
           label="Inaccessible repositories"
           value={summary.repositorySummary.inaccessibleRepositories}
         />
-        <Metric
-          label="Active entitled repositories"
-          value={summary.activeRepositories}
-        />
+        {/*
+          "Active in Evirion", not "Active entitled repositories". The old
+          label named two ideas at once and left the reader to work out how
+          they combine, and it is the same count the repositories page already
+          shows under this wording — where the contrast that matters is with
+          the two GitHub-side counts beside it.
+        */}
+        <Metric label="Active in Evirion" value={summary.activeRepositories} />
         <Metric
           label="Last successful sync"
           value={
