@@ -32,7 +32,19 @@ describe("usage and metrics panel", () => {
     expect(html).toContain("not comparable")
   })
 
-  it("never renders unresolved totals as a settled zero", () => {
+  /*
+   * This asserted that an unresolved total renders as "No amount yet" rather
+   * than a settled zero. Cost reporting on this panel was suspended on
+   * 2026-09-08, so there is no total to inspect.
+   *
+   * It now holds the suspension instead, on the same unresolved fixture that
+   * would have been the most likely thing to leak: a figure whose measured
+   * component is a zero. That is a smaller claim than the one it replaces.
+   * The rule itself still stands over `usageCostView` in
+   * `tests/unit/settings/presentation.test.ts`, which is where it was always
+   * decided; this row only ever checked that the panel rendered the decision.
+   */
+  it("renders no cost total while cost reporting is suspended", () => {
     const usage = {
       ...ORGANIZATION_USAGE(),
       cost: {
@@ -45,7 +57,6 @@ describe("usage and metrics panel", () => {
     const html = markup(
       <UsageMetricsPanel usage={usage} metrics={ORGANIZATION_METRICS()} />,
     )
-    expect(html).toContain("No amount yet")
-    expect(html).not.toContain("USD 0.000000")
+    expect(html).not.toMatch(/USD|No amount yet|Cost/)
   })
 })

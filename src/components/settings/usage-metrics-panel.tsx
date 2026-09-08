@@ -8,6 +8,7 @@ import {
   usageCostView,
   usagePeriodLabel,
 } from "@/lib/settings/presentation"
+import { SHOW_COST_FIGURES } from "@/lib/ui/cost-reporting"
 import { Metric, MetricGrid } from "@/components/ui/metric"
 import { SectionTitle, Technical } from "@/components/ui/text"
 
@@ -54,12 +55,14 @@ export const UsageMetricsPanel = ({
             label="Accepted Knowledge Objects"
             value={usage.acceptedKnowledgeObjects}
           />
-          <Metric
-            label="Cost"
-            data-testid="usage-cost"
-            value={usageCost.headline.amount ?? "No amount yet"}
-            detail={usageCost.headline.detail}
-          />
+          {SHOW_COST_FIGURES ? (
+            <Metric
+              label="Cost"
+              data-testid="usage-cost"
+              value={usageCost.headline.amount ?? "No amount yet"}
+              detail={usageCost.headline.detail}
+            />
+          ) : null}
         </MetricGrid>
       </section>
 
@@ -92,16 +95,20 @@ export const UsageMetricsPanel = ({
           />
           <Metric label="Failed jobs" value={metrics.admission.failedJobs} />
           <Metric label="Quarantine rate" value={rates.quarantineRate} />
-          <Metric label="Cost per PR" value={rates.costPerPullRequest} />
-          <Metric
-            label="Cost per accepted KO"
-            value={rates.costPerAcceptedKnowledgeObject}
-          />
-          <Metric
-            label="Total admission cost"
-            data-testid="metrics-total-cost"
-            value={metricsCost.headline.amount ?? "No amount yet"}
-          />
+          {SHOW_COST_FIGURES ? (
+            <>
+              <Metric label="Cost per PR" value={rates.costPerPullRequest} />
+              <Metric
+                label="Cost per accepted KO"
+                value={rates.costPerAcceptedKnowledgeObject}
+              />
+              <Metric
+                label="Total admission cost"
+                data-testid="metrics-total-cost"
+                value={metricsCost.headline.amount ?? "No amount yet"}
+              />
+            </>
+          ) : null}
         </MetricGrid>
       </section>
     </div>

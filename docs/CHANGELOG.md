@@ -1,5 +1,55 @@
 # Dashboard changelog
 
+## 2026-09-08 — cost reporting suspended on the customer surfaces
+
+- **What changed.** The Cost column is gone from `/processing`, and four cost
+  figures are gone from `/settings/usage`: `Cost` in Operational usage, and
+  `Cost per PR`, `Cost per accepted KO` and `Total admission cost` in Alpha
+  metrics. Nothing else about those pages moved.
+- **Why.** Product decision: the customer is not shown what work costs.
+- **This diverges from an accepted requirement, and the requirement was not
+  amended.** G-006 in
+  [`docs/product/design-partner-console-requirements.md`](product/design-partner-console-requirements.md)
+  still reads that an Admin sees cost through safe projections. The decision
+  was given as temporary, so the requirement stands and the Console is
+  knowingly short of it. This entry is the record of that gap. Whoever makes
+  the decision permanent owns amending G-006 and the PROC acceptance row;
+  whoever reverses it owns deleting this paragraph. It should not be allowed
+  to sit unresolved and become the way things are.
+- **The figures are still wired, behind one switch.**
+  [`src/lib/ui/cost-reporting.ts`](../src/lib/ui/cost-reporting.ts) holds a
+  single `SHOW_COST_FIGURES`, and both surfaces read it, so the two cannot
+  drift into showing a figure on one page and not the other. Restoring is that
+  one word, and the suspension rows in the component tests fail the moment it
+  flips, so the switch is exercised rather than assumed.
+- **Two false starts, recorded because they shaped the result.** Commenting the
+  metrics out left their view models unused, which left their imports unused,
+  so one suppression spread into three places that had to be uncommented in
+  step or the file would not build. Deleting the processing column outright
+  then gave the same decision two different restore paths — one word on the
+  usage page, a JSX rewrite on the table. The shared constant is the answer to
+  both.
+- **Cost was already withheld from Viewers, and still is.** The backend omits
+  the field by role rather than the interface hiding it, and `/settings/usage`
+  refuses a Viewer outright with `CAPABILITY_REQUIRED`. This change is about
+  Owners and Admins, who could see the figures and now do not.
+- **What the tests can no longer prove.** Three rows read the cost cell: the
+  viewer-redaction row in `tests/security/processing-boundary.spec.ts`, and two
+  component rows in `tests/component/processing/processing-activity-table.test.tsx`.
+  They now assert the absence of any figure, which catches a careless restore
+  but can no longer separate "the backend withheld it" from "the interface
+  stopped asking". The completeness rule they also carried — an unresolved cost
+  never rendering as a measured zero — is still proved on the import surface in
+  `tests/e2e/import.spec.ts` and over `costView` in
+  `tests/unit/imports/presentation.test.ts`, which is why the weakening is
+  survivable. The `/processing` acceptance row was removed rather than
+  weakened, because it duplicated those two.
+- **Budget controls were deliberately left alone.** `Cost budget in USD` on the
+  import approval and `Maximum budget in USD` on the repository consent are not
+  reporting; they are how a customer authorizes spend with a ceiling. Removing
+  them would have taken out the paid-authorization path, which no request for
+  hiding costs implies.
+
 ## 2026-09-08 — name the refusal a retry cannot fix
 
 - **Why.** A platform operator signed in on staging, the emailed code was
