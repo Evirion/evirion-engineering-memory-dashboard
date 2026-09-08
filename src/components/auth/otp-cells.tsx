@@ -63,7 +63,16 @@ export const OtpCells = ({
         <InputOTPSlot
           key={slot}
           index={slot}
-          className="border-input bg-card text-foreground data-[active=true]:border-ring data-[active=true]:ring-ring/15 aspect-square h-auto w-full max-w-14 min-w-0 flex-1 rounded-xl border-2 text-2xl font-semibold tabular-nums shadow-xs transition-colors first:rounded-xl last:rounded-xl data-[active=true]:ring-4"
+          /*
+           * `first:border-l-2` is not redundant. The underlying slot draws the
+           * six cells as one joined group — `border-y border-r` on every cell
+           * and `first:border-l` to close the left end — so the plain
+           * `border-2` here cannot reach that first-cell rule: a variant class
+           * and an unprefixed one are different declarations, and the 1px
+           * `first:border-l` stayed on. The leftmost cell rendered with one
+           * thin edge and looked half-eaten.
+           */
+          className="border-input bg-card text-foreground data-[active=true]:border-ring data-[active=true]:ring-ring/15 aspect-square h-auto w-full max-w-14 min-w-0 flex-1 rounded-xl border-2 text-2xl font-semibold tabular-nums shadow-xs transition-colors first:rounded-xl first:border-l-2 last:rounded-xl data-[active=true]:ring-4"
         />
       ))}
     </InputOTPGroup>

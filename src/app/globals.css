@@ -307,6 +307,9 @@
   --tone-unknown-text: var(--brand-arctic-blue);
   --tone-unknown-icon: var(--brand-arctic-blue);
 
+  /* Text selection. Measured against white, the canvas and its own text. */
+  --selection: #bcd3f0;
+
   --glass-surface: rgba(255, 255, 255, 0.72);
   --glass-border: rgba(255, 255, 255, 0.6);
   --glass-blur: 16px;
@@ -549,8 +552,16 @@
   :focus-visible {
     @apply outline-ring rounded-sm outline-2 outline-offset-2;
   }
+  /*
+   * Ice was the obvious brand choice here and the wrong one: at 1.17:1
+   * against white it is not a highlight, it is a rumour. Selecting an email
+   * address in a field showed no change at all. This is the same hue carried
+   * far enough to separate — 1.53:1 on white and 1.40:1 on the canvas — while
+   * leaving the text on it at 12:1.
+   */
   ::selection {
-    @apply bg-secondary text-secondary-foreground;
+    background-color: var(--selection);
+    color: var(--foreground);
   }
   /*
    * Identifiers, counts, costs and timestamps are compared down a column far

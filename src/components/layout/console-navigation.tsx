@@ -148,7 +148,9 @@ export const ConsoleBar = ({
         display name for it — only the identifier the switcher renders. The
         eyebrow is what tells the reader which question the value answers.
       */}
-      <div className="flex flex-1 flex-col">
+      {/* `min-w-0` so the identifier inside can truncate instead of pushing
+          the sign-out control off the end of the bar. */}
+      <div className="flex min-w-0 flex-1 flex-col">
         <Kicker>Organization</Kicker>
         <OrganizationSwitcher
           organizationId={context.organizationId}

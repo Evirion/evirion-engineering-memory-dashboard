@@ -1,3 +1,5 @@
+import { CopyIdentifier } from "./copy-identifier"
+
 /**
  * Switching organization is a navigation preference and nothing more.
  *
@@ -15,25 +17,27 @@ export const OrganizationSwitcher = ({
   <form
     action="/api/auth/organization"
     method="post"
-    className="flex items-center gap-2"
+    className="flex min-w-0 items-center gap-1"
     aria-label="Active organization"
   >
     <input type="hidden" name="csrfToken" value={csrfToken} />
-    <label htmlFor="organizationId" className="sr-only">
-      Active organization
-    </label>
     {/*
-      Rendered borderless. The contract publishes no display name for an
-      organization, so this is a read-only identifier stating which tenant is
-      active, and dressing it as an editable field would promise a control
-      that does not exist.
+      The identifier travels hidden and is shown as text rather than in a
+      read-only field. The contract publishes no display name for an
+      organization, so a UUID is all the header can state; dressed as an input
+      it promised an edit that does not exist, and at 36 characters it ran off
+      the end of its box and simply could not be read.
     */}
-    <input
-      id="organizationId"
-      name="organizationId"
-      defaultValue={organizationId}
-      readOnly
-      className="text-ink-secondary w-64 max-w-full border-none bg-transparent p-0 font-mono text-xs tabular-nums"
-    />
+    <input type="hidden" name="organizationId" value={organizationId} />
+    <span
+      // The full value stays reachable: `title` for a pointer, and the copy
+      // control beside it for everyone else.
+      title={organizationId}
+      data-testid="organization-identifier"
+      className="text-ink-secondary min-w-0 truncate font-mono text-xs tabular-nums"
+    >
+      {organizationId}
+    </span>
+    <CopyIdentifier value={organizationId} label="organization identifier" />
   </form>
 )
