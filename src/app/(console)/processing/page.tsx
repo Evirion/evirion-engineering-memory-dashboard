@@ -50,7 +50,10 @@ const ProcessingPage = async ({
     view.page.items.some((row) => isProgressing(row.processingState))
 
   return (
-    <section className="flex flex-col gap-6">
+    // The one table in the Console, and the one page that asks the shell for
+    // more than a reading width. Six columns inside 1100px left every cell
+    // wrapping mid-phrase.
+    <section data-wide className="flex flex-col gap-6">
       <PageHeader>
         <PageTitle>Processing</PageTitle>
         <Lede>

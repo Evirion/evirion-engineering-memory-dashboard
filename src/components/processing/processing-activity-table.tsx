@@ -105,15 +105,25 @@ export const ProcessingActivityTable = ({ page }: { page: ProcessingPage }) => (
                 )}
               </TableCell>
 
-              <TableCell>
+              <TableCell title={view.authorization.detail}>
                 <div data-testid="processing-authorization">
                   <StatusChip tone={view.authorizationTone}>
                     {view.authorization.label}
                   </StatusChip>
                 </div>
-                <p className="text-muted-foreground mt-1.5 max-w-[38ch] text-xs leading-5">
-                  {view.authorization.detail}
-                </p>
+                {/*
+                  The sentence appears only where someone is actually being
+                  waited on. It is the explanation the two-waits split depends
+                  on, and it earns a column's width there. On a row nobody is
+                  waiting on it repeats "this job needs no authorization"
+                  forever, which is the widest thing in the table saying the
+                  least. The full text stays reachable on the row's title.
+                */}
+                {view.authorization.waitingOn === "nobody" ? null : (
+                  <p className="text-muted-foreground mt-1.5 max-w-[34ch] text-xs leading-5">
+                    {view.authorization.detail}
+                  </p>
+                )}
               </TableCell>
 
               <TableCell>
@@ -143,8 +153,16 @@ export const ProcessingActivityTable = ({ page }: { page: ProcessingPage }) => (
                 )}
               </TableCell>
 
-              <TableCell>
-                <Technical>{row.updatedAt}</Technical>
+              {/*
+                The instant is split rather than wrapped. A single ISO string
+                with microseconds breaks at whatever character the column edge
+                lands on, which is unreadable and moves as the table resizes.
+                The date and the time each stay whole, and the exact published
+                value is on the cell for anyone who needs to quote it.
+              */}
+              <TableCell title={row.updatedAt} className="whitespace-nowrap">
+                <Technical className="block">{row.updatedAt.slice(0, 10)}</Technical>
+                <Technical className="block">{row.updatedAt.slice(11, 19)}</Technical>
               </TableCell>
             </TableRow>
           )

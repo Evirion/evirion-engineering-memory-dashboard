@@ -54,11 +54,23 @@ const ConsoleLayout = async ({ children }: { children: ReactNode }) => {
 
       <ConsoleSidebar context={result.context} />
 
-      <div className="flex min-w-0 flex-col">
+      {/*
+        One measure, shared by the bar and the document beneath it, so the
+        sign-out control always sits over the right edge of the content.
+        1100px is a reading width and it is right for prose and card rows; a
+        table is not prose and suffocates in it. A page opts out by marking
+        its own content `data-wide`, which this reads with `:has()` and turns
+        into a wider measure for both.
+
+        It is a custom property set by a class rather than a style attribute,
+        because the Content-Security-Policy refuses one that arrives in
+        server-rendered markup.
+      */}
+      <div className="flex min-w-0 flex-col [--console-measure:1100px] has-[[data-wide]]:[--console-measure:1520px]">
         <ConsoleBar context={result.context} csrfToken={csrfToken} />
         <main
           id="console-content"
-          className="mx-auto flex w-full max-w-[1100px] flex-1 flex-col gap-6 px-4 py-8 sm:px-6 lg:px-10"
+          className="mx-auto flex w-full max-w-(--console-measure) flex-1 flex-col gap-6 px-4 py-8 sm:px-6 lg:px-10"
         >
           <SessionActivity csrfToken={csrfToken} />
           {children}
