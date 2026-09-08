@@ -1,10 +1,28 @@
 # Dashboard handoff
 
-Updated: 2026-09-07
+Updated: 2026-09-08
 
 ## Current state
 
 - Active branch: `main`. Nothing is in flight.
+- **A platform operator signing in to the Console is refused, and now the copy says so.**
+  Observed on staging on 2026-09-08: the emailed code is accepted, then
+  `issue_console_member_pre_auth` answers `403`, because that function compares
+  `raw_app_meta_data` for equality against the `organization-invitation-v1` provisioning marker
+  and an operator carries `platform-operator-passwordless-v1`.
+  The refusal is correct and the absence of an operator door is deliberate: operators act through
+  `scripts/eem_operator_session.py` and `scripts/manage_organization_member.py`, and an operator
+  holding `owner` of a partner organization is the onboarding state that `transfer_owner_and_leave`
+  exists to end. Only the sentence was wrong, and `sessionNotPermitted` replaces it.
+  Repository entitlement never needed an operator: an organization `admin` or `owner` provisioned
+  through the invitation path signs in normally, and on 2026-09-08 one did, activated
+  `svg-dd/test-repo` and set its policy to `SOURCE_ONLY`.
+- **The backend refused every declared query parameter until today.** `processing-activity`,
+  `knowledge`, `usage` and `metrics` answered `REQUEST_INVALID` before their own key lists were
+  read, so filters, pagination and periods were dead and the pull request detail page — which
+  resolves a number through `processing-activity?repositoryId=` — could never load. Fixed in
+  backend [PR #113](https://github.com/Evirion/evirion-engineering-memory/pull/113) and deployed to
+  the staging edge function.
 - **Reading counts as presence, and it is deployed.** Pointer, keyboard and scroll input in a
   visible tab sends one heartbeat to `POST /api/session/activity`, coalesced to the interval the
   database applies, and the shell warns five minutes before the window closes instead of signing

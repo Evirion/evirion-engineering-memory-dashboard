@@ -22,6 +22,7 @@ import {
 } from "@/lib/auth/auth-outcome"
 import { canonicalRedirect } from "@/server/actions/redirects"
 import {
+  type ConsoleFailure,
   SESSION_BOOTSTRAP_PATH,
   SESSION_PRE_AUTH_PATH,
   bootstrapSession,
@@ -39,6 +40,18 @@ const CONSOLE_DEVICE_LABEL = "Console"
  * cleared, so a half-finished attempt cannot be resumed and no partial state
  * survives into the next request.
  */
+/**
+ * Whether the backend refused this account or merely failed to serve it.
+ *
+ * Only a refusal is permanent. Anything else -- unreachable, unsupported, or a
+ * server-side error -- may succeed on the next attempt and keeps the sentence
+ * that asks for one.
+ */
+const outcomeFor = (failure: ConsoleFailure): AuthOutcome =>
+  failure.kind === "error" && failure.status >= 400 && failure.status < 500
+    ? AUTH_OUTCOMES.sessionNotPermitted
+    : AUTH_OUTCOMES.sessionNotRegistered
+
 const denied = (
   outcome: AuthOutcome = AUTH_OUTCOMES.verificationFailed,
 ): NextResponse => {
@@ -130,7 +143,10 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
       idempotencyKey: crypto.randomUUID(),
     },
   )
-  if (!preAuth.ok) return denied(AUTH_OUTCOMES.sessionNotRegistered)
+  // A refused pre-auth and a failed one need different sentences. The backend
+  // issues one only to an account provisioned through the invitation path, so a
+  // platform operator is refused here every time and no retry can help.
+  if (!preAuth.ok) return denied(outcomeFor(preAuth.failure))
 
   // Both identifiers the backend matches on must be UUIDs, and the body has to
   // carry exactly the keys the route declares.
@@ -172,7 +188,7 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
   // costs one more emailed code, and a code costs nothing at thirty an hour.
   // The code was accepted; only registration failed. Saying otherwise sends
   // the reader hunting for a typo they did not make.
-  if (!bootstrap.ok) return denied(AUTH_OUTCOMES.sessionNotRegistered)
+  if (!bootstrap.ok) return denied(outcomeFor(bootstrap.failure))
   // The session this registered is not usable yet. An email code alone is
   // `aal1`, and the backend creates such a session awaiting a second factor
   // and refuses every read until one arrives. Sending the reader to the

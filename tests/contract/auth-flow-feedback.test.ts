@@ -46,17 +46,18 @@ describe("A1: a failure says what to do next", () => {
   it("keeps one sentence for every cause of a failed verification", () => {
     // OWASP A07 asks for the same message for all outcomes, not for no message.
     // The property this protects is the sign-in one: an unauthenticated caller
-    // must not learn whether an address is known. Neither of the other two
-    // codes touches it, because both can only occur after the address has been
-    // proven by an emailed code, so no identity is left to enumerate. Blaming
-    // the code for either sent a reader hunting a typo that did not exist.
-    expect(Object.values(AUTH_OUTCOMES)).toHaveLength(3)
+    // must not learn whether an address is known. None of the other three codes
+    // touches it, because each can only occur after the address has been proven
+    // by an emailed code, so no identity is left to enumerate. Blaming the code
+    // for any of them sent a reader hunting a typo that did not exist, and
+    // inviting a retry that cannot succeed sent them hunting nothing at all.
+    expect(Object.values(AUTH_OUTCOMES)).toHaveLength(4)
     const distinct = new Set(
       Object.values(AUTH_OUTCOMES).map(
         (outcome) => describeAuthOutcome(outcome)?.description,
       ),
     )
-    expect(distinct.size).toBe(3)
+    expect(distinct.size).toBe(4)
   })
 
   it("blames the code only when the code was the problem", () => {
@@ -183,10 +184,33 @@ describe("A5: no half-formed session survives", () => {
     // A transient bootstrap failure used to keep the cookies for a retry that
     // no code performs, leaving the browser signed in against a backend that
     // had never heard of the session.
+    // Both failure paths must leave through `denied`, which is what clears the
+    // cookies. Choosing which sentence to show is allowed; returning without
+    // clearing is not.
     const route = source("src/app/api/auth/verify-otp/route.ts")
-    expect(route).not.toContain('bootstrap.failure.kind === "error"')
+    expect(route).toMatch(/if \(!preAuth\.ok\) return denied\(/)
     expect(route).toMatch(/if \(!bootstrap\.ok\) return denied\(/)
     expect(route).toContain("AUTH_OUTCOMES.sessionNotRegistered")
+  })
+})
+
+describe("A5b: a refusal no retry can fix says so", () => {
+  it("separates the account the Console will never admit from a failed attempt", () => {
+    // A platform operator is provisioned outside the invitation path, so the
+    // backend refuses its pre-auth every time. Telling that reader "the problem
+    // is ours" sent them retrying a door that was never theirs.
+    const permanent = describeAuthOutcome(AUTH_OUTCOMES.sessionNotPermitted)
+    expect(permanent?.description).toMatch(/not a member/i)
+    expect(permanent?.description).not.toMatch(/try again/i)
+
+    const transient = describeAuthOutcome(AUTH_OUTCOMES.sessionNotRegistered)
+    expect(transient?.description).toMatch(/try again/i)
+  })
+
+  it("reads the refusal off the status the backend answered with", () => {
+    const route = source("src/app/api/auth/verify-otp/route.ts")
+    expect(route).toContain("AUTH_OUTCOMES.sessionNotPermitted")
+    expect(route).toMatch(/status >= 400 && failure\.status < 500/)
   })
 })
 

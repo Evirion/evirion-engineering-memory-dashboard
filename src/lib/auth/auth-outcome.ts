@@ -32,6 +32,22 @@ export const AUTH_OUTCOMES = {
    */
   sessionNotRegistered: "session-not-registered",
   /**
+   * The code was accepted and this account may not hold a Console session at
+   * all.
+   *
+   * The sentence above invites a retry, which is right for a bootstrap that
+   * failed once and wrong for an account the Console will never admit. A
+   * platform operator is provisioned outside the invitation path and works
+   * through the operator scripts, so `issue_console_member_pre_auth` refuses it
+   * every time; on staging on 2026-09-08 that read as "the problem is ours" and
+   * sent the reader retrying a door that was never theirs.
+   *
+   * By the same argument as above this enumerates nothing: the address has
+   * already been proven with an emailed code, and the reply says only that the
+   * prover is not a member of any organization.
+   */
+  sessionNotPermitted: "session-not-permitted",
+  /**
    * An authenticator code the provider refused, or a challenge it would not
    * start.
    *
@@ -68,6 +84,11 @@ const PRESENTATIONS: Readonly<Record<AuthOutcome, AuthOutcomePresentation>> = {
     title: "The session could not be started",
     description:
       "Your code was accepted, but the session could not be started. Try again; if it keeps happening the problem is ours, not yours.",
+  },
+  [AUTH_OUTCOMES.sessionNotPermitted]: {
+    title: "This account cannot use the Console",
+    description:
+      "Your code was accepted, but this address is not a member of an organization. Another code will not change that. Ask an owner or admin to invite you.",
   },
   [AUTH_OUTCOMES.factorCodeRefused]: {
     title: "That code did not match",
