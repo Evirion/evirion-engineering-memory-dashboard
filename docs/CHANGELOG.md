@@ -1,5 +1,34 @@
 # Dashboard changelog
 
+## 2026-09-08 — name the refusal a retry cannot fix
+
+- **Why.** A platform operator signed in on staging, the emailed code was
+  accepted, and the Console answered "the session could not be started. Try
+  again; if it keeps happening the problem is ours, not yours." No number of
+  retries could have worked. The backend issues a member pre-auth only to an
+  account provisioned through the invitation path, and an operator carries
+  `platform-operator-passwordless-v1`, so it is refused every time. That is the
+  intended separation of duties — operators work through the operator scripts,
+  not the browser — but the sentence sent the reader hunting a fault that was
+  not theirs and not ours.
+- **What changed.** `sessionNotPermitted` joins the outcome vocabulary: "This
+  account cannot use the Console… Another code will not change that." The
+  verify route picks it when the backend answered a 4xx, and keeps the existing
+  sentence for unreachable, unsupported and 5xx, which may genuinely succeed on
+  a second attempt. Both paths still leave through `denied`, so the cookies are
+  cleared either way.
+- **Why this discloses nothing.** The reply is only reachable after the address
+  has been proven with an emailed code, which is the same argument the two
+  existing post-verification codes already rest on. It says the prover is not a
+  member of an organization, not who they are.
+- **Files.** `src/lib/auth/auth-outcome.ts`,
+  `src/app/api/auth/verify-otp/route.ts`,
+  `tests/contract/auth-flow-feedback.test.ts`.
+- **Verification.** 988 unit tests, `tsc --noEmit`, oxlint. The outcome count
+  and description-distinctness guard was raised deliberately rather than
+  relaxed.
+- **Deployment state.** Implemented and locally verified. Not deployed.
+
 ## 2026-09-08 — say when something is loading
 
 - **Why.** Nothing in the Console reported that it was working. Thirty-six
