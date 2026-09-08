@@ -25,7 +25,7 @@ export const ImportOutcomeNotice = ({ result }: { result: string | undefined }) 
       <output
         aria-live="polite"
         data-testid="import-outcome-resume-blocked"
-        className="flex flex-col gap-1 rounded border border-slate-400 bg-slate-50 px-4 py-3 text-sm text-slate-900"
+        className="flex flex-col gap-1 rounded-2xl border border-line-strong bg-muted px-5 py-4 text-sm text-foreground"
       >
         <span>
           Resume was applied, and the backend kept this import paused because source

@@ -58,7 +58,7 @@ export const OtpVerifyForm = ({
             type="email"
             required
             autoComplete="email"
-            className="rounded border border-slate-300 px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+            className="rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
           />
         </div>
       )}
@@ -76,7 +76,7 @@ export const OtpVerifyForm = ({
           // would meet a validation error they did not ask for.
           {...(email ? { onComplete: () => form.current?.requestSubmit() } : {})}
         />
-        <p id="code-hint" className="text-xs text-slate-500">
+        <p id="code-hint" className="text-xs text-muted-foreground">
           Only the most recent code works. Asking for a new one cancels the previous
           code.
         </p>
@@ -84,7 +84,7 @@ export const OtpVerifyForm = ({
 
       <button
         type="submit"
-        className="rounded-lg bg-slate-900 px-4 py-3 text-sm font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+        className="rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
       >
         Verify and continue
       </button>

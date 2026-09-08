@@ -26,8 +26,10 @@ const PullRequestDetailPage = async ({
   return (
     <section className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold tracking-tight">Pull request detail</h1>
-        <p className="text-sm text-slate-600">
+        <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
+          Pull request detail
+        </h1>
+        <p className="text-sm text-ink-secondary">
           Admitted knowledge and extraction runs for one pull request. Rejected and
           quarantined outcomes stay distinct from infrastructure failure.
         </p>

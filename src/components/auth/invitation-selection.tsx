@@ -15,7 +15,7 @@ export const InvitationSelection = ({
   <section className="flex flex-col gap-4">
     <div className="flex flex-col gap-1">
       <h2 className="text-lg font-semibold tracking-tight">Choose an organization</h2>
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-ink-secondary">
         You have more than one invitation. Select the one to accept.
       </p>
     </div>
@@ -30,7 +30,7 @@ export const InvitationSelection = ({
         {invitations.map((invitation) => (
           <label
             key={invitation.invitationId}
-            className="flex items-center gap-3 rounded border border-slate-300 px-3 py-2 text-sm"
+            className="flex items-center gap-3 rounded-lg border border-border px-3 py-2 text-sm"
           >
             <input
               type="radio"
@@ -45,7 +45,7 @@ export const InvitationSelection = ({
       </fieldset>
       <button
         type="submit"
-        className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+        className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
       >
         Accept invitation
       </button>

@@ -3,6 +3,7 @@ import type { KnowledgeDetail } from "@contracts/console"
 import { ConsoleUnavailable } from "@/components/console/console-unavailable"
 import { lifecycleStateLabel, reviewDecisionLabel } from "@/lib/knowledge/presentation"
 import type { KnowledgeEvidenceView } from "@/server/queries/knowledge"
+import { kickerClasses } from "@/components/ui/text"
 
 /**
  * One Knowledge Object's context, evidence and technical detail.
@@ -18,14 +19,14 @@ import type { KnowledgeEvidenceView } from "@/server/queries/knowledge"
  */
 
 const fact = "flex flex-col gap-1"
-const term = "text-xs font-medium tracking-wide text-slate-500 uppercase"
-const value = "text-sm text-slate-900"
+const term = kickerClasses()
+const value = "text-sm text-foreground"
 
 export const KnowledgeStates = ({ detail }: { detail: KnowledgeDetail }) => (
   <section
     aria-label="Review and lifecycle"
     data-testid="knowledge-states"
-    className="rounded border border-slate-300 bg-white px-4 py-3"
+    className="rounded-2xl border border-border bg-card px-5 py-4 shadow-panel"
   >
     <dl className="grid gap-4 sm:grid-cols-3">
       <div className={fact}>
@@ -49,7 +50,7 @@ export const KnowledgeStates = ({ detail }: { detail: KnowledgeDetail }) => (
         </dd>
       </div>
     </dl>
-    <p className="mt-3 text-xs text-slate-600">
+    <p className="mt-3 text-xs text-ink-secondary">
       Reviewing a Knowledge Object does not activate it, and activating one does not
       close its review.
     </p>
@@ -63,7 +64,7 @@ export const KnowledgeSourceContext = ({ detail }: { detail: KnowledgeDetail }) 
     <section
       aria-label="Source context"
       data-testid="knowledge-source"
-      className="rounded border border-slate-300 bg-white px-4 py-3"
+      className="rounded-2xl border border-border bg-card px-5 py-4 shadow-panel"
     >
       <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className={fact}>
@@ -98,7 +99,7 @@ export const KnowledgeSourceContext = ({ detail }: { detail: KnowledgeDetail }) 
           <a
             href={source.pullRequestUrl}
             rel="noreferrer"
-            className="text-slate-900 underline underline-offset-2"
+            className="text-foreground underline underline-offset-2"
           >
             Open the pull request on GitHub
           </a>
@@ -130,14 +131,14 @@ export const KnowledgeEvidenceList = ({ view }: { view: KnowledgeEvidenceView })
       className="flex flex-col gap-3"
     >
       <div className="flex flex-col gap-1">
-        <h2 className="text-sm font-semibold text-slate-900">Evidence</h2>
-        <p className="text-xs text-slate-600">
+        <h2 className="text-sm font-semibold text-foreground">Evidence</h2>
+        <p className="text-xs text-ink-secondary">
           The exact quotes this claim was extracted from. Only the persisted quote and
           its attribution are published; the source document is not.
         </p>
       </div>
       {evidence.length === 0 ? (
-        <p className="rounded border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+        <p className="rounded-2xl border border-border bg-muted px-5 py-4 text-sm text-ink-secondary">
           No evidence quote is recorded for this Knowledge Object.
         </p>
       ) : (
@@ -146,30 +147,30 @@ export const KnowledgeEvidenceList = ({ view }: { view: KnowledgeEvidenceView })
             <li
               key={item.evidenceId}
               data-testid="knowledge-evidence-item"
-              className="flex flex-col gap-2 rounded border border-slate-300 bg-white px-4 py-3"
+              className="flex flex-col gap-2 rounded-2xl border border-border bg-card px-5 py-4 shadow-panel"
             >
-              <blockquote className="border-l-2 border-slate-400 pl-3 text-sm text-slate-900">
+              <blockquote className="border-l-2 border-line-strong pl-3 text-sm text-foreground">
                 {item.quote}
               </blockquote>
               <dl className="grid gap-3 sm:grid-cols-3">
                 <div className={fact}>
                   <dt className={term}>Author</dt>
-                  <dd className="text-xs text-slate-700">{item.author}</dd>
+                  <dd className="text-xs text-ink-secondary">{item.author}</dd>
                 </div>
                 <div className={fact}>
                   <dt className={term}>Source type</dt>
-                  <dd className="text-xs text-slate-700">{item.sourceType}</dd>
+                  <dd className="text-xs text-ink-secondary">{item.sourceType}</dd>
                 </div>
                 <div className={fact}>
                   <dt className={term}>Location</dt>
-                  <dd className="text-xs text-slate-700">
+                  <dd className="text-xs text-ink-secondary">
                     {item.sourceUrl === null ? (
                       item.source
                     ) : (
                       <a
                         href={item.sourceUrl}
                         rel="noreferrer"
-                        className="text-slate-900 underline underline-offset-2"
+                        className="text-foreground underline underline-offset-2"
                       >
                         {item.source}
                       </a>
@@ -215,45 +216,45 @@ export const KnowledgeTechnicalDetails = ({ detail }: { detail: KnowledgeDetail 
   return (
     <details
       data-testid="knowledge-technical"
-      className="rounded border border-slate-300 bg-white px-4 py-3"
+      className="rounded-2xl border border-border bg-card px-5 py-4 shadow-panel"
     >
-      <summary className="cursor-pointer text-sm font-semibold text-slate-900">
+      <summary className="cursor-pointer text-sm font-semibold text-foreground">
         Technical details
       </summary>
       <dl className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div className={fact}>
           <dt className={term}>Extraction run</dt>
-          <dd className="font-mono text-xs text-slate-700">
+          <dd className="font-mono text-xs text-ink-secondary">
             {technical.extractionRunId}
           </dd>
         </div>
         <div className={fact}>
           <dt className={term}>Admission</dt>
-          <dd className="text-xs text-slate-700">
+          <dd className="text-xs text-ink-secondary">
             {technical.admissionDisposition} by {technical.admissionDecisionOrigin}
           </dd>
         </div>
         <div className={fact}>
           <dt className={term}>Model</dt>
-          <dd className="text-xs text-slate-700">
+          <dd className="text-xs text-ink-secondary">
             {technical.resolvedModelId ?? "Not recorded"}
           </dd>
         </div>
         <div className={fact}>
           <dt className={term}>Semantic pipeline</dt>
-          <dd className="font-mono text-xs break-all text-slate-700">
+          <dd className="font-mono text-xs break-all text-ink-secondary">
             {technical.semanticPipelineFingerprint ?? "Not recorded"}
           </dd>
         </div>
         <div className={fact}>
           <dt className={term}>Extracted</dt>
-          <dd className="text-xs text-slate-700">
+          <dd className="text-xs text-ink-secondary">
             {technical.extractedAt ?? "Not recorded"}
           </dd>
         </div>
         <div className={fact}>
           <dt className={term}>Latency</dt>
-          <dd className="text-xs text-slate-700">
+          <dd className="text-xs text-ink-secondary">
             {technical.latencyMs === undefined || technical.latencyMs === null
               ? "Not recorded"
               : `${technical.latencyMs} ms`}
@@ -261,14 +262,14 @@ export const KnowledgeTechnicalDetails = ({ detail }: { detail: KnowledgeDetail 
         </div>
         <div className={fact}>
           <dt className={term}>Cost</dt>
-          <dd className="text-xs text-slate-700">
+          <dd className="text-xs text-ink-secondary">
             {/* Not invoice authority. It is what this extraction recorded. */}
             {technical.cost === undefined ? "Not recorded" : costLine(technical.cost)}
           </dd>
         </div>
         <div className={fact}>
           <dt className={term}>Token usage</dt>
-          <dd className="text-xs text-slate-700">
+          <dd className="text-xs text-ink-secondary">
             {technical.tokenUsage === undefined
               ? "Not recorded"
               : Object.entries(technical.tokenUsage)
@@ -281,7 +282,7 @@ export const KnowledgeTechnicalDetails = ({ detail }: { detail: KnowledgeDetail 
         {derivative?.editSchemaVersion === undefined ? null : (
           <div className={fact}>
             <dt className={term}>Edit schema</dt>
-            <dd className="text-xs text-slate-700">
+            <dd className="text-xs text-ink-secondary">
               Version {derivative.editSchemaVersion}
             </dd>
           </div>

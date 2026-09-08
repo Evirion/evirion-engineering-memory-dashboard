@@ -12,8 +12,10 @@ const UsageSettingsPage = async () => {
   return (
     <section className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold tracking-tight">Usage and metrics</h1>
-        <p className="text-sm text-slate-600">
+        <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
+          Usage and metrics
+        </h1>
+        <p className="text-sm text-ink-secondary">
           Operational usage and Alpha metrics use separate windows. Neither is an
           invoice.
         </p>

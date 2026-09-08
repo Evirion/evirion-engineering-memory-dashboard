@@ -7,6 +7,8 @@ import type {
   KnowledgeSummary,
 } from "@contracts/console"
 
+import type { Tone } from "@/lib/ui/tone"
+
 /**
  * How one Knowledge Object reads on screen.
  *
@@ -72,6 +74,32 @@ export const reviewDecisionLabel = (decision: ReviewDecision): string => {
   }
 }
 
+/**
+ * The tone a review decision reads in.
+ *
+ * `PENDING` is `attention` because the reader is the one who resolves it.
+ * `EDITED` is `verified` rather than a state of its own: an edited derivative
+ * is an approved outcome that happens to differ from the machine extraction,
+ * and the difference is shown by the derivative panel, not by the chip.
+ */
+export const reviewDecisionTone = (decision: ReviewDecision): Tone => {
+  switch (decision) {
+    case "PENDING":
+      return "attention"
+    case "APPROVED":
+    case "EDITED":
+      return "verified"
+    case "USER_REJECTED":
+      return "rejected"
+    case "UNSUPPORTED_SERVER_RESPONSE":
+      return "unknown"
+    default: {
+      const exhaustive: never = decision
+      throw new Error(`unhandled review decision: ${String(exhaustive)}`)
+    }
+  }
+}
+
 /** Neutral text for a lifecycle state. Independent of the review decision. */
 export const lifecycleStateLabel = (state: LifecycleState): string => {
   switch (state) {
@@ -85,6 +113,30 @@ export const lifecycleStateLabel = (state: LifecycleState): string => {
       return "Withdrawn"
     case "UNSUPPORTED_SERVER_RESPONSE":
       return "Unsupported lifecycle state"
+    default: {
+      const exhaustive: never = state
+      throw new Error(`unhandled lifecycle state: ${String(exhaustive)}`)
+    }
+  }
+}
+
+/**
+ * `UNRESOLVED` and `SUPERSEDED` are inert rather than negative. An object
+ * nobody has resolved yet is not a problem, and a superseded one did its job
+ * and was replaced, so neither takes a tone that would draw the eye down a
+ * queue of them.
+ */
+export const lifecycleStateTone = (state: LifecycleState): Tone => {
+  switch (state) {
+    case "UNRESOLVED":
+    case "SUPERSEDED":
+      return "neutral"
+    case "ACTIVE":
+      return "verified"
+    case "WITHDRAWN":
+      return "rejected"
+    case "UNSUPPORTED_SERVER_RESPONSE":
+      return "unknown"
     default: {
       const exhaustive: never = state
       throw new Error(`unhandled lifecycle state: ${String(exhaustive)}`)
@@ -113,6 +165,33 @@ export const correctionStatusLabel = (status: CorrectionStatus): string => {
       return "Declined by Evirion"
     case "UNSUPPORTED_SERVER_RESPONSE":
       return "Unsupported request state"
+    default: {
+      const exhaustive: never = status
+      throw new Error(`unhandled correction status: ${String(exhaustive)}`)
+    }
+  }
+}
+
+/**
+ * A requested correction is `holding`, not `progress`.
+ *
+ * Nothing moves until an Evirion operator decides, and the customer is
+ * offered no control, so a tone that implied automated work in flight would
+ * leave someone waiting on a process that has not started.
+ */
+export const correctionStatusTone = (status: CorrectionStatus): Tone => {
+  switch (status) {
+    case "REQUESTED":
+      return "holding"
+    case "EXECUTING":
+      return "progress"
+    case "EXECUTED":
+      return "verified"
+    case "FAILED":
+    case "REJECTED":
+      return "rejected"
+    case "UNSUPPORTED_SERVER_RESPONSE":
+      return "unknown"
     default: {
       const exhaustive: never = status
       throw new Error(`unhandled correction status: ${String(exhaustive)}`)
@@ -245,6 +324,24 @@ export const reviewActionLabel = (action: KnowledgeReview["action"]): string => 
   }
 }
 
+/** Every recorded review action is a completed act; only the verdict differs. */
+export const reviewActionTone = (action: KnowledgeReview["action"]): Tone => {
+  switch (action) {
+    case "APPROVE":
+    case "EDIT":
+    case "REVERT_TO_ORIGINAL_AND_APPROVE":
+      return "verified"
+    case "USER_REJECT":
+      return "rejected"
+    case "UNSUPPORTED_SERVER_RESPONSE":
+      return "unknown"
+    default: {
+      const exhaustive: never = action
+      throw new Error(`unhandled review action: ${String(exhaustive)}`)
+    }
+  }
+}
+
 /** The row summary as the queue renders it, with both axes kept separate. */
 export type QueueRow = {
   readonly knowledgeObjectId: string
@@ -255,7 +352,9 @@ export type QueueRow = {
   readonly mergedAt: string | null
   readonly confidence: number
   readonly reviewLabel: string
+  readonly reviewTone: Tone
   readonly lifecycleLabel: string
+  readonly lifecycleTone: Tone
 }
 
 export const queueRow = (summary: KnowledgeSummary): QueueRow => ({
@@ -267,5 +366,7 @@ export const queueRow = (summary: KnowledgeSummary): QueueRow => ({
   mergedAt: summary.mergedAt,
   confidence: summary.confidence,
   reviewLabel: reviewDecisionLabel(summary.reviewStatus),
+  reviewTone: reviewDecisionTone(summary.reviewStatus),
   lifecycleLabel: lifecycleStateLabel(summary.lifecycleState),
+  lifecycleTone: lifecycleStateTone(summary.lifecycleState),
 })

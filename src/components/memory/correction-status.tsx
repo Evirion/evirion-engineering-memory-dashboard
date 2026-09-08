@@ -1,9 +1,13 @@
 import { ConsoleUnavailable } from "@/components/console/console-unavailable"
 import {
   correctionStatusLabel,
+  correctionStatusTone,
   lifecycleStateLabel,
 } from "@/lib/knowledge/presentation"
 import type { KnowledgeCorrectionsView } from "@/server/queries/knowledge"
+import { panelVariants } from "@/components/ui/panel"
+import { StatusChip } from "@/components/ui/status-chip"
+import { kickerClasses, SectionTitle, Technical } from "@/components/ui/text"
 
 /**
  * The correction requests this Knowledge Object carries.
@@ -16,8 +20,6 @@ import type { KnowledgeCorrectionsView } from "@/server/queries/knowledge"
  * is shown so it can be quoted to support; nothing names the operator, their
  * internal rationale, or any detail beyond what the contract publishes.
  */
-
-const term = "text-xs font-medium tracking-wide text-slate-500 uppercase"
 
 export const CorrectionRequests = ({ view }: { view: KnowledgeCorrectionsView }) => {
   if (view.status === "unavailable") {
@@ -39,8 +41,8 @@ export const CorrectionRequests = ({ view }: { view: KnowledgeCorrectionsView })
       className="flex flex-col gap-3"
     >
       <div className="flex flex-col gap-1">
-        <h2 className="text-sm font-semibold text-slate-900">Correction requests</h2>
-        <p className="text-xs text-slate-600">
+        <SectionTitle>Correction requests</SectionTitle>
+        <p className="text-muted-foreground max-w-[68ch] text-xs leading-5">
           Requests you have sent to Evirion. Evirion applies or declines each one; there
           is nothing to do here while one is in progress.
         </p>
@@ -52,37 +54,35 @@ export const CorrectionRequests = ({ view }: { view: KnowledgeCorrectionsView })
             key={request.correctionRequestId}
             data-testid="correction-request"
             data-status={request.status}
-            className="flex flex-col gap-2 rounded border border-slate-300 bg-white px-4 py-3"
+            className={panelVariants({ className: "flex flex-col gap-3" })}
           >
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <span className="text-sm font-medium text-slate-900">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <StatusChip tone={correctionStatusTone(request.status)}>
                 {correctionStatusLabel(request.status)}
-              </span>
-              <span className="text-xs text-slate-600">
-                Requested {request.requestedAt.slice(0, 10)}
-              </span>
+              </StatusChip>
+              <Technical>Requested {request.requestedAt.slice(0, 10)}</Technical>
             </div>
             <dl className="grid gap-3 sm:grid-cols-2">
               <div className="flex flex-col gap-1">
-                <dt className={term}>Requested change</dt>
-                <dd className="text-xs text-slate-700">{request.requestType}</dd>
+                <dt className={kickerClasses()}>Requested change</dt>
+                <dd className="text-ink-secondary text-xs">{request.requestType}</dd>
               </div>
               <div className="flex flex-col gap-1">
-                <dt className={term}>Reason</dt>
-                <dd className="text-xs text-slate-700">{request.reasonCode}</dd>
+                <dt className={kickerClasses()}>Reason</dt>
+                <dd className="text-ink-secondary text-xs">{request.reasonCode}</dd>
               </div>
               {request.compensatingLifecycleState === undefined ? null : (
                 <div className="flex flex-col gap-1">
-                  <dt className={term}>Resulting lifecycle</dt>
-                  <dd className="text-xs text-slate-700">
+                  <dt className={kickerClasses()}>Resulting lifecycle</dt>
+                  <dd className="text-ink-secondary text-xs">
                     {lifecycleStateLabel(request.compensatingLifecycleState)}
                   </dd>
                 </div>
               )}
               {request.status === "FAILED" ? (
                 <div className="flex flex-col gap-1">
-                  <dt className={term}>What to do</dt>
-                  <dd className="text-xs text-slate-700">
+                  <dt className={kickerClasses()}>What to do</dt>
+                  <dd className="text-ink-secondary text-xs leading-5">
                     {/* Bounded: a published code to quote, and no operator
                         internal. There is no customer retry, because retrying
                         is an Evirion operation. */}
@@ -95,16 +95,18 @@ export const CorrectionRequests = ({ view }: { view: KnowledgeCorrectionsView })
             </dl>
 
             {request.note === undefined ? null : (
-              <p className="text-xs text-slate-700">Your note: {request.note}</p>
+              <p className="text-ink-secondary text-xs leading-5">
+                Your note: {request.note}
+              </p>
             )}
 
-            <details>
-              <summary className="cursor-pointer text-xs font-medium text-slate-900">
+            <details className="border-border border-t pt-3">
+              <summary className="text-ink-secondary hover:text-foreground cursor-pointer text-xs font-medium">
                 Request history
               </summary>
               <ol
                 aria-label="Request history"
-                className="mt-2 flex flex-col gap-1 text-xs text-slate-700"
+                className="text-muted-foreground mt-2 flex flex-col gap-1 font-mono text-xs"
               >
                 {request.history.map((entry) => (
                   <li

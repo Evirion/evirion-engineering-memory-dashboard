@@ -1,7 +1,14 @@
 import Link from "next/link"
 
 import type { ProcessingActivityQuery } from "@/server/adapters/processing"
+import { buttonVariants } from "@/components/ui/button"
+import { Field, Label, Select } from "@/components/ui/field"
+import { panelVariants } from "@/components/ui/panel"
 
+/**
+ * A GET form, so a filtered view is a URL a customer can bookmark and paste
+ * into a support message.
+ */
 export const ProcessingFilters = ({
   query,
   repositoryChoices,
@@ -9,13 +16,19 @@ export const ProcessingFilters = ({
   query: ProcessingActivityQuery
   repositoryChoices: readonly { readonly id: string; readonly nameWithOwner: string }[]
 }) => (
-  <form method="get" className="flex flex-wrap items-end gap-3">
-    <label className="flex flex-col gap-1 text-sm">
-      <span className="font-medium text-slate-700">Repository</span>
-      <select
+  <form
+    method="get"
+    className={panelVariants({
+      padding: "compact",
+      className: "flex flex-wrap items-end gap-3",
+    })}
+  >
+    <Field className="min-w-56 flex-1">
+      <Label htmlFor="repositoryId">Repository</Label>
+      <Select
+        id="repositoryId"
         name="repositoryId"
         defaultValue={query.repositoryId ?? ""}
-        className="rounded border border-slate-300 px-2 py-1"
         aria-label="Filter by repository"
       >
         <option value="">All repositories</option>
@@ -24,16 +37,17 @@ export const ProcessingFilters = ({
             {choice.nameWithOwner}
           </option>
         ))}
-      </select>
-    </label>
-    <button
-      type="submit"
-      className="rounded border border-slate-900 bg-slate-900 px-3 py-1 text-sm text-white"
-    >
+      </Select>
+    </Field>
+    <button type="submit" className={buttonVariants({ variant: "primary" })}>
       Apply filter
     </button>
     {query.repositoryId ? (
-      <Link href="/processing" prefetch={false} className="text-sm underline">
+      <Link
+        href="/processing"
+        prefetch={false}
+        className={buttonVariants({ variant: "ghost" })}
+      >
         Clear filter
       </Link>
     ) : null}

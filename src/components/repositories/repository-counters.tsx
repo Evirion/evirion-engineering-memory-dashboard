@@ -1,6 +1,9 @@
 import type { RepositoryOverviewView } from "@/server/queries/repositories"
 
 import { overviewGroups } from "@/lib/repositories/presentation"
+import { Metric, MetricGrid } from "@/components/ui/metric"
+import { noticeClasses } from "@/components/ui/panel"
+import { Kicker, SectionTitle, Technical } from "@/components/ui/text"
 
 /**
  * The `REPO-003` counters, owned by EEM-9/06 and rendered on an EEM-9/03 page.
@@ -21,52 +24,54 @@ export const RepositoryCounters = ({ view }: { view: RepositoryOverviewView }) =
     return (
       <section
         aria-label="Repository counters"
-        className="flex flex-col gap-2 rounded border border-slate-300 bg-slate-50 px-4 py-3"
+        className={noticeClasses("unknown", "flex flex-col gap-2")}
       >
-        <h2 className="text-sm font-semibold text-slate-900">Repository counters</h2>
-        <p className="text-sm text-slate-700">
+        <SectionTitle className="text-base">Repository counters</SectionTitle>
+        <p className="text-sm leading-6">
           These counters are unavailable right now. {view.failure.message} Nothing is
           shown as zero, because an unavailable count is not a count of zero.
         </p>
-        <p className="text-xs text-slate-600">
+        <Technical>
           Reference {view.failure.code}
           {view.failure.requestId === undefined
             ? ""
             : `, request ${view.failure.requestId}`}
           .
-        </p>
+        </Technical>
       </section>
     )
   }
 
   return (
-    <section aria-label="Repository counters" className="flex flex-col gap-4">
+    <section aria-label="Repository counters" className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
-        <h2 className="text-sm font-semibold text-slate-900">Repository counters</h2>
-        <p className="text-xs text-slate-600">
+        <SectionTitle>Repository counters</SectionTitle>
+        {/*
+          The cutoff travels with the figures. Two counts taken at different
+          `asOf` values are not comparable, and a reader cannot know that
+          unless the page says which one it rendered.
+        */}
+        <Technical>
           Counted as of {view.overview.asOf}. Figures taken at different times are not
           comparable.
-        </p>
+        </Technical>
       </div>
 
       {overviewGroups(view.overview).map((group) => (
         <section
           key={group.id}
           aria-label={group.heading}
-          className="flex flex-col gap-2"
+          className="flex flex-col gap-3"
         >
-          <h3 className="text-sm font-medium text-slate-900">{group.heading}</h3>
-          <dl className="grid gap-3 sm:grid-cols-3">
+          <Kicker>{group.heading}</Kicker>
+          <MetricGrid>
             {group.counters.map((counter) => (
-              <div key={counter.key} className="flex flex-col gap-1">
-                <dt className="text-xs font-medium tracking-wide text-slate-500 uppercase">
-                  {counter.label}
-                </dt>
-                <dd className="text-sm text-slate-900">{counter.value}</dd>
-              </div>
+              <Metric key={counter.key} label={counter.label} value={counter.value} />
             ))}
-          </dl>
-          <p className="text-xs text-slate-600">{group.note}</p>
+          </MetricGrid>
+          <p className="text-muted-foreground max-w-[68ch] text-xs leading-5">
+            {group.note}
+          </p>
         </section>
       ))}
     </section>

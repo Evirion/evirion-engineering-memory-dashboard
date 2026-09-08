@@ -23,7 +23,7 @@ const MembersSettingsPage = async ({
   ])
 
   if (context.status === "unavailable") {
-    return <p className="text-sm text-slate-600">{context.message}</p>
+    return <p className="text-sm text-ink-secondary">{context.message}</p>
   }
 
   const idempotencyKeys = {
@@ -45,8 +45,8 @@ const MembersSettingsPage = async ({
   return (
     <section className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold tracking-tight">Members</h1>
-        <p className="text-sm text-slate-600">
+        <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Members</h1>
+        <p className="text-sm text-ink-secondary">
           Live membership inventory, pending invitations, and offboarding status.
         </p>
       </div>

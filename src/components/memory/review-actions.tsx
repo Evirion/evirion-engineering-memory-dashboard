@@ -4,6 +4,9 @@ import {
   type KnowledgeControls,
   editedDerivativeOf,
 } from "@/lib/knowledge/presentation"
+import { buttonVariants } from "@/components/ui/button"
+import { panelVariants } from "@/components/ui/panel"
+import { kickerClasses } from "@/components/ui/text"
 
 /**
  * The four review decisions.
@@ -22,13 +25,12 @@ import {
  * records the original hash and leaves the edit in the history.
  */
 
-const card = "flex flex-col gap-3 rounded border border-slate-300 bg-white px-4 py-3"
-const field = "flex flex-col gap-1"
-const labelClass = "text-xs font-medium tracking-wide text-slate-500 uppercase"
+const card = panelVariants({ className: "flex flex-col gap-3" })
+const field = "flex flex-col gap-1.5"
+const labelClass = kickerClasses()
 const control =
-  "rounded border border-slate-300 px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-const button =
-  "self-start rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+  "border-input bg-card text-foreground min-h-10 rounded-lg border px-3 py-2 text-sm outline-none hover:border-line-strong focus-visible:border-ring"
+const button = buttonVariants({ variant: "primary", className: "self-start" })
 
 const REJECT_REASONS = [
   ["INCORRECT", "The claim is incorrect"],
@@ -170,10 +172,10 @@ export const ApproveOriginalForm = ({
       />
       <input type="hidden" name="action" value="APPROVE" />
       <div className="flex flex-col gap-1">
-        <h3 className="text-sm font-semibold text-slate-900">
+        <h3 className="text-sm font-semibold text-foreground">
           Approve the machine extraction
         </h3>
-        <p className="text-xs text-slate-600">
+        <p className="text-xs text-ink-secondary">
           Records that the original claim is correct as extracted. It does not activate
           the object.
         </p>
@@ -204,10 +206,10 @@ export const RevertToOriginalForm = ({
       />
       <input type="hidden" name="action" value="REVERT_TO_ORIGINAL_AND_APPROVE" />
       <div className="flex flex-col gap-1">
-        <h3 className="text-sm font-semibold text-slate-900">
+        <h3 className="text-sm font-semibold text-foreground">
           Revert to the original and approve
         </h3>
-        <p className="text-xs text-slate-600">
+        <p className="text-xs text-ink-secondary">
           {/* Explicit, and never a silent discard: the edit stays in the
               history and this appends a new decision beside it. */}
           Records a new decision approving the machine extraction. The earlier edit is
@@ -240,8 +242,8 @@ export const RejectForm = ({
       />
       <input type="hidden" name="action" value="USER_REJECT" />
       <div className="flex flex-col gap-1">
-        <h3 className="text-sm font-semibold text-slate-900">Reject this claim</h3>
-        <p className="text-xs text-slate-600">
+        <h3 className="text-sm font-semibold text-foreground">Reject this claim</h3>
+        <p className="text-xs text-ink-secondary">
           The original extraction and its evidence are kept. The object leaves the
           reviewed-active projection and stays in the history.
         </p>
@@ -296,7 +298,7 @@ export const RejectForm = ({
           maxLength={2000}
           className={control}
         />
-        <p className="text-xs text-slate-600">
+        <p className="text-xs text-ink-secondary">
           {/* `OTHER` carries no meaning on its own, so the backend requires a
               note beside it. */}
           Required when the reason is &quot;Another reason&quot;.
@@ -341,14 +343,14 @@ export const EditForm = ({
       />
       <input type="hidden" name="action" value="EDIT" />
       <div className="flex flex-col gap-1">
-        <h3 className="text-sm font-semibold text-slate-900">
+        <h3 className="text-sm font-semibold text-foreground">
           Record an edited derivative
         </h3>
-        <p className="text-xs text-slate-600">
+        <p className="text-xs text-ink-secondary">
           The machine extraction is kept and stays on this page. Your words are recorded
           beside it as a reviewer's derivative.
         </p>
-        <p className="text-xs font-medium text-amber-900">
+        <p className="text-xs font-medium text-tone-attention-text">
           The evidence is not re-extracted. It continues to support the machine
           extraction, not your edit.
         </p>
@@ -358,7 +360,7 @@ export const EditForm = ({
           // which is the silent discard this warning exists to prevent.
           <p
             data-testid="review-edit-derivative-unavailable"
-            className="text-xs font-medium text-amber-900"
+            className="text-xs font-medium text-tone-attention-text"
           >
             An earlier reviewer already edited this claim and their wording is not
             available right now. These fields start from the machine extraction, so
@@ -421,7 +423,7 @@ export const EditForm = ({
             className={control}
           />
           {kind === "list" ? (
-            <p className="text-xs text-slate-600">
+            <p className="text-xs text-ink-secondary">
               One entry per line. Leave empty if there are none.
             </p>
           ) : null}
@@ -484,13 +486,13 @@ export const ReviewActions = (props: ReviewFormProps) => {
       data-testid="review-actions"
       className="flex flex-col gap-3"
     >
-      <h2 className="text-sm font-semibold text-slate-900">Review decisions</h2>
+      <h2 className="text-sm font-semibold text-foreground">Review decisions</h2>
       {anything ? null : (
         <p
           data-testid={
             undetermined ? "review-actions-undetermined" : "review-actions-none"
           }
-          className="rounded border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-700"
+          className="rounded-2xl border border-border bg-muted px-5 py-4 text-sm text-ink-secondary"
         >
           {undetermined
             ? "Which review decisions are available could not be determined right now. Refresh to check again."

@@ -53,23 +53,23 @@ export const ReauthenticationCeremony = ({
     <section
       aria-labelledby="reauth-ceremony-heading"
       data-testid="reauth-ceremony"
-      className="flex flex-col gap-4 rounded border border-slate-400 bg-slate-50 px-4 py-3"
+      className="flex flex-col gap-4 rounded-2xl border border-line-strong bg-muted px-5 py-4"
     >
       <div className="flex flex-col gap-1">
         <h2
           id="reauth-ceremony-heading"
-          className="text-sm font-semibold text-slate-900"
+          className="text-sm font-semibold text-foreground"
         >
           Confirm your identity to continue
         </h2>
-        <p className="text-sm text-slate-700">
+        <p className="text-sm text-ink-secondary">
           Enter the current six-digit code from your authenticator app to continue what
           you were doing.
         </p>
         {revokesOtherSessions ? (
           <p
             data-testid="reauth-revokes-other-sessions"
-            className="text-sm text-slate-700"
+            className="text-sm text-ink-secondary"
           >
             Completing this step closes your other signed-in sessions. You stay signed
             in here and can finish your work on this device.
@@ -81,7 +81,7 @@ export const ReauthenticationCeremony = ({
         <output
           aria-live="polite"
           data-testid="reauth-challenge-invalidated"
-          className="rounded border border-amber-400 bg-amber-50 px-3 py-2 text-sm text-amber-900"
+          className="rounded-xl border border-l-[3px] border-tone-attention-border bg-tone-attention-fill px-3 py-2 text-sm text-tone-attention-text"
         >
           That confirmation expired or is no longer valid. Start again below.
         </output>
@@ -91,7 +91,7 @@ export const ReauthenticationCeremony = ({
         <output
           aria-live="polite"
           data-testid="reauth-ceremony-feedback"
-          className="text-sm text-slate-700"
+          className="text-sm text-ink-secondary"
         >
           {feedback}
         </output>
@@ -104,7 +104,7 @@ export const ReauthenticationCeremony = ({
       >
         <input type="hidden" name="csrfToken" value={csrfToken} />
         <div className="flex flex-col gap-1">
-          <label htmlFor="reauth-totp" className="text-sm font-medium text-slate-900">
+          <label htmlFor="reauth-totp" className="text-sm font-medium text-foreground">
             Authenticator code
           </label>
           <OtpCells id="reauth-totp" name="totp" />
@@ -112,7 +112,7 @@ export const ReauthenticationCeremony = ({
         <button
           type="submit"
           data-testid="reauth-complete"
-          className="self-start rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+          className="self-start rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
         >
           Confirm and continue
         </button>
@@ -125,7 +125,7 @@ export const ReauthenticationCeremony = ({
         <button
           type="submit"
           data-testid="reauth-issue"
-          className="self-start text-sm text-slate-700 underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+          className="self-start text-sm text-ink-secondary underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
         >
           Start a new confirmation
         </button>
@@ -138,7 +138,7 @@ export const ReauthenticationUnavailable = () => (
   <output
     aria-live="polite"
     data-testid="reauth-unavailable"
-    className="rounded border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-700"
+    className="rounded-lg border border-border bg-muted px-3 py-2 text-sm text-ink-secondary"
   >
     Your paused action is no longer available. Continue from the form below.
   </output>

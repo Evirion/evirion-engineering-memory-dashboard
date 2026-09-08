@@ -94,7 +94,7 @@ export const SessionActivity = ({ csrfToken }: { readonly csrfToken: string }) =
         aria-live="assertive"
         data-testid="session-idle"
         data-idle-state="elapsed"
-        className="rounded border border-amber-400 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+        className="rounded-xl border border-l-[3px] border-tone-attention-border bg-tone-attention-fill px-4 py-3 text-sm text-tone-attention-text"
       >
         This session has been inactive long enough to end. The next thing you do will
         ask you to sign in again.
@@ -107,7 +107,7 @@ export const SessionActivity = ({ csrfToken }: { readonly csrfToken: string }) =
       aria-live="polite"
       data-testid="session-idle"
       data-idle-state="warning"
-      className="flex flex-wrap items-center gap-3 rounded border border-amber-400 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+      className="flex flex-wrap items-center gap-3 rounded-xl border border-l-[3px] border-tone-attention-border bg-tone-attention-fill px-4 py-3 text-sm text-tone-attention-text"
     >
       <span>
         You will be signed out in about {minutesRemaining(idleForSeconds)} minutes
@@ -116,7 +116,7 @@ export const SessionActivity = ({ csrfToken }: { readonly csrfToken: string }) =
       <button
         type="button"
         onClick={() => void sendHeartbeat().then(() => recordActivity())}
-        className="rounded border border-amber-500 px-3 py-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+        className="rounded-lg border border-tone-attention-border px-3 py-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
       >
         Stay signed in
       </button>

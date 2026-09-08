@@ -9,7 +9,7 @@ export const ReauthenticationPreconditionNotice = ({
 }: {
   testId?: string
 }) => (
-  <p data-testid={testId} className="text-xs text-slate-600">
+  <p data-testid={testId} className="text-xs text-ink-secondary">
     This action may require confirming your identity again before it is applied.
   </p>
 )

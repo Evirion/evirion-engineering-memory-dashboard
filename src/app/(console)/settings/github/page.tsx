@@ -38,14 +38,14 @@ const GithubSettingsPage = async ({
   const outcome = readReturnOutcome(parameters["result"])
 
   if (context.status === "unavailable") {
-    return <p className="text-sm text-slate-600">{context.message}</p>
+    return <p className="text-sm text-ink-secondary">{context.message}</p>
   }
 
   return (
     <section className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold tracking-tight">GitHub</h1>
-        <p className="text-sm text-slate-600">
+        <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">GitHub</h1>
+        <p className="text-sm text-ink-secondary">
           Installation reach and entitled repositories are counted separately. Access is
           not entitlement.
         </p>

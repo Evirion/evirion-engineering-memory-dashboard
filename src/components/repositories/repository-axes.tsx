@@ -6,6 +6,8 @@ import {
   entitlementAxis,
   policyAxis,
 } from "@/lib/repositories/presentation"
+import { StatusChip } from "@/components/ui/status-chip"
+import { kickerClasses } from "@/components/ui/text"
 
 /**
  * The three axes, always three.
@@ -20,28 +22,32 @@ export const repositoryAxes = (repository: Repository): readonly RepositoryAxis[
   policyAxis(repository),
 ]
 
+/**
+ * No axis value is ever green, and that restraint is what makes the card
+ * work.
+ *
+ * Colour aggregates. Three green chips let the eye assemble "this repository
+ * is fine" even when live processing is off and nothing is being processed —
+ * the exact single-status failure the three separate slots exist to prevent,
+ * only distributed. The one coloured thing on a card is the backend's own
+ * rollup verdict, which cannot be aggregated because there is nothing to add
+ * it to. The axes stay grey and explain it.
+ */
 export const RepositoryAxisValue = ({ axis }: { axis: RepositoryAxis }) => (
-  <span
-    className={
-      axis.tone === "attention"
-        ? "inline-flex rounded border border-amber-400 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-900"
-        : "inline-flex rounded border border-slate-300 bg-white px-2 py-0.5 text-xs font-medium text-slate-800"
-    }
-  >
-    {axis.value}
-  </span>
+  <StatusChip tone={axis.tone}>{axis.value}</StatusChip>
 )
 
 export const RepositoryAxisList = ({ repository }: { repository: Repository }) => (
-  <dl className="grid gap-3 sm:grid-cols-3">
-    {repositoryAxes(repository).map((axis) => (
-      <div key={axis.label} className="flex flex-col gap-1">
-        <dt className="text-xs font-medium tracking-wide text-slate-500 uppercase">
-          {axis.label}
-        </dt>
-        <dd className="flex flex-col gap-1">
+  <dl className="border-border grid gap-4 sm:grid-cols-3 sm:gap-0 sm:divide-x sm:divide-dashed">
+    {repositoryAxes(repository).map((axis, index) => (
+      <div
+        key={axis.label}
+        className={`flex flex-col items-start gap-1.5 ${index === 0 ? "sm:pr-4" : "sm:px-4"}`}
+      >
+        <dt className={kickerClasses()}>{axis.label}</dt>
+        <dd className="flex flex-col items-start gap-1.5">
           <RepositoryAxisValue axis={axis} />
-          <span className="text-xs text-slate-600">{axis.detail}</span>
+          <span className="text-muted-foreground text-xs leading-5">{axis.detail}</span>
         </dd>
       </div>
     ))}

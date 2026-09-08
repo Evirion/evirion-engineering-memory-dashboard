@@ -38,7 +38,7 @@ const SignInPage = async ({
     <section className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
         <h2 className="text-lg font-semibold tracking-tight">Sign in</h2>
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-ink-secondary">
           Enter the email address your invitation was sent to. We will send a short
           code.
         </p>

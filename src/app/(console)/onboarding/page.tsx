@@ -29,21 +29,21 @@ const OnboardingPage = async () => {
   return (
     <section className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold tracking-tight">Welcome</h1>
-        <p className="text-sm text-slate-600">
+        <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Welcome</h1>
+        <p className="text-sm text-ink-secondary">
           Your account is active. Nothing is read from your repositories until you
           connect GitHub and explicitly activate one.
         </p>
       </div>
 
-      <ol className="flex list-decimal flex-col gap-2 pl-5 text-sm text-slate-700">
+      <ol className="flex list-decimal flex-col gap-2 pl-5 text-sm text-ink-secondary">
         <li>Connect the GitHub App to your organization.</li>
         <li>Activate the first repository you want covered.</li>
         <li>Choose how much of its history to bring in, if any.</li>
       </ol>
 
       {view.status === "unavailable" ? (
-        <p className="rounded border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+        <p className="rounded-2xl border border-border bg-muted px-5 py-4 text-sm text-ink-secondary">
           {view.failure.message}
         </p>
       ) : (
@@ -59,7 +59,7 @@ const OnboardingPage = async () => {
           <Link
             href="/repositories"
             prefetch={false}
-            className="text-sm text-slate-900 underline underline-offset-2"
+            className="text-sm text-foreground underline underline-offset-2"
           >
             Go to repositories
           </Link>

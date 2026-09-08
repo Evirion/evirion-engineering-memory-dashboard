@@ -1,12 +1,12 @@
+import { SkeletonList } from "@/components/ui/skeleton"
+
 /**
- * The loading state for one historical import. The visual treatment is open
- * decision 5; announcing the state rather than implying it with a blank page
- * is not.
+ * The loading state for one historical import. A skeleton holds the layout so
+ * nothing shifts on arrival; the polite live region inside it is what
+ * announces the state rather than leaving a blank page to imply it.
  */
 const RepositoryImportLoading = () => (
-  <output aria-live="polite" className="text-sm text-slate-600">
-    Loading this import.
-  </output>
+  <SkeletonList label="Loading this import." rows={3} />
 )
 
 export default RepositoryImportLoading

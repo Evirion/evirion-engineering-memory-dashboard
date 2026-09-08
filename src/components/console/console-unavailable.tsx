@@ -1,4 +1,8 @@
+import { CircleAlert } from "lucide-react"
+
 import type { ViewFailure } from "@/lib/errors/console-errors"
+import { noticeClasses } from "@/components/ui/panel"
+import { kickerClasses } from "@/components/ui/text"
 
 /**
  * Every state a page can be in other than showing data.
@@ -15,30 +19,40 @@ export const ConsoleUnavailable = ({
   failure: ViewFailure
   heading: string
 }) => (
+  /*
+   * Page level rather than inline, because this is the document failing to be
+   * built rather than one control refusing. The code and the reference are
+   * shown rather than tucked away: they are what a customer quotes to support,
+   * and a toast would take them off screen before they could be copied.
+   */
   <section
     aria-labelledby="console-unavailable-heading"
-    className="flex flex-col gap-3 rounded border border-slate-300 bg-slate-50 px-4 py-3"
+    className={noticeClasses(
+      failure.retryable ? "attention" : "rejected",
+      "flex flex-col gap-3",
+    )}
   >
     <h2
       id="console-unavailable-heading"
-      className="text-sm font-semibold text-slate-900"
+      className="flex items-center gap-2 text-base font-semibold tracking-tight"
     >
+      <CircleAlert aria-hidden className="size-4 shrink-0" strokeWidth={2} />
       {heading}
     </h2>
-    <p className="text-sm text-slate-700">{failure.message}</p>
-    <dl className="flex flex-col gap-1 text-xs text-slate-600">
-      <div className="flex gap-2">
-        <dt className="font-medium">Reason</dt>
+    <p className="max-w-[68ch] text-sm leading-6">{failure.message}</p>
+    <dl className="border-current/20 grid gap-2 border-t pt-3 font-mono text-xs sm:grid-cols-3">
+      <div className="flex flex-col gap-0.5">
+        <dt className={kickerClasses()}>Reason</dt>
         <dd>{failure.code}</dd>
       </div>
-      <div className="flex gap-2">
-        <dt className="font-medium">Can this be retried</dt>
+      <div className="flex flex-col gap-0.5">
+        <dt className={kickerClasses()}>Can this be retried</dt>
         {/* The backend declares retryability. The UI never derives it. */}
         <dd>{failure.retryable ? "Yes, shortly" : "No, not by retrying"}</dd>
       </div>
       {failure.requestId ? (
-        <div className="flex gap-2">
-          <dt className="font-medium">Reference</dt>
+        <div className="flex flex-col gap-0.5">
+          <dt className={kickerClasses()}>Reference</dt>
           <dd>
             <code>{failure.requestId}</code>
           </dd>

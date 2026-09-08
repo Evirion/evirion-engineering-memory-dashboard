@@ -6,10 +6,23 @@
  */
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Geist and Geist Mono, loaded in `src/app/layout.tsx`. The `geist` package
+ * carries the woff2 files itself and `next/font/local` serves them from this
+ * origin, so nothing is fetched from Google at build time and `font-src
+ * 'self'` holds.
+ *
+ * A dashboard is read, not admired: this is a sans pairing throughout, and
+ * the mono face carries every identifier, version, timestamp, confidence and
+ * cost figure, where a fixed advance width is what makes a column comparable.
+ */
 @theme {
   --font-sans:
-    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
-    Arial, sans-serif;
+    var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-mono:
+    var(--font-geist-mono), ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    monospace;
 }
 
 /*
@@ -18,10 +31,9 @@
 @theme inline {
   /*
    * The shadcn preset writes `--font-sans: var(--font-sans)` here and expects a
-   * Geist variable on `<html>` to break the cycle. This project loads no
-   * third-party font — `next/font/google` would fetch one from Google at build
-   * time — so the reference resolved to nothing and every heading fell back to
-   * serif. The system stack declared in the theme above stands instead.
+   * Geist variable on `<html>` to break the cycle. That variable now exists —
+   * `GeistSans.variable` sets it on the root element — and the stack declared
+   * in the theme above resolves it, so headings no longer fall back to serif.
    */
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -40,21 +52,77 @@
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-destructive: var(--destructive);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
   --color-muted: var(--muted);
   --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary-hover: var(--secondary-hover);
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-active: var(--primary-active);
   --color-primary: var(--primary);
+  --color-destructive-hover: var(--destructive-hover);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
+
+  /*
+   * The text ladder needs three levels, not two. `text-foreground` carries
+   * headings and values, `text-muted-foreground` carries identifiers and
+   * metadata, and prose sits between them. Without the middle step a dense
+   * page reads as one flat colour whatever the measured contrast says,
+   * because legibility and hierarchy are different problems.
+   */
+  --color-ink-secondary: var(--ink-secondary);
+  /* Disabled controls only, which WCAG exempts from the 4.5:1 threshold. */
+  --color-ink-disabled: var(--ink-disabled);
+  --color-ink-inverse: var(--ink-inverse);
+  --color-surface-inverse: var(--surface-inverse);
+  --color-line-strong: var(--line-strong);
+  /* The sticky bar, and the only transparent surface in the product. */
+  --color-glass: var(--glass-surface);
+
+  /*
+   * Seven status tones. Each carries a fill, a border, a text relative and an
+   * icon colour, because colour is never the only signal a state is allowed to
+   * use. `src/lib/ui/tone.ts` owns which domain state takes which tone.
+   */
+  --color-tone-verified-fill: var(--tone-verified-fill);
+  --color-tone-verified-border: var(--tone-verified-border);
+  --color-tone-verified-text: var(--tone-verified-text);
+  --color-tone-verified-icon: var(--tone-verified-icon);
+  --color-tone-attention-fill: var(--tone-attention-fill);
+  --color-tone-attention-border: var(--tone-attention-border);
+  --color-tone-attention-text: var(--tone-attention-text);
+  --color-tone-attention-icon: var(--tone-attention-icon);
+  --color-tone-rejected-fill: var(--tone-rejected-fill);
+  --color-tone-rejected-border: var(--tone-rejected-border);
+  --color-tone-rejected-text: var(--tone-rejected-text);
+  --color-tone-rejected-icon: var(--tone-rejected-icon);
+  --color-tone-progress-fill: var(--tone-progress-fill);
+  --color-tone-progress-border: var(--tone-progress-border);
+  --color-tone-progress-text: var(--tone-progress-text);
+  --color-tone-progress-icon: var(--tone-progress-icon);
+  --color-tone-holding-fill: var(--tone-holding-fill);
+  --color-tone-holding-border: var(--tone-holding-border);
+  --color-tone-holding-text: var(--tone-holding-text);
+  --color-tone-holding-icon: var(--tone-holding-icon);
+  --color-tone-neutral-fill: var(--tone-neutral-fill);
+  --color-tone-neutral-border: var(--tone-neutral-border);
+  --color-tone-neutral-text: var(--tone-neutral-text);
+  --color-tone-neutral-icon: var(--tone-neutral-icon);
+  --color-tone-unknown-fill: var(--tone-unknown-fill);
+  --color-tone-unknown-border: var(--tone-unknown-border);
+  --color-tone-unknown-text: var(--tone-unknown-text);
+  --color-tone-unknown-icon: var(--tone-unknown-icon);
+
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -62,80 +130,403 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /*
+   * Shadows are tinted from Midnight rather than black, so a raised panel
+   * reads as lifted off this cool canvas instead of smudged onto it.
+   */
+  --shadow-panel: 0 1px 2px rgba(11, 19, 32, 0.06), 0 0 0 1px rgba(11, 19, 32, 0.04);
+  --shadow-lifted:
+    0 20px 40px -18px rgba(11, 19, 32, 0.14), 0 2px 8px rgba(11, 19, 32, 0.05);
+  --shadow-overlay: 0 8px 28px rgba(11, 19, 32, 0.16), 0 0 0 1px rgba(11, 19, 32, 0.08);
+  /* Simulates the refraction at a glass edge: a bright 1px inner top rule. */
+  --inset-shadow-glass: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+
+  /*
+   * Mapped from the raw `--motion-*` tokens rather than declared literally,
+   * because `@theme inline` inlines its values into utilities instead of
+   * emitting them on `:root`, and the `@utility` blocks below need to read
+   * them as real custom properties.
+   */
+  --ease-fluid: var(--motion-ease);
+  --duration-fast: var(--motion-fast);
+  --duration-base: var(--motion-base);
+
+  /*
+   * The one gradient in the system. It separates the sticky bar from the
+   * document beneath it and gives the canvas a cool cast drawn from Signal
+   * Blue and Ice. It is painted on a fixed, pointer-events-none layer so it
+   * never repaints during a scroll.
+   */
+  --background-image-canvas-wash:
+    radial-gradient(
+      58rem 38rem at 10% -12%,
+      color-mix(in oklab, var(--brand-signal-blue) 16%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      44rem 30rem at 94% -6%,
+      color-mix(in oklab, var(--brand-ice) 78%, transparent),
+      transparent 58%
+    );
 }
 /*
  ---break---
+ */
+
+/*
+ * Evirion Brand Book 1.0, section 15.
+ *
+ * The Console inverts one thing and inherits everything else: Archive White is
+ * the canvas and Midnight becomes the text colour, because a working
+ * instrument read for hours at data density costs legibility on a dark
+ * surface for no gain. The website stays Midnight. The palette is unchanged;
+ * only which end of it carries the background moves.
  */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* Section 15.1, verbatim. These are the source of every value below. */
+  --brand-midnight: #0b1320;
+  --brand-arctic-blue: #0f2d4a;
+  --brand-slate: #263848;
+  --brand-archive-blue: #2f5da8;
+  --brand-signal-blue: #5f8fd9;
+  --brand-ice: #e6eef9;
+  --brand-archive-white: #f3f5f7;
+  --brand-mineral-grey: #7d8796;
+  /* Section 15.2, functional. Used only for what each one means. */
+  --brand-verified: #3f7d68;
+  --brand-warning: #a77a36;
+  --brand-rejected: #8c4f55;
+
+  /*
+   * Three brand hues cannot carry text on a light surface. Measured, not
+   * stylistic: Mineral Grey reaches 3.06:1, Warning 3.35:1 and Verified 4.19:1
+   * against the surfaces they would sit on, all under the 4.5:1 that WCAG 2.2
+   * AA requires. Each keeps its hue and gains a text-only relative, tuned at
+   * constant hue until the pair clears its threshold. The brand values stay in
+   * service on fills, borders and icons, where 3:1 applies and they pass.
+   * `tools/verify/contrast.mjs` re-measures every pair from this file and
+   * exits non-zero if one regresses.
+   */
+  --ink-secondary: #31495d;
+  --ink-disabled: var(--brand-mineral-grey);
+  --ink-inverse: var(--brand-ice);
+
+  --background: var(--brand-archive-white);
+  --foreground: var(--brand-midnight);
+  --card: #ffffff;
+  --card-foreground: var(--brand-midnight);
+  --popover: #ffffff;
+  --popover-foreground: var(--brand-midnight);
+  --primary: var(--brand-archive-blue);
+  --primary-foreground: #f7fbff;
+  --secondary: var(--brand-ice);
+  --secondary-foreground: var(--brand-arctic-blue);
+  --muted: #e7ecf2;
+  --muted-foreground: #59626e;
+  --accent: var(--brand-ice);
+  --accent-foreground: var(--brand-archive-blue);
+  --destructive: var(--brand-rejected);
+  --destructive-foreground: #fdf7f7;
+
+  /*
+   * Interaction states are their own tokens rather than an opacity on the
+   * base. A translucent fill takes its lightness from whatever it happens to
+   * sit on, so the label contrast of a hovered button would depend on the
+   * surface behind it; these are opaque and measured like every other pair.
+   */
+  --primary-hover: #2a5397;
+  --primary-active: #23447c;
+  --secondary-hover: #d5e2f4;
+  --destructive-hover: #7c454b;
+  /*
+   * `--border` separates content and carries no threshold. `--input` bounds a
+   * control, so SC 1.4.11 applies to it and it is measured at 3:1 on a panel.
+   */
+  --border: #c9d2dc;
+  --input: #8c959f;
+  --ring: var(--brand-archive-blue);
+  --line-strong: #7b8694;
+  --surface-inverse: var(--brand-midnight);
+
+  /*
+   * Charts run structural blues first and reach for a functional hue only
+   * after them, so a series never accidentally claims a status meaning in a
+   * position where none was intended.
+   */
+  --chart-1: var(--brand-archive-blue);
+  --chart-2: var(--brand-signal-blue);
+  --chart-3: var(--brand-slate);
+  --chart-4: var(--brand-verified);
+  --chart-5: var(--brand-warning);
+
+  --radius: 0.75rem;
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: var(--ink-secondary);
+  --sidebar-primary: var(--brand-archive-blue);
+  --sidebar-primary-foreground: #f7fbff;
+  --sidebar-accent: var(--brand-ice);
+  --sidebar-accent-foreground: var(--brand-archive-blue);
+  --sidebar-border: #c9d2dc;
+  --sidebar-ring: var(--brand-archive-blue);
+
+  /*
+   * Chip edges are measured at 3:1 against a raised panel, not left at the
+   * decorative weight a pale fill invites. Two tones carry their state in
+   * border *geometry* — holding a 3px left bar, unknown a dashed edge — and an
+   * edge too faint to see is a signal that does not exist.
+   */
+  --tone-verified-fill: #e7f1ec;
+  --tone-verified-border: #779c89;
+  --tone-verified-text: #376d5a;
+  --tone-verified-icon: var(--brand-verified);
+  --tone-attention-fill: #f6efe2;
+  --tone-attention-border: #aa9063;
+  --tone-attention-text: #805d29;
+  --tone-attention-icon: #a27735;
+  --tone-rejected-fill: #f6e9e9;
+  --tone-rejected-border: #b6878e;
+  --tone-rejected-text: var(--brand-rejected);
+  --tone-rejected-icon: var(--brand-rejected);
+  --tone-progress-fill: #e8eff8;
+  --tone-progress-border: #7a96b7;
+  --tone-progress-text: var(--brand-archive-blue);
+  --tone-progress-icon: var(--brand-archive-blue);
+  --tone-holding-fill: #e4e8ed;
+  --tone-holding-border: #8a95a1;
+  --tone-holding-text: var(--brand-slate);
+  --tone-holding-icon: var(--brand-slate);
+  --tone-neutral-fill: #edf0f4;
+  --tone-neutral-border: #8c949e;
+  --tone-neutral-text: #5c6471;
+  --tone-neutral-icon: #758090;
+  /* Unknown is the only tone with no fill: it must never read as a state. */
+  --tone-unknown-fill: #ffffff;
+  --tone-unknown-border: #7b8694;
+  --tone-unknown-text: var(--brand-arctic-blue);
+  --tone-unknown-icon: var(--brand-arctic-blue);
+
+  --glass-surface: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-blur: 16px;
+
+  --motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-fast: 160ms;
+  --motion-base: 240ms;
+
+  --hit-area-min: 44px;
 }
 /*
  ---break---
  */
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+
+/*
+ ---break---
+ */
+
+/*
+ * Motion.
+ *
+ * Every animation in the Console reports real work. There are three, and each
+ * one is tied to something the reader is actually waiting on: a document
+ * arriving, a placeholder standing in for bytes still in flight, and a
+ * bounded poll running. Nothing loops to look busy.
+ *
+ * All of it is CSS. The Content-Security-Policy carries no `unsafe-inline`
+ * and a nonce does not cover style *attributes*, so a JavaScript animation
+ * library — which drives frames by writing to `element.style` — is silently
+ * blocked in this application. Keyframes in a stylesheet are not, and
+ * `transform` and `opacity` are the two properties the compositor can animate
+ * without laying the page out again.
+ */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
+
+@keyframes shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes poll {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(400%);
+  }
+}
+
+/*
+ * A list reveals in sequence rather than all at once, which lets the eye find
+ * the top of the list before the rest of it lands.
+ *
+ * The delay is a `:nth-child` rule and not the customary inline
+ * `--index: {i}`, because an inline style attribute never survives this
+ * Content-Security-Policy. Eight steps is the whole cascade: beyond that the
+ * last row would wait longer than the reader will, so everything from the
+ * ninth onward shares the eighth delay.
+ */
+@utility stagger {
+  & > * {
+    animation: rise var(--motion-base) var(--motion-ease) backwards;
+  }
+  & > *:nth-child(1) {
+    animation-delay: 0ms;
+  }
+  & > *:nth-child(2) {
+    animation-delay: 30ms;
+  }
+  & > *:nth-child(3) {
+    animation-delay: 60ms;
+  }
+  & > *:nth-child(4) {
+    animation-delay: 90ms;
+  }
+  & > *:nth-child(5) {
+    animation-delay: 120ms;
+  }
+  & > *:nth-child(6) {
+    animation-delay: 150ms;
+  }
+  & > *:nth-child(7) {
+    animation-delay: 180ms;
+  }
+  & > *:nth-child(n + 8) {
+    animation-delay: 210ms;
+  }
+}
+
+/*
+ * Tactile feedback. A control that yields under the press confirms the press
+ * happened, which matters most on the mutations here that take a round trip.
+ */
+@utility tactile {
+  transition:
+    background-color var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease);
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+}
+
+/*
+ * A placeholder that holds the exact box its content will occupy, so nothing
+ * shifts when the bytes land. The sweep is a translated pseudo-element rather
+ * than an animated `background-position`, which keeps it on the compositor.
+ */
+@utility skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--muted);
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.7),
+      transparent
+    );
+    animation: shimmer 1.6s var(--motion-ease) infinite;
+  }
+}
+
+/*
+ * A bounded poll is a 2px rule, never a blanked page. Content already on
+ * screen stays readable while the refresh runs, because the reader was in the
+ * middle of it.
+ */
+@utility poll-rule {
+  position: relative;
+  overflow: hidden;
+  height: 2px;
+  background-color: var(--accent);
+  &::after {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    inline-size: 25%;
+    transform: translateX(-100%);
+    background-color: var(--accent-foreground);
+    animation: poll 1.4s var(--motion-ease) infinite;
+  }
+}
+
+/*
+ * A comfortable pointer target on a control whose visual box is smaller than
+ * one. A 32px control in a dense row stays 32px on the 8pt grid and still
+ * receives a 44px press, because the target is an invisible expander rather
+ * than padding. SC 2.5.8 asks for 24px; 44px is the comfort target.
+ *
+ * Vertical only: the expander inherits the control's width, so two controls
+ * sitting side by side in a row never steal each other's clicks.
+ */
+@utility hit-area {
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    inset-block-start: 50%;
+    block-size: max(100%, var(--hit-area-min));
+    translate: 0 -50%;
+  }
+}
+
+/*
+ * Reduced motion stops all four, and every element rests in its finished,
+ * visible state. The delay is zeroed as well: a `backwards` fill with a live
+ * delay would otherwise hold a staggered row invisible for its full offset
+ * before snapping in.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-delay: 0ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+/*
+ ---break---
+ */
+
+/*
+ * There is deliberately no `.dark` block.
+ *
+ * The Console renders light only: the website carries Midnight as the
+ * monumental first impression, and the Console is a working instrument read
+ * for hours at data density, where a dark surface costs legibility for no
+ * gain. Nothing in the application sets the class, so the grayscale block the
+ * shadcn preset shipped here rendered nowhere and could not be reviewed.
+ *
+ * A dark Console needs its own palette measured against its own surfaces —
+ * the light values do not invert, and the text ladder compresses to the point
+ * where three distinguishable rungs no longer fit between Ice and the minimum
+ * legible value on Midnight. Guessing one and leaving it here would look
+ * finished without being audited, so the `dark:` variant stays undefined
+ * until someone derives it properly.
+ */
 /*
  ---break---
  */
@@ -148,5 +539,28 @@
   }
   html {
     @apply font-sans;
+  }
+  /*
+   * A visible ring on every keyboard entry point. Archive Blue reaches 5.91:1
+   * on the canvas and 6.46:1 on a raised panel, so the ring clears the 3:1 of
+   * SC 1.4.11 with margin on every surface in the system.
+   */
+  :focus-visible {
+    @apply outline-ring rounded-sm outline-2 outline-offset-2;
+  }
+  ::selection {
+    @apply bg-secondary text-secondary-foreground;
+  }
+  /*
+   * Identifiers, counts, costs and timestamps are compared down a column far
+   * more often than they are read as prose, so their figures are fixed width
+   * wherever they appear.
+   */
+  code,
+  kbd,
+  samp,
+  pre {
+    @apply font-mono;
+    font-variant-numeric: tabular-nums;
   }
 }

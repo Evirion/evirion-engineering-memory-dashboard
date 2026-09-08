@@ -1,4 +1,10 @@
 import type { GithubInstallation, GithubSyncRun } from "@contracts/console"
+import { RefreshCw } from "lucide-react"
+
+import { buttonVariants } from "@/components/ui/button"
+import { noticeClasses, panelVariants } from "@/components/ui/panel"
+import { StatusChip } from "@/components/ui/status-chip"
+import { Kicker } from "@/components/ui/text"
 
 /**
  * GitHub installation status and synchronization progress.
@@ -21,9 +27,6 @@ export type GithubConnectionProps = {
   readonly connectKey: string
   readonly syncKey: string
 }
-
-const submit =
-  "rounded border border-slate-400 px-3 py-1 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
 
 const statusLine = (installation: GithubInstallation): string => {
   if (installation.installation === null) return "Not connected"
@@ -142,7 +145,7 @@ export const GithubConnection = ({
 }: GithubConnectionProps) => {
   if (installation === null) {
     return (
-      <p className="rounded border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+      <p className="border-line-default text-ink-secondary rounded-2xl border border-dashed px-5 py-4 text-sm">
         GitHub connection status is not available for your account.
       </p>
     )
@@ -157,45 +160,65 @@ export const GithubConnection = ({
   return (
     <section
       aria-label="GitHub connection"
-      className="flex flex-col gap-3 rounded border border-slate-300 bg-white px-4 py-3"
+      className={panelVariants({ className: "flex flex-col gap-4" })}
     >
-      <h2 className="text-sm font-semibold text-slate-900">GitHub connection</h2>
-      <p className="text-sm text-slate-900">{statusLine(installation)}</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex flex-col gap-1.5">
+          <Kicker>GitHub connection</Kicker>
+          {/*
+            A live installation is inert rather than an achievement, so it
+            takes no tone. Only a state that blocks work does.
+          */}
+          <StatusChip tone={needsAttention ? "attention" : "neutral"}>
+            {statusLine(installation)}
+          </StatusChip>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <form action="/api/github/connect" method="post">
+            <input type="hidden" name="csrfToken" value={csrfToken} />
+            <input type="hidden" name="idempotencyKey" value={connectKey} />
+            <button
+              type="submit"
+              className={buttonVariants({
+                variant: needsAttention || !everConnected ? "primary" : "outline",
+                size: "sm",
+              })}
+            >
+              {everConnected ? "Reconnect GitHub" : "Connect GitHub"}
+            </button>
+          </form>
+
+          {connected ? (
+            <form action="/api/github/sync" method="post">
+              <input type="hidden" name="csrfToken" value={csrfToken} />
+              <input type="hidden" name="idempotencyKey" value={syncKey} />
+              <button
+                type="submit"
+                className={buttonVariants({ variant: "outline", size: "sm" })}
+              >
+                <RefreshCw aria-hidden strokeWidth={1.5} />
+                Synchronize repositories
+              </button>
+            </form>
+          ) : null}
+        </div>
+      </div>
 
       {needsAttention ? (
-        <p className="text-sm text-amber-900">
+        <p className={noticeClasses("attention")}>
           New source work is blocked while the installation is in this state.
           Reconnecting restores access; no entitlement or history is lost.
         </p>
       ) : null}
 
-      {installation.latestSyncRun === null ? (
-        <p className="text-sm text-slate-700">No synchronization has run yet.</p>
-      ) : (
-        <p className="text-sm text-slate-700">{syncLine(installation.latestSyncRun)}</p>
-      )}
+      <p className="text-ink-secondary text-sm leading-6">
+        {installation.latestSyncRun === null
+          ? "No synchronization has run yet."
+          : syncLine(installation.latestSyncRun)}
+      </p>
 
-      <div className="flex flex-wrap gap-3">
-        <form action="/api/github/connect" method="post">
-          <input type="hidden" name="csrfToken" value={csrfToken} />
-          <input type="hidden" name="idempotencyKey" value={connectKey} />
-          <button type="submit" className={submit}>
-            {everConnected ? "Reconnect GitHub" : "Connect GitHub"}
-          </button>
-        </form>
-
-        {connected ? (
-          <form action="/api/github/sync" method="post">
-            <input type="hidden" name="csrfToken" value={csrfToken} />
-            <input type="hidden" name="idempotencyKey" value={syncKey} />
-            <button type="submit" className={submit}>
-              Synchronize repositories
-            </button>
-          </form>
-        ) : null}
-      </div>
-
-      <p className="text-xs text-slate-600">
+      <p className="text-muted-foreground border-border border-t pt-3 text-xs leading-5">
         Connecting reads which repositories exist. It activates nothing and starts no
         processing.
       </p>
@@ -221,7 +244,7 @@ export const SyncStalledNotice = () => (
   <output
     aria-live="polite"
     data-testid="sync-stalled"
-    className="rounded border border-amber-400 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+    className={noticeClasses("attention", "block")}
   >
     This synchronization was requested a while ago and has not finished. The page has
     stopped checking on its own; reload it to see the current state.

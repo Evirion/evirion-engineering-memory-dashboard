@@ -1,6 +1,15 @@
 import type { GithubInstallation, RepositoryPage } from "@contracts/console"
+import { ArrowRight } from "lucide-react"
 
-import { capacitySummary, productStateLabel } from "@/lib/repositories/presentation"
+import {
+  capacitySummary,
+  productStateLabel,
+  productStateTone,
+} from "@/lib/repositories/presentation"
+import { buttonVariants } from "@/components/ui/button"
+import { panelVariants } from "@/components/ui/panel"
+import { StatusBadge } from "@/components/ui/status-chip"
+import { kickerClasses } from "@/components/ui/text"
 
 import { RepositoryAxisList } from "./repository-axes"
 
@@ -26,27 +35,25 @@ export const RepositoryCapacity = ({
     // region around it is what makes the capacity block addressable.
     <section
       aria-label="Repository capacity"
-      className="rounded border border-slate-300 bg-white px-4 py-3"
+      className={panelVariants({ padding: "none" })}
     >
-      <dl className="grid gap-4 sm:grid-cols-3">
-        <div className="flex flex-col gap-1">
-          <dt className="text-xs font-medium tracking-wide text-slate-500 uppercase">
-            Accessible on GitHub
-          </dt>
+      <dl className="border-border grid gap-4 p-5 sm:grid-cols-3 sm:gap-0 sm:divide-x sm:divide-dashed">
+        <div className="flex flex-col gap-1 sm:pr-5">
+          <dt className={kickerClasses()}>Accessible on GitHub</dt>
           {/* Reported separately from the active count, never merged into it. */}
-          <dd className="text-sm text-slate-900">{summary.accessibleRepositories}</dd>
+          <dd className="text-foreground text-xl font-semibold tabular-nums">
+            {summary.accessibleRepositories}
+          </dd>
         </div>
-        <div className="flex flex-col gap-1">
-          <dt className="text-xs font-medium tracking-wide text-slate-500 uppercase">
-            Active in Evirion
-          </dt>
-          <dd className="text-sm text-slate-900">{capacity.value}</dd>
+        <div className="flex flex-col gap-1 sm:px-5">
+          <dt className={kickerClasses()}>Active in Evirion</dt>
+          <dd className="text-foreground text-xl font-semibold tabular-nums">
+            {capacity.value}
+          </dd>
         </div>
-        <div className="flex flex-col gap-1">
-          <dt className="text-xs font-medium tracking-wide text-slate-500 uppercase">
-            Allowance
-          </dt>
-          <dd className="text-sm text-slate-700">{capacity.detail}</dd>
+        <div className="flex flex-col gap-1 sm:pl-5">
+          <dt className={kickerClasses()}>Allowance</dt>
+          <dd className="text-ink-secondary text-sm leading-5">{capacity.detail}</dd>
         </div>
       </dl>
     </section>
@@ -97,30 +104,42 @@ export const RepositoryList = ({
   installation?: GithubInstallation | null
 }) => {
   if (page.items.length === 0) {
+    // A dashed edge, so an empty list is never mistaken for one still loading.
     return (
-      <p className="rounded border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+      <p className="border-line-default text-ink-secondary rounded-2xl border border-dashed px-5 py-8 text-center text-sm">
         {emptyRepositoryReason(installation)}
       </p>
     )
   }
 
   return (
-    <ul aria-label="Repositories" className="flex flex-col gap-3">
+    <ul aria-label="Repositories" className="stagger flex flex-col gap-4">
       {page.items.map((repository) => (
         <li
           key={repository.id}
-          className="flex flex-col gap-3 rounded border border-slate-300 bg-white px-4 py-3"
+          className={panelVariants({ className: "flex flex-col gap-4" })}
         >
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <div className="flex flex-wrap items-start justify-between gap-3">
             <a
               href={`/repositories/${repository.id}`}
-              className="text-sm font-semibold text-slate-900 underline underline-offset-2"
+              className="text-foreground hover:text-primary group inline-flex items-center gap-1.5 font-mono text-sm font-semibold"
             >
               {repository.nameWithOwner}
+              <ArrowRight
+                aria-hidden
+                className="size-3.5 opacity-0 transition-opacity group-hover:opacity-100"
+                strokeWidth={2}
+              />
             </a>
-            <span className="text-xs text-slate-600">
+            {/*
+              The one coloured thing on the card, and the scan target. It is
+              the backend's own rollup across all three axes, rendered whole
+              rather than summarised, so live processing mode needs no second
+              home and nothing is lost.
+            */}
+            <StatusBadge tone={productStateTone(repository.productState)}>
               {productStateLabel(repository.productState)}
-            </span>
+            </StatusBadge>
           </div>
           <RepositoryAxisList repository={repository} />
         </li>
@@ -131,10 +150,10 @@ export const RepositoryList = ({
 
 export const RepositoryPagination = ({ page }: { page: RepositoryPage }) =>
   page.page.nextCursor === null ? null : (
-    <nav aria-label="Repository pages">
+    <nav aria-label="Repository pages" className="flex justify-center">
       <a
         href={`/repositories?after=${page.page.nextCursor}`}
-        className="text-sm text-slate-900 underline underline-offset-2"
+        className={buttonVariants({ variant: "outline" })}
       >
         Next repositories
       </a>

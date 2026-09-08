@@ -7,6 +7,7 @@ import type {
 } from "@contracts/console"
 
 import { costViewFromBlock, metricsRateCostLabel, rateLabel } from "@/lib/settings/cost"
+import type { Tone } from "@/lib/ui/tone"
 
 export const memberRoleLabel = (role: Member["role"]): string => {
   switch (role) {
@@ -40,6 +41,25 @@ export const memberStatusLabel = (status: Member["status"]): string => {
   }
 }
 
+/**
+ * An active member is not an achievement, so it stays inert. Only an
+ * outstanding invitation asks anything of anyone, and a disabled member is a
+ * chosen resting state rather than a failure.
+ */
+export const memberStatusTone = (status: Member["status"]): Tone => {
+  switch (status) {
+    case "INVITED":
+      return "attention"
+    case "ACTIVE":
+    case "DISABLED":
+      return "neutral"
+    default: {
+      const exhaustive: never = status
+      throw new Error(`unhandled member status: ${String(exhaustive)}`)
+    }
+  }
+}
+
 export const offboardingStateLabel = (
   state: OrganizationOffboarding["state"],
 ): string => {
@@ -63,6 +83,26 @@ export const offboardingStateLabel = (
   }
 }
 
+export const offboardingStateTone = (state: OrganizationOffboarding["state"]): Tone => {
+  switch (state) {
+    case "REQUESTED":
+      return "holding"
+    case "EXECUTING":
+      return "progress"
+    case "FAILED":
+    case "REJECTED":
+      return "rejected"
+    case "COMPLETED":
+      return "verified"
+    case "UNSUPPORTED":
+      return "unknown"
+    default: {
+      const exhaustive: never = state
+      throw new Error(`unhandled offboarding state: ${String(exhaustive)}`)
+    }
+  }
+}
+
 export const githubInstallationStatusLabel = (
   status: NonNullable<GithubSettingsSummary["installation"]>["status"],
 ): string => {
@@ -75,6 +115,30 @@ export const githubInstallationStatusLabel = (
       return "Removed"
     case "UNSUPPORTED_SERVER_RESPONSE":
       return "Unsupported"
+    default: {
+      const exhaustive: never = status
+      throw new Error(`unhandled installation status: ${String(exhaustive)}`)
+    }
+  }
+}
+
+/**
+ * A live installation is inert, not a success. Only what is broken or waiting
+ * on someone takes a tone, which is what keeps the settings page scannable
+ * for the one row that needs a person.
+ */
+export const githubInstallationStatusTone = (
+  status: NonNullable<GithubSettingsSummary["installation"]>["status"],
+): Tone => {
+  switch (status) {
+    case "ACTIVE":
+      return "neutral"
+    case "SUSPENDED":
+      return "attention"
+    case "REMOVED":
+      return "rejected"
+    case "UNSUPPORTED_SERVER_RESPONSE":
+      return "unknown"
     default: {
       const exhaustive: never = status
       throw new Error(`unhandled installation status: ${String(exhaustive)}`)

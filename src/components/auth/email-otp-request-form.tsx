@@ -27,7 +27,7 @@ export const EmailOtpRequestForm = ({
 
   if (status === "sent") {
     return (
-      <output className="text-sm text-slate-700">
+      <output className="text-sm text-ink-secondary">
         If that address has an invitation, a code is on its way.
       </output>
     )
@@ -56,13 +56,13 @@ export const EmailOtpRequestForm = ({
           autoComplete="email"
           inputMode="email"
           spellCheck={false}
-          className="rounded border border-slate-300 px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+          className="rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
         />
       </div>
       <button
         type="submit"
         disabled={status === "sending"}
-        className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+        className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
       >
         {status === "sending" ? "Sending" : "Send code"}
       </button>

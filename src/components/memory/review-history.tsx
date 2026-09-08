@@ -1,6 +1,13 @@
 import { ConsoleUnavailable } from "@/components/console/console-unavailable"
-import { lifecycleStateLabel, reviewActionLabel } from "@/lib/knowledge/presentation"
+import {
+  lifecycleStateLabel,
+  reviewActionLabel,
+  reviewActionTone,
+} from "@/lib/knowledge/presentation"
 import type { KnowledgeHistoryView } from "@/server/queries/knowledge"
+import { panelVariants } from "@/components/ui/panel"
+import { StatusChip } from "@/components/ui/status-chip"
+import { SectionTitle, Technical } from "@/components/ui/text"
 
 /**
  * Every review decision ever recorded against one Knowledge Object.
@@ -33,8 +40,8 @@ export const ReviewHistory = ({ view }: { view: KnowledgeHistoryView }) => {
       className="flex flex-col gap-3"
     >
       <div className="flex flex-col gap-1">
-        <h2 className="text-sm font-semibold text-slate-900">Review history</h2>
-        <p className="text-xs text-slate-600">
+        <SectionTitle>Review history</SectionTitle>
+        <p className="text-muted-foreground max-w-[68ch] text-xs leading-5">
           Every decision is kept. A later decision is appended beside the earlier ones
           and never replaces one.
         </p>
@@ -43,40 +50,58 @@ export const ReviewHistory = ({ view }: { view: KnowledgeHistoryView }) => {
       {reviews.length === 0 ? (
         <p
           data-testid="review-history-empty"
-          className="rounded border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-700"
+          className="border-line-default text-ink-secondary rounded-2xl border border-dashed px-5 py-6 text-sm"
         >
           No one has reviewed this Knowledge Object yet.
         </p>
       ) : (
-        <ol aria-label="Recorded review decisions" className="flex flex-col gap-2">
+        /*
+          A timeline, drawn with a rule rather than boxes. The history is
+          append-only, so it is presented as a sequence of things that
+          happened, and there is no delete or amend affordance to render
+          because neither exists.
+        */
+        <ol
+          aria-label="Recorded review decisions"
+          className="border-border flex flex-col gap-3 border-l pl-5"
+        >
           {reviews.map((review) => (
             <li
               key={review.reviewId}
               data-testid="review-history-entry"
-              className="flex flex-col gap-1 rounded border border-slate-300 bg-white px-4 py-3"
+              className={panelVariants({
+                padding: "compact",
+                className: "relative flex flex-col gap-2",
+              })}
             >
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <span className="text-sm font-medium text-slate-900">
+              <span
+                aria-hidden
+                className="bg-border absolute top-6 -left-[23px] size-2 rounded-full ring-4 ring-[var(--background)]"
+              />
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <StatusChip tone={reviewActionTone(review.action)}>
                   {reviewActionLabel(review.action)}
-                </span>
-                <span className="text-xs text-slate-600">
+                </StatusChip>
+                <Technical>
                   Sequence {review.reviewSequence} on {review.recordedAt.slice(0, 10)}
-                </span>
+                </Technical>
               </div>
-              <p className="text-xs text-slate-700">
+              <p className="text-ink-secondary text-xs leading-5">
                 Recorded by a {review.reviewerRole} while the lifecycle was{" "}
                 {lifecycleStateLabel(review.observedLifecycleState).toLowerCase()}.
               </p>
               {review.rejectReasonCode === undefined ? null : (
-                <p className="text-xs text-slate-700">
+                <Technical>
                   Reason {review.rejectReasonCode}
                   {review.issueSeverity === undefined
                     ? ""
                     : `, severity ${review.issueSeverity}`}
-                </p>
+                </Technical>
               )}
               {review.note === undefined ? null : (
-                <p className="text-xs text-slate-700">Note: {review.note}</p>
+                <p className="text-ink-secondary text-xs leading-5">
+                  Note: {review.note}
+                </p>
               )}
             </li>
           ))}
