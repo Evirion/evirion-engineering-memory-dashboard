@@ -1,5 +1,6 @@
 import type { InvitationChoice } from "@/server/queries/invitation-choices"
 import { buttonVariants } from "@/components/ui/button"
+import { SubmitButton } from "@/components/ui/submit-button"
 
 /**
  * Several eligible invitations require an explicit choice. There is no
@@ -44,12 +45,11 @@ export const InvitationSelection = ({
           </label>
         ))}
       </fieldset>
-      <button
-        type="submit"
+      <SubmitButton
         className={buttonVariants({ variant: "primary", className: "self-start" })}
       >
         Accept invitation
-      </button>
+      </SubmitButton>
     </form>
   </section>
 )

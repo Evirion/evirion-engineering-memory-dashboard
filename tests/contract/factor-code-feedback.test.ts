@@ -97,9 +97,14 @@ describe("the six digits stay one field", () => {
     // The digits are valid for half a minute; asking for a second deliberate
     // act spends part of it. The button stays for anyone who fills the field
     // another way.
+    //
+    // Either spelling counts. The literal `type="submit"` moved into the
+    // shared `SubmitButton`, which renders it and adds the in-flight state;
+    // what this row protects is that a submit affordance exists here at all,
+    // not which element expresses it.
     const form = source("src/components/auth/totp-code-form.tsx")
     expect(form).toContain("onComplete")
-    expect(form).toContain('type="submit"')
+    expect(form).toMatch(/type="submit"|<SubmitButton/)
   })
 })
 

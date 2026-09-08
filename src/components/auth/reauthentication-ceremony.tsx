@@ -7,6 +7,7 @@ import {
   TOTP_REJECTED,
 } from "@/lib/auth/reauthentication-result-codes"
 import type { ReauthenticationGate } from "@/lib/auth/reauthentication-action-class"
+import { SubmitButton } from "@/components/ui/submit-button"
 
 const ceremonyMessage = (result: string | undefined): string | undefined => {
   if (result === undefined || result === "") return undefined
@@ -109,26 +110,24 @@ export const ReauthenticationCeremony = ({
           </label>
           <OtpCells id="reauth-totp" name="totp" />
         </div>
-        <button
-          type="submit"
+        <SubmitButton
           data-testid="reauth-complete"
           className="self-start rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
         >
           Confirm and continue
-        </button>
+        </SubmitButton>
       </form>
 
       <form action="/api/session/reauthentication/issue" method="post">
         <input type="hidden" name="csrfToken" value={csrfToken} />
         <input type="hidden" name="gate" value={gate} />
         <input type="hidden" name="returnPath" value={returnPath} />
-        <button
-          type="submit"
+        <SubmitButton
           data-testid="reauth-issue"
           className="self-start text-sm text-ink-secondary underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
         >
           Start a new confirmation
-        </button>
+        </SubmitButton>
       </form>
     </section>
   )

@@ -4,6 +4,7 @@ import { TotpCodeForm } from "@/components/auth/totp-code-form"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AUTH_OUTCOME_PARAMETER, describeAuthOutcome } from "@/lib/auth/auth-outcome"
 import { readSessionCsrfToken } from "@/server/actions/session-csrf-read"
+import { SubmitButton } from "@/components/ui/submit-button"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -62,12 +63,9 @@ const MfaChallengePage = async ({
         className="border-t border-border pt-4"
       >
         <input type="hidden" name="csrfToken" value={csrfToken} />
-        <button
-          type="submit"
-          className="text-sm text-ink-secondary underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-        >
+        <SubmitButton className="text-sm text-ink-secondary underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
           Set up a new authenticator instead
-        </button>
+        </SubmitButton>
       </form>
     </section>
   )

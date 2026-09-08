@@ -1,5 +1,88 @@
 # Dashboard changelog
 
+## 2026-09-08 — say when something is loading
+
+- **Why.** Nothing in the Console reported that it was working. Thirty-six
+  submit controls posted a native form that navigates the whole page, and only
+  one of them changed at all while the request was in flight; the rest looked
+  dead, which invites a second press. Ten of the thirteen console routes had no
+  `loading.tsx`, so a sidebar click sat on the old page until the new one
+  arrived.
+- **Buttons, not pages, get the spinner.** `SubmitButton` listens to its own
+  form's `submit`, shows a spinner and keeps its label — a control that blanks
+  its own text removes the only thing saying what is running. `useFormStatus`
+  was not available: it reports on a React Server Action, and every mutation
+  here posts to `/api/…` behind the frozen CSRF, origin and content-type
+  boundary. Converting them would move a security boundary to buy a spinner.
+- **It deliberately does not set `disabled`.** Two controls on
+  `/settings/sessions` share one form and are told apart by `name="selection"`,
+  so the submitter is load-bearing. A disabled control is skipped when the
+  browser builds the form data, and the request would arrive without the value
+  that says which sessions to end. A re-entry guard stops the double submit
+  instead. `tests/e2e/submit-feedback.spec.ts` asserts the value still arrives.
+- **Pages get skeletons.** Eight routes gained a `loading.tsx`. The shape is
+  known before the data arrives, so the placeholder holds the boxes the content
+  will occupy and nothing shifts when it lands.
+- **Two routes deliberately did not.** A loading file opens a Suspense boundary
+  over its whole subtree, and a boundary above a page that calls `notFound()`
+  flushes the shell with a 200 before the refusal is reached — a Knowledge
+  Object the caller may not see would answer as one that exists. Measured: it
+  turned that 404 into a 200 and failed the tenant-boundary row in
+  `memory-boundary.spec.ts`. `/memory/:id` and `/repositories/:id/memory` have
+  none, and the queue moved into a `(queue)` route group so its own boundary
+  stops at its own route. Route groups do not appear in the URL, so the frozen
+  route contract is unchanged.
+- **The `progress` tone turns.** That tone is defined as automated work running
+  and finishing on its own, so a moving glyph reports something true. `holding`
+  stays still beside it: nothing is running there, and a spinner would promise
+  a completion that is not coming.
+- **Verification.** `pnpm lint`, `pnpm typecheck`, `pnpm format:check`,
+  `pnpm routes`, the contrast verifier over 66 pairs, 986 unit and contract
+  tests across 69 files, and 343 Playwright tests. The five security specs that
+  fail on `main` still fail identically.
+
+## 2026-09-08 — the Console wears the brand
+
+- **Why.** The interface read as flat grey for three separate reasons.
+  `globals.css` carried the stock shadcn neutral theme, where every colour is
+  `oklch(x 0 0)` and has literally zero chroma. 499 lines across `src/`
+  hardcoded `slate` and `amber` classes that bypassed the theme entirely. And
+  no typeface was loaded, so every heading fell back to the system stack.
+- **What changed.** Brand Book section 15 maps onto shadcn's own variable
+  names, so a component inherits the brand without a per-component override.
+  Geist and Geist Mono come from the `geist` package, which carries its own
+  woff2 files, so nothing is fetched from Google at build time and
+  `font-src 'self'` holds. Navigation became a left sidebar grouped into Work,
+  Organization and You. A `Tone` union resolves every domain state through an
+  exhaustive switch, and each tone carries a fill, a glyph and its border
+  geometry so the state survives greyscale.
+- **Measured, not asserted.** `tools/verify/contrast.mjs` reads the shipped
+  stylesheet and exits non-zero on a regression. It caught eleven real failures
+  on its first run, including chip borders at 2.1:1 that would have made the
+  `holding` bar and the dashed `unknown` edge invisible.
+- **Correction, 2026-09-08.** The commit message and pull request for this
+  change said a JavaScript animation library is "silently blocked" by the
+  Console's `style-src 'self' 'nonce-…'`, and used that to justify excluding
+  Framer Motion and Radix's positioned overlays. That is wrong, and it was
+  asserted rather than measured. Probing the running stack shows the policy
+  refuses a `style` attribute that arrives in parsed HTML — which is what a
+  server-rendered `style={{…}}` emits — and refuses
+  `setAttribute("style", …)`, but permits `element.style.foo = …`. A library
+  animating through the CSSOM is therefore not blocked. The choices stand on
+  their own merits: CSS keyframes need no dependency on a pinned manifest and
+  stop under `prefers-reduced-motion`, and shadcn's `SidebarProvider` genuinely
+  does break because it server-renders a style attribute. The reasoning
+  published alongside them did not. The code comments were corrected in the
+  loading-states change above; the merged commit message cannot be.
+- **Verification.** `pnpm lint`, `pnpm typecheck`, `pnpm format:check`, the
+  contrast verifier, 986 unit and contract tests across 69 files, and 341
+  Playwright tests. The five security specs that fail on `main` still fail
+  identically.
+- **State.** Merged as
+  [PR #58](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/58)
+  (`dd21379`). Not deployed to a customer environment; the Vercel preview built
+  and served it.
+
 ## 2026-09-07 — stop reloading for a run that may never finish
 
 - **Why.** A partner pressed Synchronize repositories and both the GitHub and

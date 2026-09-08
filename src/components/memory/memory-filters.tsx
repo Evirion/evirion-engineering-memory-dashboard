@@ -8,6 +8,7 @@ import type { RepositoryChoice } from "@/server/queries/knowledge"
 import { buttonVariants } from "@/components/ui/button"
 import { Field, Input, Label, Select } from "@/components/ui/field"
 import { panelVariants } from "@/components/ui/panel"
+import { SubmitButton } from "@/components/ui/submit-button"
 
 /**
  * The review-queue predicates.
@@ -138,9 +139,9 @@ export const MemoryFilters = ({
     </div>
 
     <div className="border-border flex border-t pt-4">
-      <button type="submit" className={buttonVariants({ variant: "primary" })}>
+      <SubmitButton className={buttonVariants({ variant: "primary" })}>
         Apply filters
-      </button>
+      </SubmitButton>
     </div>
   </form>
 )

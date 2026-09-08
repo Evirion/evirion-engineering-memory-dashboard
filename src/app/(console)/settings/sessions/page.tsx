@@ -1,5 +1,6 @@
 import { readSessionCsrfToken } from "@/server/actions/session-csrf-read"
 import { requireSessionContext } from "@/server/queries/session-context"
+import { SubmitButton } from "@/components/ui/submit-button"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -40,22 +41,22 @@ const SessionsPage = async () => {
         className="flex flex-wrap gap-3"
       >
         <input type="hidden" name="csrfToken" value={csrfToken} />
-        <button
+        <SubmitButton
           name="selection"
           value="others"
-          type="submit"
+
           className="rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
         >
           Sign out other sessions
-        </button>
-        <button
+        </SubmitButton>
+        <SubmitButton
           name="selection"
           value="all"
-          type="submit"
+
           className="rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
         >
           Sign out everywhere
-        </button>
+        </SubmitButton>
       </form>
 
       <p className="rounded-lg border border-border bg-muted px-3 py-2 text-sm text-ink-secondary">

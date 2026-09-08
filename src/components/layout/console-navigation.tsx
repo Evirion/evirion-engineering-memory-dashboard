@@ -20,6 +20,7 @@ import {
 import { buttonVariants } from "@/components/ui/button"
 import { Kicker } from "@/components/ui/text"
 import { OrganizationSwitcher } from "./organization-switcher"
+import { SubmitButton } from "@/components/ui/submit-button"
 
 /**
  * Navigation reflects backend capabilities. A hidden entry is a convenience:
@@ -161,13 +162,10 @@ export const ConsoleBar = ({
 
       <form action="/api/auth/logout" method="post">
         <input type="hidden" name="csrfToken" value={csrfToken} />
-        <button
-          type="submit"
-          className={buttonVariants({ variant: "outline", size: "sm" })}
-        >
+        <SubmitButton className={buttonVariants({ variant: "outline", size: "sm" })}>
           <LogOut aria-hidden strokeWidth={1.5} />
           Sign out
-        </button>
+        </SubmitButton>
       </form>
     </div>
 

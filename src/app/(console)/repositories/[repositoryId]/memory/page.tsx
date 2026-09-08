@@ -33,6 +33,11 @@ const RepositoryMemoryPage = async ({
 }) => {
   const { repositoryId } = await params
   const identifier = validRepositoryId(repositoryId)
+  /*
+   * No `loading.tsx` here either. A Suspense boundary would flush the shell
+   * with a 200 before this refusal is reached, turning a not-found into a
+   * page that renders one. See the sibling note on `/memory/:id`.
+   */
   if (identifier === undefined) notFound()
 
   const filters = readKnowledgeFilters(await searchParams)

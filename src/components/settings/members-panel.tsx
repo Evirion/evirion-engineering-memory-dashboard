@@ -27,6 +27,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { SectionTitle } from "@/components/ui/text"
+import { SubmitButton } from "@/components/ui/submit-button"
 
 const button = buttonVariants({ variant: "outline", size: "sm" })
 const card = panelVariants({ className: "flex flex-col gap-3" })
@@ -178,9 +179,7 @@ export const MembersPanel = ({
                             </option>
                           ))}
                         </Select>
-                        <button type="submit" className={button}>
-                          Update role
-                        </button>
+                        <SubmitButton className={button}>Update role</SubmitButton>
                       </GatedForm>
                     </TableCell>
                   ) : canManage ? (
@@ -251,13 +250,9 @@ export const MembersPanel = ({
                         value={invitation.version}
                         aria-label="Invitation version"
                       />
-                      <button
-                        type="submit"
-                        className={button}
-                        aria-label="Resend invitation"
-                      >
+                      <SubmitButton className={button} aria-label="Resend invitation">
                         Resend
-                      </button>
+                      </SubmitButton>
                     </GatedForm>
                     <GatedForm
                       action="/api/settings/invitations/revoke"
@@ -285,13 +280,9 @@ export const MembersPanel = ({
                         value={invitation.version}
                         aria-label="Invitation version"
                       />
-                      <button
-                        type="submit"
-                        className={button}
-                        aria-label="Revoke invitation"
-                      >
+                      <SubmitButton className={button} aria-label="Revoke invitation">
                         Revoke
-                      </button>
+                      </SubmitButton>
                     </GatedForm>
                   </div>
                 </li>
@@ -333,8 +324,7 @@ export const MembersPanel = ({
                   <option value="viewer">Viewer</option>
                 </Select>
               </div>
-              <button
-                type="submit"
+              <SubmitButton
                 className={buttonVariants({
                   variant: "primary",
                   className: "self-start",
@@ -342,7 +332,7 @@ export const MembersPanel = ({
                 data-testid="invite-member-button"
               >
                 Invite member
-              </button>
+              </SubmitButton>
             </GatedForm>
           </div>
         </section>
@@ -410,8 +400,7 @@ export const MembersPanel = ({
                 />
                 I confirm this request
               </label>
-              <button
-                type="submit"
+              <SubmitButton
                 className={buttonVariants({
                   variant: "primary",
                   className: "self-start",
@@ -419,7 +408,7 @@ export const MembersPanel = ({
                 data-testid="offboarding-request-button"
               >
                 Request offboarding
-              </button>
+              </SubmitButton>
             </GatedForm>
           </div>
         ) : null}

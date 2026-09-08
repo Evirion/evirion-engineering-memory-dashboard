@@ -5,6 +5,7 @@ import { offeredProfiles } from "@/lib/repositories/presentation"
 import { policyTerm } from "@/lib/repositories/vocabulary"
 import type { ModelProfileCatalogueView } from "@/server/queries/repositories"
 import { buttonVariants } from "@/components/ui/button"
+import { SubmitButton } from "@/components/ui/submit-button"
 
 /**
  * The entitlement and policy controls.
@@ -91,9 +92,7 @@ export const ActivateForm = ({
       <label className="flex items-center gap-2 text-sm text-foreground">
         <input type="checkbox" name="confirmationAccepted" />I confirm this
       </label>
-      <button type="submit" className={submit}>
-        Activate repository
-      </button>
+      <SubmitButton className={submit}>Activate repository</SubmitButton>
     </form>
   )
 
@@ -124,9 +123,7 @@ export const DisableForm = ({
         Reason, optional
         <input type="text" name="reason" maxLength={500} className={field} />
       </label>
-      <button type="submit" className={submit}>
-        Disable repository
-      </button>
+      <SubmitButton className={submit}>Disable repository</SubmitButton>
     </form>
   )
 
@@ -184,9 +181,7 @@ export const RequestChangeForm = ({
         Reason, optional
         <input type="text" name="reason" maxLength={500} className={field} />
       </label>
-      <button type="submit" className={submit}>
-        Request change
-      </button>
+      <SubmitButton className={submit}>Request change</SubmitButton>
     </form>
   )
 
@@ -224,9 +219,7 @@ export const PolicyForm = ({
       {/* Alpha has no "approve this live envelope later" action: future
           behaviour changes through a versioned policy update, and historical
           work goes through the guarded import workflow. */}
-      <button type="submit" className={submit}>
-        Save live processing
-      </button>
+      <SubmitButton className={submit}>Save live processing</SubmitButton>
     </form>
   )
 
@@ -375,9 +368,9 @@ export const ConsentForm = ({
           Expires
           <input type="datetime-local" name="expiresAt" required className={field} />
         </label>
-        <button type="submit" className={submit}>
+        <SubmitButton className={submit}>
           Record consent and turn on automatic extraction
-        </button>
+        </SubmitButton>
       </form>
     </details>
   )

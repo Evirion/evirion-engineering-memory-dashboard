@@ -1,14 +1,16 @@
-"use client"
-
-import { useState } from "react"
-
-import { buttonVariants } from "@/components/ui/button"
 import { Field, Input, Label } from "@/components/ui/field"
+import { SubmitButton } from "@/components/ui/submit-button"
 
 /**
  * Requests an email code. The response is identical for a known and an
  * unknown address, so nothing here can be used to enumerate accounts. The
  * code is never placed in a URL and never stored in the browser.
+ *
+ * This was a client component only to hold a "sending" flag, which the submit
+ * control now owns for every form in the Console. It also carried a "sent"
+ * branch that nothing ever set, so the page shipped a state it could not
+ * reach. Both are gone and the sign-in screen ships no component JavaScript
+ * of its own.
  */
 export const EmailOtpRequestForm = ({
   csrfToken,
@@ -21,53 +23,28 @@ export const EmailOtpRequestForm = ({
    * still `invited` and the member path requires `active`.
    */
   invitationId?: string
-}) => {
-  const [status, setStatus] = useState<"idle" | "sending" | "sent">("idle")
-
-  const handleSubmit = () => {
-    setStatus("sending")
-  }
-
-  if (status === "sent") {
-    return (
-      <output className="text-sm text-ink-secondary">
-        If that address has an invitation, a code is on its way.
-      </output>
-    )
-  }
-
-  return (
-    <form
-      action="/api/auth/request-otp"
-      method="post"
-      onSubmit={handleSubmit}
-      className="flex flex-col gap-4"
-    >
-      <input type="hidden" name="csrfToken" value={csrfToken} />
-      {invitationId ? (
-        <input type="hidden" name="invitationId" value={invitationId} />
-      ) : null}
-      <Field className="gap-2">
-        <Label htmlFor="email" className="text-sm">
-          Email address
-        </Label>
-        <Input
-          id="email"
-          name="email"
-          type="email"
-          required
-          autoComplete="email"
-          inputMode="email"
-          spellCheck={false}
-        />
-      </Field>
-      <button
-        type="submit"
-        disabled={status === "sending"}
-        className={buttonVariants({ variant: "primary", size: "lg" })}
-      >
-        {status === "sending" ? "Sending" : "Send code"}
-      </button>
-    </form>
-  )
-}
+}) => (
+  <form action="/api/auth/request-otp" method="post" className="flex flex-col gap-4">
+    <input type="hidden" name="csrfToken" value={csrfToken} />
+    {invitationId ? (
+      <input type="hidden" name="invitationId" value={invitationId} />
+    ) : null}
+    <Field className="gap-2">
+      <Label htmlFor="email" className="text-sm">
+        Email address
+      </Label>
+      <Input
+        id="email"
+        name="email"
+        type="email"
+        required
+        autoComplete="email"
+        inputMode="email"
+        spellCheck={false}
+      />
+    </Field>
+    <SubmitButton variant="primary" size="lg">
+      Send code
+    </SubmitButton>
+  </form>
+)

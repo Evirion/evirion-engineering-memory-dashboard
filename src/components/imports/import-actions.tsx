@@ -11,6 +11,7 @@ import {
 import type { ImportFailuresView } from "@/server/queries/imports"
 import { buttonVariants } from "@/components/ui/button"
 import { panelVariants } from "@/components/ui/panel"
+import { SubmitButton } from "@/components/ui/submit-button"
 
 /**
  * The import controls.
@@ -142,9 +143,7 @@ export const PrepareForm = ({
       <p className="text-xs text-ink-secondary">
         Both dates are required for a custom range and are inclusive.
       </p>
-      <button type="submit" className={submit}>
-        Prepare import
-      </button>
+      <SubmitButton className={submit}>Prepare import</SubmitButton>
     </GatedForm>
   )
 }
@@ -227,9 +226,7 @@ export const ApproveForm = ({
           className={field}
         />
       </label>
-      <button type="submit" className={submit}>
-        Approve extraction
-      </button>
+      <SubmitButton className={submit}>Approve extraction</SubmitButton>
     </GatedForm>
   )
 }
@@ -302,9 +299,7 @@ export const RunStateForms = ({
           />
           <ImportIdentity current={current} />
           <input type="hidden" name="state" value={control.state} />
-          <button type="submit" className={submit}>
-            {control.label}
-          </button>
+          <SubmitButton className={submit}>{control.label}</SubmitButton>
         </GatedForm>
       ))}
     </div>
@@ -429,9 +424,7 @@ export const ImportFailureList = ({
                     value={failure.extractionJobId}
                   />
                   <ReauthenticationPreconditionNotice />
-                  <button type="submit" className={submit}>
-                    Retry this work
-                  </button>
+                  <SubmitButton className={submit}>Retry this work</SubmitButton>
                 </GatedForm>
               ) : null}
             </li>

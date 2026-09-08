@@ -333,12 +333,13 @@
  * arriving, a placeholder standing in for bytes still in flight, and a
  * bounded poll running. Nothing loops to look busy.
  *
- * All of it is CSS. The Content-Security-Policy carries no `unsafe-inline`
- * and a nonce does not cover style *attributes*, so a JavaScript animation
- * library — which drives frames by writing to `element.style` — is silently
- * blocked in this application. Keyframes in a stylesheet are not, and
- * `transform` and `opacity` are the two properties the compositor can animate
- * without laying the page out again.
+ * All of it is CSS, and a stylesheet is the one place animation is
+ * unconditionally safe here. The Content-Security-Policy carries no
+ * `unsafe-inline`, and measurement shows it refuses a `style` attribute that
+ * arrives in parsed HTML — which is what a server-rendered `style={{…}}`
+ * produces — while permitting CSSOM writes. Keyframes avoid the question
+ * entirely, and `transform` and `opacity` are the two properties the
+ * compositor can animate without laying the page out again.
  */
 @keyframes rise {
   from {
