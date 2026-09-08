@@ -54,9 +54,27 @@ test.describe("processing tenant boundary", () => {
       principal: "console-stub-viewer",
     })
     await page.goto("/processing")
-    await expect(page.getByTestId("processing-cost").first()).toContainText(
-      "Not included for your role",
-    )
+    await expect(page.getByTestId("processing-row").first()).toBeVisible()
+
+    /*
+     * This read the cost cell and expected "Not included for your role".
+     * The column is suspended, so there is no cell to read — but the row is
+     * still where a figure would surface if redaction failed, so the row is
+     * still where the absence is proved.
+     *
+     * The claim is weaker than the one it replaces, and knowingly so: with
+     * nothing rendering cost, it cannot separate "the backend withheld it"
+     * from "the interface stopped asking". It still catches the restore that
+     * returns the column without the role check, which is the regression
+     * worth holding while the suspension lasts.
+     */
+    const rows = await page.getByTestId("processing-row").allInnerTexts()
+    expect(rows.length).toBeGreaterThan(0)
+    for (const row of rows) {
+      expect(row, "a viewer must see no currency figure").not.toMatch(
+        /USD\s*[\d.]|\$\s*[\d.]/,
+      )
+    }
   })
 
   test("viewer is refused usage metrics", async ({ context, page }) => {

@@ -321,14 +321,15 @@ test.describe("github and usage settings", () => {
     await expect(page.getByText("Active in Evirion", { exact: true })).toBeVisible()
   })
 
-  test("renders unresolved cost without a measured zero", async ({ context, page }) => {
-    await signIn(context, { scenario: "processingSettings" })
-    await page.goto("/processing")
-
-    const unresolved = page
-      .locator('[data-processing-state="FAILED"]')
-      .locator('[data-testid="processing-cost"]')
-    await expect(unresolved).toContainText("No amount yet")
-    await expect(unresolved).toContainText("Pending reconciliation")
-  })
+  /*
+   * The unresolved-cost row that stood here went with the column it read when
+   * cost reporting was suspended on 2026-09-08.
+   *
+   * The rule it protected — an unresolved cost never rendering as a measured
+   * zero — did not go with it. It is proved on the import surface, which
+   * still shows cost, by "never renders an unresolved cost as zero" in
+   * `tests/e2e/import.spec.ts`, and over `costView` in
+   * `tests/unit/imports/presentation.test.ts`. Restoring the column should
+   * bring this row back beside those two, not instead of them.
+   */
 })

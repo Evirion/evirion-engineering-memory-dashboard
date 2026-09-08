@@ -1,6 +1,7 @@
 import type { ProcessingPage } from "@contracts/console"
 
 import { rowView } from "@/lib/processing/presentation"
+import { SHOW_COST_FIGURES } from "@/lib/ui/cost-reporting"
 import { StatusChip } from "@/components/ui/status-chip"
 import {
   Table,
@@ -31,7 +32,7 @@ export const ProcessingActivityTable = ({ page }: { page: ProcessingPage }) => (
           <TableHeader scope="col">Outcome</TableHeader>
           <TableHeader scope="col">Paid authorization</TableHeader>
           <TableHeader scope="col">Job / source</TableHeader>
-          <TableHeader scope="col">Cost</TableHeader>
+          {SHOW_COST_FIGURES ? <TableHeader scope="col">Cost</TableHeader> : null}
           <TableHeader scope="col">Updated</TableHeader>
         </TableRow>
       </TableHead>
@@ -126,6 +127,25 @@ export const ProcessingActivityTable = ({ page }: { page: ProcessingPage }) => (
                 )}
               </TableCell>
 
+              {SHOW_COST_FIGURES ? (
+                <TableCell data-testid="processing-cost">
+                  {view.cost === null ? (
+                    <span className="text-muted-foreground text-xs">
+                      Not included for your role
+                    </span>
+                  ) : (
+                    <>
+                      <div className="text-foreground font-mono text-sm tabular-nums">
+                        {view.cost.headline.amount ?? "No amount yet"}
+                      </div>
+                      <p className="mt-0.5" data-testid="cost-completeness">
+                        <Technical>{view.costCompleteness}</Technical>
+                      </p>
+                    </>
+                  )}
+                </TableCell>
+              ) : null}
+
               <TableCell>
                 <div className="flex flex-col items-start gap-1">
                   <StatusChip tone={view.jobTone}>{view.jobLabel}</StatusChip>
@@ -134,23 +154,6 @@ export const ProcessingActivityTable = ({ page }: { page: ProcessingPage }) => (
                     {view.admissionLabel}
                   </StatusChip>
                 </div>
-              </TableCell>
-
-              <TableCell data-testid="processing-cost">
-                {view.cost === null ? (
-                  <span className="text-muted-foreground text-xs">
-                    Not included for your role
-                  </span>
-                ) : (
-                  <>
-                    <div className="text-foreground font-mono text-sm tabular-nums">
-                      {view.cost.headline.amount ?? "No amount yet"}
-                    </div>
-                    <p className="mt-0.5" data-testid="cost-completeness">
-                      <Technical>{view.costCompleteness}</Technical>
-                    </p>
-                  </>
-                )}
               </TableCell>
 
               {/*
