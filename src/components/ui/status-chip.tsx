@@ -114,7 +114,9 @@ export const StatusChip = ({
     data-slot="status-chip"
     data-tone={tone}
     className={cn(
-      "inline-flex items-center gap-1.5 rounded-sm border px-2 py-0.5 text-xs font-medium",
+      // `whitespace-nowrap`: a chip is one state, and breaking its label
+      // across two lines makes a table cell read as two states.
+      "inline-flex items-center gap-1.5 rounded-sm border px-2 py-0.5 text-xs font-medium whitespace-nowrap",
       toneSurface(tone),
       className,
     )}
