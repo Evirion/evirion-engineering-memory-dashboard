@@ -75,6 +75,9 @@ test.describe("stored payloads render as text", () => {
   }) => {
     await signIn(context, { scenario: "xssCorpus" })
     await page.goto("/memory")
+    // Wait for a row, not for the navigation. This route renders a skeleton
+    // first, and a body sampled inside that window holds no claim to check.
+    await expect(page.getByTestId("memory-queue-row").first()).toBeVisible()
 
     // Escaping that swallowed the text would also pass the test above, and
     // would be its own defect: a reviewer must see what the claim actually says.

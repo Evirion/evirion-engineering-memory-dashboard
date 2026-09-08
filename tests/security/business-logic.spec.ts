@@ -91,6 +91,9 @@ test.describe("visibility is never authority", () => {
   }) => {
     await signIn(context, { scenario: "default" })
     await page.goto("/settings/usage")
+    // Wait for the document. This route renders a skeleton first, so a body
+    // read straight after `goto` measures the placeholder.
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible()
     // Usage is a backend projection. A Console that summed it would drift from
     // the ledger the moment either changed.
     const body = await page.locator("body").innerText()

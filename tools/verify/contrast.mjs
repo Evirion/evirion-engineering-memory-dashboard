@@ -129,6 +129,8 @@ const pairs = () => {
     ["sidebar-accent-foreground", "sidebar-accent", 4.5, "sidebar active link"],
     ["sidebar-primary-foreground", "sidebar-primary", 4.5, "sidebar primary label"],
 
+    ["foreground", "selection", 4.5, "selected text"],
+
     ["ring", "background", 3, "focus ring on canvas"],
     ["ring", "card", 3, "focus ring on panel"],
     ["input", "card", 3, "control border on panel"],
@@ -160,6 +162,13 @@ const steps = [
   ["ink-secondary", "muted-foreground", 1.4, "prose against metadata"],
   ["card", "background", 1.04, "panel against canvas"],
   ["background", "muted", 1.03, "canvas against a well"],
+  /*
+   * A highlight has to be seen before it can be read. The first cut used Ice,
+   * which is 1.17:1 on white — selecting text in a field changed nothing
+   * visible. These two are why it cannot quietly drift back.
+   */
+  ["selection", "card", 1.3, "selection against a field"],
+  ["selection", "background", 1.2, "selection against the canvas"],
 ]
 
 const failures = []
