@@ -3,6 +3,8 @@
 import { useRef } from "react"
 
 import { OtpCells } from "@/components/auth/otp-cells"
+import { buttonVariants } from "@/components/ui/button"
+import { Field, Input, Label } from "@/components/ui/field"
 
 /**
  * Submits the emailed code to the BFF. The code goes in a form body, never in
@@ -48,25 +50,18 @@ export const OtpVerifyForm = ({
       {email ? (
         <input type="hidden" name="email" value={email} />
       ) : (
-        <div className="flex flex-col gap-2">
-          <label htmlFor="email" className="text-sm font-medium">
+        <Field className="gap-2">
+          <Label htmlFor="email" className="text-sm">
             Email address
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            required
-            autoComplete="email"
-            className="rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-          />
-        </div>
+          </Label>
+          <Input id="email" name="email" type="email" required autoComplete="email" />
+        </Field>
       )}
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="code" className="text-sm font-medium">
+        <Label htmlFor="code" className="text-sm">
           Six-digit code
-        </label>
+        </Label>
         <OtpCells
           id="code"
           name="code"
@@ -84,7 +79,7 @@ export const OtpVerifyForm = ({
 
       <button
         type="submit"
-        className="rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+        className={buttonVariants({ variant: "primary", size: "lg" })}
       >
         Verify and continue
       </button>

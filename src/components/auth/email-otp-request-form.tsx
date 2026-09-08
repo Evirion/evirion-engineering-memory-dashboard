@@ -2,6 +2,9 @@
 
 import { useState } from "react"
 
+import { buttonVariants } from "@/components/ui/button"
+import { Field, Input, Label } from "@/components/ui/field"
+
 /**
  * Requests an email code. The response is identical for a known and an
  * unknown address, so nothing here can be used to enumerate accounts. The
@@ -44,11 +47,11 @@ export const EmailOtpRequestForm = ({
       {invitationId ? (
         <input type="hidden" name="invitationId" value={invitationId} />
       ) : null}
-      <div className="flex flex-col gap-2">
-        <label htmlFor="email" className="text-sm font-medium">
+      <Field className="gap-2">
+        <Label htmlFor="email" className="text-sm">
           Email address
-        </label>
-        <input
+        </Label>
+        <Input
           id="email"
           name="email"
           type="email"
@@ -56,13 +59,12 @@ export const EmailOtpRequestForm = ({
           autoComplete="email"
           inputMode="email"
           spellCheck={false}
-          className="rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
         />
-      </div>
+      </Field>
       <button
         type="submit"
         disabled={status === "sending"}
-        className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+        className={buttonVariants({ variant: "primary", size: "lg" })}
       >
         {status === "sending" ? "Sending" : "Send code"}
       </button>
