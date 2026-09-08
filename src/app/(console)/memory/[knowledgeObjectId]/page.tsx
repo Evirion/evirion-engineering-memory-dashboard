@@ -65,6 +65,16 @@ const KnowledgeDetailPage = async ({
     typeof chosen === "string" ? { supersedeWith: chosen } : {},
   )
 
+  /*
+   * This route deliberately has no `loading.tsx`, and adding one is a
+   * regression rather than an improvement.
+   *
+   * A loading file wraps the page in a Suspense boundary, so Next flushes the
+   * shell — with a 200 — before this line runs, and the refusal then streams
+   * in underneath a status that already said the object exists. A foreign
+   * Knowledge Object must answer exactly as one that never existed, status
+   * included, and `tests/security/memory-boundary.spec.ts` asserts the 404.
+   */
   if (view.status === "not-found") notFound()
 
   if (view.status === "unavailable") {

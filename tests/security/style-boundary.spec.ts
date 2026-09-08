@@ -6,19 +6,22 @@ import { signIn } from "../support/session-fixture"
  * The Console serves `style-src 'self' 'nonce-…'` with no `unsafe-inline`.
  *
  * A nonce does not cover style *attributes*, and `style-src-attr` is unset, so
- * it falls back to `style-src` and every inline `style` attribute is refused.
- * That is a deliberate hardening decision, and it has a standing consequence
- * for this codebase: any component that positions or animates itself by
- * writing to `element.style` is silently broken here — the JavaScript runs,
- * the assignment is discarded, and the element renders in the wrong place or
- * never moves. The failure is invisible in unit tests and invisible in a
- * screenshot taken before the animation would have started.
+ * it falls back to `style-src`. Measured against this running stack, that
+ * refuses two things and permits a third:
  *
- * These two checks make it visible. The first proves the policy refuses
- * nothing on a real page load, so a component that quietly needs a style
- * attribute cannot land unnoticed. The second proves the document ships none,
- * so the refusal is genuinely absent rather than merely unobserved on the
- * paths a test happens to walk.
+ *   refused   a `style` attribute in parsed HTML, which is what a
+ *             server-rendered `style={{…}}` emits
+ *   refused   `element.setAttribute("style", …)`
+ *   permitted `element.style.foo = …`, a CSSOM write, which is why Next's own
+ *             route announcer carries a style attribute without a violation
+ *
+ * So the hazard is narrower than "no JavaScript may touch style", and it is
+ * also silent: a refused declaration simply never applies, and the element
+ * renders unpositioned with nothing in the unit tests to say so. These two
+ * checks make it visible. The first proves the policy refuses nothing on a
+ * real page load. The second proves the document ships no style attribute of
+ * its own, so the refusal is genuinely absent rather than merely unobserved
+ * on the paths a test happens to walk.
  */
 const OWNED_JOURNEYS = [
   "/repositories",

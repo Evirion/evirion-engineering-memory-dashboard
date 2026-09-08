@@ -7,6 +7,7 @@ import {
 import { buttonVariants } from "@/components/ui/button"
 import { panelVariants } from "@/components/ui/panel"
 import { kickerClasses } from "@/components/ui/text"
+import { SubmitButton } from "@/components/ui/submit-button"
 
 /**
  * The four review decisions.
@@ -180,9 +181,7 @@ export const ApproveOriginalForm = ({
           the object.
         </p>
       </div>
-      <button type="submit" className={button}>
-        Approve the original
-      </button>
+      <SubmitButton className={button}>Approve the original</SubmitButton>
     </form>
   ) : null
 
@@ -216,9 +215,7 @@ export const RevertToOriginalForm = ({
           kept in the history and is not deleted.
         </p>
       </div>
-      <button type="submit" className={button}>
-        Revert to the original and approve
-      </button>
+      <SubmitButton className={button}>Revert to the original and approve</SubmitButton>
     </form>
   ) : null
 
@@ -304,9 +301,7 @@ export const RejectForm = ({
           Required when the reason is &quot;Another reason&quot;.
         </p>
       </div>
-      <button type="submit" className={button}>
-        Reject
-      </button>
+      <SubmitButton className={button}>Reject</SubmitButton>
     </form>
   ) : null
 
@@ -459,9 +454,7 @@ export const EditForm = ({
           className={control}
         />
       </div>
-      <button type="submit" className={button}>
-        Record the edit
-      </button>
+      <SubmitButton className={button}>Record the edit</SubmitButton>
     </form>
   )
 }

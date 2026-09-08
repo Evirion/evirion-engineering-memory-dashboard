@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation"
 import { useEffect, useRef } from "react"
 
+import { Spinner } from "@/components/ui/spinner"
+
 /**
  * Bounded refresh while any row is still moving on its own.
  *
@@ -34,7 +36,11 @@ export const ProcessingPoll = () => {
   return (
     <div className="flex flex-col gap-2">
       <div className="poll-rule rounded-full" aria-hidden />
-      <output className="text-muted-foreground text-xs">
+      <output
+        aria-live="polite"
+        className="text-muted-foreground flex items-center gap-2 text-xs"
+      >
+        <Spinner className="size-3" />
         Processing activity is still running. This page refreshes automatically.
       </output>
     </div>

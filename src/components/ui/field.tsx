@@ -5,13 +5,11 @@ import { cn } from "cn"
 /**
  * Form controls.
  *
- * The select is the native element, deliberately. The floating-listbox
- * components in the usual component libraries position their popup by writing
- * a `transform` to the element's `style` attribute, and this Console serves
- * `style-src 'self' 'nonce-…'` with no `unsafe-inline`, under which a style
- * attribute is refused and the listbox lands in the wrong place. A native
- * select also brings the platform's own keyboard handling, type-ahead and
- * mobile picker, none of which then has to be rebuilt or tested.
+ * The select is the native element, deliberately. It brings the platform's
+ * own keyboard handling, type-ahead and mobile picker, none of which then has
+ * to be rebuilt or tested, and it adds no dependency to a manifest where
+ * every version is pinned and audited. A floating-listbox component would
+ * buy a custom-styled popup and owe all of that back.
  *
  * Layout follows one rule everywhere: label above the control, hint below the
  * label, error below the control. The error is a sibling of the input rather

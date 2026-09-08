@@ -4,6 +4,7 @@ import type { ProcessingActivityQuery } from "@/server/adapters/processing"
 import { buttonVariants } from "@/components/ui/button"
 import { Field, Label, Select } from "@/components/ui/field"
 import { panelVariants } from "@/components/ui/panel"
+import { SubmitButton } from "@/components/ui/submit-button"
 
 /**
  * A GET form, so a filtered view is a URL a customer can bookmark and paste
@@ -39,9 +40,9 @@ export const ProcessingFilters = ({
         ))}
       </Select>
     </Field>
-    <button type="submit" className={buttonVariants({ variant: "primary" })}>
+    <SubmitButton className={buttonVariants({ variant: "primary" })}>
       Apply filter
-    </button>
+    </SubmitButton>
     {query.repositoryId ? (
       <Link
         href="/processing"

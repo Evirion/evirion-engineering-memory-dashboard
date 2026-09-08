@@ -21,6 +21,7 @@
     "test:e2e": "playwright test",
     "routes": "node tools/verify/routes.mjs",
     "contrast": "node tools/verify/contrast.mjs",
+    "harness": "playwright test --config playwright.harness.config.ts",
     "tls:generate": "node tools/local-tls/generate-certificate.mjs",
     "tls:serve": "node tools/local-tls/edge.mjs",
     "gate:ports": "node tools/verify/kill-stale-processes.mjs",

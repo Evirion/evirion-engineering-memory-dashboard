@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react"
 
 import { buttonVariants } from "@/components/ui/button"
 import { panelVariants } from "@/components/ui/panel"
+import { Spinner } from "@/components/ui/spinner"
 
 /**
  * A bounded poll while an import is still running.
@@ -107,7 +108,10 @@ export const ImportPoll = ({
       })}
     >
       <span className="poll-rule rounded-full" aria-hidden />
-      Checking for progress. This page updates on its own while you are looking at it.
+      <span className="flex items-center gap-2">
+        <Spinner className="size-3.5" />
+        Checking for progress. This page updates on its own while you are looking at it.
+      </span>
     </output>
   )
 }

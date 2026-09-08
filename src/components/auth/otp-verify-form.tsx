@@ -5,6 +5,7 @@ import { useRef } from "react"
 import { OtpCells } from "@/components/auth/otp-cells"
 import { buttonVariants } from "@/components/ui/button"
 import { Field, Input, Label } from "@/components/ui/field"
+import { SubmitButton } from "@/components/ui/submit-button"
 
 /**
  * Submits the emailed code to the BFF. The code goes in a form body, never in
@@ -77,12 +78,9 @@ export const OtpVerifyForm = ({
         </p>
       </div>
 
-      <button
-        type="submit"
-        className={buttonVariants({ variant: "primary", size: "lg" })}
-      >
+      <SubmitButton className={buttonVariants({ variant: "primary", size: "lg" })}>
         Verify and continue
-      </button>
+      </SubmitButton>
     </form>
   )
 }

@@ -5,6 +5,7 @@ import { buttonVariants } from "@/components/ui/button"
 import { noticeClasses, panelVariants } from "@/components/ui/panel"
 import { StatusChip } from "@/components/ui/status-chip"
 import { Kicker } from "@/components/ui/text"
+import { SubmitButton } from "@/components/ui/submit-button"
 
 /**
  * GitHub installation status and synchronization progress.
@@ -178,28 +179,26 @@ export const GithubConnection = ({
           <form action="/api/github/connect" method="post">
             <input type="hidden" name="csrfToken" value={csrfToken} />
             <input type="hidden" name="idempotencyKey" value={connectKey} />
-            <button
-              type="submit"
+            <SubmitButton
               className={buttonVariants({
                 variant: needsAttention || !everConnected ? "primary" : "outline",
                 size: "sm",
               })}
             >
               {everConnected ? "Reconnect GitHub" : "Connect GitHub"}
-            </button>
+            </SubmitButton>
           </form>
 
           {connected ? (
             <form action="/api/github/sync" method="post">
               <input type="hidden" name="csrfToken" value={csrfToken} />
               <input type="hidden" name="idempotencyKey" value={syncKey} />
-              <button
-                type="submit"
+              <SubmitButton
                 className={buttonVariants({ variant: "outline", size: "sm" })}
               >
                 <RefreshCw aria-hidden strokeWidth={1.5} />
                 Synchronize repositories
-              </button>
+              </SubmitButton>
             </form>
           ) : null}
         </div>

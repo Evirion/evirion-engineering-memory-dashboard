@@ -1,16 +1,9 @@
 import type { ComponentProps, ReactNode } from "react"
-import {
-  ArrowUp,
-  Check,
-  ChevronsRight,
-  CircleQuestionMark,
-  Minus,
-  Pause,
-  X,
-} from "lucide-react"
+import { ArrowUp, Check, CircleQuestionMark, Minus, Pause, X } from "lucide-react"
 import { cn } from "cn"
 
 import type { Tone } from "@/lib/ui/tone"
+import { Spinner } from "./spinner"
 
 /**
  * Colour is never the only signal.
@@ -81,8 +74,16 @@ const ToneGlyph = ({ tone }: { tone: Tone }) => {
       return <ArrowUp aria-hidden className={className} strokeWidth={2} />
     case "rejected":
       return <X aria-hidden className={className} strokeWidth={2} />
+    /*
+     * The one tone that moves. `progress` is defined as automated work that
+     * is running and will finish on its own, so a turning glyph reports
+     * something true rather than decorating the chip — which is the whole
+     * distinction between this and a thinking indicator. `holding` sits
+     * still beside it on purpose: nothing is running there, and a spinner
+     * would promise a completion that is not coming.
+     */
     case "progress":
-      return <ChevronsRight aria-hidden className={className} strokeWidth={2} />
+      return <Spinner className={className} />
     case "holding":
       return <Pause aria-hidden className={className} strokeWidth={2} />
     case "neutral":

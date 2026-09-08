@@ -8,6 +8,7 @@ import type { SupersessionContext } from "@/server/queries/knowledge"
 import { buttonVariants } from "@/components/ui/button"
 import { panelVariants } from "@/components/ui/panel"
 import { kickerClasses } from "@/components/ui/text"
+import { SubmitButton } from "@/components/ui/submit-button"
 
 /**
  * Activation, supersession and the correction request.
@@ -131,9 +132,7 @@ export const MarkActiveForm = ({
           className={control}
         />
       </div>
-      <button type="submit" className={button}>
-        Mark active
-      </button>
+      <SubmitButton className={button}>Mark active</SubmitButton>
     </GatedForm>
   ) : null
 
@@ -183,9 +182,7 @@ const SupersedePicker = ({ supersession }: { supersession: SupersessionContext }
             ))}
           </select>
         </div>
-        <button type="submit" className={button}>
-          Review the direction
-        </button>
+        <SubmitButton className={button}>Review the direction</SubmitButton>
       </>
     )}
   </form>
@@ -277,9 +274,9 @@ const SupersedeConfirm = ({
           className={control}
         />
       </div>
-      <button type="submit" className={button}>
+      <SubmitButton className={button}>
         Record that the newer object supersedes this one
-      </button>
+      </SubmitButton>
     </GatedForm>
   )
 }
@@ -420,9 +417,7 @@ export const RequestCorrectionForm = ({
           Required when the reason is &quot;Another reason&quot;.
         </p>
       </div>
-      <button type="submit" className={button}>
-        Send the request to Evirion
-      </button>
+      <SubmitButton className={button}>Send the request to Evirion</SubmitButton>
     </GatedForm>
   )
 }

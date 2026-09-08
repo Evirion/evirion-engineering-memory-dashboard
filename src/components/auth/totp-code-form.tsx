@@ -3,6 +3,7 @@
 import { useRef } from "react"
 
 import { OtpCells } from "@/components/auth/otp-cells"
+import { SubmitButton } from "@/components/ui/submit-button"
 
 /**
  * The six digits from an authenticator app.
@@ -39,12 +40,9 @@ export const TotpCodeForm = ({
           onComplete={() => form.current?.requestSubmit()}
         />
       </div>
-      <button
-        type="submit"
-        className="rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-      >
+      <SubmitButton className="rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
         {submitLabel}
-      </button>
+      </SubmitButton>
     </form>
   )
 }

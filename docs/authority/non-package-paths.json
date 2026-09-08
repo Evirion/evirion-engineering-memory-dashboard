@@ -6,6 +6,7 @@
   "next.config.ts",
   "package.json",
   "playwright.config.ts",
+  "playwright.harness.config.ts",
   "pnpm-lock.yaml",
   "pnpm-workspace.yaml",
   "postcss.config.mjs",
