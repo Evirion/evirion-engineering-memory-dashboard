@@ -5,6 +5,9 @@ import { ReauthenticationPreconditionNotice } from "@/components/auth/reauthenti
 import { ConsoleUnavailable } from "@/components/console/console-unavailable"
 import type { KnowledgeControls } from "@/lib/knowledge/presentation"
 import type { SupersessionContext } from "@/server/queries/knowledge"
+import { buttonVariants } from "@/components/ui/button"
+import { panelVariants } from "@/components/ui/panel"
+import { kickerClasses } from "@/components/ui/text"
 
 /**
  * Activation, supersession and the correction request.
@@ -26,13 +29,12 @@ import type { SupersessionContext } from "@/server/queries/knowledge"
  * precondition rather than claiming to know it is met.
  */
 
-const card = "flex flex-col gap-3 rounded border border-slate-300 bg-white px-4 py-3"
-const field = "flex flex-col gap-1"
-const labelClass = "text-xs font-medium tracking-wide text-slate-500 uppercase"
+const card = panelVariants({ className: "flex flex-col gap-3" })
+const field = "flex flex-col gap-1.5"
+const labelClass = kickerClasses()
 const control =
-  "rounded border border-slate-300 px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-const button =
-  "self-start rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+  "border-input bg-card text-foreground min-h-10 rounded-lg border px-3 py-2 text-sm outline-none hover:border-line-strong focus-visible:border-ring"
+const button = buttonVariants({ variant: "primary", className: "self-start" })
 
 const CORRECTION_TYPES = [
   ["RETRACT_SUPERSESSION", "Undo a supersession that was recorded in error"],
@@ -110,8 +112,8 @@ export const MarkActiveForm = ({
         value={String(detail.lifecycle.lifecycleVersion)}
       />
       <div className="flex flex-col gap-1">
-        <h3 className="text-sm font-semibold text-slate-900">Mark active</h3>
-        <p className="text-xs text-slate-600">
+        <h3 className="text-sm font-semibold text-foreground">Mark active</h3>
+        <p className="text-xs text-ink-secondary">
           Confirms this is current knowledge and lets retrieval return it. It records no
           review and changes no earlier decision.
         </p>
@@ -144,14 +146,14 @@ export const MarkActiveForm = ({
 const SupersedePicker = ({ supersession }: { supersession: SupersessionContext }) => (
   <form method="get" data-testid="lifecycle-supersede-pick" className={card}>
     <div className="flex flex-col gap-1">
-      <h3 className="text-sm font-semibold text-slate-900">Mark superseded</h3>
-      <p className="text-xs text-slate-600">
+      <h3 className="text-sm font-semibold text-foreground">Mark superseded</h3>
+      <p className="text-xs text-ink-secondary">
         Choose the newer Knowledge Object that replaces this one. Nothing is recorded
         until you confirm the direction on the next step.
       </p>
     </div>
     {supersession.candidates.length === 0 ? (
-      <p className="text-sm text-slate-700">
+      <p className="text-sm text-ink-secondary">
         No reviewed Knowledge Object is available to replace this one. A replacement
         must already be approved or edited.
       </p>
@@ -251,13 +253,13 @@ const SupersedeConfirm = ({
         value={String(target.lifecycleVersion)}
       />
       <div className="flex flex-col gap-1">
-        <h3 className="text-sm font-semibold text-slate-900">Confirm the direction</h3>
+        <h3 className="text-sm font-semibold text-foreground">Confirm the direction</h3>
         {/* The direction is stated in words, not implied by layout. */}
-        <p data-testid="supersede-direction" className="text-sm text-slate-900">
+        <p data-testid="supersede-direction" className="text-sm text-foreground">
           <strong>{target.shortClaim}</strong> supersedes{" "}
           <strong>{detail.knowledge}</strong>.
         </p>
-        <p className="text-xs text-slate-600">
+        <p className="text-xs text-ink-secondary">
           The newer object replaces this one. This one becomes superseded; the newer one
           is not activated by this, which is a separate decision.
         </p>
@@ -322,10 +324,10 @@ export const RequestCorrectionForm = ({
         value={String(detail.lifecycle.lifecycleVersion)}
       />
       <div className="flex flex-col gap-1">
-        <h3 className="text-sm font-semibold text-slate-900">
+        <h3 className="text-sm font-semibold text-foreground">
           Ask Evirion to correct this
         </h3>
-        <p className="text-xs text-slate-600">
+        <p className="text-xs text-ink-secondary">
           {/* The customer creates and reads a request. Executing, declining
               and retrying one are Evirion operations. */}
           You are asking Evirion to make the change. Nothing moves until an Evirion
@@ -377,7 +379,7 @@ export const RequestCorrectionForm = ({
               </option>
             ))}
           </select>
-          <p className="text-xs text-slate-600">
+          <p className="text-xs text-ink-secondary">
             Required when undoing a supersession.
           </p>
         </div>
@@ -414,7 +416,7 @@ export const RequestCorrectionForm = ({
           maxLength={2000}
           className={control}
         />
-        <p className="text-xs text-slate-600">
+        <p className="text-xs text-ink-secondary">
           Required when the reason is &quot;Another reason&quot;.
         </p>
       </div>
@@ -437,8 +439,8 @@ export const LifecycleActions = (props: LifecycleFormProps) => {
       className="flex flex-col gap-3"
     >
       <div className="flex flex-col gap-1">
-        <h2 className="text-sm font-semibold text-slate-900">Lifecycle</h2>
-        <p className="text-xs text-slate-600">
+        <h2 className="text-sm font-semibold text-foreground">Lifecycle</h2>
+        <p className="text-xs text-ink-secondary">
           Separate from review. Marking this active records no review decision, and
           reviewing it again later does not change its lifecycle.
         </p>
@@ -446,7 +448,7 @@ export const LifecycleActions = (props: LifecycleFormProps) => {
       {anything ? null : (
         <p
           data-testid="lifecycle-actions-none"
-          className="rounded border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-700"
+          className="rounded-2xl border border-border bg-muted px-5 py-4 text-sm text-ink-secondary"
         >
           No lifecycle action is available to you for this Knowledge Object in its
           current state.

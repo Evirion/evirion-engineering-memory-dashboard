@@ -5,6 +5,7 @@ import {
   costViewFromBlock,
   type CostView,
 } from "@/lib/settings/cost"
+import type { Tone } from "@/lib/ui/tone"
 
 /**
  * How one processing row reads on screen.
@@ -83,6 +84,45 @@ export const processingStateLabel = (state: ProcessingState): string => {
   }
 }
 
+/**
+ * The tone a processing state reads in.
+ *
+ * `NOT_AUTHORIZED` and `AWAITING_EVIRION_AUTHORIZATION` are `holding` rather
+ * than `progress` because nothing is running and nothing will start until
+ * Evirion acts. Showing them as work in flight is precisely how a customer
+ * ends up watching a spinner for a decision no spinner will deliver.
+ *
+ * `AWAITING_APPROVAL` and `AWAITING_CUSTOMER_CONSENT` are `attention`: the
+ * reader is the one holding it up, even though this read-only surface offers
+ * the control elsewhere.
+ */
+export const processingStateTone = (state: ProcessingState): Tone => {
+  switch (state) {
+    case "ACCEPTED":
+      return "verified"
+    case "REJECTED":
+    case "QUARANTINED":
+    case "FAILED":
+    case "SOURCE_FAILED":
+      return "rejected"
+    case "COLLECTING_SOURCE":
+    case "EXTRACTING":
+      return "progress"
+    case "AWAITING_APPROVAL":
+    case "AWAITING_CUSTOMER_CONSENT":
+      return "attention"
+    case "NOT_AUTHORIZED":
+    case "AWAITING_EVIRION_AUTHORIZATION":
+      return "holding"
+    case "UNSUPPORTED_SERVER_RESPONSE":
+      return "unknown"
+    default: {
+      const exhaustive: never = state
+      throw new Error(`unhandled processing state: ${String(exhaustive)}`)
+    }
+  }
+}
+
 export const paidAuthorizationView = (
   status: PaidAuthorizationStatus,
 ): AuthorizationView => {
@@ -139,6 +179,40 @@ export const paidAuthorizationView = (
   }
 }
 
+/**
+ * `EXPIRED` and `REVOKED` take `holding` with no control, which follows the
+ * shipped `paidAuthorizationView` above rather than the conventions document.
+ * That document lists `EXPIRED` under "the customer can re-request" while the
+ * code returns `waitingOn: "evirion"` for it. The two disagree, the code is
+ * what actually runs, and inventing a control the backend would refuse is the
+ * worse of the two failures.
+ *
+ * TODO, product owner: reconcile the conventions document with
+ * `paidAuthorizationView`. If re-requesting is genuinely a customer action the
+ * discriminator is wrong and this becomes `attention`. Reason for the
+ * discrepancy not documented.
+ */
+export const paidAuthorizationTone = (status: PaidAuthorizationStatus): Tone => {
+  switch (status) {
+    case "NOT_REQUIRED":
+      return "neutral"
+    case "AWAITING_CUSTOMER_CONSENT":
+      return "attention"
+    case "AWAITING_OPERATIONAL_AUTHORIZATION":
+    case "EXPIRED":
+    case "REVOKED":
+      return "holding"
+    case "AUTHORIZED":
+      return "verified"
+    case "UNSUPPORTED_SERVER_RESPONSE":
+      return "unknown"
+    default: {
+      const exhaustive: never = status
+      throw new Error(`unhandled paid authorization status: ${String(exhaustive)}`)
+    }
+  }
+}
+
 export const jobStatusLabel = (status: JobStatus): string => {
   switch (status) {
     case "PENDING":
@@ -153,6 +227,31 @@ export const jobStatusLabel = (status: JobStatus): string => {
       return "Dead letter"
     case "UNSUPPORTED_SERVER_RESPONSE":
       return "Unsupported"
+    default: {
+      const exhaustive: never = status
+      throw new Error(`unhandled job status: ${String(exhaustive)}`)
+    }
+  }
+}
+
+/**
+ * A queued job is inert and a claimed one is running, so only the second is
+ * `progress`. `RETRY_WAIT` is internal backend retry, which finishes on its
+ * own and is never a customer action.
+ */
+export const jobStatusTone = (status: JobStatus): Tone => {
+  switch (status) {
+    case "PENDING":
+      return "neutral"
+    case "CLAIMED":
+    case "RETRY_WAIT":
+      return "progress"
+    case "COMPLETED":
+      return "verified"
+    case "DEAD_LETTER":
+      return "rejected"
+    case "UNSUPPORTED_SERVER_RESPONSE":
+      return "unknown"
     default: {
       const exhaustive: never = status
       throw new Error(`unhandled job status: ${String(exhaustive)}`)
@@ -181,12 +280,60 @@ export const sourceStatusLabel = (status: SourceStatus): string => {
   }
 }
 
+export const sourceStatusTone = (status: SourceStatus): Tone => {
+  switch (status) {
+    case "PENDING":
+      return "neutral"
+    case "CLAIMED":
+    case "RETRY_WAIT":
+      return "progress"
+    case "READY":
+      return "verified"
+    case "DEAD_LETTER":
+      return "rejected"
+    case "UNSUPPORTED_SERVER_RESPONSE":
+      return "unknown"
+    default: {
+      const exhaustive: never = status
+      throw new Error(`unhandled source status: ${String(exhaustive)}`)
+    }
+  }
+}
+
+/**
+ * Rejected and quarantined are legitimate machine decisions rather than
+ * infrastructure failures, but both are negative terminal outcomes that never
+ * become trusted memory, so both read `rejected`. `null` is not a state yet.
+ */
+export const admissionDispositionTone = (disposition: AdmissionDisposition): Tone => {
+  if (disposition === null) return "neutral"
+
+  switch (disposition) {
+    case "ACCEPTED":
+      return "verified"
+    case "REJECTED":
+    case "QUARANTINED":
+      return "rejected"
+    case "UNSUPPORTED_SERVER_RESPONSE":
+      return "unknown"
+    default: {
+      const exhaustive: never = disposition
+      throw new Error(`unhandled admission disposition: ${String(exhaustive)}`)
+    }
+  }
+}
+
 export type RowView = {
   readonly processingLabel: string
+  readonly processingTone: Tone
   readonly authorization: AuthorizationView
+  readonly authorizationTone: Tone
   readonly jobLabel: string
+  readonly jobTone: Tone
   readonly sourceLabel: string
+  readonly sourceTone: Tone
   readonly admissionLabel: string
+  readonly admissionTone: Tone
   readonly cost: CostView | null
   readonly costCompleteness: string | null
   readonly latency: string | null
@@ -202,9 +349,14 @@ export const STATIC_PROCESSING_SUPPORT_COPY =
 
 export const rowView = (row: ProcessingRow): RowView => ({
   processingLabel: processingStateLabel(row.processingState),
+  processingTone: processingStateTone(row.processingState),
   authorization: paidAuthorizationView(row.paidAuthorizationStatus),
+  authorizationTone: paidAuthorizationTone(row.paidAuthorizationStatus),
   jobLabel: jobStatusLabel(row.jobStatus),
+  jobTone: jobStatusTone(row.jobStatus),
   sourceLabel: sourceStatusLabel(row.sourceStatus),
+  sourceTone: sourceStatusTone(row.sourceStatus),
+  admissionTone: admissionDispositionTone(row.admissionDisposition),
   admissionLabel:
     row.admissionDisposition === null
       ? "No terminal admission yet"

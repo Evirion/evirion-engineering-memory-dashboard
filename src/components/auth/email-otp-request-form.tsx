@@ -2,6 +2,9 @@
 
 import { useState } from "react"
 
+import { buttonVariants } from "@/components/ui/button"
+import { Field, Input, Label } from "@/components/ui/field"
+
 /**
  * Requests an email code. The response is identical for a known and an
  * unknown address, so nothing here can be used to enumerate accounts. The
@@ -27,7 +30,7 @@ export const EmailOtpRequestForm = ({
 
   if (status === "sent") {
     return (
-      <output className="text-sm text-slate-700">
+      <output className="text-sm text-ink-secondary">
         If that address has an invitation, a code is on its way.
       </output>
     )
@@ -44,11 +47,11 @@ export const EmailOtpRequestForm = ({
       {invitationId ? (
         <input type="hidden" name="invitationId" value={invitationId} />
       ) : null}
-      <div className="flex flex-col gap-2">
-        <label htmlFor="email" className="text-sm font-medium">
+      <Field className="gap-2">
+        <Label htmlFor="email" className="text-sm">
           Email address
-        </label>
-        <input
+        </Label>
+        <Input
           id="email"
           name="email"
           type="email"
@@ -56,13 +59,12 @@ export const EmailOtpRequestForm = ({
           autoComplete="email"
           inputMode="email"
           spellCheck={false}
-          className="rounded border border-slate-300 px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
         />
-      </div>
+      </Field>
       <button
         type="submit"
         disabled={status === "sending"}
-        className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+        className={buttonVariants({ variant: "primary", size: "lg" })}
       >
         {status === "sending" ? "Sending" : "Send code"}
       </button>

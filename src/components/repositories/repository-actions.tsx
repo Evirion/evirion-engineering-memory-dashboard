@@ -4,6 +4,7 @@ import type { RepositoryControls } from "@/lib/repositories/presentation"
 import { offeredProfiles } from "@/lib/repositories/presentation"
 import { policyTerm } from "@/lib/repositories/vocabulary"
 import type { ModelProfileCatalogueView } from "@/server/queries/repositories"
+import { buttonVariants } from "@/components/ui/button"
 
 /**
  * The entitlement and policy controls.
@@ -47,9 +48,13 @@ const Hidden = ({
   </>
 )
 
-const submit =
-  "rounded border border-slate-400 px-3 py-1 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-const field = "rounded border border-slate-300 px-2 py-1 text-sm"
+const submit = buttonVariants({
+  variant: "outline",
+  size: "sm",
+  className: "self-start",
+})
+const field =
+  "border-input bg-card text-foreground h-9 rounded-lg border px-3 text-sm outline-none hover:border-line-strong focus-visible:border-ring"
 
 export const ActivateForm = ({
   repository,
@@ -61,18 +66,20 @@ export const ActivateForm = ({
     <form
       action="/api/repositories/activate"
       method="post"
-      className="flex flex-col gap-3 rounded border border-slate-300 bg-white px-4 py-3"
+      className="flex flex-col gap-3 rounded-2xl border border-border bg-card px-5 py-4 shadow-panel"
     >
-      <h2 className="text-sm font-semibold text-slate-900">Activate this repository</h2>
+      <h2 className="text-sm font-semibold text-foreground">
+        Activate this repository
+      </h2>
       {/* REPO-002 fixes this wording. It is requirement text, not invented copy. */}
-      <p className="text-sm text-slate-700">Evirion will be allowed to:</p>
-      <ul className="list-disc pl-5 text-sm text-slate-700">
+      <p className="text-sm text-ink-secondary">Evirion will be allowed to:</p>
+      <ul className="list-disc pl-5 text-sm text-ink-secondary">
         <li>process future merged pull requests;</li>
         <li>prepare historical pull requests;</li>
         <li>run approved model extraction;</li>
         <li>retain usage for this repository.</li>
       </ul>
-      <p className="text-sm text-slate-700">
+      <p className="text-sm text-ink-secondary">
         {policyTerm("operational-authorization").meaning}
       </p>
       <Hidden
@@ -81,7 +88,7 @@ export const ActivateForm = ({
         expectedVersion={repository.entitlement?.version ?? null}
         csrfToken={csrfToken}
       />
-      <label className="flex items-center gap-2 text-sm text-slate-900">
+      <label className="flex items-center gap-2 text-sm text-foreground">
         <input type="checkbox" name="confirmationAccepted" />I confirm this
       </label>
       <button type="submit" className={submit}>
@@ -100,10 +107,10 @@ export const DisableForm = ({
     <form
       action="/api/repositories/disable"
       method="post"
-      className="flex flex-col gap-3 rounded border border-slate-300 bg-white px-4 py-3"
+      className="flex flex-col gap-3 rounded-2xl border border-border bg-card px-5 py-4 shadow-panel"
     >
-      <h2 className="text-sm font-semibold text-slate-900">Disable this repository</h2>
-      <p className="text-sm text-slate-700">
+      <h2 className="text-sm font-semibold text-foreground">Disable this repository</h2>
+      <p className="text-sm text-ink-secondary">
         New work stops. Everything already recorded for this repository is kept, and
         disabling does not delete history or usage.
       </p>
@@ -113,7 +120,7 @@ export const DisableForm = ({
         expectedVersion={repository.entitlement?.version ?? null}
         csrfToken={csrfToken}
       />
-      <label className="flex flex-col gap-1 text-sm text-slate-900">
+      <label className="flex flex-col gap-1 text-sm text-foreground">
         Reason, optional
         <input type="text" name="reason" maxLength={500} className={field} />
       </label>
@@ -138,12 +145,12 @@ export const RequestChangeForm = ({
     <form
       action="/api/repositories/request-change"
       method="post"
-      className="flex flex-col gap-3 rounded border border-slate-300 bg-white px-4 py-3"
+      className="flex flex-col gap-3 rounded-2xl border border-border bg-card px-5 py-4 shadow-panel"
     >
-      <h2 className="text-sm font-semibold text-slate-900">
+      <h2 className="text-sm font-semibold text-foreground">
         Request a different repository
       </h2>
-      <p className="text-sm text-slate-700">
+      <p className="text-sm text-ink-secondary">
         This organization&rsquo;s allowance is managed by Evirion, so replacing a
         repository is an operator action. Sending this records the request; it does not
         free the slot or activate anything.
@@ -154,7 +161,7 @@ export const RequestChangeForm = ({
         expectedVersion={repository.entitlement?.version ?? null}
         csrfToken={csrfToken}
       />
-      <label className="flex flex-col gap-1 text-sm text-slate-900">
+      <label className="flex flex-col gap-1 text-sm text-foreground">
         Repository to use instead
         <select name="requestedRepositoryId" className={field}>
           {candidates.map((candidate) => (
@@ -168,12 +175,12 @@ export const RequestChangeForm = ({
           though they were all of them is the same defect as rendering an
           unavailable count as zero. */}
       {candidatesTruncated ? (
-        <p className="text-xs text-slate-600">
+        <p className="text-xs text-ink-secondary">
           This lists the first hundred accessible repositories. If the one you want is
           missing, say so in the reason and an operator will find it.
         </p>
       ) : null}
-      <label className="flex flex-col gap-1 text-sm text-slate-900">
+      <label className="flex flex-col gap-1 text-sm text-foreground">
         Reason, optional
         <input type="text" name="reason" maxLength={500} className={field} />
       </label>
@@ -193,17 +200,17 @@ export const PolicyForm = ({
     <form
       action="/api/repositories/policy"
       method="post"
-      className="flex flex-col gap-3 rounded border border-slate-300 bg-white px-4 py-3"
+      className="flex flex-col gap-3 rounded-2xl border border-border bg-card px-5 py-4 shadow-panel"
     >
-      <h2 className="text-sm font-semibold text-slate-900">Live processing</h2>
-      <p className="text-sm text-slate-700">{policyTerm("source-work").meaning}</p>
+      <h2 className="text-sm font-semibold text-foreground">Live processing</h2>
+      <p className="text-sm text-ink-secondary">{policyTerm("source-work").meaning}</p>
       <Hidden
         repositoryId={repository.id}
         idempotencyKey={idempotencyKeys["policy"] ?? ""}
         expectedVersion={repository.policy?.version ?? null}
         csrfToken={csrfToken}
       />
-      <label className="flex flex-col gap-1 text-sm text-slate-900">
+      <label className="flex flex-col gap-1 text-sm text-foreground">
         Live processing mode
         <select
           name="mode"
@@ -245,12 +252,12 @@ export const ConsentForm = ({
     return (
       <section
         aria-label="Turn on automatic extraction"
-        className="rounded border border-slate-300 bg-slate-50 px-4 py-3"
+        className="rounded-2xl border border-border bg-muted px-5 py-4"
       >
-        <h2 className="text-sm font-semibold text-slate-900">
+        <h2 className="text-sm font-semibold text-foreground">
           Turn on automatic extraction
         </h2>
-        <p className="mt-1 text-sm text-slate-700">
+        <p className="mt-1 text-sm text-ink-secondary">
           The model profiles this organization may consent to cannot be read right now,
           so this cannot be recorded. {modelProfiles.failure.message} Nothing has
           changed, and any existing consent is unaffected.
@@ -266,12 +273,12 @@ export const ConsentForm = ({
     return (
       <section
         aria-label="Turn on automatic extraction"
-        className="rounded border border-slate-300 bg-slate-50 px-4 py-3"
+        className="rounded-2xl border border-border bg-muted px-5 py-4"
       >
-        <h2 className="text-sm font-semibold text-slate-900">
+        <h2 className="text-sm font-semibold text-foreground">
           Turn on automatic extraction
         </h2>
-        <p className="mt-1 text-sm text-slate-700">
+        <p className="mt-1 text-sm text-ink-secondary">
           No model profiles are currently offered to this organization, so there is
           nothing to consent to. Evirion decides which profiles are offered.
         </p>
@@ -280,8 +287,8 @@ export const ConsentForm = ({
   }
 
   return (
-    <details className="rounded border border-slate-300 bg-white px-4 py-3">
-      <summary className="cursor-pointer text-sm font-semibold text-slate-900">
+    <details className="rounded-2xl border border-border bg-card px-5 py-4 shadow-panel">
+      <summary className="cursor-pointer text-sm font-semibold text-foreground">
         Turn on automatic extraction
       </summary>
       <form
@@ -289,10 +296,10 @@ export const ConsentForm = ({
         method="post"
         className="mt-3 flex flex-col gap-3"
       >
-        <p className="text-sm text-slate-700">
+        <p className="text-sm text-ink-secondary">
           {policyTerm("customer-consent").meaning}
         </p>
-        <p className="text-sm text-slate-700">
+        <p className="text-sm text-ink-secondary">
           {policyTerm("operational-authorization").meaning}
         </p>
         <Hidden
@@ -303,14 +310,14 @@ export const ConsentForm = ({
         />
         <input type="hidden" name="mode" value="AUTO_EXTRACT" />
         <fieldset className="flex flex-col gap-2">
-          <legend className="text-sm text-slate-900">Model profiles</legend>
+          <legend className="text-sm text-foreground">Model profiles</legend>
           {/* The value posted is the registry's canonical identifier, which is
               the exact string the worker presents at the paid boundary. The
               label is for the reader; only this value is ever submitted. */}
           {choices.map((choice) => (
             <label
               key={choice.canonicalIdentifier}
-              className="flex items-center gap-2 text-sm text-slate-900"
+              className="flex items-center gap-2 text-sm text-foreground"
             >
               <input
                 type="checkbox"
@@ -321,7 +328,7 @@ export const ConsentForm = ({
               <span>
                 {choice.label}
                 {choice.offeringState === "DEPRECATED" ? (
-                  <span className="ml-2 text-xs text-slate-600">
+                  <span className="ml-2 text-xs text-ink-secondary">
                     deprecated, still offered
                   </span>
                 ) : null}
@@ -329,7 +336,7 @@ export const ConsentForm = ({
             </label>
           ))}
         </fieldset>
-        <label className="flex flex-col gap-1 text-sm text-slate-900">
+        <label className="flex flex-col gap-1 text-sm text-foreground">
           Maximum model calls
           <input
             type="number"
@@ -341,7 +348,7 @@ export const ConsentForm = ({
             className={field}
           />
         </label>
-        <label className="flex flex-col gap-1 text-sm text-slate-900">
+        <label className="flex flex-col gap-1 text-sm text-foreground">
           Maximum budget in USD
           <input
             type="number"
@@ -353,7 +360,7 @@ export const ConsentForm = ({
             className={field}
           />
         </label>
-        <label className="flex flex-col gap-1 text-sm text-slate-900">
+        <label className="flex flex-col gap-1 text-sm text-foreground">
           Retry policy
           <select
             name="retryPolicy"
@@ -364,7 +371,7 @@ export const ConsentForm = ({
             <option value="BOUNDED_TRANSPORT_RETRY">Bounded transport retry</option>
           </select>
         </label>
-        <label className="flex flex-col gap-1 text-sm text-slate-900">
+        <label className="flex flex-col gap-1 text-sm text-foreground">
           Expires
           <input type="datetime-local" name="expiresAt" required className={field} />
         </label>
@@ -388,7 +395,7 @@ export const OperatorManagedNotice = ({
   controls: RepositoryControls
 }) =>
   !controls.operatorManaged ? null : (
-    <p className="rounded border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+    <p className="rounded-2xl border border-border bg-muted px-5 py-4 text-sm text-ink-secondary">
       Evirion manages this organization&rsquo;s repository allowance, so activating a
       replacement is an operator action rather than something to do here.
     </p>

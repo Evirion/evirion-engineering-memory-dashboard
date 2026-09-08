@@ -3,6 +3,7 @@ import { ProcessingActivityTable } from "@/components/processing/processing-acti
 import { ProcessingFilters } from "@/components/processing/processing-filters"
 import { ProcessingPoll } from "@/components/processing/processing-poll"
 import { isProgressing } from "@/lib/processing/presentation"
+import { Lede, PageHeader, PageTitle } from "@/components/ui/text"
 import type { ProcessingActivityQuery } from "@/server/adapters/processing"
 import { readProcessingActivity } from "@/server/queries/processing"
 import { readRepositoryList } from "@/server/queries/repositories"
@@ -50,13 +51,13 @@ const ProcessingPage = async ({
 
   return (
     <section className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold tracking-tight">Processing</h1>
-        <p className="text-sm text-slate-600">
+      <PageHeader>
+        <PageTitle>Processing</PageTitle>
+        <Lede>
           Operational outcomes for live extraction. Rejected admission, quarantine and
           infrastructure failure are separate. This surface offers no retry control.
-        </p>
-      </div>
+        </Lede>
+      </PageHeader>
 
       {view.status === "unavailable" ? (
         <ConsoleUnavailable
@@ -68,7 +69,10 @@ const ProcessingPage = async ({
           <ProcessingFilters query={view.query} repositoryChoices={repositoryChoices} />
           {shouldPoll ? <ProcessingPoll /> : null}
           {view.page.items.length === 0 ? (
-            <p className="text-sm text-slate-600" data-testid="processing-empty">
+            <p
+              className="border-line-default text-ink-secondary rounded-2xl border border-dashed px-5 py-8 text-center text-sm"
+              data-testid="processing-empty"
+            >
               No processing rows match this filter.
             </p>
           ) : (

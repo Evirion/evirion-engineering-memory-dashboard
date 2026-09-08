@@ -2,6 +2,10 @@ import type { KnowledgePage } from "@contracts/console"
 
 import { type KnowledgeFilters, knowledgeQueuePath } from "@/lib/knowledge/filters"
 import { queueRow } from "@/lib/knowledge/presentation"
+import { buttonVariants } from "@/components/ui/button"
+import { panelVariants } from "@/components/ui/panel"
+import { StatusChip } from "@/components/ui/status-chip"
+import { Technical } from "@/components/ui/text"
 
 /**
  * The review queue.
@@ -36,10 +40,11 @@ const formatPullRequest = (
 
 export const MemoryQueueList = ({ page }: { page: KnowledgePage }) => {
   if (page.items.length === 0) {
+    // Dashed, so an empty result is never mistaken for one still loading.
     return (
       <p
         data-testid="memory-queue-empty"
-        className="rounded border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-700"
+        className="border-line-default text-ink-secondary rounded-2xl border border-dashed px-5 py-8 text-center text-sm"
       >
         No Knowledge Object matches these filters. Machine-rejected and quarantined
         extractions are never listed here.
@@ -48,52 +53,54 @@ export const MemoryQueueList = ({ page }: { page: KnowledgePage }) => {
   }
 
   return (
-    <ul aria-label="Knowledge Objects" className="flex flex-col gap-3">
+    <ul aria-label="Knowledge Objects" className="stagger flex flex-col gap-4">
       {page.items.map((summary) => {
         const row = queueRow(summary)
         return (
           <li
             key={row.knowledgeObjectId}
             data-testid="memory-queue-row"
-            className="flex flex-col gap-2 rounded border border-slate-300 bg-white px-4 py-3"
+            className={panelVariants({ className: "flex flex-col gap-3" })}
           >
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
+            {/*
+              The claim leads, at the largest size on the card. It is a
+              sentence and the reason the row exists, so it is the link target
+              and everything else is metadata beneath it.
+            */}
+            <div className="flex flex-wrap items-start justify-between gap-3">
               <a
                 href={`/memory/${row.knowledgeObjectId}`}
-                className="text-sm font-semibold text-slate-900 underline underline-offset-2"
+                className="text-foreground hover:text-primary max-w-[64ch] text-base leading-6 font-medium"
               >
                 {row.shortClaim}
               </a>
-              <span className="text-xs text-slate-600">{row.knowledgeType}</span>
+              <Technical className="bg-muted rounded-sm px-2 py-0.5 tracking-[0.06em] uppercase">
+                {row.knowledgeType}
+              </Technical>
             </div>
-            <p className="text-xs text-slate-700">
-              {formatPullRequest(row.pullRequestNumber, row.pullRequestTitle)}
-            </p>
+
             {/* Review and lifecycle are two axes. Each keeps its own label so
                 neither can be read as the other. */}
-            <dl className="grid gap-3 sm:grid-cols-3">
-              <div className="flex flex-col gap-1">
-                <dt className="text-xs font-medium tracking-wide text-slate-500 uppercase">
-                  Review
-                </dt>
-                <dd className="text-sm text-slate-900">{row.reviewLabel}</dd>
-              </div>
-              <div className="flex flex-col gap-1">
-                <dt className="text-xs font-medium tracking-wide text-slate-500 uppercase">
-                  Lifecycle
-                </dt>
-                <dd className="text-sm text-slate-900">{row.lifecycleLabel}</dd>
-              </div>
-              <div className="flex flex-col gap-1">
-                <dt className="text-xs font-medium tracking-wide text-slate-500 uppercase">
-                  Source
-                </dt>
-                <dd className="text-sm text-slate-700">{formatMerged(row.mergedAt)}</dd>
-              </div>
+            <dl className="flex flex-wrap items-center gap-x-2 gap-y-2">
+              <dt className="sr-only">Review</dt>
+              <dd>
+                <StatusChip tone={row.reviewTone}>{row.reviewLabel}</StatusChip>
+              </dd>
+              <dt className="sr-only">Lifecycle</dt>
+              <dd>
+                <StatusChip tone={row.lifecycleTone}>{row.lifecycleLabel}</StatusChip>
+              </dd>
             </dl>
-            <p className="text-xs text-slate-600">
-              Model confidence {row.confidence} of 100
-            </p>
+
+            <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs tabular-nums">
+              <span>
+                {formatPullRequest(row.pullRequestNumber, row.pullRequestTitle)}
+              </span>
+              <span aria-hidden>·</span>
+              <span>{formatMerged(row.mergedAt)}</span>
+              <span aria-hidden>·</span>
+              <span>Model confidence {row.confidence} of 100</span>
+            </div>
           </li>
         )
       })}
@@ -111,13 +118,13 @@ export const MemoryQueuePagination = ({
   repositoryId?: string
 }) =>
   page.page.nextCursor === null ? null : (
-    <nav aria-label="Knowledge Object pages">
+    <nav aria-label="Knowledge Object pages" className="flex justify-center">
       <a
         href={knowledgeQueuePath(
           { ...filters, after: page.page.nextCursor },
           { keepCursor: true, ...(repositoryId === undefined ? {} : { repositoryId }) },
         )}
-        className="text-sm text-slate-900 underline underline-offset-2"
+        className={buttonVariants({ variant: "outline" })}
       >
         Next Knowledge Objects
       </a>

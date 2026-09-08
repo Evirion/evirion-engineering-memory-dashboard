@@ -54,7 +54,7 @@ export const OtpCells = ({
         <InputOTPSlot
           key={slot}
           index={slot}
-          className="size-14 rounded-xl border-2 border-slate-300 bg-white text-2xl font-semibold text-slate-900 shadow-xs transition-colors first:rounded-xl last:rounded-xl data-[active=true]:border-slate-900 data-[active=true]:ring-4 data-[active=true]:ring-slate-900/10"
+          className="border-input bg-card text-foreground data-[active=true]:border-ring data-[active=true]:ring-ring/15 size-14 rounded-xl border-2 text-2xl font-semibold tabular-nums shadow-xs transition-colors first:rounded-xl last:rounded-xl data-[active=true]:ring-4"
         />
       ))}
     </InputOTPGroup>

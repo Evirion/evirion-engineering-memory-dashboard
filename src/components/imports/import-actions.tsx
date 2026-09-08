@@ -9,6 +9,8 @@ import {
   retryBlockerLabel,
 } from "@/lib/imports/presentation"
 import type { ImportFailuresView } from "@/server/queries/imports"
+import { buttonVariants } from "@/components/ui/button"
+import { panelVariants } from "@/components/ui/panel"
 
 /**
  * The import controls.
@@ -36,10 +38,14 @@ export type ImportActionContext = {
   readonly importReturnPath: string
 }
 
-const submit =
-  "rounded border border-slate-400 px-3 py-1 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-const field = "rounded border border-slate-300 px-2 py-1 text-sm"
-const card = "flex flex-col gap-3 rounded border border-slate-300 bg-white px-4 py-3"
+const submit = buttonVariants({
+  variant: "primary",
+  size: "sm",
+  className: "self-start",
+})
+const field =
+  "border-input bg-card text-foreground h-9 rounded-lg border px-3 text-sm outline-none hover:border-line-strong focus-visible:border-ring"
+const card = panelVariants({ className: "flex flex-col gap-3" })
 
 const Hidden = ({
   repositoryId,
@@ -98,8 +104,8 @@ export const PrepareForm = ({
       dataTestId="import-prepare"
       className={card}
     >
-      <h2 className="text-sm font-semibold text-slate-900">Prepare import</h2>
-      <p className="text-sm text-slate-700">
+      <h2 className="text-sm font-semibold text-foreground">Prepare import</h2>
+      <p className="text-sm text-ink-secondary">
         Evirion reads the merged pull requests it does not already hold and prepares
         them as source work. Discovery and preparation make no model call and cost
         nothing.
@@ -111,29 +117,29 @@ export const PrepareForm = ({
         csrfToken={csrfToken}
       />
       <fieldset className="flex flex-col gap-2">
-        <legend className="text-sm font-medium text-slate-900">Range</legend>
-        <label className="flex items-center gap-2 text-sm text-slate-900">
+        <legend className="text-sm font-medium text-foreground">Range</legend>
+        <label className="flex items-center gap-2 text-sm text-foreground">
           <input type="radio" name="range" value="ENTIRE_HISTORY" defaultChecked />
           Entire repository history
         </label>
-        <label className="flex items-center gap-2 text-sm text-slate-900">
+        <label className="flex items-center gap-2 text-sm text-foreground">
           <input type="radio" name="range" value="LAST_12_MONTHS" />
           Last 12 months
         </label>
-        <label className="flex items-center gap-2 text-sm text-slate-900">
+        <label className="flex items-center gap-2 text-sm text-foreground">
           <input type="radio" name="range" value="CUSTOM" />
           Custom date range
         </label>
       </fieldset>
-      <label className="flex flex-col gap-1 text-sm text-slate-900">
+      <label className="flex flex-col gap-1 text-sm text-foreground">
         Merged from
         <input type="date" name="mergedFrom" className={field} />
       </label>
-      <label className="flex flex-col gap-1 text-sm text-slate-900">
+      <label className="flex flex-col gap-1 text-sm text-foreground">
         Merged to
         <input type="date" name="mergedTo" className={field} />
       </label>
-      <p className="text-xs text-slate-600">
+      <p className="text-xs text-ink-secondary">
         Both dates are required for a custom range and are inclusive.
       </p>
       <button type="submit" className={submit}>
@@ -172,16 +178,16 @@ export const ApproveForm = ({
       dataTestId="import-approve"
       className={card}
     >
-      <h2 className="text-sm font-semibold text-slate-900">
+      <h2 className="text-sm font-semibold text-foreground">
         {view.customerAction === "re-request"
           ? "Request extraction again"
           : "Approve extraction"}
       </h2>
-      <p className="text-sm text-slate-700">
+      <p className="text-sm text-ink-secondary">
         This authorizes paid model calls for the work discovered above. Extraction uses
         a model provider and is charged against the budget you set here.
       </p>
-      <p className="text-sm text-slate-700">
+      <p className="text-sm text-ink-secondary">
         Approving records your consent. It does not grant Evirion operational
         authorization, which is a separate gate only Evirion can open, so this import
         may still wait afterwards.
@@ -189,20 +195,20 @@ export const ApproveForm = ({
       <ReauthenticationPreconditionNotice testId="import-reauth-notice" />
       <dl className="flex flex-col gap-1 text-sm">
         <div className="flex flex-wrap gap-2">
-          <dt className="font-medium text-slate-900">Repository</dt>
-          <dd className="text-slate-700">{repository.nameWithOwner}</dd>
+          <dt className="font-medium text-foreground">Repository</dt>
+          <dd className="text-ink-secondary">{repository.nameWithOwner}</dd>
         </div>
         <div className="flex flex-wrap gap-2">
-          <dt className="font-medium text-slate-900">Eligible pull requests</dt>
-          <dd className="text-slate-700">{current.counts.discovered}</dd>
+          <dt className="font-medium text-foreground">Eligible pull requests</dt>
+          <dd className="text-ink-secondary">{current.counts.discovered}</dd>
         </div>
         <div className="flex flex-wrap gap-2">
-          <dt className="font-medium text-slate-900">Already processed</dt>
-          <dd className="text-slate-700">{current.counts.completed}</dd>
+          <dt className="font-medium text-foreground">Already processed</dt>
+          <dd className="text-ink-secondary">{current.counts.completed}</dd>
         </div>
         <div className="flex flex-wrap gap-2">
-          <dt className="font-medium text-slate-900">Prepared source envelopes</dt>
-          <dd className="text-slate-700">{current.counts.sourceReady}</dd>
+          <dt className="font-medium text-foreground">Prepared source envelopes</dt>
+          <dd className="text-ink-secondary">{current.counts.sourceReady}</dd>
         </div>
       </dl>
       <Hidden
@@ -211,7 +217,7 @@ export const ApproveForm = ({
         csrfToken={csrfToken}
       />
       <ImportIdentity current={current} />
-      <label className="flex flex-col gap-1 text-sm text-slate-900">
+      <label className="flex flex-col gap-1 text-sm text-foreground">
         Cost budget in USD
         <input
           type="number"
@@ -286,8 +292,8 @@ export const RunStateForms = ({
           mutationPath="/api/imports/state"
           className={card}
         >
-          <h2 className="text-sm font-semibold text-slate-900">{control.label}</h2>
-          <p className="text-sm text-slate-700">{control.detail}</p>
+          <h2 className="text-sm font-semibold text-foreground">{control.label}</h2>
+          <p className="text-sm text-ink-secondary">{control.detail}</p>
           <ReauthenticationPreconditionNotice />
           <Hidden
             repositoryId={repository.id}
@@ -338,15 +344,15 @@ export const ImportFailureList = ({
       >
         <h2
           id="import-failures-heading"
-          className="text-sm font-semibold text-slate-900"
+          className="text-sm font-semibold text-foreground"
         >
           Failed work
         </h2>
-        <p className="text-sm text-slate-700">
+        <p className="text-sm text-ink-secondary">
           The list of failed work could not be read, so it is not shown. This does not
           mean there is none: {current.counts.failed} failed.
         </p>
-        <p className="text-xs text-slate-600">
+        <p className="text-xs text-ink-secondary">
           Reason <code>{failures.failure.code}</code>
         </p>
       </section>
@@ -359,10 +365,13 @@ export const ImportFailureList = ({
       data-testid="import-failures"
       className={card}
     >
-      <h2 id="import-failures-heading" className="text-sm font-semibold text-slate-900">
+      <h2
+        id="import-failures-heading"
+        className="text-sm font-semibold text-foreground"
+      >
         Failed work
       </h2>
-      <p className="text-sm text-slate-700">
+      <p className="text-sm text-ink-secondary">
         These did not finish. Recovery is offered only where the backend has declared
         the work retryable.
       </p>
@@ -376,26 +385,28 @@ export const ImportFailureList = ({
               key={failure.itemId}
               data-testid="import-failure"
               data-retryable={failure.retryable ? "yes" : "no"}
-              className="flex flex-col gap-2 border-t border-slate-200 pt-3 first:border-t-0 first:pt-0"
+              className="flex flex-col gap-2 border-t border-border pt-3 first:border-t-0 first:pt-0"
             >
               <dl className="flex flex-col gap-1 text-sm">
                 <div className="flex flex-wrap gap-2">
-                  <dt className="font-medium text-slate-900">Pull request</dt>
-                  <dd className="text-slate-700">
+                  <dt className="font-medium text-foreground">Pull request</dt>
+                  <dd className="text-ink-secondary">
                     {failure.pullRequestNumber === null
                       ? "Not recorded"
                       : `#${failure.pullRequestNumber}`}
                   </dd>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <dt className="font-medium text-slate-900">Reason</dt>
-                  <dd className="text-slate-700">
+                  <dt className="font-medium text-foreground">Reason</dt>
+                  <dd className="text-ink-secondary">
                     {failure.lastErrorCode ?? "Not recorded"}
                   </dd>
                 </div>
               </dl>
-              {recovery ? <p className="text-sm text-slate-700">{recovery}</p> : null}
-              {blocker ? <p className="text-sm text-slate-700">{blocker}</p> : null}
+              {recovery ? (
+                <p className="text-sm text-ink-secondary">{recovery}</p>
+              ) : null}
+              {blocker ? <p className="text-sm text-ink-secondary">{blocker}</p> : null}
               {controls.canRetry &&
               failure.retryable &&
               failure.extractionJobId !== null ? (

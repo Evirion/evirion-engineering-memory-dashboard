@@ -19,7 +19,7 @@ const InvitePage = async () => {
       return (
         <section className="flex flex-col gap-2">
           <h2 className="text-lg font-semibold tracking-tight">Sign in first</h2>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-ink-secondary">
             Verify your email address before accepting an invitation.
           </p>
         </section>
@@ -30,7 +30,7 @@ const InvitePage = async () => {
           <h2 className="text-lg font-semibold tracking-tight">
             No invitation available
           </h2>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-ink-secondary">
             There is no invitation for this address. Ask your organization owner to send
             one.
           </p>
@@ -40,7 +40,7 @@ const InvitePage = async () => {
       return (
         <section className="flex flex-col gap-2">
           <h2 className="text-lg font-semibold tracking-tight">Invitation ready</h2>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-ink-secondary">
             Your invitation to {choices.only.organizationLabel} is being applied.
           </p>
         </section>
@@ -58,7 +58,7 @@ const InvitePage = async () => {
           <h2 className="text-lg font-semibold tracking-tight">
             Not available right now
           </h2>
-          <p className="text-sm text-slate-600">{choices.message}</p>
+          <p className="text-sm text-ink-secondary">{choices.message}</p>
         </section>
       )
     default: {

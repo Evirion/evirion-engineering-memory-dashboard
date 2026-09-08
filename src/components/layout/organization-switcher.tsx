@@ -22,12 +22,18 @@ export const OrganizationSwitcher = ({
     <label htmlFor="organizationId" className="sr-only">
       Active organization
     </label>
+    {/*
+      Rendered borderless. The contract publishes no display name for an
+      organization, so this is a read-only identifier stating which tenant is
+      active, and dressing it as an editable field would promise a control
+      that does not exist.
+    */}
     <input
       id="organizationId"
       name="organizationId"
       defaultValue={organizationId}
       readOnly
-      className="w-64 rounded border border-slate-300 px-2 py-1 font-mono text-xs text-slate-600"
+      className="text-ink-secondary w-64 max-w-full border-none bg-transparent p-0 font-mono text-xs tabular-nums"
     />
   </form>
 )

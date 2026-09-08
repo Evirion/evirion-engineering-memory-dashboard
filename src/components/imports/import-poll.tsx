@@ -3,6 +3,9 @@
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useState } from "react"
 
+import { buttonVariants } from "@/components/ui/button"
+import { panelVariants } from "@/components/ui/panel"
+
 /**
  * A bounded poll while an import is still running.
  *
@@ -72,13 +75,17 @@ export const ImportPoll = ({
         aria-live="polite"
         data-testid="import-poll"
         data-polling="stopped"
-        className="flex flex-col gap-2 rounded border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-700"
+        className={panelVariants({
+          variant: "sunken",
+          padding: "compact",
+          className: "text-ink-secondary flex flex-col items-start gap-2 text-sm",
+        })}
       >
         <span>Stopped checking automatically. This import is still running.</span>
         <button
           type="button"
           onClick={handleReset}
-          className="self-start rounded border border-slate-400 px-3 py-1 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+          className={buttonVariants({ variant: "outline", size: "sm" })}
         >
           Check again
         </button>
@@ -86,13 +93,20 @@ export const ImportPoll = ({
     )
   }
 
+  // A 2px rule, so a refresh never blanks content the reader is part way
+  // through.
   return (
     <output
       aria-live="polite"
       data-testid="import-poll"
       data-polling="running"
-      className="rounded border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-700"
+      className={panelVariants({
+        variant: "sunken",
+        padding: "compact",
+        className: "text-ink-secondary flex flex-col gap-2 text-sm",
+      })}
     >
+      <span className="poll-rule rounded-full" aria-hidden />
       Checking for progress. This page updates on its own while you are looking at it.
     </output>
   )

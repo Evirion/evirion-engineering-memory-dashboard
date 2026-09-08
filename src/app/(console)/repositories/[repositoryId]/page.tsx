@@ -79,7 +79,9 @@ const RepositoryDetailPage = async ({
   if (view.status === "unavailable") {
     return (
       <section className="flex flex-col gap-6">
-        <h1 className="text-xl font-semibold tracking-tight">Repository</h1>
+        <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
+          Repository
+        </h1>
         <ConsoleUnavailable
           failure={view.failure}
           heading="This repository is not available"
@@ -101,10 +103,10 @@ const RepositoryDetailPage = async ({
   return (
     <section className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold tracking-tight">
+        <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
           {repository.nameWithOwner}
         </h1>
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-ink-secondary">
           {productStateLabel(repository.productState)}
         </p>
       </div>

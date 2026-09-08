@@ -5,6 +5,8 @@ import type {
   RepositoryPage,
 } from "@contracts/console"
 
+import type { Tone } from "@/lib/ui/tone"
+
 /**
  * How a repository reads on screen.
  *
@@ -326,6 +328,45 @@ export const productStateLabel = (state: Repository["productState"]): string => 
       return "Active, automatic extraction"
     case "CHANGE_REQUESTED":
       return "Change requested"
+    default: {
+      const exhaustive: never = state
+      throw new Error(`unhandled product state: ${String(exhaustive)}`)
+    }
+  }
+}
+
+/**
+ * The verdict badge's tone, and the only place a repository card is allowed
+ * to go green.
+ *
+ * Colour aggregates, and that is the whole reason the three axis chips stay
+ * grey. Three green axes let the eye assemble "this repository is fine" even
+ * when live processing is off and nothing is being processed — the exact
+ * single-status failure the three separate slots were designed to prevent,
+ * only spread across three chips instead of one. A single badge cannot be
+ * aggregated because there is nothing to add it to, and it is not a verdict
+ * this interface invented: `productStateLabel` is the backend's own rollup
+ * across all three axes, rendered rather than computed.
+ *
+ * `INACCESSIBLE` is `attention` and not `rejected`. A repository the
+ * installation no longer exposes is fixable by the customer on GitHub, while
+ * `rejected` means a negative outcome that already happened and will not
+ * change. Red would claim a finality that is not there.
+ */
+export const productStateTone = (state: Repository["productState"]): Tone => {
+  switch (state) {
+    case "ARCHIVED":
+    case "AVAILABLE_LOCKED":
+    case "ENTITLEMENT_DISABLED":
+    case "ACTIVE_LIVE_OFF":
+      return "neutral"
+    case "INACCESSIBLE":
+      return "attention"
+    case "ACTIVE_SOURCE_ONLY":
+    case "ACTIVE_AUTO_EXTRACT":
+      return "verified"
+    case "CHANGE_REQUESTED":
+      return "holding"
     default: {
       const exhaustive: never = state
       throw new Error(`unhandled product state: ${String(exhaustive)}`)

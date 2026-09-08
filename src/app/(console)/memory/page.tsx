@@ -5,6 +5,7 @@ import {
   MemoryQueuePagination,
 } from "@/components/memory/memory-queue"
 import { readKnowledgeFilters } from "@/lib/knowledge/filters"
+import { Lede, PageHeader, PageTitle } from "@/components/ui/text"
 import { readKnowledgeQueue } from "@/server/queries/knowledge"
 
 export const dynamic = "force-dynamic"
@@ -35,13 +36,13 @@ const MemoryPage = async ({
 
   return (
     <section className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold tracking-tight">Engineering Memory</h1>
-        <p className="text-sm text-slate-600">
+      <PageHeader>
+        <PageTitle>Engineering Memory</PageTitle>
+        <Lede>
           Human review and lifecycle are separate decisions. Reviewing a Knowledge
           Object does not make it active, and activating one does not close its review.
-        </p>
-      </div>
+        </Lede>
+      </PageHeader>
 
       {view.status === "unavailable" ? (
         <ConsoleUnavailable

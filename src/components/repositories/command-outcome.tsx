@@ -1,4 +1,5 @@
 import { describeTreatment, treatmentForCode } from "@/lib/errors/console-errors"
+import { noticeClasses } from "@/components/ui/panel"
 
 /**
  * What happened to the command the customer just sent.
@@ -30,13 +31,16 @@ export const readCommandResult = (
     : { kind: "refused", code: raw, explanation: describeTreatment(treatment) }
 }
 
+/**
+ * An outcome stays where it happened and is never a toast.
+ *
+ * Every Console refusal carries a stable code the customer needs in a support
+ * message, and ephemeral UI throws that away before they can copy it.
+ */
 export const CommandOutcomeNotice = ({ result }: { result: CommandResult }) => {
   if (result.kind === "applied") {
     return (
-      <output
-        aria-live="polite"
-        className="rounded border border-slate-400 bg-slate-50 px-4 py-3 text-sm text-slate-900"
-      >
+      <output aria-live="polite" className={noticeClasses("verified", "block")}>
         Done. The state below is what the backend has committed.
       </output>
     )
@@ -44,10 +48,7 @@ export const CommandOutcomeNotice = ({ result }: { result: CommandResult }) => {
 
   if (result.kind === "unknown") {
     return (
-      <output
-        aria-live="polite"
-        className="rounded border border-slate-400 bg-slate-50 px-4 py-3 text-sm text-slate-900"
-      >
+      <output aria-live="polite" className={noticeClasses("unknown", "block")}>
         {describeTreatment("unknown-outcome")}
       </output>
     )
@@ -56,10 +57,10 @@ export const CommandOutcomeNotice = ({ result }: { result: CommandResult }) => {
   return (
     <output
       aria-live="polite"
-      className="flex flex-col gap-1 rounded border border-amber-400 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+      className={noticeClasses("attention", "flex flex-col gap-1")}
     >
       <span>{result.explanation}</span>
-      <span className="text-xs">
+      <span className="font-mono text-xs">
         Reason <code>{result.code}</code>
       </span>
     </output>

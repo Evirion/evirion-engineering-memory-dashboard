@@ -15,6 +15,7 @@ import {
   RepositoryList,
   RepositoryPagination,
 } from "@/components/repositories/repository-list"
+import { Lede, PageHeader, PageTitle } from "@/components/ui/text"
 import { readSessionCsrfToken } from "@/server/actions/session-csrf-read"
 import { readRepositoryList, validRepositoryId } from "@/server/queries/repositories"
 
@@ -50,13 +51,13 @@ const RepositoriesPage = async ({
 
   return (
     <section className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold tracking-tight">Repositories</h1>
-        <p className="text-sm text-slate-600">
+      <PageHeader>
+        <PageTitle>Repositories</PageTitle>
+        <Lede>
           GitHub access, Evirion entitlement and live processing are separate. A
           repository is read only once it is activated here.
-        </p>
-      </div>
+        </Lede>
+      </PageHeader>
 
       {outcome ? <CommandOutcomeNotice result={outcome} /> : null}
 

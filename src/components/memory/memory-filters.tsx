@@ -5,6 +5,9 @@ import {
 } from "@/lib/knowledge/filters"
 import { lifecycleStateLabel, reviewDecisionLabel } from "@/lib/knowledge/presentation"
 import type { RepositoryChoice } from "@/server/queries/knowledge"
+import { buttonVariants } from "@/components/ui/button"
+import { Field, Input, Label, Select } from "@/components/ui/field"
+import { panelVariants } from "@/components/ui/panel"
 
 /**
  * The review-queue predicates.
@@ -21,11 +24,6 @@ import type { RepositoryChoice } from "@/server/queries/knowledge"
  * The placement of these controls is open decision 4.
  */
 
-const field = "flex flex-col gap-1"
-const label = "text-xs font-medium tracking-wide text-slate-500 uppercase"
-const control =
-  "rounded border border-slate-300 px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-
 export const MemoryFilters = ({
   filters,
   repositoryChoices,
@@ -36,18 +34,15 @@ export const MemoryFilters = ({
   <form
     method="get"
     aria-label="Filter Knowledge Objects"
-    className="flex flex-col gap-4 rounded border border-slate-300 bg-white px-4 py-3"
+    className={panelVariants({ className: "flex flex-col gap-5" })}
   >
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <div className={field}>
-        <label htmlFor="reviewStatus" className={label}>
-          Review status
-        </label>
-        <select
+      <Field>
+        <Label htmlFor="reviewStatus">Review status</Label>
+        <Select
           id="reviewStatus"
           name="reviewStatus"
           defaultValue={filters.reviewStatus ?? ""}
-          className={control}
         >
           {/* An empty value is submitted as an absent predicate, which the
               backend answers with its own PENDING default. */}
@@ -57,18 +52,15 @@ export const MemoryFilters = ({
               {reviewDecisionLabel(status)}
             </option>
           ))}
-        </select>
-      </div>
+        </Select>
+      </Field>
 
-      <div className={field}>
-        <label htmlFor="lifecycleState" className={label}>
-          Lifecycle
-        </label>
-        <select
+      <Field>
+        <Label htmlFor="lifecycleState">Lifecycle</Label>
+        <Select
           id="lifecycleState"
           name="lifecycleState"
           defaultValue={filters.lifecycleState ?? ""}
-          className={control}
         >
           <option value="">Any lifecycle</option>
           {LIFECYCLE_STATES.map((state) => (
@@ -76,19 +68,16 @@ export const MemoryFilters = ({
               {lifecycleStateLabel(state)}
             </option>
           ))}
-        </select>
-      </div>
+        </Select>
+      </Field>
 
       {repositoryChoices.length > 0 ? (
-        <div className={field}>
-          <label htmlFor="repositoryId" className={label}>
-            Repository
-          </label>
-          <select
+        <Field>
+          <Label htmlFor="repositoryId">Repository</Label>
+          <Select
             id="repositoryId"
             name="repositoryId"
             defaultValue={filters.repositoryId ?? ""}
-            className={control}
           >
             <option value="">Any repository</option>
             {repositoryChoices.map((choice) => (
@@ -96,73 +85,60 @@ export const MemoryFilters = ({
                 {choice.nameWithOwner}
               </option>
             ))}
-          </select>
-        </div>
+          </Select>
+        </Field>
       ) : null}
 
-      <div className={field}>
-        <label htmlFor="knowledgeType" className={label}>
-          Knowledge type
-        </label>
-        <input
+      <Field>
+        <Label htmlFor="knowledgeType">Knowledge type</Label>
+        <Input
           id="knowledgeType"
           name="knowledgeType"
           type="text"
           inputMode="text"
           pattern="[A-Za-z]{1,64}"
           defaultValue={filters.knowledgeType ?? ""}
-          className={control}
         />
-      </div>
+      </Field>
 
-      <div className={field}>
-        <label htmlFor="authorLogin" className={label}>
-          Pull request author
-        </label>
-        <input
+      <Field>
+        <Label htmlFor="authorLogin">Pull request author</Label>
+        <Input
           id="authorLogin"
           name="authorLogin"
           type="text"
           pattern="[A-Za-z0-9._-]{1,64}"
           defaultValue={filters.authorLogin ?? ""}
-          className={control}
         />
-      </div>
+      </Field>
 
-      <div className={field}>
-        <label htmlFor="mergedFrom" className={label}>
-          Merged from (UTC)
-        </label>
-        <input
+      <Field>
+        <Label htmlFor="mergedFrom">Merged from (UTC)</Label>
+        <Input
           id="mergedFrom"
           name="mergedFrom"
           type="text"
           placeholder="2026-08-01T00:00:00Z"
           defaultValue={filters.mergedFrom ?? ""}
-          className={control}
+          className="font-mono"
         />
-      </div>
+      </Field>
 
-      <div className={field}>
-        <label htmlFor="mergedTo" className={label}>
-          Merged to (UTC)
-        </label>
-        <input
+      <Field>
+        <Label htmlFor="mergedTo">Merged to (UTC)</Label>
+        <Input
           id="mergedTo"
           name="mergedTo"
           type="text"
           placeholder="2026-09-01T00:00:00Z"
           defaultValue={filters.mergedTo ?? ""}
-          className={control}
+          className="font-mono"
         />
-      </div>
+      </Field>
     </div>
 
-    <div>
-      <button
-        type="submit"
-        className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-      >
+    <div className="border-border flex border-t pt-4">
+      <button type="submit" className={buttonVariants({ variant: "primary" })}>
         Apply filters
       </button>
     </div>

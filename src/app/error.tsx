@@ -8,13 +8,13 @@
 const ErrorBoundary = ({ reset }: { error: Error; reset: () => void }) => (
   <main className="mx-auto flex min-h-dvh max-w-2xl flex-col justify-center gap-4 p-8">
     <h1 className="text-2xl font-semibold tracking-tight">Something went wrong</h1>
-    <p className="text-sm text-slate-600">
+    <p className="text-sm text-ink-secondary">
       The Console could not complete that request. Nothing was changed.
     </p>
     <button
       type="button"
       onClick={reset}
-      className="w-fit rounded border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+      className="w-fit rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
     >
       Try again
     </button>

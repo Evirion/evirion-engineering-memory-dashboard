@@ -31,7 +31,7 @@ const MfaChallengePage = async ({
         <h2 className="text-lg font-semibold tracking-tight">
           Enter your authenticator code
         </h2>
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-ink-secondary">
           Open your authenticator app and enter the current six-digit code.
         </p>
       </div>
@@ -59,12 +59,12 @@ const MfaChallengePage = async ({
       <form
         action="/api/auth/mfa/restart"
         method="post"
-        className="border-t border-slate-200 pt-4"
+        className="border-t border-border pt-4"
       >
         <input type="hidden" name="csrfToken" value={csrfToken} />
         <button
           type="submit"
-          className="text-sm text-slate-600 underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+          className="text-sm text-ink-secondary underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
         >
           Set up a new authenticator instead
         </button>

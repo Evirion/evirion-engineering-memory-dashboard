@@ -4,6 +4,8 @@ import type {
   RepositoryImportFailures,
 } from "@contracts/console"
 
+import type { Tone } from "@/lib/ui/tone"
+
 /**
  * How one historical import reads on screen.
  *
@@ -68,6 +70,33 @@ export const statusLabel = (status: ImportStatus): string => {
       return "Import failed"
     case "CANCELLED":
       return "Import cancelled"
+    default: {
+      const exhaustive: never = status
+      throw new Error(`unhandled import status: ${String(exhaustive)}`)
+    }
+  }
+}
+
+/**
+ * `AWAITING_APPROVAL` is the only import status that is the reader's to
+ * resolve. `PAUSED` and `CANCELLED` are inert rather than negative: both are
+ * states someone chose, and neither is a failure.
+ */
+export const importStatusTone = (status: ImportStatus): Tone => {
+  switch (status) {
+    case "PLANNING":
+    case "DISCOVERING":
+    case "PROCESSING":
+      return "progress"
+    case "AWAITING_APPROVAL":
+      return "attention"
+    case "PAUSED":
+    case "CANCELLED":
+      return "neutral"
+    case "COMPLETED":
+      return "verified"
+    case "FAILED":
+      return "rejected"
     default: {
       const exhaustive: never = status
       throw new Error(`unhandled import status: ${String(exhaustive)}`)
@@ -151,6 +180,33 @@ export const authorizationView = (
 }
 
 /**
+ * The tone follows `authorizationView` above, which means `EXPIRED` is
+ * `attention` here and `holding` on the processing surface. That is not an
+ * inconsistency to tidy away: on an import the customer can approve again and
+ * start a fresh request, so there is something for them to do, whereas the
+ * processing surface is read-only and offers no control at all. Each tone
+ * matches the control its own surface actually has.
+ */
+export const authorizationTone = (status: PaidAuthorizationStatus): Tone => {
+  switch (status) {
+    case "NOT_REQUIRED":
+      return "neutral"
+    case "AWAITING_CUSTOMER_CONSENT":
+    case "EXPIRED":
+      return "attention"
+    case "AWAITING_OPERATIONAL_AUTHORIZATION":
+    case "REVOKED":
+      return "holding"
+    case "AUTHORIZED":
+      return "verified"
+    default: {
+      const exhaustive: never = status
+      throw new Error(`unhandled paid authorization status: ${String(exhaustive)}`)
+    }
+  }
+}
+
+/**
  * What the run is missing, when the backend names it.
  *
  * A budget is the customer's to set, so it is stated as an action. Consent is
@@ -224,6 +280,86 @@ export const recoveryActionLabel = (action: ImportRecoveryAction): string | null
     default: {
       const exhaustive: never = action
       throw new Error(`unhandled recovery action: ${String(exhaustive)}`)
+    }
+  }
+}
+
+/**
+ * What the backend's recovery vocabulary means for the reader.
+ *
+ * The split that matters is between the four actions the customer can take
+ * and the two waits they cannot. `AWAIT_EVIRION_AUTHORIZATION` explicitly
+ * carries no control and says so in its own copy.
+ */
+export const recoveryActionTone = (action: ImportRecoveryAction): Tone | null => {
+  switch (action) {
+    case "AWAIT_DISCOVERY":
+      return "progress"
+    case "APPROVE_IMPORT":
+    case "GRANT_CUSTOMER_CONSENT":
+    case "PAUSE_IMPORT_TO_RETRY":
+    case "RETRY_JOB":
+      return "attention"
+    case "AWAIT_EVIRION_AUTHORIZATION":
+      return "holding"
+    case "CONTACT_SUPPORT":
+      return "rejected"
+    case "NONE":
+      return null
+    default: {
+      const exhaustive: never = action
+      throw new Error(`unhandled recovery action: ${String(exhaustive)}`)
+    }
+  }
+}
+
+/**
+ * Why a run ended. Every reason but a consumed allowance is a decision taken
+ * elsewhere that the customer cannot reverse.
+ */
+export const terminationReasonTone = (
+  reason: RepositoryImport["terminationReasonCategory"],
+): Tone | null => {
+  if (reason === null) return null
+
+  switch (reason) {
+    case "OPERATOR_REVOCATION":
+    case "ORGANIZATION_OFFBOARDING":
+    case "EXPIRY":
+      return "holding"
+    case "ALLOWANCE_CONSUMED":
+      return "neutral"
+    default: {
+      const exhaustive: never = reason
+      throw new Error(`unhandled termination reason: ${String(exhaustive)}`)
+    }
+  }
+}
+
+/**
+ * A budget and consent are the customer's; operational authorization is not.
+ *
+ * `REPOSITORY_BUDGET` is `attention` rather than `holding`, which departs
+ * from the design system's status map. The map is wrong on this one: the
+ * Console does ship a budget control, on the import approval form and on the
+ * repository consent form, so a budget the backend reports as missing is
+ * something the reader can go and set. `attention` is defined as "you have an
+ * action", and here they do.
+ */
+export const missingPrerequisiteTone = (
+  prerequisite: RepositoryImport["missingPrerequisite"],
+): Tone | null => {
+  if (prerequisite === null) return null
+
+  switch (prerequisite) {
+    case "REPOSITORY_BUDGET":
+    case "CUSTOMER_CONSENT":
+      return "attention"
+    case "OPERATIONAL_AUTHORIZATION":
+      return "holding"
+    default: {
+      const exhaustive: never = prerequisite
+      throw new Error(`unhandled missing prerequisite: ${String(exhaustive)}`)
     }
   }
 }

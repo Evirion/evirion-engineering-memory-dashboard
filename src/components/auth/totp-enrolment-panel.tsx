@@ -29,13 +29,13 @@ export const TotpEnrolmentPanel = ({
       <h2 className="text-lg font-semibold tracking-tight">
         Set up your authenticator
       </h2>
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-ink-secondary">
         Your account is protected by a code from an app on your phone. Set it up once
         here, then enter a code each time you sign in.
       </p>
     </div>
 
-    <ol className="flex flex-col gap-4 text-sm text-slate-700">
+    <ol className="flex flex-col gap-4 text-sm text-ink-secondary">
       <li className="flex flex-col gap-3">
         <span>
           <span className="font-medium">1.</span> Open an authenticator app — Google
@@ -46,7 +46,7 @@ export const TotpEnrolmentPanel = ({
           codes, and reading one from it is indistinguishable from typing the
           wrong number: the Console can only say the code did not match.
         */}
-        <span className="rounded border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+        <span className="rounded-xl border border-l-[3px] border-tone-attention-border bg-tone-attention-fill px-3 py-2 text-sm text-tone-attention-text">
           Already have an{" "}
           <span className="font-medium">Evirion Engineering Memory</span> entry from an
           earlier attempt? Delete it first. Its codes no longer work, and only this one
@@ -61,7 +61,7 @@ export const TotpEnrolmentPanel = ({
           // remote asset to fetch, resize or cache. Sending it through the
           // optimizer would also mean sending a seed to it.
           unoptimized
-          className="self-start rounded-lg border border-slate-200 bg-white p-3"
+          className="self-start rounded-lg border border-border bg-white p-3"
         />
       </li>
       <li className="flex flex-col gap-2">
@@ -69,13 +69,13 @@ export const TotpEnrolmentPanel = ({
           <span className="font-medium">2.</span> Cannot scan? Type this key into the
           app instead.
         </span>
-        <code className="self-start break-all rounded border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-sm tracking-wide text-slate-900">
+        <code className="self-start break-all rounded-lg border border-border bg-muted px-3 py-2 font-mono text-sm tracking-wide text-foreground">
           {secret}
         </code>
       </li>
     </ol>
 
-    <div className="border-t border-slate-200 pt-5">
+    <div className="border-t border-border pt-5">
       <TotpCodeForm
         action="/api/auth/mfa/challenge"
         csrfToken={csrfToken}

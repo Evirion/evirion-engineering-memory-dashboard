@@ -19,17 +19,17 @@ const VerifyPage = async () => {
     <section className="flex flex-col gap-5">
       <div className="flex flex-col gap-2">
         <h2 className="text-lg font-semibold tracking-tight">Check your email</h2>
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-ink-secondary">
           {email ? (
             <>
               We sent a six-digit code to{" "}
-              <span className="font-medium text-slate-900">{email}</span>.
+              <span className="font-medium text-foreground">{email}</span>.
             </>
           ) : (
             <>Enter the address the code was sent to, and the code.</>
           )}
         </p>
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-ink-secondary">
           It works once and is valid for {SESSION_POLICY.emailOtpLifetimeSeconds / 60}{" "}
           minutes. If it does not go through, ask for a new one after{" "}
           {SESSION_POLICY.otpResendCooldownSeconds} seconds.
@@ -45,7 +45,7 @@ const VerifyPage = async () => {
       */}
       <Link
         href="/auth/sign-in"
-        className="text-sm text-slate-600 underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+        className="text-sm text-ink-secondary underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
       >
         Use a different email address
       </Link>

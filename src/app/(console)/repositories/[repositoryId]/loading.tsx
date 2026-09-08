@@ -1,11 +1,12 @@
+import { SkeletonList } from "@/components/ui/skeleton"
+
 /**
- * The loading state for one repository. The visual treatment is open decision
- * 5; announcing the state rather than implying it with a blank page is not.
+ * The loading state for one repository. A skeleton holds the layout so
+ * nothing shifts on arrival; the polite live region inside it is what
+ * announces the state rather than leaving a blank page to imply it.
  */
 const RepositoryDetailLoading = () => (
-  <output aria-live="polite" className="text-sm text-slate-600">
-    Loading this repository.
-  </output>
+  <SkeletonList label="Loading this repository." rows={3} />
 )
 
 export default RepositoryDetailLoading

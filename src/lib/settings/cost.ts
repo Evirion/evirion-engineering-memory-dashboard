@@ -4,6 +4,8 @@ import type {
   ProcessingPage,
 } from "@contracts/console"
 
+import type { Tone } from "@/lib/ui/tone"
+
 /**
  * Cost amount and completeness, always together when present.
  *
@@ -133,6 +135,32 @@ export const costCompletenessLabel = (completeness: CostCompleteness): string =>
       return "Not applicable"
     case "UNSUPPORTED_SERVER_RESPONSE":
       return "Unsupported"
+    default: {
+      const exhaustive: never = completeness
+      throw new Error(`unhandled cost completeness: ${String(exhaustive)}`)
+    }
+  }
+}
+
+/**
+ * `UNRESOLVED` is `unknown`, not `neutral`.
+ *
+ * A cost pending reconciliation has an amount that exists and is not yet
+ * attributable, so it is genuinely neither settled nor absent. The dashed
+ * edge that comes with `unknown` is what stops it being read as a figure of
+ * zero — which is also why no unresolved cost ever renders an em dash.
+ */
+export const costCompletenessTone = (completeness: CostCompleteness): Tone => {
+  switch (completeness) {
+    case "MEASURED":
+      return "verified"
+    case "RESERVED":
+      return "progress"
+    case "UNRESOLVED":
+    case "UNSUPPORTED_SERVER_RESPONSE":
+      return "unknown"
+    case "NOT_APPLICABLE":
+      return "neutral"
     default: {
       const exhaustive: never = completeness
       throw new Error(`unhandled cost completeness: ${String(exhaustive)}`)

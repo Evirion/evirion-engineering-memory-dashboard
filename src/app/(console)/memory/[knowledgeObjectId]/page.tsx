@@ -70,7 +70,9 @@ const KnowledgeDetailPage = async ({
   if (view.status === "unavailable") {
     return (
       <section className="flex flex-col gap-6">
-        <h1 className="text-xl font-semibold tracking-tight">Knowledge Object</h1>
+        <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
+          Knowledge Object
+        </h1>
         <ConsoleUnavailable
           failure={view.failure}
           heading="This Knowledge Object is not available right now"
@@ -91,8 +93,10 @@ const KnowledgeDetailPage = async ({
   return (
     <section className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold tracking-tight">{detail.knowledge}</h1>
-        <p className="text-sm text-slate-600">
+        <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
+          {detail.knowledge}
+        </h1>
+        <p className="text-sm text-ink-secondary">
           {detail.knowledgeType} extracted from {detail.author}'s work
         </p>
       </div>
@@ -101,7 +105,7 @@ const KnowledgeDetailPage = async ({
         <Link
           href="/memory"
           prefetch={false}
-          className="text-sm text-slate-900 underline underline-offset-2"
+          className="text-sm text-foreground underline underline-offset-2"
         >
           Back to the review queue
         </Link>

@@ -29,9 +29,14 @@ export const ProcessingPoll = () => {
     return () => window.clearInterval(interval)
   }, [router])
 
+  // A 2px rule rather than a blanked page: the reader was in the middle of
+  // this table and the refresh must not take it away from them.
   return (
-    <output className="text-sm text-slate-600">
-      Processing activity is still running. This page refreshes automatically.
-    </output>
+    <div className="flex flex-col gap-2">
+      <div className="poll-rule rounded-full" aria-hidden />
+      <output className="text-muted-foreground text-xs">
+        Processing activity is still running. This page refreshes automatically.
+      </output>
+    </div>
   )
 }

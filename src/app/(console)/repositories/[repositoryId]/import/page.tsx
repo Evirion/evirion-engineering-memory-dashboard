@@ -82,7 +82,9 @@ const RepositoryImportPage = async ({
   if (view.status === "unavailable") {
     return (
       <section className="flex flex-col gap-6">
-        <h1 className="text-xl font-semibold tracking-tight">Historical import</h1>
+        <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
+          Historical import
+        </h1>
         <ConsoleUnavailable
           failure={view.failure}
           heading="This import is not available"
@@ -115,8 +117,10 @@ const RepositoryImportPage = async ({
   return (
     <section data-testid="import-surface" className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold tracking-tight">Historical import</h1>
-        <p className="text-sm text-slate-600">{repository.nameWithOwner}</p>
+        <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
+          Historical import
+        </h1>
+        <p className="text-sm text-ink-secondary">{repository.nameWithOwner}</p>
       </div>
 
       <ReauthenticationOutcome
@@ -170,12 +174,12 @@ const EmptyImport = ({ repository }: { repository: Repository }) => (
   <section
     aria-labelledby="import-empty-heading"
     data-testid="import-empty"
-    className="flex flex-col gap-2 rounded border border-slate-300 bg-white px-4 py-3"
+    className="flex flex-col gap-2 rounded-2xl border border-border bg-card px-5 py-4 shadow-panel"
   >
-    <h2 id="import-empty-heading" className="text-sm font-semibold text-slate-900">
+    <h2 id="import-empty-heading" className="text-sm font-semibold text-foreground">
       No import has been prepared
     </h2>
-    <p className="text-sm text-slate-700">
+    <p className="text-sm text-ink-secondary">
       {repository.entitlement?.state === "ACTIVE"
         ? "Nothing has been imported from this repository's history yet."
         : "Historical import needs an active entitlement for this repository."}
@@ -188,7 +192,7 @@ const BackToRepository = ({ repositoryId }: { repositoryId: string | undefined }
     href={
       repositoryId === undefined ? "/repositories" : `/repositories/${repositoryId}`
     }
-    className="self-start text-sm text-slate-700 underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+    className="self-start text-sm text-ink-secondary underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
   >
     {repositoryId === undefined ? "Back to repositories" : "Back to this repository"}
   </Link>

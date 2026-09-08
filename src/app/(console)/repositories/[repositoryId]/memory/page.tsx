@@ -41,12 +41,12 @@ const RepositoryMemoryPage = async ({
   return (
     <section className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold tracking-tight">
+        <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
           {view.status === "ready" && view.repositoryName !== undefined
             ? `Engineering Memory for ${view.repositoryName}`
             : "Engineering Memory"}
         </h1>
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-ink-secondary">
           Knowledge Objects extracted from this repository's merged pull requests.
         </p>
       </div>
@@ -54,7 +54,7 @@ const RepositoryMemoryPage = async ({
       <nav aria-label="Repository sections">
         <a
           href={`/repositories/${identifier}`}
-          className="text-sm text-slate-900 underline underline-offset-2"
+          className="text-sm text-foreground underline underline-offset-2"
         >
           Back to repository
         </a>

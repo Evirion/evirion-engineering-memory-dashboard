@@ -64,7 +64,7 @@ const PayloadFields = ({ payload }: { payload: Record<string, unknown> }) => {
   const fields = renderable(payload)
   if (fields.length === 0) {
     return (
-      <p className="text-sm text-slate-700">
+      <p className="text-sm text-ink-secondary">
         This payload carries no field the contract publishes as editable.
       </p>
     )
@@ -74,16 +74,16 @@ const PayloadFields = ({ payload }: { payload: Record<string, unknown> }) => {
     <dl className="flex flex-col gap-3">
       {fields.map((field) => (
         <div key={field.label} className="flex flex-col gap-1">
-          <dt className="text-xs font-medium tracking-wide text-slate-500 uppercase">
+          <dt className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
             {field.label}
           </dt>
           {field.values.length === 1 ? (
-            <dd className="text-sm whitespace-pre-line text-slate-900">
+            <dd className="text-sm whitespace-pre-line text-foreground">
               {field.values[0]}
             </dd>
           ) : (
             <dd>
-              <ul className="flex list-disc flex-col gap-1 pl-5 text-sm text-slate-900">
+              <ul className="flex list-disc flex-col gap-1 pl-5 text-sm text-foreground">
                 {field.values.map((value) => (
                   <li key={value}>{value}</li>
                 ))}
@@ -100,20 +100,20 @@ const DerivativePanel = ({ derivative }: { derivative: EditedDerivative }) => (
   <section
     aria-label="Reviewer's edited derivative"
     data-testid="knowledge-edited"
-    className="flex flex-col gap-3 rounded border border-amber-400 bg-amber-50 px-4 py-3"
+    className="flex flex-col gap-3 rounded-xl border border-l-[3px] border-tone-attention-border bg-tone-attention-fill px-4 py-3"
   >
     <div className="flex flex-col gap-1">
-      <h2 className="text-sm font-semibold text-slate-900">
+      <h2 className="text-sm font-semibold text-foreground">
         Reviewer's edited derivative
       </h2>
-      <p className="text-xs text-slate-700">
+      <p className="text-xs text-ink-secondary">
         A reviewer restated this claim at review sequence {derivative.reviewSequence} on{" "}
         {derivative.recordedAt.slice(0, 10)}. It sits beside the machine extraction
         rather than replacing it.
       </p>
       {/* The evidence is the original machine evidence. An edited claim was
           not re-extracted, and saying so is a `REV-002` acceptance row. */}
-      <p className="text-xs font-medium text-amber-900">
+      <p className="text-xs font-medium text-tone-attention-text">
         The evidence below supports the machine extraction. These edited words were
         written by a reviewer and were not re-extracted from the source.
       </p>
@@ -133,12 +133,12 @@ const DerivativeUnavailable = () => (
   <section
     aria-label="Reviewer's edited derivative"
     data-testid="knowledge-edited-unavailable"
-    className="flex flex-col gap-2 rounded border border-amber-400 bg-amber-50 px-4 py-3"
+    className="flex flex-col gap-2 rounded-xl border border-l-[3px] border-tone-attention-border bg-tone-attention-fill px-4 py-3"
   >
-    <h2 className="text-sm font-semibold text-slate-900">
+    <h2 className="text-sm font-semibold text-foreground">
       Reviewer's edited derivative
     </h2>
-    <p className="text-xs text-slate-700">
+    <p className="text-xs text-ink-secondary">
       A reviewer edited this claim, and the edited wording is not available to show
       right now. The machine extraction beside this is unchanged, as it always is.
       Refresh to check again.
@@ -154,11 +154,11 @@ export const KnowledgePayloads = ({ detail }: { detail: KnowledgeDetail }) => {
       <section
         aria-label="Machine extraction"
         data-testid="knowledge-original"
-        className="flex flex-1 flex-col gap-3 rounded border border-slate-300 bg-white px-4 py-3"
+        className="flex flex-1 flex-col gap-3 rounded-2xl border border-border bg-card px-5 py-4 shadow-panel"
       >
         <div className="flex flex-col gap-1">
-          <h2 className="text-sm font-semibold text-slate-900">Machine extraction</h2>
-          <p className="text-xs text-slate-700">
+          <h2 className="text-sm font-semibold text-foreground">Machine extraction</h2>
+          <p className="text-xs text-ink-secondary">
             {/* Stated whether or not an edit exists, so the original never
                 reads as a superseded draft. */}
             The original extraction. It is kept whatever a reviewer decides and is never

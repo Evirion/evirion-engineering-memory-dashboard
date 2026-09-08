@@ -41,7 +41,7 @@ export const TotpCodeForm = ({
       </div>
       <button
         type="submit"
-        className="rounded-lg bg-slate-900 px-4 py-3 text-sm font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+        className="rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
       >
         {submitLabel}
       </button>
