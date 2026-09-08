@@ -122,9 +122,11 @@ export const ReauthenticationCeremony = ({
         <input type="hidden" name="csrfToken" value={csrfToken} />
         <input type="hidden" name="gate" value={gate} />
         <input type="hidden" name="returnPath" value={returnPath} />
+        {/* A link for the same reason: the recovery route, not the action. */}
         <SubmitButton
           data-testid="reauth-issue"
-          className="self-start text-sm text-ink-secondary underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+          variant="link"
+          className="text-ink-secondary self-start text-sm"
         >
           Start a new confirmation
         </SubmitButton>

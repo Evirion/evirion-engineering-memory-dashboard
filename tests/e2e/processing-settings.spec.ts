@@ -318,9 +318,7 @@ test.describe("github and usage settings", () => {
     await expect(
       page.getByText("Accessible repositories", { exact: true }),
     ).toBeVisible()
-    await expect(
-      page.getByText("Active entitled repositories", { exact: true }),
-    ).toBeVisible()
+    await expect(page.getByText("Active in Evirion", { exact: true })).toBeVisible()
   })
 
   test("renders unresolved cost without a measured zero", async ({ context, page }) => {

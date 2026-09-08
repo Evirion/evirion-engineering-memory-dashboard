@@ -101,10 +101,18 @@ const noticeSurface = (tone: Tone): string => {
  * Console are already an `<output aria-live="polite">` and wrapping one in a
  * styled div would put the border on a different element than the live
  * region. The caller keeps its own tag and takes the surface.
+ *
+ * The edge is one pixel on every tone but `holding`. An earlier cut gave all
+ * seven the 3px left bar, which was wrong twice over: it spends the one piece
+ * of border geometry the system reserves for "blocked on an Evirion decision"
+ * on notices that mean nothing of the kind, and against a 22px corner radius
+ * the thick side tapers into the thin one and reads as a smear rather than a
+ * bar.
  */
 export const noticeClasses = (tone: Tone, className?: string): string =>
   cn(
-    "rounded-2xl border border-l-[3px] px-4 py-3 text-sm",
+    "rounded-2xl border px-4 py-3 text-sm",
+    tone === "holding" && "border-l-[3px]",
     noticeSurface(tone),
     className,
   )

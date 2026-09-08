@@ -1,5 +1,6 @@
 import { test } from "@playwright/test"
 
+import { REPOSITORIES } from "../../tools/console-stub/fixtures.mjs"
 import { signIn } from "../support/session-fixture"
 
 /**
@@ -59,6 +60,38 @@ test("@visual sign-in-pending", async ({ page }) => {
   await page.getByRole("button", { name: "Send code" }).click()
   await page.waitForTimeout(600)
   await page.screenshot({ path: "test-results/visual/sign-in-pending.png" })
+})
+
+/**
+ * The two screens that ask for six digits. Both are signed out, and both are
+ * where the cells overflowed the panel when the form first moved onto one.
+ */
+for (const [name, route] of [
+  ["verify", "/auth/verify"],
+  ["mfa-challenge", "/auth/mfa/challenge"],
+] as const) {
+  test(`@visual ${name}`, async ({ page }) => {
+    await page.setViewportSize({ width: 560, height: 760 })
+    await page.goto(route)
+    await page.waitForLoadState("networkidle")
+    await page.screenshot({ path: `test-results/visual/${name}.png`, fullPage: true })
+  })
+}
+
+/**
+ * The notices. This import is waiting on Evirion, so its panel takes the
+ * `holding` tone — the only one that keeps a 3px left bar — beside notices
+ * that should carry a plain one-pixel edge.
+ */
+test("@visual import-notices", async ({ context, page }) => {
+  await signIn(context, { scenario: "importAwaitingAuthorization" })
+  await page.setViewportSize({ width: 1100, height: 1000 })
+  await page.goto(`/repositories/${REPOSITORIES.activeSourceOnly}/import`)
+  await page.waitForLoadState("networkidle")
+  await page.screenshot({
+    path: "test-results/visual/import-notices.png",
+    fullPage: true,
+  })
 })
 
 /** The processing table, where the progress tone now turns. */

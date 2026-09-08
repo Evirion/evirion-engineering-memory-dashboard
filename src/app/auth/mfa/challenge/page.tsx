@@ -63,7 +63,12 @@ const MfaChallengePage = async ({
         className="border-t border-border pt-4"
       >
         <input type="hidden" name="csrfToken" value={csrfToken} />
-        <SubmitButton className="text-sm text-ink-secondary underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
+        {/*
+          A link, not a button. This is the way out of a lost authenticator,
+          not the action the page is for, and giving it a box makes it compete
+          with Verify for the eye.
+        */}
+        <SubmitButton variant="link" className="text-ink-secondary text-sm">
           Set up a new authenticator instead
         </SubmitButton>
       </form>

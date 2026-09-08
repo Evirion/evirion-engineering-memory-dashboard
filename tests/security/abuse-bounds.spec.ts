@@ -108,6 +108,10 @@ test.describe("the session and Auth bounds are the frozen ones", () => {
   }) => {
     await signIn(context, { scenario: "default" })
     await page.goto("/settings/sessions")
+    // Wait for the document rather than the navigation. This route renders a
+    // skeleton first, so reading the body straight after `goto` samples the
+    // placeholder and finds no cap stated in it.
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible()
     const text = await page.locator("body").innerText()
     // The EEM-9/01 acceptance froze three sessions with an oldest-replacement
     // notice. A cap a person is not told about is not a bound they can act on.
