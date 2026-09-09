@@ -551,19 +551,24 @@ test.describe("mark_active", () => {
     await expect(page.getByTestId("knowledge-states")).toContainText("Approved")
   })
 
-  test("states that the action may require confirming identity again", async ({
+  test("says a code may be asked for and that the session survives it", async ({
     context,
     page,
   }) => {
     await signIn(context, { scenario: "memory" })
     await page.goto(detailOf(KNOWLEDGE.approved))
 
-    // The contract names recent reauthentication as a precondition on this
-    // operation. No session field reports whether it is satisfied, so the
-    // control states the precondition rather than claiming to know.
-    await expect(
-      page.getByTestId("lifecycle-activate").getByTestId("lifecycle-reauth-notice"),
-    ).toContainText("confirming your identity again")
+    // The contract names recent reauthentication as a precondition, and no
+    // session field reports whether it is satisfied, so the control still
+    // states it rather than claiming to know. What it must not leave to
+    // guesswork is how the requirement is met: a reader told only that their
+    // identity needs confirming reasonably concludes they have to sign out.
+    const notice = page
+      .getByTestId("lifecycle-activate")
+      .getByTestId("lifecycle-reauth-notice")
+
+    await expect(notice).toContainText("code from your authenticator app")
+    await expect(notice).toContainText("you stay signed in")
   })
 
   test("refuses a stale lifecycle version and records nothing", async ({

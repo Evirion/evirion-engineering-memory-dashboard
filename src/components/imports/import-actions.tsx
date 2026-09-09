@@ -2,6 +2,7 @@ import type { Repository, RepositoryImport } from "@contracts/console"
 
 import { GatedForm } from "@/components/auth/gated-form"
 import { ReauthenticationPreconditionNotice } from "@/components/auth/reauthentication-notice"
+import { ImportRangePicker } from "@/components/imports/import-range-picker"
 import type { ImportControls } from "@/lib/imports/presentation"
 import {
   authorizationView,
@@ -117,32 +118,7 @@ export const PrepareForm = ({
         idempotencyKey={idempotencyKeys["prepare"] ?? ""}
         csrfToken={csrfToken}
       />
-      <fieldset className="flex flex-col gap-2">
-        <legend className="text-sm font-medium text-foreground">Range</legend>
-        <label className="flex items-center gap-2 text-sm text-foreground">
-          <input type="radio" name="range" value="ENTIRE_HISTORY" defaultChecked />
-          Entire repository history
-        </label>
-        <label className="flex items-center gap-2 text-sm text-foreground">
-          <input type="radio" name="range" value="LAST_12_MONTHS" />
-          Last 12 months
-        </label>
-        <label className="flex items-center gap-2 text-sm text-foreground">
-          <input type="radio" name="range" value="CUSTOM" />
-          Custom date range
-        </label>
-      </fieldset>
-      <label className="flex flex-col gap-1 text-sm text-foreground">
-        Merged from
-        <input type="date" name="mergedFrom" className={field} />
-      </label>
-      <label className="flex flex-col gap-1 text-sm text-foreground">
-        Merged to
-        <input type="date" name="mergedTo" className={field} />
-      </label>
-      <p className="text-xs text-ink-secondary">
-        Both dates are required for a custom range and are inclusive.
-      </p>
+      <ImportRangePicker />
       <SubmitButton className={submit}>Prepare import</SubmitButton>
     </GatedForm>
   )

@@ -51,6 +51,17 @@ export type ImportFailure = RepositoryImportFailures["failures"][number]
 export const isProgressing = (status: ImportStatus): boolean =>
   status === "PLANNING" || status === "DISCOVERING" || status === "PROCESSING"
 
+/**
+ * The states a run can no longer leave.
+ *
+ * This is the boundary the backend itself draws: a second import is refused
+ * only while a run exists whose status is not `completed`, `failed` or
+ * `cancelled`. Preparing again after one of those is permitted, so the
+ * Console must not withhold the control.
+ */
+export const isTerminal = (status: ImportStatus): boolean =>
+  status === "COMPLETED" || status === "FAILED" || status === "CANCELLED"
+
 /** The user-facing label `BF-002` fixes for each backend state. */
 export const statusLabel = (status: ImportStatus): string => {
   switch (status) {
@@ -539,8 +550,13 @@ export const importControls = (
   const run = current?.capabilities
 
   return {
-    // A second run would be refused as already active, so it is not offered.
-    canPrepare: permitted && entitled && current === null,
+    // Only a run still in flight would make a second one refused as already
+    // active. The read projection returns the newest run whatever its status,
+    // so requiring no run at all withdrew this control for good after the
+    // first import — a cancelled one could not be retried and a finished one
+    // could not be followed by another.
+    canPrepare:
+      permitted && entitled && (current === null || isTerminal(current.status)),
     canApprove: permitted && (run?.canApprove ?? false),
     canPause: permitted && (run?.canPause ?? false),
     canResume: permitted && (run?.canResume ?? false),

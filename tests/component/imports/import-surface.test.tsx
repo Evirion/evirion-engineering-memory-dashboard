@@ -194,10 +194,14 @@ describe("controls follow the backend capability", () => {
     expect(markup(<RunStateForms {...context(IMPORT_RUNS.completed())} />)).toBe("")
   })
 
-  it("offers preparation only for an active entitlement with no current run", () => {
+  it("offers preparation only for an active entitlement with no run in flight", () => {
     expect(markup(<PrepareForm {...context(null)} />)).toContain("Prepare import")
-    // A run already exists, so a second one would be refused as already active.
+    // A run still in flight would make a second one refused as already active.
     expect(markup(<PrepareForm {...context(IMPORT_RUNS.processing())} />)).toBe("")
+    expect(markup(<PrepareForm {...context(IMPORT_RUNS.paused())} />)).toBe("")
+    expect(markup(<PrepareForm {...context(IMPORT_RUNS.awaitingApproval())} />)).toBe(
+      "",
+    )
     expect(
       markup(
         <PrepareForm
@@ -207,6 +211,40 @@ describe("controls follow the backend capability", () => {
         />,
       ),
     ).toBe("")
+  })
+
+  it("offers preparation again once the previous run is terminal", () => {
+    // `create_console_repository_import` refuses a second run only while one
+    // has a status outside completed, failed and cancelled, and the read
+    // projection returns the newest run whatever its status. Requiring no run
+    // at all therefore withdrew the control permanently after the first
+    // import: a partner who cancelled one on staging on 2026-09-09 could not
+    // start another, and neither could one whose import had simply finished.
+    for (const build of [
+      IMPORT_RUNS.cancelled,
+      IMPORT_RUNS.completed,
+      IMPORT_RUNS.failed,
+    ]) {
+      expect(markup(<PrepareForm {...context(build())} />), build.name).toContain(
+        "Prepare import",
+      )
+    }
+  })
+
+  it("asks for dates only once the reader has chosen a custom range", () => {
+    // Both date fields used to be drawn whatever was selected, so a reader
+    // preparing the entire history was asked for a window that would be
+    // ignored. They were native date inputs too, and a native date input takes
+    // its placeholder from the browser locale: an English Console asked a
+    // Russian browser for `дд.мм.гггг`, and no markup could override it.
+    const rendered = markup(<PrepareForm {...context(null)} />)
+
+    expect(rendered).toContain("Entire repository history")
+    expect(rendered).toContain('value="CUSTOM"')
+    expect(rendered).not.toContain('type="date"')
+    expect(rendered).not.toContain('name="mergedFrom"')
+    expect(rendered).not.toContain('name="mergedTo"')
+    expect(rendered).not.toContain("import-range-calendar")
   })
 
   it("offers nothing at all to a principal without the capability", () => {
