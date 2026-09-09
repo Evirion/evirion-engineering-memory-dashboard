@@ -44,21 +44,38 @@ test.describe("prepare_import", () => {
     await expect(page.getByTestId("import-status")).toContainText("Preparing import")
   })
 
-  test("refuses a custom range whose bounds are the wrong way round", async ({
+  test("carries a chosen custom range through to a prepared run", async ({
     context,
     page,
   }) => {
+    // The inverted-bounds refusal this test used to drive is no longer
+    // expressible here: the calendar orders whatever two days are picked. The
+    // server rule still holds and is proved directly against
+    // `readImportFilters` in `tests/unit/imports/request-fields.test.ts`, under
+    // "bounds the wrong way round". What the browser can still prove, and what
+    // matters more, is that the days a reader picks reach the command.
     await signIn(context, { scenario: "importAbsent" })
     await page.goto(surface)
 
     await page.getByLabel("Custom date range").check()
-    await page.getByLabel("Merged from").fill("2026-06-01")
-    await page.getByLabel("Merged to").fill("2026-01-01")
+    const calendar = page.getByTestId("import-range-calendar")
+
+    // Step back a month so every day on the grid is in the past whatever
+    // today's date happens to be. On the first of a month the current grid
+    // offers a single selectable day and no range could be drawn at all.
+    await calendar.getByRole("button", { name: /previous month/i }).click()
+    const days = calendar.locator("td button:not([disabled])")
+
+    await days.first().click()
+    await days.nth(1).click()
+    await expect(page.getByTestId("import-range-summary")).toContainText(
+      "both days included",
+    )
+
     await page.getByRole("button", { name: "Prepare import" }).click()
 
-    await expect(page.getByText("REQUEST_INVALID")).toBeVisible()
-    // Refused before the backend was called, so no run exists.
-    await expect(page.getByTestId("import-empty")).toBeVisible()
+    await expect(page.getByText("Done.")).toBeVisible()
+    await expect(page.getByTestId("import-status")).toContainText("Preparing import")
   })
 
   test("offers no second run while one is current", async ({ context, page }) => {
@@ -66,6 +83,74 @@ test.describe("prepare_import", () => {
     await page.goto(surface)
 
     await expect(page.getByTestId("import-prepare")).toHaveCount(0)
+  })
+
+  test("reveals the calendar only for a custom range, and refuses the future", async ({
+    context,
+    page,
+  }) => {
+    await signIn(context, { scenario: "importAbsent" })
+    await page.goto(surface)
+
+    // Nothing to fill in until the reader asks for a window.
+    await expect(page.getByTestId("import-range-calendar")).toHaveCount(0)
+    await expect(page.locator('input[type="date"]')).toHaveCount(0)
+
+    await page.getByLabel("Custom date range").check()
+    const calendar = page.getByTestId("import-range-calendar")
+    await expect(calendar).toBeVisible()
+
+    // A merge cannot have happened tomorrow, so tomorrow is unreachable by
+    // pointer and by keyboard alike, not merely greyed. Two months are shown,
+    // so tomorrow is on the grid even on the last day of a month.
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    const month = tomorrow.toLocaleString("en-US", { month: "long" })
+    const label = new RegExp(
+      `${month} ${tomorrow.getDate()}(?:st|nd|rd|th), ${tomorrow.getFullYear()}$`,
+    )
+
+    await expect(calendar.getByRole("button", { name: label })).toBeDisabled()
+    await expect(page.getByTestId("import-range-summary")).toContainText(
+      "days after today cannot be chosen",
+    )
+  })
+
+  test("jumps to a distant year without paging month by month", async ({
+    context,
+    page,
+  }) => {
+    // A repository can carry a decade of history. Reaching it one month at a
+    // time is not a thing anyone will do, so month and year are selectable
+    // directly, as native selects the keyboard can drive.
+    await signIn(context, { scenario: "importAbsent" })
+    await page.goto(surface)
+    await page.getByLabel("Custom date range").check()
+
+    const calendar = page.getByTestId("import-range-calendar")
+    const years = calendar.locator("select").last()
+    const thisYear = new Date().getFullYear()
+
+    await expect(calendar.locator("select")).toHaveCount(4)
+    await expect(years.locator("option")).toContainText([String(thisYear)])
+    // GitHub's own first year is the floor: nothing was merged before the host
+    // existed, so an earlier year is not offered.
+    await expect(years.locator('option[value="2008"]')).toHaveCount(1)
+    await expect(years.locator('option[value="2007"]')).toHaveCount(0)
+
+    await years.selectOption("2019")
+    await expect(calendar).toContainText("2019")
+  })
+
+  test("offers preparation again after a cancelled run", async ({ context, page }) => {
+    // Cancelling must not be one-way. The backend permits a new run once the
+    // previous one is terminal, and a repository whose import was cancelled —
+    // or had simply finished — must not become permanently unimportable.
+    await signIn(context, { scenario: "importCancelled" })
+    await page.goto(surface)
+
+    await expect(page.getByTestId("import-status")).toContainText("Import cancelled")
+    await expect(page.getByTestId("import-prepare")).toBeVisible()
   })
 
   test("cannot be asked to reextract through a direct call", async ({

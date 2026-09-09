@@ -1,5 +1,108 @@
 # Dashboard changelog
 
+## 2026-09-09 — reaching a distant year, and saying what the code is for
+
+- **Why, for the step-up notice.** Every gated control carried "This action may
+  require confirming your identity again before it is applied." That names the
+  precondition and stops. A reader who is told their identity needs confirming
+  and is shown no way to confirm it reasonably concludes they must sign out and
+  sign back in, which is both wrong and off-putting.
+- **What actually happens, and now says so.** `GatedForm` intercepts the submit,
+  the request is stored, one authenticator code is entered, and
+  `replayPendingMutation` replays the same request server-side and returns the
+  reader to where they were. Nothing signs out and nothing is retyped. The
+  notice now describes that instead of the precondition.
+- **No second button, deliberately.** The obvious reading of the complaint is
+  "add a Confirm identity control", but the submit the reader is already
+  reaching for is that control: it starts the step-up and carries the form
+  through it. A separate button would split one action into two, and the one
+  they pressed first would be the one that already worked.
+- **Year and month are selectable directly.** A repository can carry a decade
+  of history and the calendar opened on this month with two arrows. It now
+  carries native month and year selects — real `<select>` elements laid
+  transparently over their labels, so the keyboard and a screen reader get a
+  plain control. The year floor is 2008, GitHub's own first year: nothing was
+  merged before the host existed, so an earlier year is not offered.
+- **Files.** `src/components/auth/reauthentication-notice.tsx`,
+  `src/components/ui/calendar.tsx`,
+  `src/components/imports/import-range-picker.tsx`,
+  `tests/e2e/import.spec.ts`, `tests/e2e/reauthentication.spec.ts`,
+  `tests/e2e/memory-review.spec.ts`.
+- **Verification.** 995 unit tests, 92 browser tests across the import,
+  reauthentication and memory-review suites, `tsc --noEmit`, oxlint, prettier
+  and the contrast tool. Two browser tests were pinned to the old sentence and
+  were rewritten to assert the substance rather than the wording: that a code
+  is asked for and that the session survives it.
+- **Deployment state.** Implemented and locally verified. Not deployed.
+
+## 2026-09-09 — the import range asks in English, and only when asked
+
+- **Why.** Three faults on one form, all visible in a single screenshot. Both
+  date fields were drawn whatever range was selected, so a reader preparing the
+  entire history was asked for a window that would be ignored. The fields were
+  native `<input type="date">`, which take their placeholder and their picker
+  from the browser locale: an English Console asked a Russian browser for
+  `дд.мм.гггг`, and no markup can override that. And nothing stopped a reader
+  asking for merges that have not happened yet.
+- **What changed.** `ImportRangePicker` owns the three ranges and reveals a
+  two-month `react-day-picker` range calendar only for `CUSTOM`. The calendar
+  carries its own English locale rather than consulting the visitor's, days
+  after today are disabled rather than merely dimmed, and the chosen window is
+  restated in words above the button. The two calendar days travel as hidden
+  `mergedFrom` and `mergedTo` fields in the `YYYY-MM-DD` shape the route already
+  parsed, so `/api/imports/prepare` is unchanged.
+- **A browser test was replaced rather than deleted.** The inverted-bounds
+  refusal could no longer be expressed through the UI, because the calendar
+  orders whatever two days are picked. That server rule keeps its check in
+  `tests/unit/imports/request-fields.test.ts` under "bounds the wrong way
+  round"; the browser test now proves the chosen days reach the command.
+- **Dependency.** `react-day-picker` at exactly `10.0.1`. The shadcn CLI also
+  proposed `date-fns` and caret ranges for both; the ranges violate the exact
+  pin policy and `date-fns` was not needed, so both were removed before the
+  lockfile was synchronised.
+- **Files.** `src/components/ui/calendar.tsx`,
+  `src/components/imports/import-range-picker.tsx`,
+  `src/components/imports/import-actions.tsx`,
+  `tests/component/imports/import-surface.test.tsx`,
+  `tests/e2e/import.spec.ts`, `package.json`, `pnpm-lock.yaml`.
+- **Verification.** 995 unit tests, 33 browser tests in the import suite,
+  `tsc --noEmit`, oxlint, prettier, the supply-chain policy suite, and the
+  contrast tool at 69 pairs. A screenshot after the first pass showed the month
+  arrows missing — absolutely placed against an unpositioned root — which the
+  tests could not see because they locate by role; the root is now the
+  positioning context.
+- **Deployment state.** Implemented and locally verified. Not deployed.
+
+## 2026-09-09 — a cancelled import is no longer the last one
+
+- **Why.** During the EEM-9/07 free staging canary a design partner cancelled a
+  historical import and could not start another. The Prepare control never came
+  back. It would not have come back after a successful import either, so the
+  first run a repository ever had was also its last.
+- **The cause was the Console being stricter than the backend.**
+  `create_console_repository_import` refuses a second run only while one exists
+  whose status is not `completed`, `failed` or `cancelled`, and the read
+  projection returns the newest run whatever its status. `importControls`
+  required `current === null`, which is true only until the very first run
+  exists. The comment beside it — "a second run would be refused as already
+  active" — was right about a run in flight and wrong about a terminal one.
+- **What changed.** `isTerminal` joins `isProgressing` in the import
+  presentation vocabulary and names the boundary the backend itself draws.
+  `canPrepare` now holds when there is no run or the newest one is terminal.
+  Nothing else about the control moved: the entitlement and capability
+  conditions are unchanged, and a run in flight still withholds it.
+- **Files.** `src/lib/imports/presentation.ts`,
+  `tests/component/imports/import-surface.test.tsx`,
+  `tests/e2e/import.spec.ts`.
+- **Verification.** The component assertion was confirmed to fail first, on the
+  cancelled fixture. After the change: 994 unit tests across 69 files, 32
+  browser tests in the import suite including a new one that reaches the
+  control through a cancelled run, `tsc --noEmit`, and oxlint.
+- **Deployment state.** Implemented and locally verified. Not deployed: the
+  canary observation window pins the Console at `a3d7f0b`, and replacing the
+  artifact mid-window would leave the certificate describing a build that no
+  longer exists.
+
 ## 2026-09-09 — the way into historical import, and a control that looks like one
 
 - **Why.** The import page existed at `/repositories/<id>/import` and nothing

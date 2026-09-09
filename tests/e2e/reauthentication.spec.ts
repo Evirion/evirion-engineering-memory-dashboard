@@ -31,10 +31,16 @@ test.describe("precondition notice", () => {
     await signIn(context, { scenario: "importAwaitingApproval" })
     await page.goto(importSurface)
 
-    await expect(page.getByTestId("import-reauth-notice")).toBeVisible()
-    await expect(page.getByTestId("import-reauth-notice")).toContainText(
-      "confirming your identity again",
-    )
+    const notice = page.getByTestId("import-reauth-notice")
+
+    await expect(notice).toBeVisible()
+    await expect(notice).toContainText("code from your authenticator app")
+    // The reader must not be left to conclude they have to sign out and back
+    // in, which is what naming the requirement alone invited. There is also no
+    // separate control to press: the submit they were already aiming at starts
+    // the step-up and the same request is replayed afterwards.
+    await expect(notice).toContainText("you stay signed in")
+    await expect(notice).toContainText("nothing you entered here is lost")
   })
 
   test("states the published requirement on lifecycle activation", async ({
