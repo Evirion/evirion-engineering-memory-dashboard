@@ -7,6 +7,7 @@ import {
   ActivateForm,
   ConsentForm,
   DisableForm,
+  ImportEntry,
   OperatorManagedNotice,
   PolicyForm,
   RequestChangeForm,
@@ -121,7 +122,12 @@ const RepositoryDetailPage = async ({
 
       <div className="flex flex-col gap-3">
         <ActivateForm {...context} />
+        {/* Live processing decides what happens next; import decides what
+            happens about everything before now. They are the pair a reader is
+            choosing between, so they sit together and ahead of the controls
+            that take something away. */}
         <PolicyForm {...context} />
+        <ImportEntry {...context} />
         <ConsentForm {...context} modelProfiles={view.modelProfiles} />
         <DisableForm {...context} />
         <RequestChangeForm

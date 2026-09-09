@@ -54,6 +54,18 @@ const submit = buttonVariants({
   size: "sm",
   className: "self-start",
 })
+/**
+ * The one control on a card that a reader came to press.
+ *
+ * Every action used to be the same small outline button, so activating a
+ * repository, disabling it and requesting a different one all looked equally
+ * likely to be what you wanted. Weight is the only thing distinguishing them
+ * now: the step that moves the repository forward is `primary`, and everything
+ * else stays `outline` and quiet.
+ */
+const primaryAction = buttonVariants({ className: "self-start", variant: "primary" })
+/** What pressing it does, under the control rather than buried above it. */
+const consequence = "text-xs text-ink-secondary"
 const field =
   "border-input bg-card text-foreground h-9 rounded-lg border px-3 text-sm outline-none hover:border-line-strong focus-visible:border-ring"
 
@@ -92,8 +104,41 @@ export const ActivateForm = ({
       <label className="flex items-center gap-2 text-sm text-foreground">
         <input type="checkbox" name="confirmationAccepted" />I confirm this
       </label>
-      <SubmitButton className={submit}>Activate repository</SubmitButton>
+      <SubmitButton className={primaryAction}>Activate repository</SubmitButton>
+      <p className={consequence}>
+        Evirion starts watching this repository. Nothing is read from its history until
+        you ask for that separately, and no model is called until you allow it.
+      </p>
     </form>
+  )
+
+/**
+ * The way into historical import.
+ *
+ * The page existed at `/repositories/<id>/import` and nothing linked to it, so
+ * the only way to reach it was to know the URL and type it. That made the one
+ * feature answering "what about the pull requests we already collected?"
+ * invisible to the person who would ask.
+ */
+export const ImportEntry = ({ repository, controls }: ActionContext) =>
+  !controls.canImport ? null : (
+    <section className="flex flex-col gap-3 rounded-2xl border border-border bg-card px-5 py-4 shadow-panel">
+      <h2 className="text-sm font-semibold text-foreground">
+        Import this repository&rsquo;s history
+      </h2>
+      <a
+        href={`/repositories/${repository.id}/import`}
+        className={buttonVariants({ variant: "secondary", className: "self-start" })}
+      >
+        Open historical import
+      </a>
+      <p className={consequence}>
+        Live processing only ever looks at pull requests merged from now on. An import
+        is how everything merged earlier gets read, including anything collected while
+        extraction was switched off. You choose the range, see how many pull requests it
+        found and set a spending limit before anything is charged.
+      </p>
+    </section>
   )
 
 export const DisableForm = ({
