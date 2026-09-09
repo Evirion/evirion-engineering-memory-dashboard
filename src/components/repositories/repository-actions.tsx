@@ -63,7 +63,7 @@ const submit = buttonVariants({
  * now: the step that moves the repository forward is `primary`, and everything
  * else stays `outline` and quiet.
  */
-const primaryAction = buttonVariants({ className: "self-start" , variant: "primary" })
+const primaryAction = buttonVariants({ className: "self-start", variant: "primary" })
 /** What pressing it does, under the control rather than buried above it. */
 const consequence = "text-xs text-ink-secondary"
 const field =
@@ -106,9 +106,8 @@ export const ActivateForm = ({
       </label>
       <SubmitButton className={primaryAction}>Activate repository</SubmitButton>
       <p className={consequence}>
-        Evirion starts watching this repository. Nothing is read from its history
-        until you ask for that separately, and no model is called until you allow
-        it.
+        Evirion starts watching this repository. Nothing is read from its history until
+        you ask for that separately, and no model is called until you allow it.
       </p>
     </form>
   )
@@ -134,11 +133,10 @@ export const ImportEntry = ({ repository, controls }: ActionContext) =>
         Open historical import
       </a>
       <p className={consequence}>
-        Live processing only ever looks at pull requests merged from now on. An
-        import is how everything merged earlier gets read, including anything
-        collected while extraction was switched off. You choose the range, see how
-        many pull requests it found and set a spending limit before anything is
-        charged.
+        Live processing only ever looks at pull requests merged from now on. An import
+        is how everything merged earlier gets read, including anything collected while
+        extraction was switched off. You choose the range, see how many pull requests it
+        found and set a spending limit before anything is charged.
       </p>
     </section>
   )
