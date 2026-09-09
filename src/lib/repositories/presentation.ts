@@ -380,6 +380,13 @@ export type RepositoryControls = {
   readonly canRequestChange: boolean
   readonly canChangePolicy: boolean
   /**
+   * Whether to offer the way into historical import. It reads the same
+   * capability and state the import page itself checks, and is named for what
+   * it gates rather than borrowing `canChangePolicy`, so the two can diverge
+   * without a caller silently inheriting the wrong answer.
+   */
+  readonly canImport: boolean
+  /**
    * True when the organization's replacement mode reserves the decision for an
    * Evirion operator. It is a state, not a failure, and not an error message.
    */
@@ -420,6 +427,7 @@ export const repositoryControls = (
     canRequestChange:
       manageEntitlement && active && operatorManaged && !changeAlreadyRequested,
     canChangePolicy: managePolicy && active,
+    canImport: managePolicy && active,
     operatorManaged,
   }
 }

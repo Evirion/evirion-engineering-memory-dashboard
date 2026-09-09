@@ -1,5 +1,34 @@
 # Dashboard changelog
 
+## 2026-09-09 — the way into historical import, and a control that looks like one
+
+- **Why.** The import page existed at `/repositories/<id>/import` and nothing
+  linked to it. The one feature that answers "what about the pull requests we
+  already collected?" could only be reached by knowing the address and typing
+  it. The owner went looking for the button and there was none.
+- **The entry point.** The repository page now carries an import card, next to
+  live processing, because those two are the pair a reader is choosing between:
+  one decides what happens to pull requests merged from now on, the other
+  decides what happens to everything merged before. The description sits under
+  the control and names the spending limit, so money is mentioned before the
+  click rather than after it.
+- **Weight now distinguishes the controls.** Every action was the same small
+  outline button, so activating a repository looked exactly as likely to be
+  what you wanted as disabling it. Activation is `primary`; the rest stay quiet.
+  A line under the activation button says what pressing it does, which the wall
+  of requirement text above it never quite did.
+- **`canImport` joins the repository controls** rather than borrowing
+  `canChangePolicy`, even though both read the same capability today, so the
+  two can diverge without a caller silently inheriting the wrong answer.
+- **Files.** `src/components/repositories/repository-actions.tsx`,
+  `src/app/(console)/repositories/[repositoryId]/page.tsx`,
+  `src/lib/repositories/presentation.ts`,
+  `tests/component/repositories/repository-actions.test.tsx`.
+- **Verification.** 993 unit tests, `tsc --noEmit`, oxlint, production build,
+  and the contrast tool: 69 pairs, all pass. The weight assertion was confirmed
+  to fail against the previous outline button.
+- **Deployment state.** Implemented and locally verified.
+
 ## 2026-09-08 — cost reporting suspended on the customer surfaces
 
 - **What changed.** The Cost column is gone from `/processing`, and four cost

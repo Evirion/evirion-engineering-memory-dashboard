@@ -7,6 +7,7 @@ import {
   ActivateForm,
   ConsentForm,
   DisableForm,
+  ImportEntry,
   OperatorManagedNotice,
   PolicyForm,
   RequestChangeForm,
@@ -114,6 +115,73 @@ describe("the activation control", () => {
         <ActivateForm {...contextFor(find(REPOSITORIES.activeSourceOnly), OWNER)} />,
       ),
     ).toBe("")
+  })
+})
+
+describe("the way into historical import", () => {
+  it("offers a link where the URL used to be the only way in", () => {
+    // The page existed and nothing linked to it, so the one feature that
+    // answers "what about the pull requests we already collected?" could only
+    // be reached by knowing the address.
+    const context = contextFor(find(REPOSITORIES.activeSourceOnly), OWNER)
+    const rendered = markup(<ImportEntry {...context} />)
+
+    expect(rendered).toContain(`/repositories/${context.repository.id}/import`)
+    expect(rendered).toContain("Open historical import")
+  })
+
+  it("says what an import is for, next to the control rather than elsewhere", () => {
+    const rendered = markup(
+      <ImportEntry {...contextFor(find(REPOSITORIES.activeSourceOnly), OWNER)} />,
+    )
+
+    // The distinction a reader needs is that live processing is forward-only.
+    expect(rendered).toContain("merged from now on")
+    expect(rendered).toContain("extraction was switched off")
+    // Money is named before the click, not after it.
+    expect(rendered).toContain("spending limit")
+  })
+
+  it("does not offer it for a repository that is not activated", () => {
+    const rendered = markup(
+      <ImportEntry {...contextFor(find(REPOSITORIES.availableLocked), OWNER)} />,
+    )
+
+    expect(rendered).toBe("")
+  })
+
+  it("does not offer it to a caller without the capability", () => {
+    const rendered = markup(
+      <ImportEntry {...contextFor(find(REPOSITORIES.activeSourceOnly), VIEWER)} />,
+    )
+
+    expect(rendered).toBe("")
+  })
+})
+
+describe("which control looks like the one to press", () => {
+  it("gives activation the primary weight and leaves the rest quiet", () => {
+    // Every action used to be the same small outline button, so activating a
+    // repository looked exactly as likely to be what you wanted as disabling
+    // it. Weight is the only thing that distinguishes them.
+    const activate = markup(
+      <ActivateForm {...contextFor(find(REPOSITORIES.availableLocked), OWNER)} />,
+    )
+    const disable = markup(
+      <DisableForm {...contextFor(find(REPOSITORIES.activeSourceOnly), OWNER)} />,
+    )
+
+    expect(activate).toContain("bg-primary")
+    expect(disable).not.toContain("bg-primary")
+  })
+
+  it("says what activation does, under the control", () => {
+    const rendered = markup(
+      <ActivateForm {...contextFor(find(REPOSITORIES.availableLocked), OWNER)} />,
+    )
+
+    expect(rendered).toContain("Evirion starts watching this repository")
+    expect(rendered).toContain("no model is called until you allow it")
   })
 })
 
