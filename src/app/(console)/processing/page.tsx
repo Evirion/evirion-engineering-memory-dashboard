@@ -1,10 +1,13 @@
 import { ConsoleUnavailable } from "@/components/console/console-unavailable"
-import { ProcessingActivityTable } from "@/components/processing/processing-activity-table"
+import {
+  ProcessingActivityTable,
+  ProcessingPagination,
+} from "@/components/processing/processing-activity-table"
 import { ProcessingFilters } from "@/components/processing/processing-filters"
 import { ProcessingPoll } from "@/components/processing/processing-poll"
 import { isProgressing } from "@/lib/processing/presentation"
+import { readProcessingQuery } from "@/lib/processing/query"
 import { Lede, PageHeader, PageTitle } from "@/components/ui/text"
-import type { ProcessingActivityQuery } from "@/server/adapters/processing"
 import { readProcessingActivity } from "@/server/queries/processing"
 import { readRepositoryList } from "@/server/queries/repositories"
 
@@ -12,26 +15,17 @@ export const dynamic = "force-dynamic"
 export const revalidate = 0
 export const fetchCache = "force-no-store"
 
-const readRepositoryFilter = (
-  value: string | string[] | undefined,
-): string | undefined => {
-  if (typeof value !== "string" || value.length === 0) return undefined
-  return value
-}
-
 /**
  * Processing Activity is read-only. No retry, resume, or backend-declared recovery
- * action exists on a live extraction job.
+ * action exists on a live extraction job. PROC-001 requires pagination; the page
+ * size is owned here and is never taken from the query string.
  */
 const ProcessingPage = async ({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) => {
-  const params = await searchParams
-  const repositoryId = readRepositoryFilter(params.repositoryId)
-  const query: ProcessingActivityQuery =
-    repositoryId === undefined ? {} : { repositoryId }
+  const query = readProcessingQuery(await searchParams)
   const [view, repositories] = await Promise.all([
     readProcessingActivity(query),
     readRepositoryList(),
@@ -51,8 +45,9 @@ const ProcessingPage = async ({
 
   return (
     // The one table in the Console, and the one page that asks the shell for
-    // more than a reading width. Six columns inside 1100px left every cell
-    // wrapping mid-phrase.
+    // more than a reading width. Repository and PR are two columns; six-plus
+    // inside 1100px left cells wrapping mid-phrase, which is why this surface
+    // is wide.
     <section data-wide className="flex flex-col gap-6">
       <PageHeader>
         <PageTitle>Processing</PageTitle>
@@ -79,7 +74,10 @@ const ProcessingPage = async ({
               No processing rows match this filter.
             </p>
           ) : (
-            <ProcessingActivityTable page={view.page} />
+            <>
+              <ProcessingActivityTable page={view.page} query={view.query} />
+              <ProcessingPagination page={view.page} query={view.query} />
+            </>
           )}
         </>
       )}

@@ -294,6 +294,47 @@ test.describe("PROC-003 pull request detail", () => {
   })
 })
 
+test.describe("PROC-001 pagination and columns", () => {
+  test("pages twenty rows and follows the published cursor", async ({
+    context,
+    page,
+  }) => {
+    await signIn(context, { scenario: "processingPaged" })
+    await page.goto("/processing")
+
+    await expect(page.getByTestId("processing-row")).toHaveCount(20)
+    await page.getByRole("link", { name: "Next processing rows" }).click()
+    await expect(page.getByTestId("processing-row")).toHaveCount(1)
+    await expect(page.getByRole("link", { name: "Next processing rows" })).toHaveCount(
+      0,
+    )
+  })
+
+  test("sorts the collected list from a column header", async ({ context, page }) => {
+    await signIn(context, { scenario: "processingPaged" })
+    await page.goto("/processing")
+
+    await expect(page.getByTestId("processing-pr-link").first()).toHaveText("#401")
+    await page.getByRole("link", { name: "Outcome", exact: true }).click()
+    await expect(page).toHaveURL(/sort=outcome/)
+    await expect(page.getByTestId("processing-pr-link").first()).toHaveText("#500")
+  })
+
+  test("splits repository and pull request into two headers", async ({
+    context,
+    page,
+  }) => {
+    await signIn(context, { scenario: "processingSettings" })
+    await page.goto("/processing")
+
+    await expect(page.getByRole("columnheader", { name: "Repository" })).toBeVisible()
+    await expect(page.getByRole("columnheader", { name: "PR" })).toBeVisible()
+    await expect(
+      page.getByRole("columnheader", { name: "Repository / PR" }),
+    ).toHaveCount(0)
+  })
+})
+
 test.describe("processing reads fail closed", () => {
   test("says the activity is unavailable rather than showing an empty list", async ({
     context,

@@ -1465,6 +1465,26 @@ const processingItemsWithCost = () => [
   }),
 ]
 
+/** Twenty-one jobs so a page of twenty has a following cursor. */
+const processingItemsPaged = () => {
+  const extras = Array.from({ length: 16 }, (_, index) => {
+    const ordinal = index + 6
+    const suffix = String(100 + ordinal).padStart(3, "0")
+    return processingRow({
+      extractionJobId: `00000000-0000-4000-8000-00000000b${suffix}`,
+      effectiveJobId: `00000000-0000-4000-8000-00000000b${suffix}`,
+      pullRequestId: `00000000-0000-4000-8000-00000000c${suffix}`,
+      pullRequestNumber: 500 + index,
+      extractionRunId: null,
+      pullRequestTitle: `Pagination filler ${index + 1}`,
+      processingState: "AWAITING_APPROVAL",
+      admissionDisposition: null,
+      jobStatus: "PENDING",
+    })
+  })
+  return [...processingItemsWithCost(), ...extras]
+}
+
 const stripUsageFields = (row) => {
   const { cost: _cost, latencyMs: _latency, tokenUsage: _tokens, ...rest } = row
   return rest
@@ -2093,5 +2113,10 @@ export const SCENARIOS = {
   processingUnavailable: () => ({
     ...withProcessingSettings(),
     processingError: "DEPENDENCY_UNAVAILABLE",
+  }),
+
+  processingPaged: () => ({
+    ...withProcessingSettings(),
+    processingItems: processingItemsPaged(),
   }),
 }

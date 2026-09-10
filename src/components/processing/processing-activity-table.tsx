@@ -1,7 +1,14 @@
 import type { ProcessingPage } from "@contracts/console"
 
 import { rowView } from "@/lib/processing/presentation"
+import {
+  nextProcessingSort,
+  processingPath,
+  type ProcessingSort,
+  type ProcessingViewQuery,
+} from "@/lib/processing/query"
 import { SHOW_COST_FIGURES } from "@/lib/ui/cost-reporting"
+import { buttonVariants } from "@/components/ui/button"
 import { StatusChip } from "@/components/ui/status-chip"
 import {
   Table,
@@ -14,6 +21,38 @@ import {
 } from "@/components/ui/table"
 import { Technical } from "@/components/ui/text"
 
+const SORT_LABELS: Readonly<Record<ProcessingSort, string>> = {
+  repository: "Repository",
+  pullRequest: "PR",
+  outcome: "Outcome",
+  authorization: "Paid authorization",
+  job: "Job / source",
+  updated: "Updated",
+}
+
+const SortHeader = ({
+  column,
+  query,
+}: {
+  column: ProcessingSort
+  query: ProcessingViewQuery
+}) => {
+  const next = nextProcessingSort(query, column)
+  const ariaSort =
+    query.sort !== column ? "none" : query.dir === "desc" ? "descending" : "ascending"
+
+  return (
+    <TableHeader scope="col" aria-sort={ariaSort}>
+      <a
+        href={processingPath({ ...query, ...next })}
+        className="text-inherit no-underline hover:underline"
+      >
+        {SORT_LABELS[column]}
+      </a>
+    </TableHeader>
+  )
+}
+
 /**
  * The one true table in the Console.
  *
@@ -21,19 +60,26 @@ import { Technical } from "@/components/ui/text"
  * down a column, which is exactly when a table beats a card. Job, source and
  * admission share a cell rather than taking three columns of their own,
  * because eight chip columns do not fit 1440 and the first thing to be
- * clipped was cost.
+ * clipped was cost. Repository and PR are two PROC-001 fields and two columns.
  */
-export const ProcessingActivityTable = ({ page }: { page: ProcessingPage }) => (
+export const ProcessingActivityTable = ({
+  page,
+  query,
+}: {
+  page: ProcessingPage
+  query: ProcessingViewQuery
+}) => (
   <TableFrame>
     <Table aria-label="Processing activity" data-testid="processing-activity-table">
       <TableHead>
         <TableRow>
-          <TableHeader scope="col">Repository / PR</TableHeader>
-          <TableHeader scope="col">Outcome</TableHeader>
-          <TableHeader scope="col">Paid authorization</TableHeader>
-          <TableHeader scope="col">Job / source</TableHeader>
+          <SortHeader column="repository" query={query} />
+          <SortHeader column="pullRequest" query={query} />
+          <SortHeader column="outcome" query={query} />
+          <SortHeader column="authorization" query={query} />
+          <SortHeader column="job" query={query} />
           {SHOW_COST_FIGURES ? <TableHeader scope="col">Cost</TableHeader> : null}
-          <TableHeader scope="col">Updated</TableHeader>
+          <SortHeader column="updated" query={query} />
         </TableRow>
       </TableHead>
       <TableBody>
@@ -51,7 +97,10 @@ export const ProcessingActivityTable = ({ page }: { page: ProcessingPage }) => (
                 <div className="text-foreground font-mono text-sm font-medium">
                   {row.nameWithOwner}
                 </div>
-                <div className="text-muted-foreground mt-0.5 text-xs">
+              </TableCell>
+
+              <TableCell>
+                <div>
                   {row.pullRequestId ? (
                     <a
                       href={`/repositories/${row.repositoryId}/pull-requests/${row.pullRequestNumber}`}
@@ -63,8 +112,12 @@ export const ProcessingActivityTable = ({ page }: { page: ProcessingPage }) => (
                   ) : (
                     <span className="font-mono">#{row.pullRequestNumber}</span>
                   )}
-                  {row.pullRequestTitle ? ` — ${row.pullRequestTitle}` : ""}
                 </div>
+                {row.pullRequestTitle ? (
+                  <div className="text-muted-foreground mt-0.5 text-xs">
+                    {row.pullRequestTitle}
+                  </div>
+                ) : null}
               </TableCell>
 
               <TableCell>
@@ -127,6 +180,16 @@ export const ProcessingActivityTable = ({ page }: { page: ProcessingPage }) => (
                 )}
               </TableCell>
 
+              <TableCell>
+                <div className="flex flex-col items-start gap-1">
+                  <StatusChip tone={view.jobTone}>{view.jobLabel}</StatusChip>
+                  <StatusChip tone={view.sourceTone}>{view.sourceLabel}</StatusChip>
+                  <StatusChip tone={view.admissionTone}>
+                    {view.admissionLabel}
+                  </StatusChip>
+                </div>
+              </TableCell>
+
               {SHOW_COST_FIGURES ? (
                 <TableCell data-testid="processing-cost">
                   {view.cost === null ? (
@@ -146,16 +209,6 @@ export const ProcessingActivityTable = ({ page }: { page: ProcessingPage }) => (
                 </TableCell>
               ) : null}
 
-              <TableCell>
-                <div className="flex flex-col items-start gap-1">
-                  <StatusChip tone={view.jobTone}>{view.jobLabel}</StatusChip>
-                  <StatusChip tone={view.sourceTone}>{view.sourceLabel}</StatusChip>
-                  <StatusChip tone={view.admissionTone}>
-                    {view.admissionLabel}
-                  </StatusChip>
-                </div>
-              </TableCell>
-
               {/*
                 The instant is split rather than wrapped. A single ISO string
                 with microseconds breaks at whatever character the column edge
@@ -174,3 +227,25 @@ export const ProcessingActivityTable = ({ page }: { page: ProcessingPage }) => (
     </Table>
   </TableFrame>
 )
+
+export const ProcessingPagination = ({
+  page,
+  query,
+}: {
+  page: ProcessingPage
+  query: ProcessingViewQuery
+}) => {
+  const nextCursor = page.page.nextCursor
+  if (nextCursor === null) return null
+
+  return (
+    <nav aria-label="Processing pages" className="flex justify-center">
+      <a
+        href={processingPath({ ...query, after: nextCursor }, { keepCursor: true })}
+        className={buttonVariants({ variant: "outline" })}
+      >
+        Next processing rows
+      </a>
+    </nav>
+  )
+}

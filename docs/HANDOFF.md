@@ -4,14 +4,23 @@ Updated: 2026-09-10
 
 ## Current state
 
-- Active branch: `EEM-9/07-import-shows-discovery-outcome`. Observation follow-up
-  from the first real Prepare import on staging.
-- **The import page lied after discovery and after approve.** Staging showed
+- Active branch: `EEM-9/07-processing-table-pagination`. Processing activity
+  now pages twenty rows, splits Repository and PR, and sorts from column
+  headers.
+- **Processing was one unbounded table.** PROC-001 already required pagination.
+  `/processing` now requests twenty rows, follows `nextCursor`, and treats
+  column headers as shareable sort links. `pageSize` is ignored if a caller
+  puts it in the URL. Sort is Console presentation — the published backend page
+  is still ordered by job identity — so a sort reads the tenant-scoped pages
+  and then windows twenty. **Not deployed.**
+- **The import page lied after discovery and after approve.** Merged as
+  [PR #68](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/68)
+  (`dc3c38f`). Staging showed
   "Discovering PR history" until a full reload, Pause after discovery had
   finished, and a spinning "Extracting Engineering Memory" after Approve
   extraction. A soft refresh does not replace the hosted RSC snapshot. Approve
   records consent and leaves the run `PROCESSING` while Evirion authorization
-  is still missing. This branch polls four progress facts, reloads only when
+  is still missing. That change polls four progress facts, reloads only when
   they move, names discovery as finished rather than complete, hides Pause at
   `AWAITING_APPROVAL`, keeps Extracting while the run is processing, shows
   success when it completes and an error with prepare-again when it fails.

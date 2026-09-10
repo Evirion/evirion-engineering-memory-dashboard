@@ -64,6 +64,14 @@ not open. What remains open is the axe ruleset, the tag selection and the pass
 threshold, which is what an executable gate needs. Record the dependency rather
 than choosing a configuration.
 
+Decision 4 has a partial answer on `/processing` only. The owner asked for a
+table, at most twenty rows, a cursor control that follows the backend
+`nextCursor`, column sort, and Repository and PR as two columns. The page size
+is not taken from the query string. Sort is Console presentation: the published
+list is ordered by extraction-job identity, so a sort reads the tenant-scoped
+pages, then windows twenty rows. Memory and repositories keep their existing
+controls. The other list surfaces remain open.
+
 ## Routes, ownership and applicable states
 
 Thirteen App Router paths were frozen by EEM-9/01 from requirements Section 10.
