@@ -1,10 +1,23 @@
 # Dashboard handoff
 
-Updated: 2026-09-08
+Updated: 2026-09-10
 
 ## Current state
 
-- Active branch: `main`. Nothing is in flight.
+- Active branch: `EEM-9/07-import-shows-discovery-outcome`. Observation follow-up
+  from the first real Prepare import on staging.
+- **The import page lied after discovery and after approve.** Staging showed
+  "Discovering PR history" until a full reload, Pause after discovery had
+  finished, and a spinning "Extracting Engineering Memory" after Approve
+  extraction. A soft refresh does not replace the hosted RSC snapshot. Approve
+  records consent and leaves the run `PROCESSING` while Evirion authorization
+  is still missing. This branch polls four progress facts, reloads only when
+  they move, names discovery as finished rather than complete, hides Pause at
+  `AWAITING_APPROVAL`, keeps Extracting while the run is processing, shows
+  success when it completes and an error with prepare-again when it fails.
+  **Not deployed.** Staging still serves the previous poll. Paid extraction
+  still cannot finish until a separately authorized extraction worker is
+  running; do not start it from this task.
 - **A platform operator signing in to the Console is refused, and now the copy says so.**
   Observed on staging on 2026-09-08: the emailed code is accepted, then
   `issue_console_member_pre_auth` answers `403`, because that function compares
@@ -212,14 +225,16 @@ Trace: [`eem-9-07-acceptance-trace.md`](plans/active/eem-9-07-acceptance-trace.m
 
 ## Verification and next action
 
-`pnpm verify` exits `0` on the pinned Node 24.20.0 runtime, ending
-`complete free gate passed`: 839 unit, contract and conformance tests, 336
-end-to-end and security tests, and the baseline DAST.
+This branch: focused import unit/component tests, `tests/e2e/import.spec.ts`,
+`tests/security/import-boundary.spec.ts`, `pnpm lint` and `pnpm typecheck` pass.
+The complete free gate has not been re-run.
 
-Next: review and open the `I01-C` pull request. After it merges, Step 7 needs an
-explicit authorization naming the project, artifacts, migrations, flags,
-rollback owner, stop conditions and evidence window; planning it is not
-receiving it.
+Next: merge
+[PR #68](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/68),
+then deploy the Console so staging stops serving the stuck discovery/extraction
+poll. Do not start the paid extraction worker from this task. A full
+`pnpm verify` is not required for this UI follow-up unless the PR gate asks
+for it.
 
 Two things are recorded for whoever picks this up. `error.json` is shared with
 the operator contract, so the generated Console validator accepts two codes no

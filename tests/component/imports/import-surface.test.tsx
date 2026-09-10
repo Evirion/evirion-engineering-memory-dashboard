@@ -13,6 +13,7 @@ import { ImportOutcomeNotice } from "@/components/imports/import-outcome"
 import { ImportCost, ImportProgress } from "@/components/imports/import-progress"
 import {
   AuthorizationPanel,
+  ImportStageNotice,
   ImportStatusPanel,
 } from "@/components/imports/import-status"
 import { IMPORT_CAPABILITY, importControls } from "@/lib/imports/presentation"
@@ -97,14 +98,13 @@ describe("the two waits", () => {
     // The run is PROCESSING while authorization is pending. A surface reading
     // status alone would claim extraction is under way.
     const run = IMPORT_RUNS.awaitingAuthorization()
-    const rendered =
-      markup(<ImportStatusPanel current={run} />) +
-      markup(<AuthorizationPanel current={run} />)
+    const status = markup(<ImportStatusPanel current={run} />)
+    const authorization = markup(<AuthorizationPanel current={run} />)
 
     expect(run.status).toBe("PROCESSING")
-    expect(rendered).toContain("Waiting for Evirion authorization")
-    expect(rendered).toContain("Extracting Engineering Memory")
-    expect(rendered).toContain('data-waiting-on="evirion"')
+    expect(status).toContain("Extracting Engineering Memory")
+    expect(authorization).toContain("Waiting for Evirion authorization")
+    expect(authorization).toContain('data-waiting-on="evirion"')
   })
 
   it("offers a fresh request when the authorization expired", () => {
@@ -192,6 +192,30 @@ describe("controls follow the backend capability", () => {
     expect(paused).not.toContain("Pause import")
     // A terminal run permits nothing, so nothing is drawn.
     expect(markup(<RunStateForms {...context(IMPORT_RUNS.completed())} />)).toBe("")
+  })
+
+  it("does not offer pause after discovery has finished, even when the backend still would", () => {
+    const run = {
+      ...IMPORT_RUNS.awaitingApproval(),
+      capabilities: {
+        ...IMPORT_RUNS.awaitingApproval().capabilities,
+        canPause: true,
+      },
+    }
+    const rendered = markup(<RunStateForms {...context(run)} />)
+
+    expect(rendered).not.toContain("Pause import")
+    expect(rendered).toContain("Cancel import")
+    expect(rendered).toMatch(/without starting paid extraction/)
+    expect(rendered).toMatch(/does not delete them/)
+  })
+
+  it("does not describe cancel during extraction as if paid work had not started", () => {
+    const rendered = markup(<RunStateForms {...context(IMPORT_RUNS.processing())} />)
+
+    expect(rendered).toContain("Cancel import")
+    expect(rendered).not.toMatch(/without starting paid extraction/)
+    expect(rendered).toMatch(/Work already recorded is kept/)
   })
 
   it("offers preparation only for an active entitlement with no run in flight", () => {
@@ -385,5 +409,42 @@ describe("every mutation the surface offers", () => {
     expect(markup(<PrepareForm {...context(null)} />)).toMatch(
       /make no model call and cost\s+nothing/,
     )
+  })
+})
+
+describe("stage notices", () => {
+  it("says discovery finished and that extraction has not started", () => {
+    const rendered = markup(
+      <ImportStageNotice current={IMPORT_RUNS.awaitingApproval()} />,
+    )
+
+    expect(rendered).toContain("import-discovery-complete")
+    expect(rendered).toMatch(/Discovery finished/)
+    expect(rendered).toMatch(/24 pull requests are prepared/)
+    expect(rendered).toMatch(/Extraction has not started/)
+    expect(rendered).not.toMatch(/Import complete/)
+  })
+
+  it("keeps extracting as the in-progress notice while the run is processing", () => {
+    expect(markup(<ImportStageNotice current={IMPORT_RUNS.processing()} />)).toContain(
+      "import-extraction-progress",
+    )
+    expect(
+      markup(<ImportStageNotice current={IMPORT_RUNS.awaitingAuthorization()} />),
+    ).toContain("import-extraction-progress")
+    expect(
+      markup(<ImportStageNotice current={IMPORT_RUNS.awaitingApproval()} />),
+    ).not.toContain("import-extraction-progress")
+  })
+
+  it("names a finished extraction as success, and a failed one as an error that can be retried", () => {
+    const completed = markup(<ImportStageNotice current={IMPORT_RUNS.completed()} />)
+    const failed = markup(<ImportStageNotice current={IMPORT_RUNS.failed()} />)
+
+    expect(completed).toContain("import-extraction-complete")
+    expect(completed).toMatch(/finished/)
+    expect(failed).toContain("import-extraction-failed")
+    expect(failed).toMatch(/did not finish/)
+    expect(failed).toMatch(/prepare a new import/)
   })
 })

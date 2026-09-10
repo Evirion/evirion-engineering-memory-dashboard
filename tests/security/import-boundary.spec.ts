@@ -195,4 +195,46 @@ test.describe("import tenant boundary", () => {
     expect(document).not.toMatch(/sk-[A-Za-z0-9]/)
     expect(document).not.toContain("Bearer ")
   })
+
+  test("the progress poll answers JSON and never HTML, and discloses no import identity", async ({
+    context,
+    page,
+  }) => {
+    await page.goto("/auth/sign-in")
+    const anonymous = await page.evaluate(async (repositoryId: string) => {
+      const response = await fetch(
+        `/api/imports/status?repositoryId=${encodeURIComponent(repositoryId)}`,
+        { headers: { accept: "application/json" } },
+      )
+      return { status: response.status, body: (await response.json()) as unknown }
+    }, IMPORTED)
+    expect(anonymous.status).toBe(401)
+    expect(anonymous.body).toEqual({ code: "AUTHENTICATION_REQUIRED" })
+
+    await signIn(context, { scenario: "importProcessing" })
+    await page.goto(surface)
+
+    const poll = async (repositoryId: string) =>
+      page.evaluate(async (id: string) => {
+        const response = await fetch(
+          `/api/imports/status?repositoryId=${encodeURIComponent(id)}`,
+          { headers: { accept: "application/json" } },
+        )
+        return (await response.json()) as Record<string, unknown>
+      }, repositoryId)
+
+    const body = await poll(IMPORTED)
+    expect(Object.keys(body).toSorted()).toEqual([
+      "completed",
+      "discovered",
+      "failed",
+      "status",
+    ])
+    expect(JSON.stringify(body)).not.toContain(IMPORTS.processing)
+    expect(JSON.stringify(body)).not.toContain("cost")
+    expect(JSON.stringify(body)).not.toContain("Bearer")
+
+    expect(await poll(FOREIGN_REPOSITORY)).toEqual(await poll(ABSENT_REPOSITORY))
+    expect(await poll(FOREIGN_REPOSITORY)).toEqual({ absent: true })
+  })
 })

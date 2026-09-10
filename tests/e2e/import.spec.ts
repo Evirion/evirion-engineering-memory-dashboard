@@ -280,6 +280,12 @@ test.describe("approve_with_explicit_warning", () => {
     await expect(authorization).toHaveAttribute("data-waiting-on", "evirion")
     await expect(authorization).not.toContainText("Authorized")
     await expect(page.getByTestId("import-approve")).toHaveCount(0)
+    await expect(page.getByTestId("import-status")).toContainText(
+      "Extracting Engineering Memory",
+    )
+    await expect(page.getByTestId("import-authorization")).toContainText(
+      "Waiting for Evirion authorization",
+    )
   })
 
   test("refuses a stale expected status exactly as a stale version", async ({
@@ -571,5 +577,87 @@ test.describe("polling is bounded", () => {
       "data-polling",
       "running",
     )
+  })
+
+  test("reloads only from a payload-free snapshot that actually moved", async ({
+    context,
+    page,
+  }) => {
+    await signIn(context, { scenario: "importProcessing" })
+    await page.goto(surface)
+
+    const snapshot = await page.evaluate(async (repositoryId: string) => {
+      const response = await fetch(
+        `/api/imports/status?repositoryId=${encodeURIComponent(repositoryId)}`,
+        { method: "GET", cache: "no-store", headers: { accept: "application/json" } },
+      )
+      return {
+        status: response.status,
+        cache: response.headers.get("cache-control"),
+        body: (await response.json()) as Record<string, unknown>,
+      }
+    }, IMPORTED)
+
+    expect(snapshot.status).toBe(200)
+    expect(snapshot.cache).toMatch(/no-store/)
+    expect(snapshot.body).toEqual({
+      status: "PROCESSING",
+      discovered: 24,
+      completed: 9,
+      failed: 0,
+    })
+  })
+})
+
+test.describe("discovery finishing is not the import completing", () => {
+  test("says discovery finished and withholds pause", async ({ context, page }) => {
+    await signIn(context, { scenario: "importAwaitingApproval" })
+    await page.goto(surface)
+
+    await expect(page.getByTestId("import-discovery-complete")).toContainText(
+      "Discovery finished",
+    )
+    await expect(page.getByTestId("import-discovery-complete")).toContainText(
+      "Extraction has not started",
+    )
+    await expect(page.getByTestId("import-status")).toContainText(
+      "Ready for extraction",
+    )
+    await expect(page.getByRole("button", { name: "Pause import" })).toHaveCount(0)
+    await expect(page.getByRole("button", { name: "Cancel import" })).toBeVisible()
+  })
+
+  test("shows extracting while the run is processing, success when it finishes, and retry when it fails", async ({
+    context,
+    page,
+  }) => {
+    await signIn(context, { scenario: "importProcessing" })
+    await page.goto(surface)
+
+    await expect(page.getByTestId("import-extraction-progress")).toContainText(
+      "Extraction is in progress",
+    )
+    await expect(page.getByTestId("import-status")).toContainText(
+      "Extracting Engineering Memory",
+    )
+
+    await signIn(context, { scenario: "importAwaitingAuthorization" })
+    await page.goto(surface)
+    await expect(page.getByTestId("import-extraction-progress")).toBeVisible()
+    await expect(page.getByTestId("import-status")).toContainText(
+      "Extracting Engineering Memory",
+    )
+
+    await signIn(context, { scenario: "importCompleted" })
+    await page.goto(surface)
+    await expect(page.getByTestId("import-extraction-complete")).toBeVisible()
+    await expect(page.getByTestId("import-status")).toContainText("Import complete")
+
+    await signIn(context, { scenario: "importFailed" })
+    await page.goto(surface)
+    await expect(page.getByTestId("import-extraction-failed")).toContainText(
+      "did not finish",
+    )
+    await expect(page.getByTestId("import-prepare")).toBeVisible()
   })
 })

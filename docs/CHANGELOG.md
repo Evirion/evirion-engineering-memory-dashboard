@@ -1,5 +1,36 @@
 # Dashboard changelog
 
+## 2026-09-10 — discovery finishing is not extracting, and the page reloads when it actually moves
+
+- **Why.** A real Prepare import on staging left "Discovering PR history" on
+  screen until a full reload, kept Pause after discovery had already finished,
+  and after Approve extraction showed a spinning "Extracting Engineering Memory"
+  with no end. A soft `router.refresh()` does not replace the hosted RSC
+  snapshot, so the page never noticed the backend had moved.
+- **What changed.** The import page polls `GET /api/imports/status` for four
+  progress facts and reloads only when they differ. Discovery finishing now
+  says so and that extraction has not started. Pause is withheld at
+  `AWAITING_APPROVAL`. While a run is `PROCESSING` the current label stays
+  Extracting. A completed run shows a success notice; a failed run shows an
+  error and that a new import can be prepared. Poll exhaustion tells the
+  reader to check again or cancel and prepare another — it does not invent a
+  backend failure.
+- **Files.** `src/app/api/imports/status/route.ts`,
+  `src/components/imports/import-poll.tsx`,
+  `src/components/imports/import-status.tsx`,
+  `src/components/imports/import-actions.tsx`,
+  `src/app/(console)/repositories/[repositoryId]/import/page.tsx`,
+  `src/lib/imports/presentation.ts`,
+  `tests/unit/imports/presentation.test.ts`,
+  `tests/component/imports/import-surface.test.tsx`,
+  `tests/e2e/import.spec.ts`,
+  `tests/security/import-boundary.spec.ts`.
+- **Verification.** Focused unit/component import tests, `tests/e2e/import.spec.ts`,
+  `tests/security/import-boundary.spec.ts`, `pnpm lint`, `pnpm typecheck`.
+- **Deployment state.** Implemented and locally verified. Not deployed.
+  Staging still serves the previous poll. Paid extraction still cannot finish
+  until a separately authorized extraction worker is running.
+
 ## 2026-09-09 — reaching a distant year, and saying what the code is for
 
 - **Why, for the step-up notice.** Every gated control carried "This action may
