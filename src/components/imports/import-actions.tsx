@@ -247,7 +247,10 @@ export const RunStateForms = ({
       key: "cancel",
       permitted: controls.canCancel,
       label: "Cancel import",
-      detail: "Ends this run. Everything already recorded is kept.",
+      detail:
+        current.status === "AWAITING_APPROVAL"
+          ? "Ends this run without starting paid extraction. Pull requests already discovered stay recorded. This does not delete them."
+          : "Ends this run. Work already recorded is kept. This does not delete discovered pull requests.",
     },
   ].filter((control) => control.permitted)
 

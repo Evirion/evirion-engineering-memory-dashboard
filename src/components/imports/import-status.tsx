@@ -20,10 +20,10 @@ import { kickerClasses, SectionTitle, Technical } from "@/components/ui/text"
  * Where one import stands, and who it is waiting on.
  *
  * The run status and the authorization status are two separate axes and are
- * rendered as two. A run can be `PROCESSING` while authorization is still
- * pending, and `BF-002` is explicit that the primary label in that case is the
- * wait rather than the activity, so the wait is stated first and the run status
- * is stated as its own labelled fact.
+ * rendered as two. While the run is processing the current label stays
+ * Extracting. A completed run is success; a failed run is an error with retry.
+ * Authorization remains its own panel so the Evirion wait is never mistaken
+ * for a control the customer can press.
  */
 
 /**
@@ -168,4 +168,80 @@ export const ImportStatusPanel = ({ current }: { current: RepositoryImport }) =>
       ) : null}
     </section>
   )
+}
+
+/**
+ * What this stage is, in words a reload used to be required for.
+ *
+ * In-progress extraction keeps the current run label. A finished run is
+ * success. A failed run is an error that can be retried or prepared again.
+ * Discovery finishing is still not the import completing.
+ */
+export const ImportStageNotice = ({ current }: { current: RepositoryImport }) => {
+  switch (current.status) {
+    case "PLANNING":
+    case "DISCOVERING":
+    case "PAUSED":
+      return null
+    case "AWAITING_APPROVAL":
+      return (
+        <output
+          aria-live="polite"
+          data-testid="import-discovery-complete"
+          className={noticeClasses("attention", "max-w-[68ch] leading-6")}
+        >
+          Discovery finished. {current.counts.discovered} pull requests are prepared.
+          Extraction has not started. Approve extraction to begin paid work, or cancel
+          this run to stop without starting it.
+        </output>
+      )
+    case "PROCESSING":
+      return (
+        <output
+          aria-live="polite"
+          data-testid="import-extraction-progress"
+          className={noticeClasses("progress", "max-w-[68ch] leading-6")}
+        >
+          Extraction is in progress. Completed and failed counts update when work
+          finishes.
+        </output>
+      )
+    case "COMPLETED":
+      return (
+        <output
+          aria-live="polite"
+          data-testid="import-extraction-complete"
+          className={noticeClasses("verified", "max-w-[68ch] leading-6")}
+        >
+          Extraction finished. This import is complete. Only accepted work is trusted
+          Engineering Memory.
+        </output>
+      )
+    case "FAILED":
+      return (
+        <output
+          aria-live="polite"
+          data-testid="import-extraction-failed"
+          className={noticeClasses("rejected", "max-w-[68ch] leading-6")}
+        >
+          Extraction did not finish. Retry the failed work below if it is offered, or
+          prepare a new import.
+        </output>
+      )
+    case "CANCELLED":
+      return (
+        <output
+          aria-live="polite"
+          data-testid="import-extraction-cancelled"
+          className={noticeClasses("neutral", "max-w-[68ch] leading-6")}
+        >
+          This import was cancelled. Work already recorded is kept. You can prepare a
+          new import.
+        </output>
+      )
+    default: {
+      const exhaustive: never = current.status
+      throw new Error(`unhandled import status: ${String(exhaustive)}`)
+    }
+  }
 }

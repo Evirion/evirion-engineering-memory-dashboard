@@ -7,6 +7,10 @@ import {
   costCompletenessLabel,
   costView,
   dispositionCounts,
+  importControls,
+  importProgressMoved,
+  isImportPollAbsent,
+  isImportProgressSnapshot,
   isProgressing,
   missingPrerequisiteLabel,
   progressCounts,
@@ -16,7 +20,11 @@ import {
   terminationReasonLabel,
 } from "@/lib/imports/presentation"
 
-import { IMPORT_RUNS } from "../../../tools/console-stub/fixtures.mjs"
+import {
+  IMPORT_RUNS,
+  REPOSITORIES,
+  SCENARIOS,
+} from "../../../tools/console-stub/fixtures.mjs"
 
 /**
  * EEM-9/04 C04-1.
@@ -119,6 +127,71 @@ describe("the eight backend states BF-002 maps", () => {
     ] as const) {
       expect(isProgressing(status), status).toBe(false)
     }
+  })
+})
+
+describe("the progress snapshot the poll is allowed to compare", () => {
+  const snapshot = {
+    status: "DISCOVERING" as const,
+    discovered: 12,
+    completed: 0,
+    failed: 0,
+  }
+
+  it("accepts only the four facts the BFF is allowed to return", () => {
+    expect(isImportProgressSnapshot(snapshot)).toBe(true)
+    expect(isImportProgressSnapshot({ ...snapshot, discovered: 12.5 })).toBe(false)
+    expect(isImportProgressSnapshot({ absent: true })).toBe(false)
+    expect(isImportPollAbsent({ absent: true })).toBe(true)
+    expect(isImportPollAbsent({ absent: true, status: "CANCELLED" })).toBe(false)
+  })
+
+  it("moves when status or a published count changes, and not otherwise", () => {
+    expect(importProgressMoved(snapshot, snapshot)).toBe(false)
+    expect(
+      importProgressMoved(snapshot, { ...snapshot, status: "AWAITING_APPROVAL" }),
+    ).toBe(true)
+    expect(importProgressMoved(snapshot, { ...snapshot, discovered: 13 })).toBe(true)
+    expect(importProgressMoved(snapshot, { ...snapshot, completed: 1 })).toBe(true)
+    expect(importProgressMoved(snapshot, { ...snapshot, failed: 1 })).toBe(true)
+  })
+})
+
+describe("the extracting label follows the run status", () => {
+  it("keeps extracting as the run label even while Evirion authorization is pending", () => {
+    expect(statusLabel(IMPORT_RUNS.awaitingAuthorization().status)).toBe(
+      "Extracting Engineering Memory",
+    )
+    expect(statusLabel(IMPORT_RUNS.processing().status)).toBe(
+      "Extracting Engineering Memory",
+    )
+  })
+})
+
+describe("which controls to render", () => {
+  const repository = SCENARIOS.default().repositories.find(
+    (row) => row.id === REPOSITORIES.activeSourceOnly,
+  )
+  const permitted = ["repository.policy.manage"]
+
+  it("hides pause once discovery has finished, even if the backend still permits it", () => {
+    // The live capability projection allows pause for any non-terminal status.
+    // Pause stops claiming new work, and discovery has already finished here.
+    const run = {
+      ...IMPORT_RUNS.awaitingApproval(),
+      capabilities: {
+        ...IMPORT_RUNS.awaitingApproval().capabilities,
+        canPause: true,
+      },
+    }
+
+    expect(repository).toBeDefined()
+    const controls = importControls(repository!, run, permitted)
+
+    expect(run.capabilities.canPause).toBe(true)
+    expect(controls.canPause).toBe(false)
+    expect(controls.canCancel).toBe(true)
+    expect(controls.canApprove).toBe(true)
   })
 })
 

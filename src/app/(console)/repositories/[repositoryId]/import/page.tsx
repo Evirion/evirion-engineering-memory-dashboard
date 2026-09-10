@@ -13,6 +13,7 @@ import { ImportPoll } from "@/components/imports/import-poll"
 import { ImportCost, ImportProgress } from "@/components/imports/import-progress"
 import {
   AuthorizationPanel,
+  ImportStageNotice,
   ImportStatusPanel,
 } from "@/components/imports/import-status"
 import { ImportOutcomeNotice } from "@/components/imports/import-outcome"
@@ -143,9 +144,20 @@ const RepositoryImportPage = async ({
         <EmptyImport repository={repository} />
       ) : (
         <>
-          {isProgressing(current.status) ? <ImportPoll /> : null}
+          {isProgressing(current.status) ? (
+            <ImportPoll
+              repositoryId={repository.id}
+              snapshot={{
+                status: current.status,
+                discovered: current.counts.discovered,
+                completed: current.counts.completed,
+                failed: current.counts.failed,
+              }}
+            />
+          ) : null}
           <ImportStatusPanel current={current} />
           <AuthorizationPanel current={current} />
+          <ImportStageNotice current={current} />
           <ImportProgress current={current} />
           <ImportCost current={current} />
         </>

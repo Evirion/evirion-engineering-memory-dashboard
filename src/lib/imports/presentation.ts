@@ -62,6 +62,63 @@ export const isProgressing = (status: ImportStatus): boolean =>
 export const isTerminal = (status: ImportStatus): boolean =>
   status === "COMPLETED" || status === "FAILED" || status === "CANCELLED"
 
+/** The facts the poll is allowed to compare. Nothing else leaves the BFF. */
+export type ImportProgressSnapshot = {
+  readonly status: ImportStatus
+  readonly discovered: number
+  readonly completed: number
+  readonly failed: number
+}
+
+const SNAPSHOT_STATUSES = new Set<ImportStatus>([
+  "PLANNING",
+  "DISCOVERING",
+  "AWAITING_APPROVAL",
+  "PROCESSING",
+  "PAUSED",
+  "COMPLETED",
+  "FAILED",
+  "CANCELLED",
+])
+
+export const isImportProgressSnapshot = (
+  value: unknown,
+): value is ImportProgressSnapshot => {
+  if (value === null || typeof value !== "object") return false
+  const candidate = value as Record<string, unknown>
+  return (
+    typeof candidate.status === "string" &&
+    SNAPSHOT_STATUSES.has(candidate.status as ImportStatus) &&
+    typeof candidate.discovered === "number" &&
+    Number.isInteger(candidate.discovered) &&
+    candidate.discovered >= 0 &&
+    typeof candidate.completed === "number" &&
+    Number.isInteger(candidate.completed) &&
+    candidate.completed >= 0 &&
+    typeof candidate.failed === "number" &&
+    Number.isInteger(candidate.failed) &&
+    candidate.failed >= 0
+  )
+}
+
+export const importProgressMoved = (
+  rendered: ImportProgressSnapshot,
+  live: ImportProgressSnapshot,
+): boolean =>
+  rendered.status !== live.status ||
+  rendered.discovered !== live.discovered ||
+  rendered.completed !== live.completed ||
+  rendered.failed !== live.failed
+
+/** The poll saw no current import, so the page that rendered one is stale. */
+export const isImportPollAbsent = (
+  value: unknown,
+): value is { readonly absent: true } => {
+  if (value === null || typeof value !== "object") return false
+  const candidate = value as Record<string, unknown>
+  return candidate["absent"] === true && Object.keys(candidate).length === 1
+}
+
 /** The user-facing label `BF-002` fixes for each backend state. */
 export const statusLabel = (status: ImportStatus): string => {
   switch (status) {
@@ -558,7 +615,13 @@ export const importControls = (
     canPrepare:
       permitted && entitled && (current === null || isTerminal(current.status)),
     canApprove: permitted && (run?.canApprove ?? false),
-    canPause: permitted && (run?.canPause ?? false),
+    // Pause stops claiming new work. Discovery has already finished when the
+    // run is waiting for approval, so offering it there looks like a control
+    // over work that is already recorded. The live backend still permits the
+    // command; hiding it is a convenience. Cancel remains, and does not delete
+    // discovered pull requests.
+    canPause:
+      permitted && (run?.canPause ?? false) && current?.status !== "AWAITING_APPROVAL",
     canResume: permitted && (run?.canResume ?? false),
     canCancel: permitted && (run?.canCancel ?? false),
     canRetry: permitted,
