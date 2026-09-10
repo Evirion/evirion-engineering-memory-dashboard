@@ -229,10 +229,12 @@ This branch: focused import unit/component tests, `tests/e2e/import.spec.ts`,
 `tests/security/import-boundary.spec.ts`, `pnpm lint` and `pnpm typecheck` pass.
 The complete free gate has not been re-run.
 
-Next: open the pull request, then deploy the Console so staging stops serving
-the stuck discovery/extraction poll. Do not start the paid extraction worker
-from this task. A full `pnpm verify` is not required for this UI follow-up
-unless the PR gate asks for it.
+Next: merge
+[PR #68](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/68),
+then deploy the Console so staging stops serving the stuck discovery/extraction
+poll. Do not start the paid extraction worker from this task. A full
+`pnpm verify` is not required for this UI follow-up unless the PR gate asks
+for it.
 
 Two things are recorded for whoever picks this up. `error.json` is shared with
 the operator contract, so the generated Console validator accepts two codes no
