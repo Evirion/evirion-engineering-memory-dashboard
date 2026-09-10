@@ -300,9 +300,7 @@ const routeOrganizationSettings = async (
       items: withUsage ? pageItems : pageItems.map(stripProcessingCost),
       page: {
         nextCursor:
-          nextIndex < items.length
-            ? (pageItems.at(-1)?.extractionJobId ?? null)
-            : null,
+          nextIndex < items.length ? (pageItems.at(-1)?.extractionJobId ?? null) : null,
       },
     })
   }
