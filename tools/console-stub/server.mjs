@@ -267,16 +267,43 @@ const routeOrganizationSettings = async (
       return fail(response, "CAPABILITY_REQUIRED")
     }
     if (state.processingError) return fail(response, state.processingError)
-    let items = state.processingItems ?? PROCESSING_PAGE().items
+    const withUsage = requireCapability(principal, "organization.usage.read")
     const repositoryId = url.searchParams.get("repositoryId")
+    const after = url.searchParams.get("after")
+    const pageSizeRaw = url.searchParams.get("pageSize")
+    if (repositoryId !== null && repositoryId !== "" && !UUID.test(repositoryId)) {
+      return fail(response, "REQUEST_INVALID")
+    }
+    if (after !== null && after !== "" && !UUID.test(after)) {
+      return fail(response, "REQUEST_INVALID")
+    }
+    const pageSize =
+      pageSizeRaw === null || pageSizeRaw === "" ? 50 : Number(pageSizeRaw)
+    if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) {
+      return fail(response, "REQUEST_INVALID")
+    }
+
+    let items = [...(state.processingItems ?? PROCESSING_PAGE().items)]
     if (repositoryId !== null && repositoryId !== "") {
-      if (!UUID.test(repositoryId)) return fail(response, "REQUEST_INVALID")
       items = items.filter((row) => row.repositoryId === repositoryId)
     }
-    const withUsage = requireCapability(principal, "organization.usage.read")
+    items.sort((left, right) =>
+      left.extractionJobId.localeCompare(right.extractionJobId),
+    )
+    const start =
+      after === null || after === ""
+        ? 0
+        : items.findIndex((row) => row.extractionJobId === after) + 1
+    const pageItems = items.slice(start, start + pageSize)
+    const nextIndex = start + pageItems.length
     return succeed(response, {
-      items: withUsage ? items : items.map(stripProcessingCost),
-      page: { nextCursor: null },
+      items: withUsage ? pageItems : pageItems.map(stripProcessingCost),
+      page: {
+        nextCursor:
+          nextIndex < items.length
+            ? (pageItems.at(-1)?.extractionJobId ?? null)
+            : null,
+      },
     })
   }
 

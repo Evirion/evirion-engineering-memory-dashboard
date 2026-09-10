@@ -16,10 +16,20 @@ import {
   describeTreatment,
   mapConsoleError,
 } from "@/lib/errors/console-errors"
+import {
+  PROCESSING_BACKEND_PAGE_SIZE,
+  PROCESSING_PAGE_SIZE,
+  type ProcessingViewQuery,
+} from "@/lib/processing/query"
+import {
+  PROCESSING_COLLECT_PAGE_LIMIT,
+  collectCursorPages,
+  paginateProcessingRows,
+  sortProcessingRows,
+} from "@/lib/processing/sort"
 import type { ConsoleFailure } from "@/server/adapters/console-api"
 import { newCorrelationId } from "@/server/adapters/console-api"
 import {
-  type ProcessingActivityQuery,
   fetchProcessingActivity,
   fetchPullRequestDetail,
   fetchValidationIssues,
@@ -31,7 +41,7 @@ export type ProcessingActivityView =
   | {
       readonly status: "ready"
       readonly page: ProcessingPage
-      readonly query: ProcessingActivityQuery
+      readonly query: ProcessingViewQuery
     }
   | { readonly status: "unavailable"; readonly failure: ViewFailure }
 
@@ -96,8 +106,22 @@ const resolveScope = async (): Promise<
   }
 }
 
+const LIST_REFUSED: ViewFailure = {
+  code: "REQUEST_INVALID",
+  treatment: "not-permitted",
+  message: describeTreatment("not-permitted"),
+  retryable: false,
+}
+
+const LIST_TRUNCATED: ViewFailure = {
+  code: "DEPENDENCY_UNAVAILABLE",
+  treatment: "retry-bounded",
+  message: describeTreatment("retry-bounded"),
+  retryable: true,
+}
+
 export const readProcessingActivity = async (
-  query: ProcessingActivityQuery = {},
+  query: ProcessingViewQuery = {},
 ): Promise<ProcessingActivityView> => {
   const resolved = await resolveScope()
   if (!resolved.ok) {
@@ -113,23 +137,55 @@ export const readProcessingActivity = async (
   }
 
   if (query.repositoryId !== undefined && !isUuid(query.repositoryId)) {
-    return {
-      status: "unavailable",
-      failure: {
-        code: "REQUEST_INVALID",
-        treatment: "not-permitted",
-        message: describeTreatment("not-permitted"),
-        retryable: false,
-      },
+    return { status: "unavailable", failure: LIST_REFUSED }
+  }
+
+  if (query.after !== undefined && !isUuid(query.after)) {
+    return { status: "unavailable", failure: LIST_REFUSED }
+  }
+
+  if (query.sort === undefined) {
+    const result = await fetchProcessingActivity(resolved.scope, {
+      pageSize: PROCESSING_PAGE_SIZE,
+      ...(query.after === undefined ? {} : { after: query.after }),
+      ...(query.repositoryId === undefined ? {} : { repositoryId: query.repositoryId }),
+    })
+    if (!result.ok) {
+      return { status: "unavailable", failure: describeFailure(result.failure) }
     }
+    return { status: "ready", page: result.value, query }
   }
 
-  const result = await fetchProcessingActivity(resolved.scope, query)
-  if (!result.ok) {
-    return { status: "unavailable", failure: describeFailure(result.failure) }
+  let collectFailure: ViewFailure | undefined
+  const collected = await collectCursorPages(async (after) => {
+    const result = await fetchProcessingActivity(resolved.scope, {
+      pageSize: PROCESSING_BACKEND_PAGE_SIZE,
+      ...(after === undefined ? {} : { after }),
+      ...(query.repositoryId === undefined ? {} : { repositoryId: query.repositoryId }),
+    })
+    if (!result.ok) {
+      collectFailure = describeFailure(result.failure)
+      return { items: [], nextCursor: null }
+    }
+    return {
+      items: result.value.items,
+      nextCursor: result.value.page.nextCursor,
+    }
+  }, PROCESSING_COLLECT_PAGE_LIMIT)
+
+  if (collectFailure !== undefined) {
+    return { status: "unavailable", failure: collectFailure }
+  }
+  if (!collected.ok) {
+    return { status: "unavailable", failure: LIST_TRUNCATED }
   }
 
-  return { status: "ready", page: result.value, query }
+  const ordered = sortProcessingRows(collected.items, query.sort, query.dir ?? "asc")
+  return {
+    status: "ready",
+    page: paginateProcessingRows(ordered, query.after),
+    query,
+  }
 }
 
 /**

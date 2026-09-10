@@ -322,6 +322,7 @@ export declare const SCENARIOS: {
   readonly processingSettings: () => StubScenario
   readonly processingSettingsViewer: () => StubScenario
   readonly processingUnavailable: () => StubScenario
+  readonly processingPaged: () => StubScenario
 }
 
 export declare const XSS_PAYLOADS: readonly string[]

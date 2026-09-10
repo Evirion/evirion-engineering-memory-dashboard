@@ -1,5 +1,33 @@
 # Dashboard changelog
 
+## 2026-09-10 — processing pages twenty rows, and Repository and PR are two columns
+
+- **Why.** PROC-001 already required pagination and listed repository and PR as
+  separate fields. The first real repository put more than a hundred jobs on
+  one screen, there was no way to order them, and the combined
+  `Repository / PR` cell made both values harder to scan.
+- **What changed.** `/processing` requests twenty rows and follows the backend
+  `nextCursor`. Column headers are shareable sort links. Because the published
+  list is ordered by extraction-job identity, a sort reads the tenant-scoped
+  pages and then windows twenty rows; `sort` and `dir` never go to the backend.
+  A caller-chosen `pageSize` is ignored. A malformed `repositoryId` still fails
+  closed as `REQUEST_INVALID`.
+- **Files.** `src/app/(console)/processing/page.tsx`,
+  `src/components/processing/processing-activity-table.tsx`,
+  `src/components/processing/processing-filters.tsx`,
+  `src/lib/processing/query.ts`, `src/lib/processing/sort.ts`,
+  `src/server/queries/processing.ts`, `tools/console-stub/server.mjs`,
+  `tools/console-stub/fixtures.mjs`, `tools/console-stub/fixtures.d.mts`, `tests/unit/processing/query.test.ts`,
+  `tests/unit/processing/sort.test.ts`,
+  `tests/component/processing/processing-activity-table.test.tsx`,
+  `tests/e2e/processing-settings.spec.ts`,
+  `tests/security/processing-boundary.spec.ts`,
+  `docs/HANDOFF.md`, `docs/architecture/console-ui-conventions.md`.
+- **Verification.** Focused processing unit and component tests, the processing
+  e2e suite including the new pagination and sort journeys, processing and
+  abuse-bound security specs, `pnpm lint`, `pnpm typecheck`.
+- **Deployment state.** Implemented and locally verified. Not deployed.
+
 ## 2026-09-10 — discovery finishing is not extracting, and the page reloads when it actually moves
 
 - **Why.** A real Prepare import on staging left "Discovering PR history" on
