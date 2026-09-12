@@ -1,5 +1,5 @@
 import type { ComponentProps } from "react"
-import { ChevronDown } from "lucide-react"
+import { Check, ChevronDown } from "lucide-react"
 import { cn } from "cn"
 
 /**
@@ -83,19 +83,29 @@ export const Checkbox = ({
   className,
   ...props
 }: Omit<ComponentProps<"input">, "type">) => (
-  <input
-    type="checkbox"
-    data-slot="checkbox"
-    className={cn(
-      "border-input size-4 shrink-0 cursor-pointer appearance-none rounded-[4px] border bg-card",
-      "checked:border-primary checked:bg-primary checked:bg-center checked:bg-no-repeat",
-      "checked:bg-[url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='3.5 8.5 6.5 11.5 12.5 4.5'/%3E%3C/svg%3E\")]",
-      "focus-visible:border-ring focus-visible:outline-ring focus-visible:outline-2 focus-visible:outline-offset-2",
-      "disabled:cursor-not-allowed disabled:opacity-55",
-      className,
-    )}
-    {...props}
-  />
+  <span className="relative inline-flex size-4 shrink-0">
+    <input
+      type="checkbox"
+      data-slot="checkbox"
+      className={cn(
+        "peer border-input size-4 cursor-pointer appearance-none rounded-[4px] border bg-card",
+        "checked:border-primary checked:bg-primary",
+        "focus-visible:border-ring focus-visible:outline-ring focus-visible:outline-2 focus-visible:outline-offset-2",
+        "disabled:cursor-not-allowed disabled:opacity-55",
+        className,
+      )}
+      {...props}
+    />
+    {/*
+      An `<input>` cannot draw ::after. The native tick is gone with
+      appearance-none, so the check has to sit on top of the box.
+    */}
+    <Check
+      aria-hidden
+      strokeWidth={3}
+      className="text-primary-foreground pointer-events-none absolute inset-0 size-4 p-px opacity-0 peer-checked:opacity-100"
+    />
+  </span>
 )
 
 export const Textarea = ({ className, ...props }: ComponentProps<"textarea">) => (
