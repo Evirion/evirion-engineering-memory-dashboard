@@ -177,9 +177,9 @@ test.describe("evidence_before_action", () => {
     // `KD-002` requires the attribution to be readable before a decision, so
     // the ordering in the document is the acceptance row, not a preference.
     const evidenceBox = await page.getByTestId("knowledge-evidence").boundingBox()
-    const technicalBox = await page.getByTestId("knowledge-technical").boundingBox()
+    const reviewBox = await page.getByTestId("review-actions").boundingBox()
 
-    expect(evidenceBox?.y ?? 0).toBeLessThan(technicalBox?.y ?? 0)
+    expect(evidenceBox?.y ?? 0).toBeLessThan(reviewBox?.y ?? 0)
   })
 
   test("publishes no source document, only the persisted quote", async ({
@@ -304,60 +304,19 @@ test.describe("source_context", () => {
 })
 
 test.describe("technical_details", () => {
-  test("collapses the customer-safe provenance behind a disclosure", async ({
+  test("does not publish extraction run, cost or pipeline identifiers", async ({
     context,
     page,
   }) => {
     await signIn(context, { scenario: "memory" })
     await page.goto(detailOf(KNOWLEDGE.pending))
 
-    const technical = page.getByTestId("knowledge-technical")
-    await expect(technical).toBeVisible()
-    await technical.getByText("Technical details").click()
-
-    const object = objects[KNOWLEDGE.pending]
-    await expect(technical).toContainText(
-      object?.base.technicalDetails.extractionRunId ?? "unreachable",
+    await expect(page.getByTestId("knowledge-technical")).toHaveCount(0)
+    await expect(page.locator("body")).not.toContainText("Technical details")
+    await expect(page.locator("body")).not.toContainText(
+      objects[KNOWLEDGE.pending]?.base.technicalDetails.extractionRunId ??
+        "unreachable",
     )
-    await expect(technical).toContainText("ACCEPTED by MODEL")
-    await expect(technical).toContainText("evirion-extraction-standard")
-    await expect(technical).toContainText("4120 ms")
-    await expect(technical).toContainText("prompt 6140")
-  })
-
-  test("states the cost with its completeness and never as a bare amount", async ({
-    context,
-    page,
-  }) => {
-    await signIn(context, { scenario: "memory" })
-    await page.goto(detailOf(KNOWLEDGE.pending))
-
-    await page.getByTestId("knowledge-technical").getByText("Technical details").click()
-    await expect(page.getByTestId("knowledge-technical")).toContainText(
-      "0.042000 USD, settled",
-    )
-  })
-
-  test("never renders an unresolved cost as zero", async ({ context, page }) => {
-    await signIn(context, { scenario: "memory" })
-    // The chain objects carry a reserved cost, which is held and not settled.
-    await page.goto(detailOf("00000000-0000-4000-8000-000000000214"))
-
-    await page.getByTestId("knowledge-technical").getByText("Technical details").click()
-    const technical = page.getByTestId("knowledge-technical")
-    await expect(technical).toContainText("0.025 USD held, not yet settled")
-    await expect(technical).not.toContainText("0.000000 USD, settled")
-  })
-
-  test("reports the edit schema version beside the provenance", async ({
-    context,
-    page,
-  }) => {
-    await signIn(context, { scenario: "memory" })
-    await page.goto(detailOf(KNOWLEDGE.edited))
-
-    await page.getByTestId("knowledge-technical").getByText("Technical details").click()
-    await expect(page.getByTestId("knowledge-technical")).toContainText("Version 1")
   })
 
   test("exposes no credential, DSN or raw model response in the document", async ({
