@@ -4,12 +4,15 @@ Updated: 2026-09-12
 
 ## Current state
 
-- Active branch: `fix/console-english-display-and-consent-controls`. The
-  Console now shows English short dates and trimmed USD amounts, consent expiry
-  uses an English date field that opens the shared calendar, model
-  profile choices use the shared checkbox, and a repository mutation that needs
-  a fresher proof opens the authenticator ceremony instead of printing
-  `REAUTHENTICATION_REQUIRED`. **Not deployed.**
+- Active branch: `fix/replay-repository-policy`. Saving Live processing after a
+  valid authenticator code threw because replay had no handler for
+  `/api/repositories/policy` (or activate, disable, request-change) and the
+  page showed "The service is busy." Replay now loads those routes. Locally
+  verified. **Not deployed.**
+- English dates, short USD, shared consent controls, and the authenticator
+  ceremony on repository commands are on `main` via PRs #72–#74. They still
+  need a Console deploy. The ceremony opened; replay of the policy save did
+  not, which is the row above.
 - **Processing was one unbounded table.** PROC-001 already required pagination.
   `/processing` now requests twenty rows, follows `nextCursor`, and treats
   column headers as shareable sort links. `pageSize` is ignored if a caller

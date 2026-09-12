@@ -318,6 +318,7 @@ export declare const SCENARIOS: {
   readonly memoryUnsupported: () => StubScenario
   readonly memoryPartialProjection: () => StubScenario
   readonly memoryStaleFreshness: () => StubScenario
+  readonly repositoryStaleFreshness: () => StubScenario
   readonly reauthInvalidateChallenge: () => StubScenario
   readonly processingSettings: () => StubScenario
   readonly processingSettingsViewer: () => StubScenario

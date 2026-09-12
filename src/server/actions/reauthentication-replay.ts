@@ -19,7 +19,7 @@ type MutationHandler = (request: NextRequest) => Promise<NextResponse>
  * Dynamic import breaks the route ↔ resume cycle without weakening the allowlist
  * that `isAllowedMutationPath` enforces before replay is attempted.
  */
-const resolveMutationHandler = async (
+export const resolveMutationHandler = async (
   mutationPath: PendingMutation["mutationPath"],
 ): Promise<MutationHandler | undefined> => {
   switch (mutationPath) {
@@ -47,6 +47,14 @@ const resolveMutationHandler = async (
       return (await import("@/app/api/settings/members/update/route")).POST
     case "/api/settings/offboarding/request":
       return (await import("@/app/api/settings/offboarding/request/route")).POST
+    case "/api/repositories/activate":
+      return (await import("@/app/api/repositories/activate/route")).POST
+    case "/api/repositories/disable":
+      return (await import("@/app/api/repositories/disable/route")).POST
+    case "/api/repositories/policy":
+      return (await import("@/app/api/repositories/policy/route")).POST
+    case "/api/repositories/request-change":
+      return (await import("@/app/api/repositories/request-change/route")).POST
     default:
       return undefined
   }
