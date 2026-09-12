@@ -128,6 +128,21 @@ test.describe("import return path", () => {
   })
 })
 
+test.describe("repository policy return path", () => {
+  test("resumes live processing change after step-up", async ({ context, page }) => {
+    await signIn(context, { scenario: "repositoryStaleFreshness" })
+    await page.goto(`/repositories/${REPOSITORIES.activeAutoExtract}`)
+
+    await page.getByLabel("Live processing mode").selectOption("SOURCE_ONLY")
+    await page.getByRole("button", { name: "Save live processing" }).click()
+
+    await completeStepUp(page)
+
+    await expect(page.getByTestId("reauth-ceremony")).toHaveCount(0)
+    await expect(page.getByText("Active, source only")).toBeVisible()
+  })
+})
+
 test.describe("knowledge return path", () => {
   test("resumes activation after step-up", async ({ context, page }) => {
     await signIn(context, { scenario: "memoryStaleFreshness" })

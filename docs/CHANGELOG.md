@@ -1,5 +1,24 @@
 # Dashboard changelog
 
+## 2026-09-12 — Live processing save continues after the authenticator code
+
+- **Why.** Saving Live processing mode opened the authenticator ceremony, accepted
+  a valid six-digit code, then answered "The service is busy. Try again shortly."
+  The policy never changed. Completing the ceremony replays the paused mutation
+  in-process; repository activate, disable, policy and replacement were
+  allowlisted for that replay and had no handler, so the throw was mapped to
+  `DEPENDENCY_UNAVAILABLE`.
+- **What changed.** Replay now loads those four repository routes. A lapsed
+  freshness window on Live processing still steps up, then applies the saved
+  mode instead of discarding it.
+- **Files.** `src/server/actions/reauthentication-replay.ts`,
+  `tests/unit/auth/reauthentication-replay.test.ts`,
+  `tests/e2e/reauthentication.spec.ts`.
+- **Verification.** Focused replay unit test; Playwright
+  `resumes live processing change after step-up`. `pnpm lint` and
+  `pnpm typecheck` pass.
+- **Deployment state.** Implemented and locally verified. Not deployed.
+
 ## 2026-09-12 — English dates, short USD, and consent controls that match the rest of the Console
 
 - **Why.** Four faults on the repository consent surface, all visible in

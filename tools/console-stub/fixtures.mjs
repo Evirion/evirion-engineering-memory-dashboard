@@ -2096,6 +2096,19 @@ export const SCENARIOS = {
     reauthenticationFreshUntil: null,
   }),
 
+  /** Freshness lapsed on a live repository, so policy save must step up. */
+  repositoryStaleFreshness: () => ({
+    repositories: baseRepositories(),
+    limit: {
+      maxActiveRepositories: 5,
+      mode: "FIXED",
+      replacementMode: "SELF_SERVICE",
+    },
+    installation: installationConnected(),
+    pageSize: 50,
+    reauthenticationFreshUntil: null,
+  }),
+
   /** The next completion attempt is refused as an invalidated challenge. */
   reauthInvalidateChallenge: () => ({
     ...withImport(IMPORT_RUNS.awaitingApproval),
