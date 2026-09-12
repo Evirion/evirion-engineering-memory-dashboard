@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server"
 import {
   actionClassForGate,
   isAllowedMutationPath,
-  type ReauthenticationGate,
+  isReauthenticationGate,
 } from "@/lib/auth/reauthentication-action-class"
 import { normalizeReturnPath } from "@/lib/auth/reauthentication-return-path"
 import { formFieldsFrom } from "@/lib/auth/reauthentication-state"
@@ -45,7 +45,7 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
   const mutationPath = String(form.get("mutationPath") ?? "")
 
   if (
-    !isGate(gate) ||
+    !isReauthenticationGate(gate) ||
     returnPath === "/" ||
     mutationPath === "" ||
     !isAllowedMutationPath(gate, mutationPath)
@@ -105,8 +105,3 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
 
   return response
 }
-
-const isGate = (value: string): value is ReauthenticationGate =>
-  value === "repository_import" ||
-  value === "knowledge_lifecycle" ||
-  value === "membership_change"

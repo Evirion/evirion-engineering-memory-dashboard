@@ -85,7 +85,7 @@ describe("the activation control", () => {
 
   it("requires an explicit confirmation rather than defaulting to one", () => {
     expect(rendered).toContain('name="confirmationAccepted"')
-    expect(rendered).not.toContain("checked")
+    expect(rendered).not.toMatch(/name="confirmationAccepted"[^>]*\schecked/)
   })
 
   it("carries the proof, one key and an empty first-activation version", () => {
@@ -292,15 +292,30 @@ describe("the policy controls", () => {
     )
   })
 
+  it("does not ask for an expiry in the browser's own locale", () => {
+    const rendered = markup(<ConsentForm {...context} modelProfiles={offered()} />)
+
+    expect(rendered).not.toContain('type="datetime-local"')
+    expect(rendered).not.toContain('type="date"')
+    expect(rendered).toContain("consent-expires-picker")
+  })
+
+  it("draws model-profile choices as console checkboxes", () => {
+    const rendered = markup(<ConsentForm {...context} modelProfiles={offered()} />)
+
+    expect(rendered).toContain('data-slot="checkbox"')
+    expect(rendered).toContain('name="allowedModelProfiles"')
+    expect(rendered).toContain('value="anthropic-claude-sonnet-4"')
+  })
+
   it("offers the catalogue as a choice rather than as free text", () => {
     const rendered = markup(<ConsentForm {...context} modelProfiles={offered()} />)
 
     // Free text is what made a typo indistinguishable from an unavailable
     // model, which is the defect this surface exists to remove.
     expect(rendered).not.toContain('type="text" name="allowedModelProfiles"')
-    expect(rendered).toContain(
-      'type="checkbox" name="allowedModelProfiles" value="anthropic-claude-sonnet-4"',
-    )
+    expect(rendered).toContain('name="allowedModelProfiles"')
+    expect(rendered).toContain('value="anthropic-claude-sonnet-4"')
     expect(rendered).toContain("anthropic claude-sonnet-4")
   })
 

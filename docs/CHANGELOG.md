@@ -1,5 +1,36 @@
 # Dashboard changelog
 
+## 2026-09-12 — English dates, short USD, and consent controls that match the rest of the Console
+
+- **Why.** Four faults on the repository consent surface, all visible in
+  staging screenshots. The expiry field was native `datetime-local`, so a
+  Russian browser showed `ДД.ММ.ГГГГ` and a Russian calendar inside an English
+  Console — the same defect the import range picker already left. Model-profile
+  choices were unstyled native checkboxes. Dates and USD amounts elsewhere
+  still echoed the contract's ISO instants and six fraction digits
+  (`2026-09-10T14:40:54.951398Z`, `USD 10.000000`). And when the backend asked
+  for a fresher proof, the page printed `Confirm your identity to continue.
+  Reason REAUTHENTICATION_REQUIRED` instead of the authenticator ceremony
+  import and knowledge already use.
+- **What changed.** Consent expiry uses the shared English `Calendar` plus hour
+  and minute selects; the posted value is still the local datetime the policy
+  route parsed. Checkboxes stay native so they POST with the form, and they
+  share the control surface. `formatInstant` / `formatUsd` own customer-facing
+  dates and amounts across consent, import cost, processing, memory, GitHub
+  settings and usage. Repository activate, disable, policy, consent and
+  replacement requests join the existing step-up gate, so a lapsed freshness
+  window opens the authenticator form rather than a banner.
+- **Files.** `src/lib/format/display.ts`, `src/components/ui/calendar.tsx`,
+  `src/components/ui/field.tsx`, `src/components/repositories/expires-picker.tsx`,
+  `src/components/repositories/repository-actions.tsx`,
+  `src/lib/auth/reauthentication-action-class.ts`,
+  `src/server/actions/repository-command.ts`,
+  `src/app/(console)/repositories/[repositoryId]/page.tsx`,
+  `docs/architecture/console-ui-conventions.md`.
+- **Verification.** 1035 unit tests, `pnpm lint`, `pnpm typecheck`. Focused
+  repository, import, settings, memory and reauthentication presentation tests.
+- **Deployment state.** Implemented and locally verified. Not deployed.
+
 ## 2026-09-10 — processing pages twenty rows, and Repository and PR are two columns
 
 - **Why.** PROC-001 already required pagination and listed repository and PR as

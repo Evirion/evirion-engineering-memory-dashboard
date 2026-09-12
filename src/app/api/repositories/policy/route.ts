@@ -3,7 +3,9 @@ import type { NextRequest, NextResponse } from "next/server"
 import {
   beginRepositoryCommand,
   finishRepositoryCommand,
+  guardRepositoryFreshness,
   refuseRepositoryCommand,
+  repositoryPendingMutation,
 } from "@/server/actions/repository-command"
 import {
   type LiveRepositoryConsent,
@@ -107,7 +109,11 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
   const command = await beginRepositoryCommand(request)
   if (command.status === "rejected") return command.response
 
-  const { scope, fields } = command
+  const { scope, fields, sessionContext } = command
+  const pending = repositoryPendingMutation(fields, "/api/repositories/policy")
+  const stale = await guardRepositoryFreshness(sessionContext, pending)
+  if (stale) return stale
+
   const mode = String(fields.form.get("mode") ?? "") as RepositoryPolicyMode
 
   if (fields.expectedVersion === null || !MODES.has(mode)) {
@@ -125,7 +131,12 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
     if (!catalogue.ok) {
       // A real backend failure, so it travels back as the code the backend
       // actually produced rather than as a locally invented refusal.
-      return finishRepositoryCommand(fields.repositoryId, catalogue)
+      return finishRepositoryCommand(
+        fields.repositoryId,
+        catalogue,
+        pending,
+        sessionContext,
+      )
     }
 
     const offered = new Set(
@@ -149,5 +160,7 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
       consent,
       idempotencyKey: fields.idempotencyKey,
     }),
+    pending,
+    sessionContext,
   )
 }

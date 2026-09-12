@@ -4,6 +4,7 @@ import type {
   ProcessingPage,
 } from "@contracts/console"
 
+import { formatUsd } from "@/lib/format/display"
 import type { Tone } from "@/lib/ui/tone"
 
 /**
@@ -38,7 +39,7 @@ export type CostView = {
   readonly figures: readonly CostFigure[]
 }
 
-const usd = (amount: string): string => `USD ${amount}`
+const usd = (amount: string): string => formatUsd(amount)
 
 const figuresFor = (
   measuredUsd: string,

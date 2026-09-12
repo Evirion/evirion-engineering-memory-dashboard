@@ -1,6 +1,7 @@
 "use client"
 
 import { DayPicker, type DayPickerProps } from "react-day-picker"
+import { enUS } from "react-day-picker/locale"
 import { cn } from "cn"
 
 import { buttonVariants } from "@/components/ui/button"
@@ -64,5 +65,6 @@ export const Calendar = ({ className, classNames, ...props }: DayPickerProps) =>
       ...classNames,
     }}
     {...props}
+    locale={enUS}
   />
 )

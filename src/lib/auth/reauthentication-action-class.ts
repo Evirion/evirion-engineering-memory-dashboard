@@ -19,9 +19,18 @@ export const REAUTHENTICATION_ACTION_CLASSES = [
 export type ReauthenticationActionClass =
   (typeof REAUTHENTICATION_ACTION_CLASSES)[number]
 
-/** Surfaces that share one step-up mechanism. EEM-9/06 wires `membership`. */
-export type ReauthenticationGate =
-  "repository_import" | "knowledge_lifecycle" | "membership_change"
+/** Surfaces that share one step-up mechanism. */
+export const REAUTHENTICATION_GATES = [
+  "repository_import",
+  "knowledge_lifecycle",
+  "membership_change",
+  "repository_policy",
+] as const
+
+export type ReauthenticationGate = (typeof REAUTHENTICATION_GATES)[number]
+
+export const isReauthenticationGate = (value: string): value is ReauthenticationGate =>
+  (REAUTHENTICATION_GATES as readonly string[]).includes(value)
 
 export const actionClassForGate = (
   gate: ReauthenticationGate,
@@ -32,6 +41,8 @@ export const actionClassForGate = (
     case "knowledge_lifecycle":
       return "knowledge_lifecycle"
     case "membership_change":
+      return "membership_change"
+    case "repository_policy":
       return "membership_change"
     default: {
       const exhaustive: never = gate
@@ -66,6 +77,12 @@ export const MUTATION_PATHS_FOR_GATE: Readonly<
     "/api/settings/invitations/revoke",
     "/api/settings/members/update",
     "/api/settings/offboarding/request",
+  ],
+  repository_policy: [
+    "/api/repositories/activate",
+    "/api/repositories/disable",
+    "/api/repositories/policy",
+    "/api/repositories/request-change",
   ],
 }
 

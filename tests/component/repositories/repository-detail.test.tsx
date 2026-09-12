@@ -10,6 +10,7 @@ import {
   EntitlementFacts,
   PolicyVocabulary,
 } from "@/components/repositories/repository-detail"
+import { formatInstant } from "@/lib/format/display"
 
 import type { ModelProfileCatalogueView } from "@/server/queries/repositories"
 
@@ -94,7 +95,7 @@ describe("recorded consent", () => {
 
     expect(rendered).toContain("anthropic-claude-sonnet-4")
     expect(rendered).toContain("Call ceiling")
-    expect(rendered).toContain("40.000000 USD ceiling")
+    expect(rendered).toContain("40 USD ceiling")
     expect(rendered).not.toMatch(/spent|invoice|charged so far/i)
   })
 
@@ -249,9 +250,9 @@ describe("repository counters", () => {
   })
 
   it("shows the cutoff it rendered, because two cutoffs are not comparable", () => {
-    expect(markup(<RepositoryCounters view={ready} />)).toContain(
-      "2026-09-02T18:33:41.123456Z",
-    )
+    const rendered = markup(<RepositoryCounters view={ready} />)
+    expect(rendered).toContain(formatInstant(overview.asOf))
+    expect(rendered).not.toContain("123456")
   })
 
   it("keeps rejected and quarantined runs out of the Knowledge Object count", () => {

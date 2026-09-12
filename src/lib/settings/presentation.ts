@@ -7,6 +7,7 @@ import type {
 } from "@contracts/console"
 
 import { costViewFromBlock, metricsRateCostLabel, rateLabel } from "@/lib/settings/cost"
+import { formatInstant } from "@/lib/format/display"
 import type { Tone } from "@/lib/ui/tone"
 
 export const memberRoleLabel = (role: Member["role"]): string => {
@@ -154,11 +155,11 @@ export const metricsWindowNote = (metrics: OrganizationMetrics): string => {
     metrics.repositoryId === null
       ? "every extraction job created at or before the cutoff"
       : "every extraction job for this repository created at or before the cutoff"
-  return `Counted as of ${metrics.asOf} over ${scope}. Figures taken at different cutoffs are not comparable.`
+  return `Counted as of ${formatInstant(metrics.asOf)} over ${scope}. Figures taken at different cutoffs are not comparable.`
 }
 
 export const usagePeriodLabel = (usage: OrganizationUsage): string =>
-  `${usage.period.start} through ${usage.period.end} (${usage.period.timezone})`
+  `${formatInstant(usage.period.start)} through ${formatInstant(usage.period.end)} (${usage.period.timezone})`
 
 export const usageCostView = (usage: OrganizationUsage) => costViewFromBlock(usage.cost)
 

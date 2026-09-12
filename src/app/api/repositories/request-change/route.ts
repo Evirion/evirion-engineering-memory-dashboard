@@ -3,7 +3,9 @@ import type { NextRequest, NextResponse } from "next/server"
 import {
   beginRepositoryCommand,
   finishRepositoryCommand,
+  guardRepositoryFreshness,
   refuseRepositoryCommand,
+  repositoryPendingMutation,
 } from "@/server/actions/repository-command"
 import {
   isUuid,
@@ -24,7 +26,11 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
   const command = await beginRepositoryCommand(request)
   if (command.status === "rejected") return command.response
 
-  const { scope, fields } = command
+  const { scope, fields, sessionContext } = command
+  const pending = repositoryPendingMutation(fields, "/api/repositories/request-change")
+  const stale = await guardRepositoryFreshness(sessionContext, pending)
+  if (stale) return stale
+
   const requestedRepositoryId = String(fields.form.get("requestedRepositoryId") ?? "")
   const reason = fields.form.get("reason")
 
@@ -41,5 +47,7 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
       idempotencyKey: fields.idempotencyKey,
       ...(typeof reason === "string" ? { reason } : {}),
     }),
+    pending,
+    sessionContext,
   )
 }

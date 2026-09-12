@@ -2,6 +2,11 @@ import "server-only"
 
 import { NextResponse, type NextRequest } from "next/server"
 
+import type { SessionContext } from "@contracts/console"
+
+import { actionClassForGate } from "@/lib/auth/reauthentication-action-class"
+import { isSessionReauthenticationFresh } from "@/lib/auth/reauthentication-freshness"
+import { formFieldsFrom, type PendingMutation } from "@/lib/auth/reauthentication-state"
 import { readSession } from "@/lib/auth/session-broker"
 import { readServerEnvironment } from "@/lib/env/server"
 import type { ConsoleResult } from "@/server/adapters/console-api"
@@ -9,6 +14,7 @@ import { type RepositoryScope, isUuid } from "@/server/adapters/repositories"
 import { canonicalRedirect } from "@/server/actions/redirects"
 import { guardMutation, sessionBindingFrom } from "@/server/actions/mutation-guard"
 import { fetchSessionContext } from "@/server/adapters/console-api"
+import { redirectForReauthentication } from "@/server/actions/reauthentication-resume"
 
 /**
  * The one path a repository mutation takes.
@@ -36,6 +42,7 @@ export type CommandOutcome =
       readonly status: "ready"
       readonly scope: RepositoryScope
       readonly fields: CommandFields
+      readonly sessionContext: SessionContext
     }
   | { readonly status: "rejected"; readonly response: NextResponse }
 
@@ -136,6 +143,7 @@ export const beginRepositoryCommand = async (
       correlationId,
     },
     fields: { repositoryId, idempotencyKey, expectedVersion, form },
+    sessionContext: context.value,
   }
 }
 
@@ -147,15 +155,56 @@ export const beginRepositoryCommand = async (
  * produced it, and a boolean re-derived on a later request would be the UI
  * asserting something no backend told it.
  */
-export const finishRepositoryCommand = <T>(
+
+export type PendingMutationDraft = Omit<
+  PendingMutation,
+  "providerSessionId" | "expiresAt"
+>
+
+export const repositoryPendingMutation = (
+  fields: CommandFields,
+  mutationPath: string,
+): PendingMutationDraft => ({
+  returnPath: repositoryPath(fields.repositoryId),
+  mutationPath,
+  gate: "repository_policy",
+  actionClass: actionClassForGate("repository_policy"),
+  fields: formFieldsFrom(fields.form),
+})
+
+export const guardRepositoryFreshness = async (
+  sessionContext: SessionContext,
+  pending: PendingMutationDraft,
+): Promise<NextResponse | undefined> => {
+  if (isSessionReauthenticationFresh(sessionContext)) return undefined
+  const sessionId = sessionContext.session?.id
+  if (typeof sessionId !== "string" || sessionId === "") {
+    return undefined
+  }
+  return redirectForReauthentication(pending, sessionId)
+}
+
+export const finishRepositoryCommand = async <T>(
   repositoryId: string,
   result: ConsoleResult<T>,
-): NextResponse => {
+  pending?: PendingMutationDraft,
+  sessionContext?: SessionContext,
+): Promise<NextResponse> => {
   const path = repositoryPath(repositoryId)
   if (result.ok) return back(path, "applied")
 
   switch (result.failure.kind) {
     case "error":
+      if (result.failure.error.error.code === "REAUTHENTICATION_REQUIRED") {
+        const sessionId = sessionContext?.session?.id
+        if (
+          pending !== undefined &&
+          typeof sessionId === "string" &&
+          sessionId !== ""
+        ) {
+          return redirectForReauthentication(pending, sessionId)
+        }
+      }
       return back(path, result.failure.error.error.code)
     case "unsupported":
       return back(path, "UNSUPPORTED_SERVER_RESPONSE")

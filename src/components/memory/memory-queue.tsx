@@ -1,5 +1,6 @@
 import type { KnowledgePage } from "@contracts/console"
 
+import { formatInstant } from "@/lib/format/display"
 import { type KnowledgeFilters, knowledgeQueuePath } from "@/lib/knowledge/filters"
 import { queueRow } from "@/lib/knowledge/presentation"
 import { buttonVariants } from "@/components/ui/button"
@@ -23,7 +24,7 @@ import { Technical } from "@/components/ui/text"
  */
 
 const formatMerged = (mergedAt: string | null): string =>
-  mergedAt === null ? "No merge date recorded" : `Merged ${mergedAt.slice(0, 10)}`
+  mergedAt === null ? "No merge date recorded" : `Merged ${formatInstant(mergedAt)}`
 
 const formatPullRequest = (
   pullRequestNumber: number | null,

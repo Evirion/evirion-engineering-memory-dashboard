@@ -1,5 +1,6 @@
 import type { ProcessingPage } from "@contracts/console"
 
+import { formatInstant } from "@/lib/format/display"
 import { rowView } from "@/lib/processing/presentation"
 import {
   nextProcessingSort,
@@ -210,15 +211,12 @@ export const ProcessingActivityTable = ({
               ) : null}
 
               {/*
-                The instant is split rather than wrapped. A single ISO string
-                with microseconds breaks at whatever character the column edge
-                lands on, which is unreadable and moves as the table resizes.
-                The date and the time each stay whole, and the exact published
-                value is on the cell for anyone who needs to quote it.
+                The published instant stays on the cell title for anyone who
+                needs to quote it. What the column shows is the English short
+                form, so a Russian browser never has to read ISO microseconds.
               */}
               <TableCell title={row.updatedAt} className="whitespace-nowrap">
-                <Technical className="block">{row.updatedAt.slice(0, 10)}</Technical>
-                <Technical className="block">{row.updatedAt.slice(11, 19)}</Technical>
+                <Technical className="block">{formatInstant(row.updatedAt)}</Technical>
               </TableCell>
             </TableRow>
           )

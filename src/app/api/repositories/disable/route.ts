@@ -3,7 +3,9 @@ import type { NextRequest, NextResponse } from "next/server"
 import {
   beginRepositoryCommand,
   finishRepositoryCommand,
+  guardRepositoryFreshness,
   refuseRepositoryCommand,
+  repositoryPendingMutation,
 } from "@/server/actions/repository-command"
 import { disableRepositoryEntitlement } from "@/server/adapters/repositories"
 
@@ -21,7 +23,10 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
   const command = await beginRepositoryCommand(request)
   if (command.status === "rejected") return command.response
 
-  const { scope, fields } = command
+  const { scope, fields, sessionContext } = command
+  const pending = repositoryPendingMutation(fields, "/api/repositories/disable")
+  const stale = await guardRepositoryFreshness(sessionContext, pending)
+  if (stale) return stale
 
   // Disable is a version-carrying command; there is no first-disable case.
   if (fields.expectedVersion === null) {
@@ -38,5 +43,7 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
       idempotencyKey: fields.idempotencyKey,
       ...(typeof reason === "string" ? { reason } : {}),
     }),
+    pending,
+    sessionContext,
   )
 }

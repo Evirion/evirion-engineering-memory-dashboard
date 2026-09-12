@@ -398,6 +398,29 @@ them.
 - Customer consent is never converted into Evirion operational authorization.
   They are two different waits and must look different.
 
+## English dates, amounts and native controls
+
+The Console is English. Native `<input type="date">` and
+`<input type="datetime-local">` take their placeholder and their picker from
+the browser locale, so a Russian system prints `дд.мм.гггг` and `сентябрь`
+inside an otherwise English page. Date fields use the shared `Calendar`
+(`react-day-picker` with a fixed `enUS` locale). A consent expiry is a calendar
+day plus hour and minute selects; only a hidden field posts the instant the
+route already parsed.
+
+The contract publishes ISO-8601 instants and USD amounts with six fraction
+digits. Those stay on the wire. On screen, `formatInstant` and `formatUsd` in
+`src/lib/format/display.ts` produce a short English form (`10 Sept 2026, 14:40`,
+`USD 10`) and keep a microdollar that rounding to cents would erase.
+
+Checkboxes that POST with a form stay native elements, drawn to match the other
+controls. A Radix checkbox would then owe a hidden input for every mutation
+this Console makes.
+
+`REAUTHENTICATION_REQUIRED` is a step-up ceremony (authenticator code), not a
+yellow banner that prints the stable code. Repository policy mutations share
+the same pending-mutation replay as import, knowledge lifecycle and membership.
+
 ## Browser to BFF to backend
 
 Domain components never call Supabase or the backend directly. Everything goes

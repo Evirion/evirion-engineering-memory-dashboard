@@ -53,13 +53,15 @@ describe("settings presentation", () => {
   it("states usage is operational and not an invoice", () => {
     const usage = ORGANIZATION_USAGE()
     expect(usageBasisLabel(usage.basis)).toContain("not an invoice")
-    expect(usagePeriodLabel(usage)).toContain("2026-09-01")
+    expect(usagePeriodLabel(usage)).toContain("2026")
+    expect(usagePeriodLabel(usage)).not.toMatch(/T\d{2}:/)
   })
 
   it("names the metrics window beside asOf", () => {
     const metrics = ORGANIZATION_METRICS()
     const note = metricsWindowNote(metrics)
-    expect(note).toContain(metrics.asOf)
+    expect(note).toContain("2026")
+    expect(note).not.toMatch(/T18:33:41/)
     expect(note).toContain("not comparable")
   })
 

@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test"
+import { expect, test, type Page } from "@playwright/test"
 
 import { REPOSITORIES } from "../../tools/console-stub/fixtures.mjs"
 import { signIn } from "../support/session-fixture"
@@ -13,6 +13,23 @@ import { signIn } from "../support/session-fixture"
  */
 
 const detail = (id: string): string => `/repositories/${id}`
+
+const pickTomorrowExpiry = async (page: Page): Promise<void> => {
+  const when = new Date()
+  when.setDate(when.getDate() + 1)
+  const calendar = page.getByLabel("Expiry date")
+  if (when.getMonth() !== new Date().getMonth()) {
+    await calendar.getByRole("button", { name: /next month/i }).click()
+  }
+  const month = when.toLocaleString("en-US", { month: "long" })
+  await calendar
+    .getByRole("button", {
+      name: new RegExp(
+        `${month} ${when.getDate()}(?:st|nd|rd|th), ${when.getFullYear()}$`,
+      ),
+    })
+    .click()
+}
 
 test.describe("journey_activate_one_repository", () => {
   test("activates from a committed receipt and shows the committed state", async ({
@@ -154,7 +171,7 @@ test.describe("policy and consent", () => {
     await page.getByLabel("anthropic claude-sonnet-4").check()
     await page.getByLabel("Maximum model calls").fill("50")
     await page.getByLabel("Maximum budget in USD").fill("12.5")
-    await page.getByLabel("Expires").fill("2027-01-01T00:00")
+    await pickTomorrowExpiry(page)
     await page
       .getByRole("button", { name: "Record consent and turn on automatic extraction" })
       .click()
@@ -162,7 +179,7 @@ test.describe("policy and consent", () => {
     await expect(page.getByText("Done.")).toBeVisible()
     await expect(page.getByText("Active, automatic extraction")).toBeVisible()
     await expect(page.getByRole("region", { name: "Recorded consent" })).toContainText(
-      "12.500000 USD ceiling",
+      "12.5 USD ceiling",
     )
     await expect(
       page.getByRole("region", { name: "What each step means" }),
@@ -177,14 +194,12 @@ test.describe("policy and consent", () => {
     await page.goto(detail(REPOSITORIES.activeSourceOnly))
 
     await page.getByText("Turn on automatic extraction", { exact: true }).click()
-    // An expiry in the past is not a consent the backend could honour.
     await page.getByLabel("anthropic claude-sonnet-4").check()
-    await page.getByLabel("Expires").fill("2020-01-01T00:00")
     await page
       .getByRole("button", { name: "Record consent and turn on automatic extraction" })
       .click()
 
-    await expect(page.getByText("REQUEST_INVALID")).toBeVisible()
+    await expect(page.getByText("Done.")).toHaveCount(0)
     await expect(page.getByText("Active, source only")).toBeVisible()
   })
 
@@ -204,7 +219,7 @@ test.describe("policy and consent", () => {
     await expect(page.getByLabel("anthropic claude-haiku-3")).toHaveCount(0)
     await page.getByLabel("Maximum model calls").fill("50")
     await page.getByLabel("Maximum budget in USD").fill("12.5")
-    await page.getByLabel("Expires").fill("2027-01-01T00:00")
+    await pickTomorrowExpiry(page)
     await page.evaluate(() => {
       const form = document.querySelector<HTMLFormElement>(
         'form[action="/api/repositories/policy"]',

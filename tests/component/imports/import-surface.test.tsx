@@ -149,15 +149,15 @@ describe("cost completeness", () => {
     const rendered = markup(<ImportCost current={IMPORT_RUNS.completed()} />)
 
     expect(rendered).toContain('data-cost-completeness="MEASURED"')
-    expect(rendered).toContain("USD 18.400000")
+    expect(rendered).toContain("USD 18.4")
   })
 
   it("names reserved and unresolved beside the measured amount", () => {
     const rendered = markup(<ImportCost current={IMPORT_RUNS.processing()} />)
 
     expect(rendered).toContain('data-cost-completeness="RESERVED"')
-    expect(rendered).toContain("USD 9.400000")
-    expect(rendered).toContain("USD 2.100000")
+    expect(rendered).toContain("USD 9.4")
+    expect(rendered).toContain("USD 2.1")
     expect(rendered).toMatch(/not an invoice/)
   })
 
@@ -168,7 +168,7 @@ describe("cost completeness", () => {
     const rendered = markup(<ImportCost current={IMPORT_RUNS.planning()} />)
 
     expect(rendered).toContain('data-cost-completeness="NOT_APPLICABLE"')
-    expect(rendered).not.toContain("USD 0.000000")
+    expect(rendered).not.toContain("USD 0")
     expect(rendered).toMatch(/No paid work has contributed/)
   })
 })

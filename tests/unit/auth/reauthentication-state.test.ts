@@ -73,6 +73,9 @@ describe("mutation path allowlist", () => {
     expect(isAllowedMutationPath("knowledge_lifecycle", "/api/imports/approve")).toBe(
       false,
     )
+    expect(isAllowedMutationPath("repository_policy", "/api/imports/approve")).toBe(
+      false,
+    )
   })
 
   it("accepts the shipped mutation paths", () => {
@@ -80,6 +83,9 @@ describe("mutation path allowlist", () => {
       true,
     )
     expect(isAllowedMutationPath("knowledge_lifecycle", "/api/memory/activate")).toBe(
+      true,
+    )
+    expect(isAllowedMutationPath("repository_policy", "/api/repositories/policy")).toBe(
       true,
     )
   })

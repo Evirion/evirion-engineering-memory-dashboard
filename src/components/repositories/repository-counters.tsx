@@ -1,6 +1,7 @@
 import type { RepositoryOverviewView } from "@/server/queries/repositories"
 
 import { overviewGroups } from "@/lib/repositories/presentation"
+import { formatInstant } from "@/lib/format/display"
 import { Metric, MetricGrid } from "@/components/ui/metric"
 import { noticeClasses } from "@/components/ui/panel"
 import { Kicker, SectionTitle, Technical } from "@/components/ui/text"
@@ -52,8 +53,8 @@ export const RepositoryCounters = ({ view }: { view: RepositoryOverviewView }) =
           unless the page says which one it rendered.
         */}
         <Technical>
-          Counted as of {view.overview.asOf}. Figures taken at different times are not
-          comparable.
+          Counted as of {formatInstant(view.overview.asOf)}. Figures taken at different
+          times are not comparable.
         </Technical>
       </div>
 

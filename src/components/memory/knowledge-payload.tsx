@@ -1,6 +1,7 @@
 import type { KnowledgeDetail } from "@contracts/console"
 
 import { type EditedDerivative, editedDerivativeOf } from "@/lib/knowledge/presentation"
+import { formatInstant } from "@/lib/format/display"
 
 /**
  * The machine extraction and the reviewer's derivative, side by side.
@@ -108,7 +109,7 @@ const DerivativePanel = ({ derivative }: { derivative: EditedDerivative }) => (
       </h2>
       <p className="text-xs text-ink-secondary">
         A reviewer restated this claim at review sequence {derivative.reviewSequence} on{" "}
-        {derivative.recordedAt.slice(0, 10)}. It sits beside the machine extraction
+        {formatInstant(derivative.recordedAt)}. It sits beside the machine extraction
         rather than replacing it.
       </p>
       {/* The evidence is the original machine evidence. An edited claim was

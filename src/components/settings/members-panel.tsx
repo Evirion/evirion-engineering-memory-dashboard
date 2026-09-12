@@ -14,7 +14,7 @@ import {
   offboardingStateTone,
 } from "@/lib/settings/presentation"
 import { buttonVariants } from "@/components/ui/button"
-import { Input, Label, Select, Textarea } from "@/components/ui/field"
+import { Checkbox, Input, Label, Select, Textarea } from "@/components/ui/field"
 import { panelVariants } from "@/components/ui/panel"
 import { StatusChip } from "@/components/ui/status-chip"
 import {
@@ -390,13 +390,15 @@ export const MembersPanel = ({
               {/* The contract fixes this to true, so an unticked box is refused
                   rather than defaulted. Requesting offboarding is not
                   reversible from this surface. */}
-              <label className="text-foreground flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
+              <label
+                htmlFor="offboarding-confirmation"
+                className="text-foreground flex items-center gap-2 text-sm"
+              >
+                <Checkbox
+                  id="offboarding-confirmation"
                   name="confirmationAccepted"
                   value="true"
                   data-testid="offboarding-confirmation"
-                  className="accent-primary size-4"
                 />
                 I confirm this request
               </label>

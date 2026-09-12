@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server"
 
 import {
   actionClassForGate,
+  isReauthenticationGate,
   type ReauthenticationGate,
 } from "@/lib/auth/reauthentication-action-class"
 import { normalizeReturnPath } from "@/lib/auth/reauthentication-return-path"
@@ -42,7 +43,10 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
   const gate = guard.form.get("gate")
   const submittedReturnPath = guard.form.get("returnPath")
 
-  if (pending === undefined && (typeof gate !== "string" || !isGate(gate))) {
+  if (
+    pending === undefined &&
+    (typeof gate !== "string" || !isReauthenticationGate(gate))
+  ) {
     return NextResponse.redirect(canonicalRedirect("/"), 303)
   }
 
@@ -96,8 +100,3 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
 
   return response
 }
-
-const isGate = (value: string): value is ReauthenticationGate =>
-  value === "repository_import" ||
-  value === "knowledge_lifecycle" ||
-  value === "membership_change"

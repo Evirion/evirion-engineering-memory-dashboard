@@ -5,6 +5,7 @@ import type {
   RepositoryPage,
 } from "@contracts/console"
 
+import { formatInstant } from "@/lib/format/display"
 import type { Tone } from "@/lib/ui/tone"
 
 /**
@@ -211,7 +212,7 @@ export const accessAxis = (repository: Repository): RepositoryAxis => {
     label: "GitHub access",
     value: "Accessible",
     detail: lastSeen
-      ? `Confirmed by the last completed synchronization on ${lastSeen}.`
+      ? `Confirmed by the last completed synchronization on ${formatInstant(lastSeen)}.`
       : "Confirmed by the installation.",
     tone: "neutral",
   }

@@ -1,4 +1,5 @@
 import { ConsoleUnavailable } from "@/components/console/console-unavailable"
+import { formatInstant } from "@/lib/format/display"
 import {
   correctionStatusLabel,
   correctionStatusTone,
@@ -60,7 +61,7 @@ export const CorrectionRequests = ({ view }: { view: KnowledgeCorrectionsView })
               <StatusChip tone={correctionStatusTone(request.status)}>
                 {correctionStatusLabel(request.status)}
               </StatusChip>
-              <Technical>Requested {request.requestedAt.slice(0, 10)}</Technical>
+              <Technical>Requested {formatInstant(request.requestedAt)}</Technical>
             </div>
             <dl className="grid gap-3 sm:grid-cols-2">
               <div className="flex flex-col gap-1">
@@ -114,7 +115,7 @@ export const CorrectionRequests = ({ view }: { view: KnowledgeCorrectionsView })
                     data-testid="correction-history-entry"
                   >
                     {correctionStatusLabel(entry.toStatus)} on{" "}
-                    {entry.recordedAt.slice(0, 10)}
+                    {formatInstant(entry.recordedAt)}
                     {/* Who moved it, in the two kinds the contract publishes.
                         Never which operator. */}
                     {entry.actorKind === "customer" ? " by you" : " by Evirion"}

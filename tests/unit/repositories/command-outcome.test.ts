@@ -1,6 +1,11 @@
+import { createElement } from "react"
+import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it } from "vitest"
 
-import { readCommandResult } from "@/components/repositories/command-outcome"
+import {
+  CommandOutcomeNotice,
+  readCommandResult,
+} from "@/components/repositories/command-outcome"
 import { treatmentForCode } from "@/lib/errors/console-errors"
 
 /**
@@ -54,5 +59,14 @@ describe("reading a command outcome", () => {
   it("never invents a treatment for an unpublished code", () => {
     expect(treatmentForCode("TOTALLY_MADE_UP")).toBeUndefined()
     expect(treatmentForCode("VERSION_CONFLICT")).toBe("reload-and-resubmit")
+  })
+
+  it("does not print REAUTHENTICATION_REQUIRED as a banner", () => {
+    const result = readCommandResult("REAUTHENTICATION_REQUIRED")
+    if (result === undefined) throw new Error("expected a mapped refusal")
+    expect(result).toMatchObject({ kind: "refused", code: "REAUTHENTICATION_REQUIRED" })
+    expect(renderToStaticMarkup(createElement(CommandOutcomeNotice, { result }))).toBe(
+      "",
+    )
   })
 })

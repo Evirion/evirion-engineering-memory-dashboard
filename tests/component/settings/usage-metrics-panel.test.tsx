@@ -2,6 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it } from "vitest"
 
 import { UsageMetricsPanel } from "@/components/settings/usage-metrics-panel"
+import { formatInstant } from "@/lib/format/display"
 
 import {
   ORGANIZATION_METRICS,
@@ -28,7 +29,8 @@ describe("usage and metrics panel", () => {
     const html = markup(
       <UsageMetricsPanel usage={ORGANIZATION_USAGE()} metrics={metrics} />,
     )
-    expect(html).toContain(metrics.asOf)
+    expect(html).toContain(formatInstant(metrics.asOf))
+    expect(html).not.toContain("123456")
     expect(html).toContain("not comparable")
   })
 

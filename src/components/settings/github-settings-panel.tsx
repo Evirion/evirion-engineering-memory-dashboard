@@ -13,6 +13,7 @@ import {
   SyncPoll,
   SyncStalledNotice,
 } from "@/components/repositories/github-connection"
+import { formatInstant } from "@/lib/format/display"
 import { hasCapability } from "@/lib/auth/capabilities"
 import {
   githubInstallationStatusLabel,
@@ -82,7 +83,11 @@ export const GithubSettingsPanel = ({
         <Metric
           label="Last successful sync"
           value={
-            <span className="text-sm">{summary.lastSuccessfulSyncAt ?? "Never"}</span>
+            <span className="text-sm">
+              {summary.lastSuccessfulSyncAt === null
+                ? "Never"
+                : formatInstant(summary.lastSuccessfulSyncAt)}
+            </span>
           }
         />
       </MetricGrid>

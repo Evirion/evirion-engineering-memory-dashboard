@@ -6,6 +6,7 @@ import {
   entitlementSourceLabel,
   retiredNamedByConsent,
 } from "@/lib/repositories/presentation"
+import { formatInstant, formatUsdAmount } from "@/lib/format/display"
 import { POLICY_TERMS } from "@/lib/repositories/vocabulary"
 import type { ModelProfileCatalogueView } from "@/server/queries/repositories"
 
@@ -140,7 +141,7 @@ export const ConsentFacts = ({
           </dt>
           {/* A ceiling, never an invoice figure and never a spend total. */}
           <dd className="text-sm text-foreground">
-            {repository.effectiveConsent.budgetCeilingUsd} USD ceiling
+            {formatUsdAmount(repository.effectiveConsent.budgetCeilingUsd)} USD ceiling
           </dd>
         </div>
         <div className="flex flex-col gap-1">
@@ -148,7 +149,7 @@ export const ConsentFacts = ({
             Expires
           </dt>
           <dd className="text-sm text-foreground">
-            {repository.effectiveConsent.expiresAt}
+            {formatInstant(repository.effectiveConsent.expiresAt)}
           </dd>
         </div>
       </dl>

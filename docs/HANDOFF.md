@@ -1,12 +1,15 @@
 # Dashboard handoff
 
-Updated: 2026-09-10
+Updated: 2026-09-12
 
 ## Current state
 
-- Active branch: `EEM-9/07-processing-table-pagination`. Processing activity
-  now pages twenty rows, splits Repository and PR, and sorts from column
-  headers.
+- Active branch: `fix/console-english-display-and-consent-controls`. The
+  Console now shows English short dates and trimmed USD amounts, consent expiry
+  uses the shared English calendar rather than native `datetime-local`, model
+  profile choices use the shared checkbox, and a repository mutation that needs
+  a fresher proof opens the authenticator ceremony instead of printing
+  `REAUTHENTICATION_REQUIRED`. **Not deployed.**
 - **Processing was one unbounded table.** PROC-001 already required pagination.
   `/processing` now requests twenty rows, follows `nextCursor`, and treats
   column headers as shareable sort links. `pageSize` is ignored if a caller
@@ -234,16 +237,13 @@ Trace: [`eem-9-07-acceptance-trace.md`](plans/active/eem-9-07-acceptance-trace.m
 
 ## Verification and next action
 
-This branch: focused import unit/component tests, `tests/e2e/import.spec.ts`,
-`tests/security/import-boundary.spec.ts`, `pnpm lint` and `pnpm typecheck` pass.
-The complete free gate has not been re-run.
+This branch: 1035 unit tests, `pnpm lint` and `pnpm typecheck` pass. The
+complete free gate and the repository/import e2e suites have not been re-run
+in this session.
 
-Next: merge
-[PR #68](https://github.com/Evirion/evirion-engineering-memory-dashboard/pull/68),
-then deploy the Console so staging stops serving the stuck discovery/extraction
-poll. Do not start the paid extraction worker from this task. A full
-`pnpm verify` is not required for this UI follow-up unless the PR gate asks
-for it.
+Next: review this branch. The complete free gate and the repository/import
+e2e suites have not been re-run locally in this session; CI owns that pass.
+Do not start a paid extraction worker from this task.
 
 Two things are recorded for whoever picks this up. `error.json` is shared with
 the operator contract, so the generated Console validator accepts two codes no

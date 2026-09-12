@@ -86,7 +86,7 @@ test.describe("import return path", () => {
     await expect(page.getByTestId("import-authorization")).toContainText(
       "Waiting for Evirion authorization",
     )
-    await expect(page.getByTestId("import-cost")).toContainText("USD 25.000000")
+    await expect(page.getByTestId("import-cost")).toContainText("USD 25")
     await expect(page.getByTestId("reauth-ceremony")).toHaveCount(0)
   })
 
