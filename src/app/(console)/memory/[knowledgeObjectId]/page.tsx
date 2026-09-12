@@ -6,7 +6,6 @@ import {
   KnowledgeEvidenceList,
   KnowledgeSourceContext,
   KnowledgeStates,
-  KnowledgeTechnicalDetails,
 } from "@/components/memory/knowledge-detail"
 import { CorrectionRequests } from "@/components/memory/correction-status"
 import { KnowledgeOutcomeNotice } from "@/components/memory/knowledge-outcome"
@@ -161,7 +160,6 @@ const KnowledgeDetailPage = async ({
         knowledgeReturnPath={knowledgeReturnPath}
       />
       <CorrectionRequests view={view.corrections} />
-      <KnowledgeTechnicalDetails detail={detail} />
     </section>
   )
 }
