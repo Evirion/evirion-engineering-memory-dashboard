@@ -33,17 +33,15 @@ export const Calendar = ({
         months: "flex flex-col gap-4 sm:flex-row",
         month: "flex flex-col gap-4",
         month_caption: "flex h-8 items-center justify-center px-8",
-        // Dropdowns already name the month and year. Leaving the caption
-        // visible next to them duplicated "September 2026" and stretched the
-        // grid with empty space.
-        caption_label: cn(
+        // In dropdown mode this class is the visible month/year inside each
+        // select, not a second heading. Hiding it leaves empty pills.
+        caption_label:
           "inline-flex items-center gap-1 text-sm font-medium text-foreground [&_svg]:size-4",
-          layout !== "label" && "hidden",
-        ),
         // Each dropdown is a real `<select>` laid transparently over the label it
         // controls, which is how the keyboard and a screen reader get a plain
-        // native control while the page keeps its own look.
-        dropdowns: "flex items-center gap-2",
+        // native control while the page keeps its own look. The live-region
+        // caption beside them is already clipped; keep it out of layout.
+        dropdowns: "flex items-center gap-2 [&>[role=status]]:sr-only",
         dropdown_root:
           "relative inline-flex h-8 items-center rounded-lg border border-input bg-card px-2 hover:border-line-strong focus-within:border-ring",
         dropdown: "absolute inset-0 cursor-pointer opacity-0",
