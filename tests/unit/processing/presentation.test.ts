@@ -102,7 +102,7 @@ describe("processing presentation", () => {
       reservedUsd: "1.000000",
       unresolvedUsd: "2.000000",
     })
-    expect(reserved.headline.amount).toBe("USD 1.000000")
+    expect(reserved.headline.amount).toBe("USD 1")
   })
 
   it("treats absent cost as absence in the row view", () => {

@@ -1,5 +1,6 @@
 import type { PullRequestDetail } from "@contracts/console"
 
+import { formatInstant } from "@/lib/format/display"
 import { costViewFromBlock } from "@/lib/settings/cost"
 import type { ValidationIssuesEntry } from "@/server/queries/processing"
 
@@ -26,7 +27,9 @@ export const PullRequestDetailPanel = ({
           <p className="text-sm text-ink-secondary">Author: {detail.authorLogin}</p>
         ) : null}
         {detail.mergedAt ? (
-          <p className="text-sm text-ink-secondary">Merged at: {detail.mergedAt}</p>
+          <p className="text-sm text-ink-secondary">
+            Merged at: {formatInstant(detail.mergedAt)}
+          </p>
         ) : null}
         {detail.pullRequestUrl ? (
           <a
@@ -102,7 +105,9 @@ export const PullRequestDetailPanel = ({
                       </p>
                     ) : null}
                   </td>
-                  <td className="px-2 py-2 text-ink-secondary">{run.completedAt}</td>
+                  <td className="px-2 py-2 text-ink-secondary">
+                    {formatInstant(run.completedAt)}
+                  </td>
                   <td className="px-2 py-2">
                     {issues?.status === "unavailable" ? (
                       <p

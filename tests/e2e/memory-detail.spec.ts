@@ -239,7 +239,7 @@ test.describe("source_context", () => {
     await expect(source).toContainText("#412")
     await expect(source).toContainText("Make knowledge review append-only")
     await expect(source).toContainText("octocat")
-    await expect(source).toContainText("2026-08-08")
+    await expect(source).toContainText("8 Aug 2026")
     await expect(
       source.getByRole("link", { name: "Open the pull request on GitHub" }),
     ).toHaveAttribute("href", /^https:\/\/github\.com\//)
@@ -345,7 +345,7 @@ test.describe("technical_details", () => {
 
     await page.getByTestId("knowledge-technical").getByText("Technical details").click()
     const technical = page.getByTestId("knowledge-technical")
-    await expect(technical).toContainText("0.025000 USD held, not yet settled")
+    await expect(technical).toContainText("0.025 USD held, not yet settled")
     await expect(technical).not.toContainText("0.000000 USD, settled")
   })
 

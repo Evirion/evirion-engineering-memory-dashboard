@@ -4,6 +4,7 @@ import type {
   RepositoryImportFailures,
 } from "@contracts/console"
 
+import { formatUsd } from "@/lib/format/display"
 import type { Tone } from "@/lib/ui/tone"
 
 /**
@@ -470,7 +471,7 @@ export type CostView = {
   readonly budget: CostFigure
 }
 
-const usd = (amount: string): string => `USD ${amount}`
+const usd = (amount: string): string => formatUsd(amount)
 
 export const costView = (cost: RepositoryImport["cost"]): CostView => {
   const budget: CostFigure = {

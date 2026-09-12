@@ -1,6 +1,7 @@
 import type { KnowledgeDetail } from "@contracts/console"
 
 import { ConsoleUnavailable } from "@/components/console/console-unavailable"
+import { formatInstant, formatUsdAmount } from "@/lib/format/display"
 import { lifecycleStateLabel, reviewDecisionLabel } from "@/lib/knowledge/presentation"
 import type { KnowledgeEvidenceView } from "@/server/queries/knowledge"
 import { kickerClasses } from "@/components/ui/text"
@@ -89,7 +90,9 @@ export const KnowledgeSourceContext = ({ detail }: { detail: KnowledgeDetail }) 
         </div>
         <div className={fact}>
           <dt className={term}>Merged</dt>
-          <dd className={value}>{source.mergedAt ?? "Not recorded"}</dd>
+          <dd className={value}>
+            {source.mergedAt === null ? "Not recorded" : formatInstant(source.mergedAt)}
+          </dd>
         </div>
       </dl>
       {source.pullRequestUrl === null ? null : (
@@ -191,13 +194,13 @@ const costLine = (
 ): string => {
   switch (cost.completeness) {
     case "MEASURED":
-      return `${cost.measuredUsd} USD, settled`
+      return `${formatUsdAmount(cost.measuredUsd)} USD, settled`
     case "RESERVED":
-      return `${cost.reservedUsd} USD held, not yet settled`
+      return `${formatUsdAmount(cost.reservedUsd)} USD held, not yet settled`
     case "UNRESOLVED":
       // Never a zero and never a bare dash: an amount exists but cannot be
       // attributed, which is a different fact from costing nothing.
-      return `${cost.unresolvedUsd} USD recorded but not attributable`
+      return `${formatUsdAmount(cost.unresolvedUsd)} USD recorded but not attributable`
     case "NOT_APPLICABLE":
       return "No contributing job, so no cost"
     case "UNSUPPORTED_SERVER_RESPONSE":
@@ -249,7 +252,9 @@ export const KnowledgeTechnicalDetails = ({ detail }: { detail: KnowledgeDetail 
         <div className={fact}>
           <dt className={term}>Extracted</dt>
           <dd className="text-xs text-ink-secondary">
-            {technical.extractedAt ?? "Not recorded"}
+            {technical.extractedAt === undefined || technical.extractedAt === null
+              ? "Not recorded"
+              : formatInstant(technical.extractedAt)}
           </dd>
         </div>
         <div className={fact}>

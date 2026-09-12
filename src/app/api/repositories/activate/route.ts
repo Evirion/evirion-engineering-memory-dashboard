@@ -3,7 +3,9 @@ import type { NextRequest, NextResponse } from "next/server"
 import {
   beginRepositoryCommand,
   finishRepositoryCommand,
+  guardRepositoryFreshness,
   refuseRepositoryCommand,
+  repositoryPendingMutation,
 } from "@/server/actions/repository-command"
 import { activateRepositoryEntitlement } from "@/server/adapters/repositories"
 
@@ -22,7 +24,10 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
   const command = await beginRepositoryCommand(request)
   if (command.status === "rejected") return command.response
 
-  const { scope, fields } = command
+  const { scope, fields, sessionContext } = command
+  const pending = repositoryPendingMutation(fields, "/api/repositories/activate")
+  const stale = await guardRepositoryFreshness(sessionContext, pending)
+  if (stale) return stale
 
   // REPO-002 requires an explicit confirmation and the contract fixes the
   // field to `true`, so an unticked box is refused rather than defaulted.
@@ -37,5 +42,7 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
       expectedVersion: fields.expectedVersion,
       idempotencyKey: fields.idempotencyKey,
     }),
+    pending,
+    sessionContext,
   )
 }

@@ -399,7 +399,7 @@ test.describe("progress_outcomes_and_cost", () => {
     await signIn(context, { scenario: "importCompleted" })
     await page.goto(surface)
 
-    await expect(page.getByTestId("cost-headline")).toHaveText("USD 18.400000")
+    await expect(page.getByTestId("cost-headline")).toHaveText("USD 18.4")
     await expect(page.getByTestId("import-cost")).toContainText("not an invoice")
   })
 
@@ -451,7 +451,7 @@ test.describe("journey_prepare_and_approve_historical_import", () => {
       "Waiting for Evirion authorization",
     )
     await expect(page.getByRole("button", { name: /approve/i })).toHaveCount(0)
-    await expect(page.getByTestId("import-cost")).toContainText("USD 25.000000")
+    await expect(page.getByTestId("import-cost")).toContainText("USD 25")
   })
 })
 

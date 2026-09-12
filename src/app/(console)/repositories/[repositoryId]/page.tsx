@@ -1,5 +1,9 @@
 import { ConsoleUnavailable } from "@/components/console/console-unavailable"
 import {
+  INVALID_CHALLENGE,
+  ReauthenticationOutcome,
+} from "@/components/auth/reauthentication-outcome"
+import {
   CommandOutcomeNotice,
   readCommandResult,
 } from "@/components/repositories/command-outcome"
@@ -21,9 +25,12 @@ import {
   EntitlementFacts,
   PolicyVocabulary,
 } from "@/components/repositories/repository-detail"
+import { reauthenticationFreshUntil } from "@/lib/auth/reauthentication-freshness"
 import { productStateLabel, repositoryControls } from "@/lib/repositories/presentation"
 import { readSessionCsrfToken } from "@/server/actions/session-csrf-read"
+import { pendingReauthenticationContext } from "@/server/actions/reauthentication-resume"
 import { readRepositoryDetail, validRepositoryId } from "@/server/queries/repositories"
+import { requireSessionContext } from "@/server/queries/session-context"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -57,10 +64,18 @@ const RepositoryDetailPage = async ({
 }) => {
   const { repositoryId } = await params
   const identifier = validRepositoryId(repositoryId)
-  const requested = (await searchParams)["result"]
-  const outcome = readCommandResult(
-    typeof requested === "string" ? requested : undefined,
-  )
+  const parameters = await searchParams
+  const requested = parameters["result"]
+  const outcomeRaw = typeof requested === "string" ? requested : undefined
+  const outcome = readCommandResult(outcomeRaw)
+  const reauthRequired = parameters["reauth"] === "required"
+  const session = await requireSessionContext()
+  const freshUntil =
+    session.status === "ready" ? reauthenticationFreshUntil(session.context) : undefined
+  const csrfToken = await readSessionCsrfToken()
+  const pending = await pendingReauthenticationContext()
+  const repositoryReturnPath =
+    identifier === undefined ? "/repositories" : `/repositories/${identifier}`
 
   // A malformed identifier gets the same answer as a foreign one. Anything
   // else would tell the caller which identifiers are well formed.
@@ -97,9 +112,18 @@ const RepositoryDetailPage = async ({
   const context = {
     repository,
     controls,
-    csrfToken: await readSessionCsrfToken(),
+    csrfToken,
     idempotencyKeys: mintIdempotencyKeys(),
+    reauthenticationFreshUntil: freshUntil,
+    repositoryReturnPath,
   }
+
+  const ceremony =
+    reauthRequired ||
+    outcomeRaw === "REAUTHENTICATION_REQUIRED" ||
+    outcomeRaw === INVALID_CHALLENGE ||
+    outcomeRaw === "PENDING_EXPIRED" ||
+    outcomeRaw === "PENDING_SESSION_MISMATCH"
 
   return (
     <section className="flex flex-col gap-6">
@@ -112,7 +136,15 @@ const RepositoryDetailPage = async ({
         </p>
       </div>
 
-      {outcome ? <CommandOutcomeNotice result={outcome} /> : null}
+      <ReauthenticationOutcome
+        result={outcomeRaw}
+        reauthRequired={reauthRequired}
+        csrfToken={csrfToken}
+        hasPending={pending.hasPending}
+        gate={pending.hasPending ? pending.gate : "repository_policy"}
+        returnPath={pending.hasPending ? pending.returnPath : repositoryReturnPath}
+      />
+      {ceremony || !outcome ? null : <CommandOutcomeNotice result={outcome} />}
 
       <RepositoryAxisList repository={repository} />
       <ChangeRequestNotice repository={repository} />

@@ -219,7 +219,7 @@ test.describe("queue_row", () => {
     await expect(row).toContainText(claimOf(KNOWLEDGE.pending))
     await expect(row).toContainText("ArchitectureDecision")
     await expect(row).toContainText("Pull request #412")
-    await expect(row).toContainText("Merged 2026-08-08")
+    await expect(row).toContainText("Merged 8 Aug 2026")
     await expect(row).toContainText("Model confidence 82")
 
     // The full payload, the evidence set and every technical detail stay in

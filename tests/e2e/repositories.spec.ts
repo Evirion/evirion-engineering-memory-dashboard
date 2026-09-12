@@ -202,7 +202,8 @@ test.describe("journey_open_one_repository", () => {
     await expect(counters).toContainText("Knowledge Objects admitted")
     // The cutoff is part of the figure: two taken at different times are not
     // comparable, so the page states the one it rendered.
-    await expect(counters).toContainText("2026-09-02T18:33:41.123456Z")
+    await expect(counters).toContainText(/Sept 2026/)
+    await expect(counters).not.toContainText("123456")
   })
 
   test("keeps machine dispositions out of the Knowledge Object count", async ({

@@ -255,8 +255,8 @@ describe("the four cost states", () => {
   })
 
   it("shows the settled amount only when the backend says it is settled", () => {
-    expect(costView(cost("MEASURED")).headline.amount).toBe("USD 3.000000")
-    expect(costView(cost("RESERVED")).headline.amount).toBe("USD 1.000000")
+    expect(costView(cost("MEASURED")).headline.amount).toBe("USD 3")
+    expect(costView(cost("RESERVED")).headline.amount).toBe("USD 1")
   })
 
   it("keeps reserved, measured and unresolved as separate named figures", () => {
@@ -269,7 +269,7 @@ describe("the four cost states", () => {
       "Unresolved",
     ])
     // Summing them would present part-settled money as one settled number.
-    expect(amounts).toEqual(["USD 3.000000", "USD 1.000000", "USD 2.000000"])
+    expect(amounts).toEqual(["USD 3", "USD 1", "USD 2"])
   })
 
   it("shows no breakdown at all when no paid work contributed", () => {
@@ -298,7 +298,7 @@ describe("the four cost states", () => {
   it("distinguishes an absent budget from a zero one", () => {
     expect(costView(cost("MEASURED", { budgetUsd: null })).budget.amount).toBeNull()
     expect(costView(cost("MEASURED", { budgetUsd: "0.000000" })).budget.amount).toBe(
-      "USD 0.000000",
+      "USD 0",
     )
   })
 

@@ -70,6 +70,34 @@ export const Input = ({ className, ...props }: ComponentProps<"input">) => (
   <input data-slot="input" className={cn(controlSurface, className)} {...props} />
 )
 
+/**
+ * A native checkbox that posts with the form, drawn to match the other
+ * controls.
+ *
+ * A Radix checkbox would look the same and then owe a hidden input for every
+ * native POST this Console makes. Keeping the element native means the
+ * catalogue, the confirmation and the offboarding tick travel as they always
+ * have.
+ */
+export const Checkbox = ({
+  className,
+  ...props
+}: Omit<ComponentProps<"input">, "type">) => (
+  <input
+    type="checkbox"
+    data-slot="checkbox"
+    className={cn(
+      "border-input size-4 shrink-0 cursor-pointer appearance-none rounded-[4px] border bg-card",
+      "checked:border-primary checked:bg-primary checked:bg-center checked:bg-no-repeat",
+      "checked:bg-[url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='3.5 8.5 6.5 11.5 12.5 4.5'/%3E%3C/svg%3E\")]",
+      "focus-visible:border-ring focus-visible:outline-ring focus-visible:outline-2 focus-visible:outline-offset-2",
+      "disabled:cursor-not-allowed disabled:opacity-55",
+      className,
+    )}
+    {...props}
+  />
+)
+
 export const Textarea = ({ className, ...props }: ComponentProps<"textarea">) => (
   <textarea
     data-slot="textarea"

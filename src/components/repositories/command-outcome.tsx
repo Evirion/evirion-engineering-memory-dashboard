@@ -54,6 +54,9 @@ export const CommandOutcomeNotice = ({ result }: { result: CommandResult }) => {
     )
   }
 
+  if (treatmentForCode(result.code) === "reauthentication-required") {
+    return null
+  }
   return (
     <output
       aria-live="polite"

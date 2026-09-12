@@ -2,6 +2,7 @@
 
 import type { FormEvent, ReactNode } from "react"
 
+import type { ReauthenticationGate } from "@/lib/auth/reauthentication-action-class"
 import { isReauthenticationFresh } from "@/lib/auth/reauthentication-freshness"
 
 /**
@@ -25,7 +26,7 @@ export const GatedForm = ({
   action: string
   method?: "post" | "get"
   freshUntil: string | null | undefined
-  gate: "repository_import" | "knowledge_lifecycle" | "membership_change"
+  gate: ReauthenticationGate
   returnPath: string
   mutationPath: string
   className?: string

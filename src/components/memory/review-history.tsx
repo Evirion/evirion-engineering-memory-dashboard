@@ -1,4 +1,5 @@
 import { ConsoleUnavailable } from "@/components/console/console-unavailable"
+import { formatInstant } from "@/lib/format/display"
 import {
   lifecycleStateLabel,
   reviewActionLabel,
@@ -83,7 +84,7 @@ export const ReviewHistory = ({ view }: { view: KnowledgeHistoryView }) => {
                   {reviewActionLabel(review.action)}
                 </StatusChip>
                 <Technical>
-                  Sequence {review.reviewSequence} on {review.recordedAt.slice(0, 10)}
+                  Sequence {review.reviewSequence} on {formatInstant(review.recordedAt)}
                 </Technical>
               </div>
               <p className="text-ink-secondary text-xs leading-5">
