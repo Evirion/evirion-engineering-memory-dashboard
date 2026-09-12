@@ -404,8 +404,9 @@ The Console is English. Native `<input type="date">` and
 `<input type="datetime-local">` take their placeholder and their picker from
 the browser locale, so a Russian system prints `дд.мм.гггг` and `сентябрь`
 inside an otherwise English page. Date fields use the shared `Calendar`
-(`react-day-picker` with a fixed `enUS` locale). A consent expiry is a calendar
-day plus hour and minute selects; only a hidden field posts the instant the
+(`react-day-picker` with a fixed `enUS` locale). A consent expiry is one field that opens the calendar on click, with a
+calendar glyph on the field the way `datetime-local` had. Only a hidden field
+posts the instant: the chosen local day at 23:59, which is what the policy
 route already parsed.
 
 The contract publishes ISO-8601 instants and USD amounts with six fraction

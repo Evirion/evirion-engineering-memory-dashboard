@@ -17,6 +17,7 @@ const detail = (id: string): string => `/repositories/${id}`
 const pickTomorrowExpiry = async (page: Page): Promise<void> => {
   const when = new Date()
   when.setDate(when.getDate() + 1)
+  await page.getByLabel("Expires").click()
   const calendar = page.getByLabel("Expiry date")
   if (when.getMonth() !== new Date().getMonth()) {
     await calendar.getByRole("button", { name: /next month/i }).click()

@@ -117,13 +117,10 @@ export const ActivateForm = ({
         expectedVersion={repository.entitlement?.version ?? null}
         csrfToken={csrfToken}
       />
-      <label
-        htmlFor="activate-confirmation"
-        className="flex items-center gap-2 text-sm text-foreground"
-      >
-        <Checkbox id="activate-confirmation" name="confirmationAccepted" />I confirm
-        this
-      </label>
+      <div className="flex items-center gap-2 text-sm text-foreground">
+        <Checkbox id="activate-confirmation" name="confirmationAccepted" />
+        <label htmlFor="activate-confirmation">I confirm this</label>
+      </div>
       <ReauthenticationPreconditionNotice testId="repository-activate-reauth-notice" />
       <SubmitButton className={primaryAction}>Activate repository</SubmitButton>
       <p className={consequence}>
@@ -397,9 +394,8 @@ export const ConsentForm = ({
               the exact string the worker presents at the paid boundary. The
               label is for the reader; only this value is ever submitted. */}
           {choices.map((choice) => (
-            <label
+            <div
               key={choice.canonicalIdentifier}
-              htmlFor={`profile-${choice.canonicalIdentifier}`}
               className="flex items-center gap-2 text-sm text-foreground"
             >
               <Checkbox
@@ -408,15 +404,17 @@ export const ConsentForm = ({
                 value={choice.canonicalIdentifier}
                 defaultChecked={consented.has(choice.canonicalIdentifier)}
               />
-              <span>
-                {choice.label}
-                {choice.offeringState === "DEPRECATED" ? (
-                  <span className="ml-2 text-xs text-ink-secondary">
-                    deprecated, still offered
-                  </span>
-                ) : null}
-              </span>
-            </label>
+              <label htmlFor={`profile-${choice.canonicalIdentifier}`}>
+                <span>
+                  {choice.label}
+                  {choice.offeringState === "DEPRECATED" ? (
+                    <span className="ml-2 text-xs text-ink-secondary">
+                      deprecated, still offered
+                    </span>
+                  ) : null}
+                </span>
+              </label>
+            </div>
           ))}
         </fieldset>
         <label className="flex flex-col gap-1 text-sm text-foreground">
