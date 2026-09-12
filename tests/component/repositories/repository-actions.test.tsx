@@ -298,6 +298,9 @@ describe("the policy controls", () => {
     expect(rendered).not.toContain('type="datetime-local"')
     expect(rendered).not.toContain('type="date"')
     expect(rendered).toContain("consent-expires-picker")
+    expect(rendered).toContain("consent-expires-icon")
+    expect(rendered).not.toContain("Expiry hour")
+    expect(rendered).not.toContain("Expiry minute")
   })
 
   it("draws model-profile choices as console checkboxes", () => {

@@ -390,18 +390,15 @@ export const MembersPanel = ({
               {/* The contract fixes this to true, so an unticked box is refused
                   rather than defaulted. Requesting offboarding is not
                   reversible from this surface. */}
-              <label
-                htmlFor="offboarding-confirmation"
-                className="text-foreground flex items-center gap-2 text-sm"
-              >
+              <div className="text-foreground flex items-center gap-2 text-sm">
                 <Checkbox
                   id="offboarding-confirmation"
                   name="confirmationAccepted"
                   value="true"
                   data-testid="offboarding-confirmation"
                 />
-                I confirm this request
-              </label>
+                <label htmlFor="offboarding-confirmation">I confirm this request</label>
+              </div>
               <SubmitButton
                 className={buttonVariants({
                   variant: "primary",

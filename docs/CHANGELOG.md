@@ -12,14 +12,15 @@
   for a fresher proof, the page printed `Confirm your identity to continue.
   Reason REAUTHENTICATION_REQUIRED` instead of the authenticator ceremony
   import and knowledge already use.
-- **What changed.** Consent expiry uses the shared English `Calendar` plus hour
-  and minute selects; the posted value is still the local datetime the policy
-  route parsed. Checkboxes stay native so they POST with the form, and they
-  share the control surface. `formatInstant` / `formatUsd` own customer-facing
-  dates and amounts across consent, import cost, processing, memory, GitHub
-  settings and usage. Repository activate, disable, policy, consent and
-  replacement requests join the existing step-up gate, so a lapsed freshness
-  window opens the authenticator form rather than a banner.
+- **What changed.** Consent expiry is one English date field: a calendar glyph
+  on the input, the shared `Calendar` on click, no hour/minute row. The posted
+  value is still a local datetime (end of the chosen day) the policy route
+  parses. Checkboxes stay native so they POST with the form, and they share
+  the control surface. `formatInstant` / `formatUsd` own customer-facing dates
+  and amounts across consent, import cost, processing, memory, GitHub settings
+  and usage. Repository activate, disable, policy, consent and replacement
+  requests join the existing step-up gate, so a lapsed freshness window opens
+  the authenticator form rather than a banner.
 - **Files.** `src/lib/format/display.ts`, `src/components/ui/calendar.tsx`,
   `src/components/ui/field.tsx`, `src/components/repositories/expires-picker.tsx`,
   `src/components/repositories/repository-actions.tsx`,

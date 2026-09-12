@@ -6,7 +6,7 @@ Updated: 2026-09-12
 
 - Active branch: `fix/console-english-display-and-consent-controls`. The
   Console now shows English short dates and trimmed USD amounts, consent expiry
-  uses the shared English calendar rather than native `datetime-local`, model
+  uses an English date field that opens the shared calendar, model
   profile choices use the shared checkbox, and a repository mutation that needs
   a fresher proof opens the authenticator ceremony instead of printing
   `REAUTHENTICATION_REQUIRED`. **Not deployed.**

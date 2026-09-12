@@ -1,45 +1,37 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { Calendar as CalendarGlyph } from "lucide-react"
 
 import { formatInstant } from "@/lib/format/display"
 import { Calendar } from "@/components/ui/calendar"
-import { Label, Select } from "@/components/ui/field"
+import { Input, Label } from "@/components/ui/field"
 
 /**
- * Choosing when automatic extraction consent expires.
+ * Choosing the last day automatic extraction consent is valid.
  *
- * A native `<input type="datetime-local">` renders its placeholder, its
- * picker and even "Today" / "Clear" in the browser's locale, so a Russian
- * system showed `ДД.ММ.ГГГГ` and `сентябрь` inside an English Console. The
- * calendar already owns English for the import range; this is the same
- * control with a time, because a consent expires at an instant.
+ * A native `<input type="datetime-local">` draws a calendar glyph on the
+ * field and opens its picker from that field. It also draws the placeholder
+ * and the picker in the browser locale, so a Russian system showed
+ * `ДД.ММ.ГГГГ` inside an English Console. This keeps the one-field control
+ * and the glyph, and uses the shared English calendar on click.
  *
- * Only the hidden field travels. The calendar and the two selects are the
- * control the reader uses.
+ * Only the hidden field travels. The route still wants an instant, so a
+ * chosen day posts as the end of that local day.
  */
 
 const pad = (value: number): string => String(value).padStart(2, "0")
 
-const HOURS = Array.from({ length: 24 }, (_, hour) => hour)
-const MINUTES = Array.from({ length: 60 }, (_, minute) => minute)
+const isoDay = (day: Date): string =>
+  `${day.getFullYear()}-${pad(day.getMonth() + 1)}-${pad(day.getDate())}`
 
-const toDatetimeLocal = (day: Date, hour: number, minute: number): string =>
-  `${day.getFullYear()}-${pad(day.getMonth() + 1)}-${pad(day.getDate())}T${pad(hour)}:${pad(minute)}`
+const toPostedExpiry = (day: Date): string => `${isoDay(day)}T23:59`
 
-const fromInstant = (
-  value: string | undefined,
-):
-  | { readonly day: Date; readonly hour: number; readonly minute: number }
-  | undefined => {
+const dayFromInstant = (value: string | undefined): Date | undefined => {
   if (value === undefined || value === "") return undefined
   const parsed = new Date(value)
   if (Number.isNaN(parsed.getTime())) return undefined
-  return {
-    day: new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate()),
-    hour: parsed.getHours(),
-    minute: parsed.getMinutes(),
-  }
+  return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate())
 }
 
 export const ExpiresPicker = ({
@@ -47,81 +39,105 @@ export const ExpiresPicker = ({
 }: {
   readonly defaultValue?: string | undefined
 }) => {
-  const initial = fromInstant(defaultValue)
-  const [selected, setSelected] = useState<Date | undefined>(initial?.day)
-  const [hour, setHour] = useState(initial?.hour ?? 23)
-  const [minute, setMinute] = useState(initial?.minute ?? 59)
+  const initial = dayFromInstant(defaultValue)
+  const [selected, setSelected] = useState<Date | undefined>(initial)
+  const [open, setOpen] = useState(false)
+  const rootRef = useRef<HTMLDivElement>(null)
 
   const today = useMemo(() => {
     const now = new Date()
     return new Date(now.getFullYear(), now.getMonth(), now.getDate())
   }, [])
 
+  const firstSelectable = useMemo(() => {
+    const now = new Date()
+    const endOfToday = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+      23,
+      59,
+    )
+    if (now.getTime() >= endOfToday.getTime()) {
+      return new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+    }
+    return today
+  }, [today])
+
   const horizon = useMemo(
     () => new Date(today.getFullYear() + 10, today.getMonth(), today.getDate()),
     [today],
   )
 
-  const complete = selected !== undefined
-  const posted = complete ? toDatetimeLocal(selected, hour, minute) : ""
+  useEffect(() => {
+    if (!open) return
+    const onPointerDown = (event: PointerEvent) => {
+      if (rootRef.current?.contains(event.target as Node) !== true) {
+        setOpen(false)
+      }
+    }
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false)
+    }
+    document.addEventListener("pointerdown", onPointerDown)
+    document.addEventListener("keydown", onKey)
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown)
+      document.removeEventListener("keydown", onKey)
+    }
+  }, [open])
+
+  const posted = selected !== undefined ? toPostedExpiry(selected) : ""
 
   return (
-    <div className="flex flex-col gap-2" data-testid="consent-expires-picker">
+    <div
+      ref={rootRef}
+      className="relative flex flex-col gap-2"
+      data-testid="consent-expires-picker"
+    >
       <Label htmlFor="expires-display">Expires</Label>
-      <input
-        id="expires-display"
-        type="text"
-        readOnly
-        required
-        value={complete ? formatInstant(posted) : ""}
-        placeholder="Pick a date and time"
-        className="border-input bg-card text-foreground placeholder:text-muted-foreground h-10 w-full rounded-lg border px-3 text-sm outline-none"
-      />
-      <input type="hidden" name="expiresAt" value={posted} />
-      <Calendar
-        mode="single"
-        selected={selected}
-        onSelect={setSelected}
-        disabled={{ before: today }}
-        defaultMonth={selected ?? today}
-        captionLayout="dropdown"
-        startMonth={today}
-        endMonth={horizon}
-        aria-label="Expiry date"
-        className="rounded-lg border border-input bg-card"
-      />
-      <div className="grid grid-cols-2 gap-3">
-        <div className="flex flex-col gap-1">
-          <Label htmlFor="expires-hour">Hour</Label>
-          <Select
-            id="expires-hour"
-            value={String(hour)}
-            onChange={(event) => setHour(Number(event.target.value))}
-            aria-label="Expiry hour"
-          >
-            {HOURS.map((value) => (
-              <option key={value} value={value}>
-                {pad(value)}
-              </option>
-            ))}
-          </Select>
-        </div>
-        <div className="flex flex-col gap-1">
-          <Label htmlFor="expires-minute">Minute</Label>
-          <Select
-            id="expires-minute"
-            value={String(minute)}
-            onChange={(event) => setMinute(Number(event.target.value))}
-            aria-label="Expiry minute"
-          >
-            {MINUTES.map((value) => (
-              <option key={value} value={value}>
-                {pad(value)}
-              </option>
-            ))}
-          </Select>
-        </div>
+      <div className="relative">
+        <Input
+          id="expires-display"
+          type="text"
+          readOnly
+          required
+          value={selected !== undefined ? formatInstant(isoDay(selected)) : ""}
+          placeholder="Pick a date"
+          aria-expanded={open}
+          aria-haspopup="dialog"
+          aria-controls="consent-expires-calendar"
+          onClick={() => setOpen((current) => !current)}
+          className="cursor-pointer pr-9"
+        />
+        <CalendarGlyph
+          aria-hidden
+          data-testid="consent-expires-icon"
+          className="text-muted-foreground pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2"
+          strokeWidth={1.5}
+        />
       </div>
+      <input type="hidden" name="expiresAt" value={posted} />
+      {open ? (
+        <div id="consent-expires-calendar" className="absolute top-full z-50 mt-1">
+          <Calendar
+            mode="single"
+            selected={selected}
+            onSelect={(day) => {
+              if (day === undefined) return
+              setSelected(day)
+              setOpen(false)
+            }}
+            disabled={{ before: firstSelectable }}
+            defaultMonth={selected ?? firstSelectable}
+            captionLayout="dropdown"
+            startMonth={firstSelectable}
+            endMonth={horizon}
+            aria-label="Expiry date"
+            className="rounded-lg border border-input bg-card shadow-panel"
+          />
+        </div>
+      ) : null}
     </div>
   )
 }
