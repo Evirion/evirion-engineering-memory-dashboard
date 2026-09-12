@@ -1,22 +1,23 @@
 import type { KnowledgeDetail } from "@contracts/console"
 
 import { ConsoleUnavailable } from "@/components/console/console-unavailable"
-import { formatInstant, formatUsdAmount } from "@/lib/format/display"
+import { formatInstant } from "@/lib/format/display"
 import { lifecycleStateLabel, reviewDecisionLabel } from "@/lib/knowledge/presentation"
 import type { KnowledgeEvidenceView } from "@/server/queries/knowledge"
 import { kickerClasses } from "@/components/ui/text"
 
 /**
- * One Knowledge Object's context, evidence and technical detail.
+ * One Knowledge Object's context and evidence.
  *
- * Three separations the contract fixes and this file holds:
+ * Two separations the contract fixes and this file holds:
  *
  * - review and lifecycle are two axes and are labelled as two;
  * - the evidence is visible before any review control, because `KD-002`
- *   requires the attribution to be readable before a decision is made;
- * - the technical block is customer-safe by construction. The raw model
- *   response, the Source Envelope body and every credential are absent from
- *   the projection, so there is nothing here to filter out.
+ *   requires the attribution to be readable before a decision is made.
+ *
+ * Technical identifiers, cost, latency and pipeline fingerprints stay off
+ * this page. The raw model response, the Source Envelope body and every
+ * credential remain absent from the projection.
  */
 
 const fact = "flex flex-col gap-1"
@@ -186,113 +187,5 @@ export const KnowledgeEvidenceList = ({ view }: { view: KnowledgeEvidenceView })
         </ol>
       )}
     </section>
-  )
-}
-
-const costLine = (
-  cost: NonNullable<KnowledgeDetail["technicalDetails"]["cost"]>,
-): string => {
-  switch (cost.completeness) {
-    case "MEASURED":
-      return `${formatUsdAmount(cost.measuredUsd)} USD, settled`
-    case "RESERVED":
-      return `${formatUsdAmount(cost.reservedUsd)} USD held, not yet settled`
-    case "UNRESOLVED":
-      // Never a zero and never a bare dash: an amount exists but cannot be
-      // attributed, which is a different fact from costing nothing.
-      return `${formatUsdAmount(cost.unresolvedUsd)} USD recorded but not attributable`
-    case "NOT_APPLICABLE":
-      return "No contributing job, so no cost"
-    case "UNSUPPORTED_SERVER_RESPONSE":
-      return "Unsupported cost state"
-    default: {
-      const exhaustive: never = cost.completeness
-      throw new Error(`unhandled cost completeness: ${String(exhaustive)}`)
-    }
-  }
-}
-
-export const KnowledgeTechnicalDetails = ({ detail }: { detail: KnowledgeDetail }) => {
-  const technical = detail.technicalDetails
-  const derivative = detail.review?.latestReview
-
-  return (
-    <details
-      data-testid="knowledge-technical"
-      className="rounded-2xl border border-border bg-card px-5 py-4 shadow-panel"
-    >
-      <summary className="cursor-pointer text-sm font-semibold text-foreground">
-        Technical details
-      </summary>
-      <dl className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <div className={fact}>
-          <dt className={term}>Extraction run</dt>
-          <dd className="font-mono text-xs text-ink-secondary">
-            {technical.extractionRunId}
-          </dd>
-        </div>
-        <div className={fact}>
-          <dt className={term}>Admission</dt>
-          <dd className="text-xs text-ink-secondary">
-            {technical.admissionDisposition} by {technical.admissionDecisionOrigin}
-          </dd>
-        </div>
-        <div className={fact}>
-          <dt className={term}>Model</dt>
-          <dd className="text-xs text-ink-secondary">
-            {technical.resolvedModelId ?? "Not recorded"}
-          </dd>
-        </div>
-        <div className={fact}>
-          <dt className={term}>Semantic pipeline</dt>
-          <dd className="font-mono text-xs break-all text-ink-secondary">
-            {technical.semanticPipelineFingerprint ?? "Not recorded"}
-          </dd>
-        </div>
-        <div className={fact}>
-          <dt className={term}>Extracted</dt>
-          <dd className="text-xs text-ink-secondary">
-            {technical.extractedAt === undefined || technical.extractedAt === null
-              ? "Not recorded"
-              : formatInstant(technical.extractedAt)}
-          </dd>
-        </div>
-        <div className={fact}>
-          <dt className={term}>Latency</dt>
-          <dd className="text-xs text-ink-secondary">
-            {technical.latencyMs === undefined || technical.latencyMs === null
-              ? "Not recorded"
-              : `${technical.latencyMs} ms`}
-          </dd>
-        </div>
-        <div className={fact}>
-          <dt className={term}>Cost</dt>
-          <dd className="text-xs text-ink-secondary">
-            {/* Not invoice authority. It is what this extraction recorded. */}
-            {technical.cost === undefined ? "Not recorded" : costLine(technical.cost)}
-          </dd>
-        </div>
-        <div className={fact}>
-          <dt className={term}>Token usage</dt>
-          <dd className="text-xs text-ink-secondary">
-            {technical.tokenUsage === undefined
-              ? "Not recorded"
-              : Object.entries(technical.tokenUsage)
-                  .map(([name, count]) => `${name} ${String(count)}`)
-                  .join(", ")}
-          </dd>
-        </div>
-        {/* `KD-001` asks for the edit schema version here rather than beside
-            the derivative, so the reviewer's words stay readable as words. */}
-        {derivative?.editSchemaVersion === undefined ? null : (
-          <div className={fact}>
-            <dt className={term}>Edit schema</dt>
-            <dd className="text-xs text-ink-secondary">
-              Version {derivative.editSchemaVersion}
-            </dd>
-          </div>
-        )}
-      </dl>
-    </details>
   )
 }
