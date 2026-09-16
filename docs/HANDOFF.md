@@ -4,12 +4,14 @@ Updated: 2026-09-16
 
 ## Current state
 
-- Active branch: `MEM-UX/03-06-memory-queue-and-supersession-picker`. MEM-UX/03
-  (claim-led queue cards, collapsible GET filters with removable chips) and
-  MEM-UX/06 (supersession replacement radio cards) are implemented and locally
-  verified on this branch as one pull request, including Playwright
-  `tests/e2e/memory.spec.ts` and `tests/e2e/memory-review.spec.ts`. The next
-  action is your review, then commit, push, and PR; **not merged or deployed.**
+- Active branch: `MEM-UX/04-knowledge-detail-decision-first`. MEM-UX/04
+  (decision-first Knowledge Object layout with collapsed secondary sections) is
+  implemented and locally verified on this branch, including Playwright
+  `memory-detail`, `memory-review`, `reauthentication`, `accessibility`,
+  `memory-boundary`, `xss-corpus`, and `reauthentication-boundary` (118 passed).
+  The next action is your review, then commit, push, and PR; **not merged or
+  deployed.**
+- Prior: MEM-UX/03 and MEM-UX/06 merged on `main` as `3979c36`.
 - Prior: MEM-UX/05 and MEM-UX/07 merged on `main` as `2c0236d`.
 - Prior branch: `fix/replay-repository-policy`. Saving Live processing after a
   valid authenticator code threw because replay had no handler for

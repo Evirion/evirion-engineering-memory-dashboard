@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test"
 
+import { KNOWLEDGE } from "../../tools/console-stub/fixtures.mjs"
 import { signIn } from "../support/session-fixture"
 
 /**
@@ -228,5 +229,54 @@ test.describe("keyboard_focus_name_status_and_contrast_gate", () => {
     // under a screen reader that has no reason to re-read it.
     const live = page.locator("[role='status'], [role='alert'], [aria-live]")
     await expect(live.first()).toBeAttached()
+  })
+
+  test("knowledge detail disclosures open, receive focus, and release it from the keyboard", async ({
+    context,
+    page,
+  }) => {
+    await signIn(context, { scenario: "memory" })
+    await page.goto(`/memory/${KNOWLEDGE.pending}`)
+
+    const approve = page.getByTestId("review-approve").locator("xpath=ancestor::details[1]")
+    const summary = approve.locator("summary")
+
+    await summary.focus()
+    await expect(summary).toBeFocused()
+
+    const focus = await page.evaluate(() => {
+      const active = document.activeElement
+      if (active === null) return undefined
+      const style = getComputedStyle(active)
+      return {
+        outlineWidth: style.outlineWidth,
+        outlineStyle: style.outlineStyle,
+        boxShadow: style.boxShadow,
+      }
+    })
+    const visibleFocus =
+      (focus?.outlineStyle !== "none" && focus?.outlineWidth !== "0px") ||
+      (focus?.boxShadow !== undefined && focus.boxShadow !== "none")
+    expect(visibleFocus, "disclosure summary has no visible focus").toBe(true)
+
+    await page.keyboard.press("Enter")
+    await expect(approve).toHaveAttribute("open", "")
+
+    await page.keyboard.press("Tab")
+    expect(
+      await page.evaluate(
+        () => document.activeElement?.closest('[data-testid="review-approve"]') !== null,
+      ),
+    ).toBe(true)
+
+    await page.keyboard.press("Shift+Tab")
+    await expect(summary).toBeFocused()
+
+    await page.keyboard.press("Enter")
+    await expect(approve).not.toHaveAttribute("open")
+
+    await page.keyboard.press("Tab")
+    expect(await page.evaluate(() => document.activeElement?.tagName)).toBe("SUMMARY")
+    await expect(summary).not.toBeFocused()
   })
 })

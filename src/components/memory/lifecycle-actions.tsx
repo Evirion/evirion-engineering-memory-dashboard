@@ -1,8 +1,12 @@
 import type { KnowledgeDetail } from "@contracts/console"
 
 import { GatedForm } from "@/components/auth/gated-form"
-import { ReauthenticationPreconditionNotice } from "@/components/auth/reauthentication-notice"
+import {
+  REAUTHENTICATION_PRECONDITION_SUMMARY,
+  ReauthenticationPreconditionNotice,
+} from "@/components/auth/reauthentication-notice"
 import { ConsoleUnavailable } from "@/components/console/console-unavailable"
+import { MemoryDisclosure } from "@/components/memory/disclosure"
 import type { KnowledgeControls } from "@/lib/knowledge/presentation"
 import type { SupersessionContext } from "@/server/queries/knowledge"
 import { buttonVariants } from "@/components/ui/button"
@@ -14,7 +18,6 @@ import {
   Select,
   Textarea,
 } from "@/components/ui/field"
-import { panelVariants } from "@/components/ui/panel"
 import { SubmitButton } from "@/components/ui/submit-button"
 
 /**
@@ -37,7 +40,7 @@ import { SubmitButton } from "@/components/ui/submit-button"
  * precondition rather than claiming to know it is met.
  */
 
-const card = panelVariants({ className: "flex flex-col gap-3" })
+const formBody = "flex flex-col gap-3"
 const button = buttonVariants({ variant: "primary", className: "self-start" })
 
 const CORRECTION_TYPES = [
@@ -91,44 +94,46 @@ export const MarkActiveForm = ({
   knowledgeReturnPath,
 }: LifecycleFormProps) =>
   controls.canMarkActive ? (
-    <GatedForm
-      action="/api/memory/activate"
-      freshUntil={reauthenticationFreshUntil}
-      gate="knowledge_lifecycle"
-      returnPath={knowledgeReturnPath}
-      mutationPath="/api/memory/activate"
-      dataTestId="lifecycle-activate"
-      className={card}
+    <MemoryDisclosure
+      summary="Mark active"
+      hint={REAUTHENTICATION_PRECONDITION_SUMMARY}
     >
-      <Hidden
-        detail={detail}
-        csrfToken={csrfToken}
-        idempotencyKey={idempotencyKeys["activate"] ?? ""}
-      />
-      <input
-        type="hidden"
-        name="expectedReviewSequence"
-        value={String(detail.lifecycle.reviewSequence)}
-      />
-      <input
-        type="hidden"
-        name="expectedLifecycleVersion"
-        value={String(detail.lifecycle.lifecycleVersion)}
-      />
-      <div className="flex flex-col gap-1">
-        <h3 className="text-sm font-semibold text-foreground">Mark active</h3>
+      <GatedForm
+        action="/api/memory/activate"
+        freshUntil={reauthenticationFreshUntil}
+        gate="knowledge_lifecycle"
+        returnPath={knowledgeReturnPath}
+        mutationPath="/api/memory/activate"
+        dataTestId="lifecycle-activate"
+        className={formBody}
+      >
+        <Hidden
+          detail={detail}
+          csrfToken={csrfToken}
+          idempotencyKey={idempotencyKeys["activate"] ?? ""}
+        />
+        <input
+          type="hidden"
+          name="expectedReviewSequence"
+          value={String(detail.lifecycle.reviewSequence)}
+        />
+        <input
+          type="hidden"
+          name="expectedLifecycleVersion"
+          value={String(detail.lifecycle.lifecycleVersion)}
+        />
         <p className="text-xs text-ink-secondary">
           Confirms this is current knowledge and lets retrieval return it. It records no
           review and changes no earlier decision.
         </p>
         <ReauthenticationNotice testId="lifecycle-reauth-notice" />
-      </div>
-      <Field>
-        <Label htmlFor="activateNote">Note</Label>
-        <Textarea id="activateNote" name="note" rows={2} maxLength={2000} />
-      </Field>
-      <SubmitButton className={button}>Mark active</SubmitButton>
-    </GatedForm>
+        <Field>
+          <Label htmlFor="activateNote">Note</Label>
+          <Textarea id="activateNote" name="note" rows={2} maxLength={2000} />
+        </Field>
+        <SubmitButton className={button}>Mark active</SubmitButton>
+      </GatedForm>
+    </MemoryDisclosure>
   ) : null
 
 /**
@@ -144,14 +149,12 @@ const SupersedePicker = ({ supersession }: { supersession: SupersessionContext }
       : undefined
 
   return (
-    <form method="get" data-testid="lifecycle-supersede-pick" className={card}>
-      <div className="flex flex-col gap-1">
-        <h3 className="text-sm font-semibold text-foreground">Mark superseded</h3>
+    <MemoryDisclosure summary="Mark superseded">
+      <form method="get" data-testid="lifecycle-supersede-pick" className={formBody}>
         <p className="text-xs text-ink-secondary">
           Choose the newer Knowledge Object that replaces this one. Nothing is recorded
           until you confirm the direction on the next step.
         </p>
-      </div>
       {supersession.candidates.length === 0 ? (
         <p className="text-sm text-ink-secondary">
           No reviewed Knowledge Object is available to replace this one. A replacement
@@ -201,7 +204,8 @@ const SupersedePicker = ({ supersession }: { supersession: SupersessionContext }
           <SubmitButton className={button}>Review the direction</SubmitButton>
         </>
       )}
-    </form>
+      </form>
+    </MemoryDisclosure>
   )
 }
 
@@ -226,15 +230,20 @@ const SupersedeConfirm = ({
   }
 
   return (
-    <GatedForm
-      action="/api/memory/supersede"
-      freshUntil={reauthenticationFreshUntil}
-      gate="knowledge_lifecycle"
-      returnPath={knowledgeReturnPath}
-      mutationPath="/api/memory/supersede"
-      dataTestId="lifecycle-supersede-confirm"
-      className={card}
+    <MemoryDisclosure
+      summary="Confirm the direction"
+      hint={REAUTHENTICATION_PRECONDITION_SUMMARY}
+      open
     >
+      <GatedForm
+        action="/api/memory/supersede"
+        freshUntil={reauthenticationFreshUntil}
+        gate="knowledge_lifecycle"
+        returnPath={knowledgeReturnPath}
+        mutationPath="/api/memory/supersede"
+        dataTestId="lifecycle-supersede-confirm"
+        className={formBody}
+      >
       <Hidden
         detail={detail}
         csrfToken={csrfToken}
@@ -266,19 +275,16 @@ const SupersedeConfirm = ({
         name="expectedNewLifecycleVersion"
         value={String(target.lifecycleVersion)}
       />
-      <div className="flex flex-col gap-1">
-        <h3 className="text-sm font-semibold text-foreground">Confirm the direction</h3>
-        {/* The direction is stated in words, not implied by layout. */}
-        <p data-testid="supersede-direction" className="text-sm text-foreground">
-          <strong>{target.shortClaim}</strong> supersedes{" "}
-          <strong>{detail.knowledge}</strong>.
-        </p>
-        <p className="text-xs text-ink-secondary">
-          The newer object replaces this one. This one becomes superseded; the newer one
-          is not activated by this, which is a separate decision.
-        </p>
-        <ReauthenticationNotice testId="lifecycle-reauth-notice" />
-      </div>
+      {/* The direction is stated in words, not implied by layout. */}
+      <p data-testid="supersede-direction" className="text-sm text-foreground">
+        <strong>{target.shortClaim}</strong> supersedes{" "}
+        <strong>{detail.knowledge}</strong>.
+      </p>
+      <p className="text-xs text-ink-secondary">
+        The newer object replaces this one. This one becomes superseded; the newer one
+        is not activated by this, which is a separate decision.
+      </p>
+      <ReauthenticationNotice testId="lifecycle-reauth-notice" />
       <Field>
         <Label htmlFor="supersedeNote">Note</Label>
         <Textarea id="supersedeNote" name="note" rows={2} maxLength={2000} />
@@ -286,7 +292,8 @@ const SupersedeConfirm = ({
       <SubmitButton className={button}>
         Record that the newer object supersedes this one
       </SubmitButton>
-    </GatedForm>
+      </GatedForm>
+    </MemoryDisclosure>
   )
 }
 
@@ -305,15 +312,19 @@ export const RequestCorrectionForm = ({
   )
 
   return (
-    <GatedForm
-      action="/api/memory/corrections"
-      freshUntil={reauthenticationFreshUntil}
-      gate="knowledge_lifecycle"
-      returnPath={knowledgeReturnPath}
-      mutationPath="/api/memory/corrections"
-      dataTestId="lifecycle-correction"
-      className={card}
+    <MemoryDisclosure
+      summary="Ask Evirion to correct this"
+      hint={REAUTHENTICATION_PRECONDITION_SUMMARY}
     >
+      <GatedForm
+        action="/api/memory/corrections"
+        freshUntil={reauthenticationFreshUntil}
+        gate="knowledge_lifecycle"
+        returnPath={knowledgeReturnPath}
+        mutationPath="/api/memory/corrections"
+        dataTestId="lifecycle-correction"
+        className={formBody}
+      >
       <Hidden
         detail={detail}
         csrfToken={csrfToken}
@@ -329,18 +340,13 @@ export const RequestCorrectionForm = ({
         name="expectedLifecycleVersion"
         value={String(detail.lifecycle.lifecycleVersion)}
       />
-      <div className="flex flex-col gap-1">
-        <h3 className="text-sm font-semibold text-foreground">
-          Ask Evirion to correct this
-        </h3>
-        <p className="text-xs text-ink-secondary">
-          {/* The customer creates and reads a request. Executing, declining
-              and retrying one are Evirion operations. */}
-          You are asking Evirion to make the change. Nothing moves until an Evirion
-          operator applies it, and you can follow the request below.
-        </p>
-        <ReauthenticationNotice testId="lifecycle-reauth-notice" />
-      </div>
+      <p className="text-xs text-ink-secondary">
+        {/* The customer creates and reads a request. Executing, declining
+            and retrying one are Evirion operations. */}
+        You are asking Evirion to make the change. Nothing moves until an Evirion
+        operator applies it, and you can follow the request below.
+      </p>
+      <ReauthenticationNotice testId="lifecycle-reauth-notice" />
       <Field>
         <Label htmlFor="requestType" required>
           What should change
@@ -410,7 +416,8 @@ export const RequestCorrectionForm = ({
         <FieldHint>Required when the reason is &quot;Another reason&quot;.</FieldHint>
       </Field>
       <SubmitButton className={button}>Send the request to Evirion</SubmitButton>
-    </GatedForm>
+      </GatedForm>
+    </MemoryDisclosure>
   )
 }
 

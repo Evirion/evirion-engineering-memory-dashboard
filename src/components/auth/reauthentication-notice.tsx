@@ -14,13 +14,16 @@
  * between two ways of doing one thing, and the one they picked first would be
  * the one that already worked.
  */
+export const REAUTHENTICATION_PRECONDITION_SUMMARY =
+  "Submitting may first ask for a code from your authenticator app."
+
 export const ReauthenticationPreconditionNotice = ({
   testId = "reauth-precondition-notice",
 }: {
   testId?: string
 }) => (
   <p data-testid={testId} className="text-xs text-ink-secondary">
-    Submitting may first ask for a code from your authenticator app. It then finishes on
-    its own: you stay signed in, and nothing you entered here is lost.
+    {REAUTHENTICATION_PRECONDITION_SUMMARY} It then finishes on its own: you stay signed
+    in, and nothing you entered here is lost.
   </p>
 )

@@ -1,6 +1,9 @@
+import type { ReactNode } from "react"
+
 import type { KnowledgeDetail } from "@contracts/console"
 
 import { ConsoleUnavailable } from "@/components/console/console-unavailable"
+import { MemoryDisclosure } from "@/components/memory/disclosure"
 import { formatInstant } from "@/lib/format/display"
 import { lifecycleStateLabel, reviewDecisionLabel } from "@/lib/knowledge/presentation"
 import type { KnowledgeEvidenceView } from "@/server/queries/knowledge"
@@ -20,17 +23,17 @@ import { kickerClasses } from "@/components/ui/text"
  * credential remain absent from the projection.
  */
 
-const fact = "flex flex-col gap-1"
-const term = kickerClasses()
+const fact = "flex flex-col gap-0.5"
+const term = kickerClasses("text-[0.65rem]")
 const value = "text-sm text-foreground"
 
 export const KnowledgeStates = ({ detail }: { detail: KnowledgeDetail }) => (
   <section
     aria-label="Review and lifecycle"
     data-testid="knowledge-states"
-    className="rounded-2xl border border-border bg-card px-5 py-4 shadow-panel"
+    className="flex flex-col gap-2 border-b border-border pb-4"
   >
-    <dl className="grid gap-4 sm:grid-cols-3">
+    <dl className="flex flex-wrap gap-x-6 gap-y-2">
       <div className={fact}>
         <dt className={term}>Human review</dt>
         {/* Sequence zero is the absence of a review, which is pending rather
@@ -52,11 +55,40 @@ export const KnowledgeStates = ({ detail }: { detail: KnowledgeDetail }) => (
         </dd>
       </div>
     </dl>
-    <p className="mt-3 text-xs text-ink-secondary">
+    <p className="text-xs text-ink-secondary">
       Reviewing a Knowledge Object does not activate it, and activating one does not
       close its review.
     </p>
   </section>
+)
+
+export const KnowledgeSourceDisclosure = ({ detail }: { detail: KnowledgeDetail }) => (
+  <MemoryDisclosure summary="Source context" testId="knowledge-source-disclosure">
+    <KnowledgeSourceContext detail={detail} />
+  </MemoryDisclosure>
+)
+
+export const ReviewHistoryDisclosure = ({
+  children,
+}: {
+  readonly children: ReactNode
+}) => (
+  <MemoryDisclosure summary="Review history" testId="review-history-disclosure">
+    {children}
+  </MemoryDisclosure>
+)
+
+export const CorrectionRequestsDisclosure = ({
+  children,
+}: {
+  readonly children: ReactNode
+}) => (
+  <MemoryDisclosure
+    summary="Correction requests"
+    testId="correction-requests-disclosure"
+  >
+    {children}
+  </MemoryDisclosure>
 )
 
 export const KnowledgeSourceContext = ({ detail }: { detail: KnowledgeDetail }) => {
@@ -66,7 +98,7 @@ export const KnowledgeSourceContext = ({ detail }: { detail: KnowledgeDetail }) 
     <section
       aria-label="Source context"
       data-testid="knowledge-source"
-      className="rounded-2xl border border-border bg-card px-5 py-4 shadow-panel"
+      className="flex flex-col gap-4"
     >
       <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className={fact}>

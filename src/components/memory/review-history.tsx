@@ -1,4 +1,5 @@
 import { ConsoleUnavailable } from "@/components/console/console-unavailable"
+import { ReviewHistoryDisclosure } from "@/components/memory/knowledge-detail"
 import { formatInstant } from "@/lib/format/display"
 import {
   lifecycleStateLabel,
@@ -8,7 +9,7 @@ import {
 import type { KnowledgeHistoryView } from "@/server/queries/knowledge"
 import { panelVariants } from "@/components/ui/panel"
 import { StatusChip } from "@/components/ui/status-chip"
-import { SectionTitle, Technical } from "@/components/ui/text"
+import { Technical } from "@/components/ui/text"
 
 /**
  * Every review decision ever recorded against one Knowledge Object.
@@ -35,18 +36,16 @@ export const ReviewHistory = ({ view }: { view: KnowledgeHistoryView }) => {
   const reviews = view.history.reviews
 
   return (
-    <section
-      aria-label="Review history"
-      data-testid="review-history"
-      className="flex flex-col gap-3"
-    >
-      <div className="flex flex-col gap-1">
-        <SectionTitle>Review history</SectionTitle>
+    <ReviewHistoryDisclosure>
+      <section
+        aria-label="Review history"
+        data-testid="review-history"
+        className="flex flex-col gap-3"
+      >
         <p className="text-muted-foreground max-w-[68ch] text-xs leading-5">
           Every decision is kept. A later decision is appended beside the earlier ones
           and never replaces one.
         </p>
-      </div>
 
       {reviews.length === 0 ? (
         <p
@@ -108,6 +107,7 @@ export const ReviewHistory = ({ view }: { view: KnowledgeHistoryView }) => {
           ))}
         </ol>
       )}
-    </section>
+      </section>
+    </ReviewHistoryDisclosure>
   )
 }

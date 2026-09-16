@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test"
 
 import { KNOWLEDGE, REPOSITORIES } from "../../tools/console-stub/fixtures.mjs"
+import { clickMemorySubmit } from "../support/memory-detail-fixture"
 import { signIn } from "../support/session-fixture"
 
 /**
@@ -83,7 +84,7 @@ test.describe("reauthentication boundary", () => {
     const { token } = await signIn(context, { scenario: "memoryStaleFreshness" })
     await page.goto(detailOf(KNOWLEDGE.approved))
 
-    await page.getByRole("button", { name: "Mark active" }).click()
+    await clickMemorySubmit(page, "lifecycle-activate", "Mark active")
     await expect(page.getByTestId("reauth-ceremony")).toBeVisible()
 
     expect(queryHasSecret(page.url())).toBe(false)

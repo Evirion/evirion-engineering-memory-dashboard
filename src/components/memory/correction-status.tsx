@@ -1,3 +1,4 @@
+import { CorrectionRequestsDisclosure } from "@/components/memory/knowledge-detail"
 import { ConsoleUnavailable } from "@/components/console/console-unavailable"
 import { formatInstant } from "@/lib/format/display"
 import {
@@ -8,7 +9,7 @@ import {
 import type { KnowledgeCorrectionsView } from "@/server/queries/knowledge"
 import { panelVariants } from "@/components/ui/panel"
 import { StatusChip } from "@/components/ui/status-chip"
-import { kickerClasses, SectionTitle, Technical } from "@/components/ui/text"
+import { kickerClasses, Technical } from "@/components/ui/text"
 
 /**
  * The correction requests this Knowledge Object carries.
@@ -36,18 +37,16 @@ export const CorrectionRequests = ({ view }: { view: KnowledgeCorrectionsView })
   if (requests.length === 0) return null
 
   return (
-    <section
-      aria-label="Correction requests"
-      data-testid="correction-requests"
-      className="flex flex-col gap-3"
-    >
-      <div className="flex flex-col gap-1">
-        <SectionTitle>Correction requests</SectionTitle>
+    <CorrectionRequestsDisclosure>
+      <section
+        aria-label="Correction requests"
+        data-testid="correction-requests"
+        className="flex flex-col gap-3"
+      >
         <p className="text-muted-foreground max-w-[68ch] text-xs leading-5">
           Requests you have sent to Evirion. Evirion applies or declines each one; there
           is nothing to do here while one is in progress.
         </p>
-      </div>
 
       <ol aria-label="Requests" className="flex flex-col gap-3">
         {requests.map((request) => (
@@ -127,6 +126,7 @@ export const CorrectionRequests = ({ view }: { view: KnowledgeCorrectionsView })
           </li>
         ))}
       </ol>
-    </section>
+      </section>
+    </CorrectionRequestsDisclosure>
   )
 }

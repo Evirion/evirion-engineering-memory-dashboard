@@ -2,6 +2,15 @@ import type { Page } from "@playwright/test"
 import { expect, test } from "@playwright/test"
 
 import { KNOWLEDGE, KNOWLEDGE_OBJECTS } from "../../tools/console-stub/fixtures.mjs"
+import {
+  clickMemorySubmit,
+  openCorrectionRequestsSection,
+  openKnowledgePayload,
+  openKnowledgeSource,
+  openLifecycleForm,
+  openReviewForm,
+  openReviewHistorySection,
+} from "../support/memory-detail-fixture"
 import { STUB_ORIGIN, signIn } from "../support/session-fixture"
 
 /**
@@ -54,6 +63,7 @@ test.describe("approve_original", () => {
     await signIn(context, { scenario: "memory" })
     await page.goto(detailOf(KNOWLEDGE.pending))
 
+    await openReviewForm(page, "review-approve")
     await page.getByRole("button", { name: "Approve the original" }).click()
 
     // A committed receipt, not a published error code. Routing it through the
@@ -75,6 +85,7 @@ test.describe("approve_original", () => {
     await page.goto(detailOf(KNOWLEDGE.approved))
 
     const before = await page.getByTestId("review-history-entry").count()
+    await openReviewForm(page, "review-edit")
     await page.getByRole("button", { name: "Record the edit" }).click()
 
     await expect(page.getByTestId("review-history-entry")).toHaveCount(before + 1)
@@ -93,6 +104,7 @@ test.describe("approve_original", () => {
 
     // The rendered form carries one minted key. Submitting the same bytes
     // twice is the response-loss case, and it must not append two reviews.
+    await openReviewForm(page, "review-approve")
     const form = page.getByTestId("review-approve")
     const payload = {
       csrfToken: await csrfFrom(page),
@@ -134,6 +146,7 @@ test.describe("edit_with_evidence_warning", () => {
     await signIn(context, { scenario: "memory" })
     await page.goto(detailOf(KNOWLEDGE.pending))
 
+    await openReviewForm(page, "review-edit")
     await expect(page.getByTestId("review-edit")).toContainText(
       "The evidence is not re-extracted",
     )
@@ -147,6 +160,7 @@ test.describe("edit_with_evidence_warning", () => {
     await page.goto(detailOf(KNOWLEDGE.pending))
 
     const original = objects[KNOWLEDGE.pending]?.base.originalPayload["knowledge"]
+    await openReviewForm(page, "review-edit")
     await page
       .getByRole("textbox", { name: "Knowledge (required)", exact: true })
       .fill("A reviewer's restatement of the same claim.")
@@ -171,6 +185,7 @@ test.describe("edit_with_evidence_warning", () => {
 
     // The schema puts no lower bound on the seven arrays, so a claim that
     // documents no trade-off must be editable exactly like one that does.
+    await openReviewForm(page, "review-edit")
     for (const label of [
       "Documented trade-offs",
       "Explicit alternatives",
@@ -197,6 +212,7 @@ test.describe("edit_with_evidence_warning", () => {
     await signIn(context, { scenario: "memory" })
     await page.goto(detailOf(KNOWLEDGE.edited))
 
+    await openReviewForm(page, "review-edit")
     // Prefilling from the machine extraction would silently discard the words
     // the previous reviewer chose the moment a second edit is opened.
     const derivative =
@@ -217,6 +233,7 @@ test.describe("edit_with_evidence_warning", () => {
 
     // `REV-002` lists both enums among the thirteen editable keys, so neither
     // is carried through as a fixed hidden value.
+    await openReviewForm(page, "review-edit")
     await page.getByLabel("Knowledge type").selectOption("SecurityBehavior")
     await page.getByLabel("Implementation status").selectOption("proposed")
     await page.getByRole("button", { name: "Record the edit" }).click()
@@ -259,6 +276,7 @@ test.describe("reject_reason", () => {
     await signIn(context, { scenario: "memory" })
     await page.goto(detailOf(KNOWLEDGE.pending))
 
+    await openReviewForm(page, "review-reject")
     await page.getByLabel("Reason").selectOption("TOO_VAGUE")
     await page
       .getByTestId("review-reject")
@@ -279,6 +297,7 @@ test.describe("reject_reason", () => {
     await page.goto(detailOf(KNOWLEDGE.pending))
     const url = page.url()
 
+    await openReviewForm(page, "review-reject")
     await page.getByRole("button", { name: "Reject", exact: true }).click()
 
     await expect(page).toHaveURL(url)
@@ -299,10 +318,12 @@ test.describe("reject_reason", () => {
     await page.goto(detailOf(KNOWLEDGE.pending))
     const quote = objects[KNOWLEDGE.pending]?.evidence[0]?.quote ?? "unreachable"
 
+    await openReviewForm(page, "review-reject")
     await page.getByLabel("Reason").selectOption("INCORRECT")
     await page.getByRole("button", { name: "Reject", exact: true }).click()
 
     // A rejection is a human decision. It changes no machine provenance.
+    await openKnowledgePayload(page)
     await expect(page.getByTestId("knowledge-original")).toBeVisible()
     await expect(page.getByTestId("knowledge-evidence")).toContainText(quote)
     await expect(page.getByTestId("knowledge-states")).toContainText(
@@ -341,6 +362,7 @@ test.describe("reject_reason", () => {
     // `12.1`: normal Reject exists only while the lifecycle is unresolved.
     // Correcting an active object is the operator workflow instead.
     await expect(page.getByTestId("review-reject")).toHaveCount(0)
+    await openReviewForm(page, "review-edit")
     await expect(page.getByTestId("review-edit")).toBeVisible()
   })
 })
@@ -422,6 +444,7 @@ test.describe("stale_review_conflict", () => {
     await signIn(context, { scenario: "memory" })
     await page.goto(detailOf(KNOWLEDGE.pending))
 
+    await openReviewForm(page, "review-approve")
     const form = page.getByTestId("review-approve")
     // Sequence zero is PENDING and version zero is UNRESOLVED. Both must be
     // present as themselves rather than omitted for being falsy.
@@ -440,6 +463,7 @@ test.describe("revert_is_explicit", () => {
     // `REV-005`: an edit is already a completed human decision, so there is no
     // generic edited-to-approved transition that would discard it silently.
     await expect(page.getByTestId("review-approve")).toHaveCount(0)
+    await openReviewForm(page, "review-revert")
     await expect(page.getByTestId("review-revert")).toBeVisible()
   })
 
@@ -447,6 +471,7 @@ test.describe("revert_is_explicit", () => {
     await signIn(context, { scenario: "memory" })
     await page.goto(detailOf(KNOWLEDGE.edited))
 
+    await openReviewForm(page, "review-revert")
     await expect(page.getByTestId("review-revert")).toContainText(
       "The earlier edit is kept in the history and is not deleted",
     )
@@ -460,8 +485,10 @@ test.describe("revert_is_explicit", () => {
     await page.goto(detailOf(KNOWLEDGE.edited))
     const before = await page.getByTestId("review-history-entry").count()
 
+    await openReviewForm(page, "review-revert")
     await page
-      .getByRole("button", { name: "Revert to the original and approve" })
+      .getByTestId("review-revert")
+      .getByRole("button", { name: "Confirm revert and approve" })
       .click()
 
     await expect(page.getByTestId("review-history-entry")).toHaveCount(before + 1)
@@ -474,6 +501,7 @@ test.describe("revert_is_explicit", () => {
     // The derivative panel is gone because the effective review is no longer
     // an edit, and the machine extraction is where it always was.
     await expect(page.getByTestId("knowledge-edited")).toHaveCount(0)
+    await openKnowledgePayload(page)
     await expect(page.getByTestId("knowledge-original")).toBeVisible()
   })
 
@@ -484,6 +512,7 @@ test.describe("revert_is_explicit", () => {
     await signIn(context, { scenario: "memory" })
     await page.goto(detailOf(KNOWLEDGE.userRejected))
 
+    await openReviewHistorySection(page)
     const history = page.getByTestId("review-history")
     // Thirteen appended decisions, oldest first, none of them editable.
     await expect(page.getByTestId("review-history-entry")).toHaveCount(13)
@@ -528,6 +557,7 @@ test.describe("unresolved_state", () => {
     await signIn(context, { scenario: "memory" })
     await page.goto(detailOf(KNOWLEDGE.pending))
 
+    await openReviewForm(page, "review-approve")
     await page.getByRole("button", { name: "Approve the original" }).click()
 
     // The two axes are independent: approving does not activate.
@@ -552,7 +582,7 @@ test.describe("mark_active", () => {
     await signIn(context, { scenario: "memory" })
     await page.goto(detailOf(KNOWLEDGE.approved))
 
-    await page.getByRole("button", { name: "Mark active" }).click()
+    await clickMemorySubmit(page, "lifecycle-activate", "Mark active")
 
     await expect(
       page.getByTestId("knowledge-outcome-KNOWLEDGE_MARKED_ACTIVE"),
@@ -568,7 +598,7 @@ test.describe("mark_active", () => {
     await page.goto(detailOf(KNOWLEDGE.approved))
     const before = await page.getByTestId("review-history-entry").count()
 
-    await page.getByRole("button", { name: "Mark active" }).click()
+    await clickMemorySubmit(page, "lifecycle-activate", "Mark active")
 
     await expect(page.getByTestId("review-history-entry")).toHaveCount(before)
     await expect(page.getByTestId("knowledge-states")).toContainText("Approved")
@@ -586,6 +616,7 @@ test.describe("mark_active", () => {
     // states it rather than claiming to know. What it must not leave to
     // guesswork is how the requirement is met: a reader told only that their
     // identity needs confirming reasonably concludes they have to sign out.
+    await openLifecycleForm(page, "lifecycle-activate")
     const notice = page
       .getByTestId("lifecycle-activate")
       .getByTestId("lifecycle-reauth-notice")
@@ -633,6 +664,7 @@ test.describe("supersede_direction", () => {
     await signIn(context, { scenario: "memory" })
     await page.goto(detailOf(KNOWLEDGE.approved))
 
+    await openLifecycleForm(page, "lifecycle-supersede-pick")
     await page
       .getByRole("radio", { name: new RegExp(claimOf(KNOWLEDGE.active)) })
       .check()
@@ -654,10 +686,12 @@ test.describe("supersede_direction", () => {
     const session = await signIn(context, { scenario: "memory" })
     await page.goto(detailOf(KNOWLEDGE.approved))
 
+    await openLifecycleForm(page, "lifecycle-supersede-pick")
     await page
       .getByRole("radio", { name: new RegExp(claimOf(KNOWLEDGE.active)) })
       .check()
     await page.getByRole("button", { name: "Review the direction" }).click()
+    await openLifecycleForm(page, "lifecycle-supersede-confirm")
     await page
       .getByRole("button", {
         name: "Record that the newer object supersedes this one",
@@ -712,6 +746,7 @@ test.describe("supersede_direction", () => {
     const third = "00000000-0000-4000-8000-000000000213"
     await page.goto(`${detailOf(fourth)}?supersedeWith=${third}`)
 
+    await openLifecycleForm(page, "lifecycle-supersede-confirm")
     await page
       .getByRole("button", {
         name: "Record that the newer object supersedes this one",
@@ -731,6 +766,7 @@ test.describe("supersede_direction", () => {
     const first = "00000000-0000-4000-8000-000000000211"
     await page.goto(`${detailOf(fourth)}?supersedeWith=${first}`)
 
+    await openLifecycleForm(page, "lifecycle-supersede-confirm")
     await page
       .getByRole("button", {
         name: "Record that the newer object supersedes this one",
@@ -779,6 +815,7 @@ test.describe("correction_history", () => {
     await signIn(context, { scenario: "memory" })
     await page.goto(detailOf(KNOWLEDGE.correctionOpen))
 
+    await openCorrectionRequestsSection(page)
     const requests = page.getByTestId("correction-request")
     await expect(requests).toHaveCount(5)
 
@@ -799,6 +836,7 @@ test.describe("correction_history", () => {
     await signIn(context, { scenario: "memory" })
     await page.goto(detailOf(KNOWLEDGE.correctionOpen))
 
+    await openCorrectionRequestsSection(page)
     const failed = page.locator(
       '[data-testid="correction-request"][data-status="FAILED"]',
     )
@@ -814,6 +852,7 @@ test.describe("correction_history", () => {
     await signIn(context, { scenario: "memory" })
     await page.goto(detailOf(KNOWLEDGE.correctionOpen))
 
+    await openCorrectionRequestsSection(page)
     const executed = page.locator(
       '[data-testid="correction-request"][data-status="EXECUTED"]',
     )
@@ -839,6 +878,7 @@ test.describe("correction_history", () => {
     await signIn(context, { scenario: "memory" })
     await page.goto(detailOf(KNOWLEDGE.superseded))
 
+    await openLifecycleForm(page, "lifecycle-correction")
     await page.getByLabel("What should change").selectOption("RETRACT_SUPERSESSION")
     await page.getByLabel("Which supersession").selectOption({ index: 1 })
     await page.getByLabel("Reason").selectOption("SUPERSESSION_ERRONEOUS")
@@ -891,12 +931,14 @@ test.describe("journey_supersede_old_knowledge", () => {
     await signIn(context, { scenario: "memory" })
     await page.goto(detailOf(KNOWLEDGE.approved))
 
+    await openLifecycleForm(page, "lifecycle-supersede-pick")
     await page
       .getByRole("radio", { name: new RegExp(claimOf(KNOWLEDGE.active)) })
       .check()
     await page.getByRole("button", { name: "Review the direction" }).click()
     await expect(page.getByTestId("supersede-direction")).toContainText("supersedes")
 
+    await openLifecycleForm(page, "lifecycle-supersede-confirm")
     await page
       .getByRole("button", {
         name: "Record that the newer object supersedes this one",
@@ -907,6 +949,7 @@ test.describe("journey_supersede_old_knowledge", () => {
     // The old object now names the relation in the direction the backend
     // stored it, and normal review actions are gone.
     await expect(page.getByTestId("review-reject")).toHaveCount(0)
+    await openLifecycleForm(page, "lifecycle-correction")
     await expect(page.getByTestId("lifecycle-correction")).toBeVisible()
   })
 })
@@ -920,17 +963,19 @@ test.describe("goal_lifecycle_is_independent", () => {
 
     // One: a review with no lifecycle movement.
     await page.goto(detailOf(KNOWLEDGE.pending))
+    await openReviewForm(page, "review-approve")
     await page.getByRole("button", { name: "Approve the original" }).click()
     await expect(page.getByTestId("knowledge-states")).toContainText("Approved")
     await expect(page.getByTestId("knowledge-states")).toContainText("Unresolved")
 
     // Two: a lifecycle movement with no review recorded.
     const before = await page.getByTestId("review-history-entry").count()
-    await page.getByRole("button", { name: "Mark active" }).click()
+    await clickMemorySubmit(page, "lifecycle-activate", "Mark active")
     await expect(page.getByTestId("knowledge-states")).toContainText("Active")
     await expect(page.getByTestId("review-history-entry")).toHaveCount(before)
 
     // Three: an active object can still be reviewed again.
+    await openReviewForm(page, "review-edit")
     await expect(page.getByTestId("review-edit")).toBeVisible()
     await page.getByRole("button", { name: "Record the edit" }).click()
     await expect(page.getByTestId("knowledge-states")).toContainText(
@@ -966,12 +1011,15 @@ test.describe("journey_review_knowledge_object", () => {
       .getByRole("link", { name: objects[KNOWLEDGE.pending]?.shortClaim ?? "" })
       .click()
 
-    // The claim, its classification, its source and its exact evidence are all
-    // readable before any decision is offered.
+    // Evidence is readable before any decision. Source and the machine
+    // extraction sit in collapsed disclosures after the Decide region.
+    await openKnowledgePayload(page)
     await expect(page.getByTestId("knowledge-original")).toBeVisible()
+    await openKnowledgeSource(page)
     await expect(page.getByTestId("knowledge-source")).toContainText("#412")
     await expect(page.getByTestId("knowledge-evidence-item")).toHaveCount(2)
 
+    await openReviewForm(page, "review-approve")
     await page.getByRole("button", { name: "Approve the original" }).click()
 
     await expect(page.getByText("Your review is recorded.")).toBeVisible()
@@ -997,6 +1045,7 @@ test.describe("goal_human_validation_preserves_machine_provenance", () => {
     const original = (await before.json()).data
 
     await page.goto(detailOf(KNOWLEDGE.pending))
+    await openReviewForm(page, "review-edit")
     await page
       .getByRole("textbox", { name: "Knowledge (required)", exact: true })
       .fill("A reviewer's own restatement.")
@@ -1025,6 +1074,7 @@ test.describe("goal_human_validation_preserves_machine_provenance", () => {
     await page.goto(detailOf(KNOWLEDGE.pending))
     const quotes = await page.getByTestId("knowledge-evidence-item").allTextContents()
 
+    await openReviewForm(page, "review-edit")
     await page.getByRole("button", { name: "Record the edit" }).click()
     await expect(page.getByText("Your review is recorded.")).toBeVisible()
 
