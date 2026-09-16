@@ -94,6 +94,7 @@ export type KnowledgeCorrectionsView =
 export type SupersessionCandidate = {
   readonly knowledgeObjectId: string
   readonly shortClaim: string
+  readonly knowledgeType: string
   readonly reviewLabel: string
 }
 
@@ -290,6 +291,7 @@ const readSupersessionCandidates = async (
     .map((summary) => ({
       knowledgeObjectId: summary.knowledgeObjectId,
       shortClaim: summary.shortClaim,
+      knowledgeType: summary.knowledgeType,
       reviewLabel: reviewDecisionLabel(summary.reviewStatus),
     }))
 }

@@ -357,6 +357,10 @@ export type QueueRow = {
   readonly lifecycleTone: Tone
 }
 
+/** Prose confidence for the queue metadata line, not a monospace instrument readout. */
+export const queueConfidenceLabel = (confidence: number): string =>
+  `${confidence} of 100`
+
 export const queueRow = (summary: KnowledgeSummary): QueueRow => ({
   knowledgeObjectId: summary.knowledgeObjectId,
   shortClaim: summary.shortClaim,

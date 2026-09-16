@@ -2,11 +2,10 @@ import type { KnowledgePage } from "@contracts/console"
 
 import { formatInstant } from "@/lib/format/display"
 import { type KnowledgeFilters, knowledgeQueuePath } from "@/lib/knowledge/filters"
-import { queueRow } from "@/lib/knowledge/presentation"
+import { queueConfidenceLabel, queueRow } from "@/lib/knowledge/presentation"
 import { buttonVariants } from "@/components/ui/button"
 import { panelVariants } from "@/components/ui/panel"
 import { StatusChip } from "@/components/ui/status-chip"
-import { Technical } from "@/components/ui/text"
 
 /**
  * The review queue.
@@ -68,40 +67,34 @@ export const MemoryQueueList = ({ page }: { page: KnowledgePage }) => {
               sentence and the reason the row exists, so it is the link target
               and everything else is metadata beneath it.
             */}
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <a
-                href={`/memory/${row.knowledgeObjectId}`}
-                className="text-foreground hover:text-primary max-w-[64ch] text-base leading-6 font-medium"
-              >
-                {row.shortClaim}
-              </a>
-              <Technical className="bg-muted rounded-sm px-2 py-0.5 tracking-[0.06em] uppercase">
-                {row.knowledgeType}
-              </Technical>
-            </div>
+            <a
+              href={`/memory/${row.knowledgeObjectId}`}
+              className="text-foreground hover:text-primary max-w-[64ch] text-lg leading-7 font-medium"
+            >
+              {row.shortClaim}
+            </a>
 
-            {/* Review and lifecycle are two axes. Each keeps its own label so
-                neither can be read as the other. */}
+            {/* Review is the axis a reviewer acts on; lifecycle is a fact. */}
             <dl className="flex flex-wrap items-center gap-x-2 gap-y-2">
               <dt className="sr-only">Review</dt>
               <dd>
                 <StatusChip tone={row.reviewTone}>{row.reviewLabel}</StatusChip>
               </dd>
-              <dt className="sr-only">Lifecycle</dt>
-              <dd>
-                <StatusChip tone={row.lifecycleTone}>{row.lifecycleLabel}</StatusChip>
-              </dd>
             </dl>
 
-            <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs tabular-nums">
+            <p className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+              <span>{row.knowledgeType}</span>
+              <span aria-hidden>·</span>
               <span>
                 {formatPullRequest(row.pullRequestNumber, row.pullRequestTitle)}
               </span>
               <span aria-hidden>·</span>
               <span>{formatMerged(row.mergedAt)}</span>
               <span aria-hidden>·</span>
-              <span>Model confidence {row.confidence} of 100</span>
-            </div>
+              <span>Lifecycle: {row.lifecycleLabel}</span>
+              <span aria-hidden>·</span>
+              <span>{queueConfidenceLabel(row.confidence)}</span>
+            </p>
           </li>
         )
       })}

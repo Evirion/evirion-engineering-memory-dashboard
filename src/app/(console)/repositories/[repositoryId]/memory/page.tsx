@@ -75,6 +75,7 @@ const RepositoryMemoryPage = async ({
           <MemoryFilters
             filters={view.filters}
             repositoryChoices={view.repositoryChoices}
+            pinnedRepositoryId={identifier}
           />
           <MemoryQueueList page={view.page} />
           <MemoryQueuePagination

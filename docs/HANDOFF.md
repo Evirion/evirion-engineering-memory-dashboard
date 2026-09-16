@@ -4,11 +4,13 @@ Updated: 2026-09-16
 
 ## Current state
 
-- Active branch: `MEM-UX/05-07-required-fields-cost-disclosure`. MEM-UX/05
-  (shared required markers on memory review/lifecycle forms) and MEM-UX/07
-  (finish `SHOW_COST_FIGURES` on pull request detail and import Cost panel)
-  are implemented and locally verified on this branch. The next action is
-  review and merge of this branch; **not merged or deployed.**
+- Active branch: `MEM-UX/03-06-memory-queue-and-supersession-picker`. MEM-UX/03
+  (claim-led queue cards, collapsible GET filters with removable chips) and
+  MEM-UX/06 (supersession replacement radio cards) are implemented and locally
+  verified on this branch as one pull request, including Playwright
+  `tests/e2e/memory.spec.ts` and `tests/e2e/memory-review.spec.ts`. The next
+  action is your review, then commit, push, and PR; **not merged or deployed.**
+- Prior: MEM-UX/05 and MEM-UX/07 merged on `main` as `2c0236d`.
 - Prior branch: `fix/replay-repository-policy`. Saving Live processing after a
   valid authenticator code threw because replay had no handler for
   `/api/repositories/policy` (or activate, disable, request-change) and the

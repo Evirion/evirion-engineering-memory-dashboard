@@ -187,6 +187,7 @@ describe("supersession replacement marking", () => {
         {
           knowledgeObjectId: KNOWLEDGE.edited,
           shortClaim: "A replacement claim.",
+          knowledgeType: "ArchitectureDecision",
           reviewLabel: "Approved",
         },
       ],
@@ -208,7 +209,20 @@ describe("supersession replacement marking", () => {
         knowledgeReturnPath="/memory/test"
       />,
     )
-    expectRequiredMarker(html, "supersedeWith")
+    const picker = html.match(
+      /data-testid="lifecycle-supersede-pick"[\s\S]*?<\/form>/,
+    )?.[0]
+    expect(picker).toBeDefined()
+    expect(picker).toContain('data-slot="field"')
+    expect(picker).toMatch(/data-slot="input"/)
+    expect(picker).toMatch(/type="radio"[^>]*required|required[^>]*type="radio"/)
+    expect(picker).toMatch(REQUIRED_ASTERISK)
+    expect(picker).toContain("(required)")
+    expect(picker).toContain('aria-describedby="supersedeWith-error"')
+    expect(picker).toContain('id="supersedeWith-error"')
+    expect(picker).toContain(
+      "[[data-slot=field]:has([data-slot=input]:user-invalid)_&amp;]:block",
+    )
     expectNoRequiredMarker(html, "supersedeNote")
   })
 })
