@@ -1,5 +1,7 @@
 import type { KnowledgeSummary } from "@contracts/console"
 
+import { lifecycleStateLabel, reviewDecisionLabel } from "@/lib/knowledge/presentation"
+
 /**
  * The review-queue predicates, read from and written back to the URL.
  *
@@ -147,4 +149,111 @@ export const knowledgeQueuePath = (
 
   const { repositoryId: _pinned, ...rest } = filters
   return `/repositories/${options.repositoryId}/memory${knowledgeQueryString(rest, options)}`
+}
+
+/** Predicate keys a customer can set in the filter form, excluding pagination. */
+export type KnowledgeFilterKey = Exclude<keyof KnowledgeFilters, "after">
+
+const ADVANCED_FILTER_KEYS: readonly KnowledgeFilterKey[] = [
+  "lifecycleState",
+  "repositoryId",
+  "knowledgeType",
+  "authorLogin",
+  "mergedFrom",
+  "mergedTo",
+  "pullRequestId",
+]
+
+export type KnowledgeFilterPresentation = {
+  readonly pinnedRepositoryId?: string
+}
+
+const isPathPinnedRepository = (
+  key: KnowledgeFilterKey,
+  options: KnowledgeFilterPresentation,
+): boolean => key === "repositoryId" && options.pinnedRepositoryId !== undefined
+
+/** True when any predicate beyond review status is active. */
+export const hasAdvancedKnowledgeFilters = (
+  filters: KnowledgeFilters,
+  options: KnowledgeFilterPresentation = {},
+): boolean =>
+  ADVANCED_FILTER_KEYS.some(
+    (key) => !isPathPinnedRepository(key, options) && filters[key] !== undefined,
+  )
+
+/**
+ * Drop one predicate and the cursor so a chip link restarts the scan under the
+ * remaining filters.
+ */
+export const knowledgeFiltersWithout = (
+  filters: KnowledgeFilters,
+  omit: KnowledgeFilterKey,
+): KnowledgeFilters => {
+  const { after: _cursor, [omit]: _removed, ...rest } = filters
+  return rest
+}
+
+export type ActiveKnowledgeFilterChip = {
+  readonly key: KnowledgeFilterKey
+  readonly label: string
+}
+
+const filterChipLabel = (
+  key: KnowledgeFilterKey,
+  filters: KnowledgeFilters,
+  repositoryChoices: readonly { readonly id: string; readonly nameWithOwner: string }[],
+): string | undefined => {
+  switch (key) {
+    case "reviewStatus":
+      return filters.reviewStatus === undefined
+        ? undefined
+        : reviewDecisionLabel(filters.reviewStatus)
+    case "lifecycleState":
+      return filters.lifecycleState === undefined
+        ? undefined
+        : lifecycleStateLabel(filters.lifecycleState)
+    case "repositoryId": {
+      const id = filters.repositoryId
+      if (id === undefined) return undefined
+      return repositoryChoices.find((choice) => choice.id === id)?.nameWithOwner ?? id
+    }
+    case "knowledgeType":
+      return filters.knowledgeType
+    case "authorLogin":
+      return filters.authorLogin === undefined
+        ? undefined
+        : `Author ${filters.authorLogin}`
+    case "mergedFrom":
+      return filters.mergedFrom === undefined
+        ? undefined
+        : `Merged from ${filters.mergedFrom}`
+    case "mergedTo":
+      return filters.mergedTo === undefined
+        ? undefined
+        : `Merged to ${filters.mergedTo}`
+    case "pullRequestId":
+      return filters.pullRequestId === undefined
+        ? undefined
+        : `Pull request ${filters.pullRequestId}`
+    default: {
+      const exhaustive: never = key
+      throw new Error(`unhandled filter key: ${String(exhaustive)}`)
+    }
+  }
+}
+
+/** One removable chip per active predicate, in stable order. */
+export const activeKnowledgeFilterChips = (
+  filters: KnowledgeFilters,
+  repositoryChoices: readonly { readonly id: string; readonly nameWithOwner: string }[],
+  options: KnowledgeFilterPresentation = {},
+): readonly ActiveKnowledgeFilterChip[] => {
+  const keys: readonly KnowledgeFilterKey[] = ["reviewStatus", ...ADVANCED_FILTER_KEYS]
+
+  return keys.flatMap((key) => {
+    if (isPathPinnedRepository(key, options)) return []
+    const label = filterChipLabel(key, filters, repositoryChoices)
+    return label === undefined ? [] : [{ key, label }]
+  })
 }

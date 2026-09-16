@@ -19,6 +19,7 @@ import { STUB_ORIGIN, signIn } from "../support/session-fixture"
  */
 
 const objects = KNOWLEDGE_OBJECTS()
+const claimOf = (id: string): string => objects[id]?.shortClaim ?? "unreachable"
 const detailOf = (id: string): string => `/memory/${id}`
 
 const ORGANIZATION = "00000000-0000-4000-8000-0000000000a1"
@@ -633,8 +634,8 @@ test.describe("supersede_direction", () => {
     await page.goto(detailOf(KNOWLEDGE.approved))
 
     await page
-      .getByLabel("Replacement")
-      .selectOption(objects[KNOWLEDGE.active]?.base.knowledgeObjectId ?? "")
+      .getByRole("radio", { name: new RegExp(claimOf(KNOWLEDGE.active)) })
+      .check()
     await page.getByRole("button", { name: "Review the direction" }).click()
 
     // The direction is stated, not implied by layout or by field order.
@@ -653,7 +654,7 @@ test.describe("supersede_direction", () => {
     const session = await signIn(context, { scenario: "memory" })
     await page.goto(detailOf(KNOWLEDGE.approved))
 
-    await page.getByLabel("Replacement").selectOption(KNOWLEDGE.active)
+    await page.getByRole("radio", { name: new RegExp(claimOf(KNOWLEDGE.active)) }).check()
     await page.getByRole("button", { name: "Review the direction" }).click()
     await page
       .getByRole("button", {
@@ -888,7 +889,7 @@ test.describe("journey_supersede_old_knowledge", () => {
     await signIn(context, { scenario: "memory" })
     await page.goto(detailOf(KNOWLEDGE.approved))
 
-    await page.getByLabel("Replacement").selectOption(KNOWLEDGE.active)
+    await page.getByRole("radio", { name: new RegExp(claimOf(KNOWLEDGE.active)) }).check()
     await page.getByRole("button", { name: "Review the direction" }).click()
     await expect(page.getByTestId("supersede-direction")).toContainText("supersedes")
 

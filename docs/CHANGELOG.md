@@ -1,5 +1,34 @@
 # Dashboard changelog
 
+## 2026-09-16 — Memory queue hierarchy, collapsible filters, and supersession radio cards
+
+- **Why.** The review queue overloaded reviewers with competing chips and a
+  permanent seven-control filter grid, and the supersession replacement control
+  could not present a claim sentence even once list projections are corrected.
+- **What changed.** Queue cards lead with the claim link, keep review on a
+  `StatusChip`, move lifecycle and knowledge type into a prose metadata line,
+  and replace the monospace confidence readout with plain `N of 100` wording.
+  Filters render active predicates as removable GET links, collapse the full
+  grid behind `<details>`, and open that disclosure when any predicate beyond
+  review status is set. Supersession step one uses required radio cards showing
+  a two-line claim, knowledge type, and review state; the two-step GET flow,
+  URL-carried selection, confirm-step tokens, and direction copy are unchanged.
+- **Files.** `src/components/memory/memory-queue.tsx`,
+  `src/components/memory/memory-filters.tsx`,
+  `src/lib/knowledge/filters.ts`, `src/lib/knowledge/presentation.ts`,
+  `src/components/memory/lifecycle-actions.tsx`, `src/server/queries/knowledge.ts`,
+  `docs/architecture/console-ui-conventions.md`, and focused component, unit, and
+  e2e tests under `tests/`.
+- **Verification.** `pnpm exec vitest run tests/unit/memory/filters.test.ts`
+  `tests/component/memory/memory-queue.test.tsx`
+  `tests/component/memory/supersession-picker.test.tsx`
+  `tests/component/memory/required-field-marking.test.tsx`; `pnpm lint`;
+  `pnpm typecheck`; `pnpm exec playwright test tests/e2e/memory.spec.ts`
+  `tests/e2e/memory-review.spec.ts` (65 passed).
+- **Deployment state.** Implemented and locally verified on branch
+  `MEM-UX/03-06-memory-queue-and-supersession-picker`. Not merged or deployed.
+  Observed claim text in list rows still depends on backend MEM-UX/01 on staging.
+
 ## 2026-09-12 — Live processing save continues after the authenticator code
 
 - **Why.** Saving Live processing mode opened the authenticator ceremony, accepted

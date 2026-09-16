@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  activeKnowledgeFilterChips,
+  hasAdvancedKnowledgeFilters,
+  knowledgeFiltersWithout,
   knowledgeQueryString,
   knowledgeQueuePath,
   readKnowledgeFilters,
@@ -89,6 +92,59 @@ describe("writing the queue link", () => {
   it("returns an empty string when nothing is filtered", () => {
     expect(knowledgeQueryString({})).toBe("")
     expect(knowledgeQueuePath({})).toBe("/memory")
+  })
+
+  it("recognizes advanced predicates separately from review status", () => {
+    expect(hasAdvancedKnowledgeFilters({ reviewStatus: "APPROVED" })).toBe(false)
+    expect(hasAdvancedKnowledgeFilters({ lifecycleState: "ACTIVE" })).toBe(true)
+    expect(hasAdvancedKnowledgeFilters({ repositoryId: REPOSITORY })).toBe(true)
+  })
+
+  it("ignores a path-pinned repository when deciding whether filters are advanced", () => {
+    expect(
+      hasAdvancedKnowledgeFilters(
+        { repositoryId: REPOSITORY, reviewStatus: "APPROVED" },
+        { pinnedRepositoryId: REPOSITORY },
+      ),
+    ).toBe(false)
+    expect(
+      hasAdvancedKnowledgeFilters(
+        { repositoryId: REPOSITORY, lifecycleState: "ACTIVE" },
+        { pinnedRepositoryId: REPOSITORY },
+      ),
+    ).toBe(true)
+  })
+
+  it("drops one predicate and the cursor for chip links", () => {
+    expect(
+      knowledgeFiltersWithout(
+        {
+          reviewStatus: "APPROVED",
+          lifecycleState: "ACTIVE",
+          after: REPOSITORY,
+        },
+        "lifecycleState",
+      ),
+    ).toEqual({ reviewStatus: "APPROVED" })
+  })
+
+  it("lists one chip per active predicate", () => {
+    expect(
+      activeKnowledgeFilterChips(
+        { reviewStatus: "APPROVED", authorLogin: "octo-cat" },
+        [],
+      ).map((chip) => chip.key),
+    ).toEqual(["reviewStatus", "authorLogin"])
+  })
+
+  it("omits the path-pinned repository from removable chips", () => {
+    expect(
+      activeKnowledgeFilterChips(
+        { repositoryId: REPOSITORY, reviewStatus: "APPROVED" },
+        [{ id: REPOSITORY, nameWithOwner: "acme/api" }],
+        { pinnedRepositoryId: REPOSITORY },
+      ).map((chip) => chip.key),
+    ).toEqual(["reviewStatus"])
   })
 
   it("pins the repository in the path and never repeats it as a predicate", () => {

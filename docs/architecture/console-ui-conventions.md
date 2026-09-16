@@ -64,13 +64,19 @@ not open. What remains open is the axe ruleset, the tag selection and the pass
 threshold, which is what an executable gate needs. Record the dependency rather
 than choosing a configuration.
 
-Decision 4 has a partial answer on `/processing` only. The owner asked for a
-table, at most twenty rows, a cursor control that follows the backend
-`nextCursor`, column sort, and Repository and PR as two columns. The page size
-is not taken from the query string. Sort is Console presentation: the published
-list is ordered by extraction-job identity, so a sort reads the tenant-scoped
-pages, then windows twenty rows. Memory and repositories keep their existing
-controls. The other list surfaces remain open.
+Decision 4 has partial answers on `/processing` and the Engineering Memory
+review queue. On `/processing`, the owner asked for a table, at most twenty
+rows, a cursor control that follows the backend `nextCursor`, column sort, and
+Repository and PR as two columns. The page size is not taken from the query
+string. Sort is Console presentation: the published list is ordered by
+extraction-job identity, so a sort reads the tenant-scoped pages, then windows
+twenty rows. On `/memory`, the owner decision of 2026-09-16 keeps one claim-led
+card per row, review on a tinted chip, lifecycle as labelled prose in the
+metadata line, active predicates as removable chips, and the seven filter controls
+inside a native `details` element that opens only when a predicate beyond review
+status is set. There is no result total, sort control, or grouping. Repository
+list surfaces and the Knowledge Object detail layout remain open. The other list
+surfaces remain open.
 
 ## Routes, ownership and applicable states
 

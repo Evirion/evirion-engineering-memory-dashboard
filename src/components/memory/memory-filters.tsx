@@ -1,5 +1,9 @@
 import {
+  activeKnowledgeFilterChips,
   type KnowledgeFilters,
+  hasAdvancedKnowledgeFilters,
+  knowledgeFiltersWithout,
+  knowledgeQueuePath,
   LIFECYCLE_STATES,
   REVIEW_STATUSES,
 } from "@/lib/knowledge/filters"
@@ -21,127 +25,176 @@ import { SubmitButton } from "@/components/ui/submit-button"
  * Submitting deliberately drops the cursor. Changing a predicate restarts the
  * scan rather than resuming a page computed for a different predicate, which
  * would silently skip rows.
- *
- * The placement of these controls is open decision 4.
  */
 
 export const MemoryFilters = ({
   filters,
   repositoryChoices,
+  pinnedRepositoryId,
 }: {
   filters: KnowledgeFilters
   repositoryChoices: readonly RepositoryChoice[]
-}) => (
-  <form
-    method="get"
-    aria-label="Filter Knowledge Objects"
-    className={panelVariants({ className: "flex flex-col gap-5" })}
-  >
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <Field>
-        <Label htmlFor="reviewStatus">Review status</Label>
-        <Select
-          id="reviewStatus"
-          name="reviewStatus"
-          defaultValue={filters.reviewStatus ?? ""}
-        >
-          {/* An empty value is submitted as an absent predicate, which the
-              backend answers with its own PENDING default. */}
-          <option value="">Awaiting review (default)</option>
-          {REVIEW_STATUSES.map((status) => (
-            <option key={status} value={status}>
-              {reviewDecisionLabel(status)}
-            </option>
-          ))}
-        </Select>
-      </Field>
+  pinnedRepositoryId?: string
+}) => {
+  const pathOptions =
+    pinnedRepositoryId === undefined ? {} : { repositoryId: pinnedRepositoryId }
+  const presentation = pinnedRepositoryId === undefined ? {} : { pinnedRepositoryId }
+  const chips = activeKnowledgeFilterChips(filters, repositoryChoices, presentation)
+  const disclosureOpen = hasAdvancedKnowledgeFilters(filters, presentation)
 
-      <Field>
-        <Label htmlFor="lifecycleState">Lifecycle</Label>
-        <Select
-          id="lifecycleState"
-          name="lifecycleState"
-          defaultValue={filters.lifecycleState ?? ""}
-        >
-          <option value="">Any lifecycle</option>
-          {LIFECYCLE_STATES.map((state) => (
-            <option key={state} value={state}>
-              {lifecycleStateLabel(state)}
-            </option>
-          ))}
-        </Select>
-      </Field>
+  return (
+    <form
+      method="get"
+      aria-label="Filter Knowledge Objects"
+      className={panelVariants({ className: "flex flex-col gap-4" })}
+    >
+      {filters.pullRequestId === undefined ? null : (
+        <input type="hidden" name="pullRequestId" value={filters.pullRequestId} />
+      )}
 
-      {repositoryChoices.length > 0 ? (
-        <Field>
-          <Label htmlFor="repositoryId">Repository</Label>
-          <Select
-            id="repositoryId"
-            name="repositoryId"
-            defaultValue={filters.repositoryId ?? ""}
-          >
-            <option value="">Any repository</option>
-            {repositoryChoices.map((choice) => (
-              <option key={choice.id} value={choice.id}>
-                {choice.nameWithOwner}
-              </option>
-            ))}
-          </Select>
-        </Field>
+      {chips.length > 0 ? (
+        <ul
+          aria-label="Active filters"
+          className="flex flex-wrap items-center gap-2"
+          data-testid="memory-filter-chips"
+        >
+          {chips.map((chip) => (
+            <li key={chip.key}>
+              <a
+                href={knowledgeQueuePath(
+                  knowledgeFiltersWithout(filters, chip.key),
+                  pathOptions,
+                )}
+                aria-label={`Remove ${chip.label}`}
+                className="bg-muted text-foreground hover:bg-accent inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm"
+              >
+                <span aria-hidden>{chip.label}</span>
+                <span aria-hidden>×</span>
+              </a>
+            </li>
+          ))}
+        </ul>
       ) : null}
 
-      <Field>
-        <Label htmlFor="knowledgeType">Knowledge type</Label>
-        <Input
-          id="knowledgeType"
-          name="knowledgeType"
-          type="text"
-          inputMode="text"
-          pattern="[A-Za-z]{1,64}"
-          defaultValue={filters.knowledgeType ?? ""}
-        />
-      </Field>
+      <details
+        open={disclosureOpen || undefined}
+        data-testid="memory-filter-disclosure"
+        className="group"
+      >
+        <summary className="text-foreground cursor-pointer text-sm font-medium marker:content-none [&::-webkit-details-marker]:hidden">
+          <span className="underline underline-offset-2 group-open:hidden">
+            Show filters
+          </span>
+          <span className="hidden group-open:inline">Hide filters</span>
+        </summary>
 
-      <Field>
-        <Label htmlFor="authorLogin">Pull request author</Label>
-        <Input
-          id="authorLogin"
-          name="authorLogin"
-          type="text"
-          pattern="[A-Za-z0-9._-]{1,64}"
-          defaultValue={filters.authorLogin ?? ""}
-        />
-      </Field>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Field>
+            <Label htmlFor="reviewStatus">Review status</Label>
+            <Select
+              id="reviewStatus"
+              name="reviewStatus"
+              defaultValue={filters.reviewStatus ?? ""}
+            >
+              {/* An empty value is submitted as an absent predicate, which the
+                  backend answers with its own PENDING default. */}
+              <option value="">Awaiting review (default)</option>
+              {REVIEW_STATUSES.map((status) => (
+                <option key={status} value={status}>
+                  {reviewDecisionLabel(status)}
+                </option>
+              ))}
+            </Select>
+          </Field>
 
-      <Field>
-        <Label htmlFor="mergedFrom">Merged from (UTC)</Label>
-        <Input
-          id="mergedFrom"
-          name="mergedFrom"
-          type="text"
-          placeholder="2026-08-01T00:00:00Z"
-          defaultValue={filters.mergedFrom ?? ""}
-          className="font-mono"
-        />
-      </Field>
+          <Field>
+            <Label htmlFor="lifecycleState">Lifecycle</Label>
+            <Select
+              id="lifecycleState"
+              name="lifecycleState"
+              defaultValue={filters.lifecycleState ?? ""}
+            >
+              <option value="">Any lifecycle</option>
+              {LIFECYCLE_STATES.map((state) => (
+                <option key={state} value={state}>
+                  {lifecycleStateLabel(state)}
+                </option>
+              ))}
+            </Select>
+          </Field>
 
-      <Field>
-        <Label htmlFor="mergedTo">Merged to (UTC)</Label>
-        <Input
-          id="mergedTo"
-          name="mergedTo"
-          type="text"
-          placeholder="2026-09-01T00:00:00Z"
-          defaultValue={filters.mergedTo ?? ""}
-          className="font-mono"
-        />
-      </Field>
-    </div>
+          {repositoryChoices.length > 0 ? (
+            <Field>
+              <Label htmlFor="repositoryId">Repository</Label>
+              <Select
+                id="repositoryId"
+                name="repositoryId"
+                defaultValue={filters.repositoryId ?? ""}
+              >
+                <option value="">Any repository</option>
+                {repositoryChoices.map((choice) => (
+                  <option key={choice.id} value={choice.id}>
+                    {choice.nameWithOwner}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          ) : null}
 
-    <div className="border-border flex border-t pt-4">
-      <SubmitButton className={buttonVariants({ variant: "primary" })}>
-        Apply filters
-      </SubmitButton>
-    </div>
-  </form>
-)
+          <Field>
+            <Label htmlFor="knowledgeType">Knowledge type</Label>
+            <Input
+              id="knowledgeType"
+              name="knowledgeType"
+              type="text"
+              inputMode="text"
+              pattern="[A-Za-z]{1,64}"
+              defaultValue={filters.knowledgeType ?? ""}
+            />
+          </Field>
+
+          <Field>
+            <Label htmlFor="authorLogin">Pull request author</Label>
+            <Input
+              id="authorLogin"
+              name="authorLogin"
+              type="text"
+              pattern="[A-Za-z0-9._-]{1,64}"
+              defaultValue={filters.authorLogin ?? ""}
+            />
+          </Field>
+
+          <Field>
+            <Label htmlFor="mergedFrom">Merged from (UTC)</Label>
+            <Input
+              id="mergedFrom"
+              name="mergedFrom"
+              type="text"
+              placeholder="2026-08-01T00:00:00Z"
+              defaultValue={filters.mergedFrom ?? ""}
+              className="font-mono"
+            />
+          </Field>
+
+          <Field>
+            <Label htmlFor="mergedTo">Merged to (UTC)</Label>
+            <Input
+              id="mergedTo"
+              name="mergedTo"
+              type="text"
+              placeholder="2026-09-01T00:00:00Z"
+              defaultValue={filters.mergedTo ?? ""}
+              className="font-mono"
+            />
+          </Field>
+        </div>
+
+        <div className="border-border mt-4 flex border-t pt-4">
+          <SubmitButton className={buttonVariants({ variant: "primary" })}>
+            Apply filters
+          </SubmitButton>
+        </div>
+      </details>
+    </form>
+  )
+}

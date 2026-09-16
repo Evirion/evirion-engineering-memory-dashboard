@@ -126,6 +126,7 @@ test.describe("filters_and_pagination", () => {
     await signIn(context, { scenario: "memory" })
     await page.goto("/memory")
 
+    await page.getByTestId("memory-filter-disclosure").locator("summary").click()
     await page.getByLabel("Review status").selectOption("APPROVED")
     await page.getByLabel("Lifecycle").selectOption("ACTIVE")
     await page.getByRole("button", { name: "Apply filters" }).click()
@@ -220,7 +221,8 @@ test.describe("queue_row", () => {
     await expect(row).toContainText("ArchitectureDecision")
     await expect(row).toContainText("Pull request #412")
     await expect(row).toContainText("Merged 8 Aug 2026")
-    await expect(row).toContainText("Model confidence 82")
+    await expect(row).toContainText("82 of 100")
+    await expect(row).toContainText("Lifecycle:")
 
     // The full payload, the evidence set and every technical detail stay in
     // the detail projection.

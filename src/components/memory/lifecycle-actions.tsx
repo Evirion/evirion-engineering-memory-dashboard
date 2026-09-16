@@ -137,52 +137,73 @@ export const MarkActiveForm = ({
  * A read, so it is a `GET` form with no action. The selection lands in the URL
  * and the page re-renders with the confirmation below it.
  */
-const SupersedePicker = ({ supersession }: { supersession: SupersessionContext }) => (
-  <form method="get" data-testid="lifecycle-supersede-pick" className={card}>
-    <div className="flex flex-col gap-1">
-      <h3 className="text-sm font-semibold text-foreground">Mark superseded</h3>
-      <p className="text-xs text-ink-secondary">
-        Choose the newer Knowledge Object that replaces this one. Nothing is recorded
-        until you confirm the direction on the next step.
-      </p>
-    </div>
-    {supersession.candidates.length === 0 ? (
-      <p className="text-sm text-ink-secondary">
-        No reviewed Knowledge Object is available to replace this one. A replacement
-        must already be approved or edited.
-      </p>
-    ) : (
-      <>
-        <Field>
-          <Label htmlFor="supersedeWith" required>
-            Replacement
-          </Label>
-          <Select
-            id="supersedeWith"
-            name="supersedeWith"
-            required
-            aria-describedby="supersedeWith-error"
-            defaultValue=""
-          >
-            <option value="" disabled>
-              Choose a Knowledge Object
-            </option>
-            {supersession.candidates.map((candidate) => (
-              <option
-                key={candidate.knowledgeObjectId}
-                value={candidate.knowledgeObjectId}
-              >
-                {candidate.shortClaim} ({candidate.reviewLabel})
-              </option>
-            ))}
-          </Select>
-          <RequiredFieldError id="supersedeWith-error" />
-        </Field>
-        <SubmitButton className={button}>Review the direction</SubmitButton>
-      </>
-    )}
-  </form>
-)
+const SupersedePicker = ({ supersession }: { supersession: SupersessionContext }) => {
+  const selectedId =
+    supersession.target?.status === "ready"
+      ? supersession.target.knowledgeObjectId
+      : undefined
+
+  return (
+    <form method="get" data-testid="lifecycle-supersede-pick" className={card}>
+      <div className="flex flex-col gap-1">
+        <h3 className="text-sm font-semibold text-foreground">Mark superseded</h3>
+        <p className="text-xs text-ink-secondary">
+          Choose the newer Knowledge Object that replaces this one. Nothing is recorded
+          until you confirm the direction on the next step.
+        </p>
+      </div>
+      {supersession.candidates.length === 0 ? (
+        <p className="text-sm text-ink-secondary">
+          No reviewed Knowledge Object is available to replace this one. A replacement
+          must already be approved or edited.
+        </p>
+      ) : (
+        <>
+          <Field>
+            <fieldset className="flex flex-col gap-2">
+              <legend className="text-sm font-medium text-foreground">
+                Replacement
+                <span aria-hidden className="text-destructive">
+                  {" "}
+                  *
+                </span>
+                <span className="sr-only"> (required)</span>
+              </legend>
+              {supersession.candidates.map((candidate) => (
+                <label
+                  key={candidate.knowledgeObjectId}
+                  aria-label={`${candidate.shortClaim}, ${candidate.knowledgeType}, ${candidate.reviewLabel}`}
+                  className="border-input bg-card hover:border-line-strong has-checked:border-ring has-checked:bg-accent flex cursor-pointer gap-3 rounded-lg border px-3 py-3 text-sm transition-colors"
+                >
+                  <input
+                    type="radio"
+                    data-slot="input"
+                    name="supersedeWith"
+                    value={candidate.knowledgeObjectId}
+                    required
+                    defaultChecked={selectedId === candidate.knowledgeObjectId}
+                    aria-describedby="supersedeWith-error"
+                    className="accent-primary user-invalid:border-destructive mt-1 size-4 shrink-0"
+                  />
+                  <span className="flex min-w-0 flex-col gap-1">
+                    <span className="text-foreground line-clamp-2 font-medium leading-snug">
+                      {candidate.shortClaim}
+                    </span>
+                    <span className="text-ink-secondary text-xs">
+                      {candidate.knowledgeType} · {candidate.reviewLabel}
+                    </span>
+                  </span>
+                </label>
+              ))}
+            </fieldset>
+            <RequiredFieldError id="supersedeWith-error" />
+          </Field>
+          <SubmitButton className={button}>Review the direction</SubmitButton>
+        </>
+      )}
+    </form>
+  )
+}
 
 /** Step two: confirm the direction, with all four tokens on screen. */
 const SupersedeConfirm = ({

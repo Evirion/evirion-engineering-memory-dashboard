@@ -57,8 +57,24 @@ describe("the queue row", () => {
     // into a single status makes an unanswerable support question.
     expect(html).toContain("Review")
     expect(html).toContain("Approved")
-    expect(html).toContain("Lifecycle")
+    expect(html).toContain("Lifecycle:")
     expect(html).toContain("Superseded")
+  })
+
+  it("names the claim as the accessible link, not the importance grade", () => {
+    const claim = "Prefer explicit tenant boundaries in every public API handler."
+    const html = markup(
+      <MemoryQueueList
+        page={pageOf([
+          summaryOf(KNOWLEDGE.approved, {
+            shortClaim: claim,
+          }),
+        ])}
+      />,
+    )
+
+    expect(html).toContain(`>${claim}</a>`)
+    expect(html).not.toMatch(/<a[^>]*>MEDIUM<\/a>/i)
   })
 
   it("carries the summary and no provenance at all", () => {
@@ -197,5 +213,101 @@ describe("the predicate form", () => {
       expect(html).toContain(`for="${name}"`)
       expect(html).toContain(`id="${name}"`)
     }
+  })
+
+  it("keeps the advanced disclosure closed when only review status is filtered", () => {
+    const html = markup(
+      <MemoryFilters filters={{ reviewStatus: "APPROVED" }} repositoryChoices={[]} />,
+    )
+
+    expect(html).toContain('data-testid="memory-filter-disclosure"')
+    expect(html).not.toMatch(/<details[^>]*\sopen[=>]/)
+  })
+
+  it("opens the advanced disclosure when any non-review predicate is set", () => {
+    const html = markup(
+      <MemoryFilters filters={{ lifecycleState: "ACTIVE" }} repositoryChoices={[]} />,
+    )
+
+    expect(html).toMatch(/<details[^>]*\sopen[=>]/)
+  })
+
+  it("drops one predicate and the cursor from each active-filter chip", () => {
+    const cursor = KNOWLEDGE.pending
+    const html = markup(
+      <MemoryFilters
+        filters={{
+          reviewStatus: "APPROVED",
+          lifecycleState: "ACTIVE",
+          authorLogin: "octo-cat",
+          after: cursor,
+        }}
+        repositoryChoices={[]}
+      />,
+    )
+
+    const chips = Object.fromEntries(
+      [...html.matchAll(/href="([^"]+)"[^>]*aria-label="Remove ([^"]+)"/g)].map(
+        (match) => [match[2], (match[1] ?? "").replaceAll("&amp;", "&")],
+      ),
+    )
+
+    expect(Object.keys(chips).toSorted()).toEqual([
+      "Active",
+      "Approved",
+      "Author octo-cat",
+    ])
+
+    expect(chips["Approved"]).toContain("lifecycleState=ACTIVE")
+    expect(chips["Approved"]).toContain("authorLogin=octo-cat")
+    expect(chips["Approved"]).not.toContain("reviewStatus=")
+    expect(chips["Approved"]).not.toContain("after=")
+
+    expect(chips["Active"]).toContain("reviewStatus=APPROVED")
+    expect(chips["Active"]).toContain("authorLogin=octo-cat")
+    expect(chips["Active"]).not.toContain("lifecycleState=")
+    expect(chips["Active"]).not.toContain("after=")
+
+    expect(chips["Author octo-cat"]).toContain("reviewStatus=APPROVED")
+    expect(chips["Author octo-cat"]).toContain("lifecycleState=ACTIVE")
+    expect(chips["Author octo-cat"]).not.toContain("authorLogin=")
+    expect(chips["Author octo-cat"]).not.toContain("after=")
+  })
+
+  it("does not treat a path-pinned repository as a removable or advanced filter", () => {
+    const html = markup(
+      <MemoryFilters
+        filters={{ repositoryId: KNOWLEDGE.approved, reviewStatus: "APPROVED" }}
+        repositoryChoices={[]}
+        pinnedRepositoryId={KNOWLEDGE.approved}
+      />,
+    )
+
+    expect(html).not.toMatch(/<details[^>]*\sopen[=>]/)
+    expect(html).not.toContain(`aria-label="Remove ${KNOWLEDGE.approved}"`)
+    expect(html).toContain(`href="/repositories/${KNOWLEDGE.approved}/memory"`)
+    expect(html).not.toContain("repositoryId=")
+  })
+
+  it("keeps a pull-request predicate when the form is applied", () => {
+    const pullRequestId = "00000000-0000-4000-8000-0000000000c5"
+    const html = markup(
+      <MemoryFilters
+        filters={{ pullRequestId, reviewStatus: "APPROVED" }}
+        repositoryChoices={[]}
+      />,
+    )
+
+    expect(html).toMatch(/<details[^>]*\sopen[=>]/)
+    expect(html).toContain(`name="pullRequestId"`)
+    expect(html).toContain(`value="${pullRequestId}"`)
+    expect(html).toContain('type="hidden"')
+  })
+
+  it("names the disclosure from its open state, not only from the URL", () => {
+    const html = markup(<MemoryFilters filters={{}} repositoryChoices={[]} />)
+
+    expect(html).toContain("Show filters")
+    expect(html).toContain("Hide filters")
   })
 })
