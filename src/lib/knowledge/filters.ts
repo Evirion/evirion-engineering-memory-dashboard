@@ -173,15 +173,6 @@ const isPathPinnedRepository = (
   options: KnowledgeFilterPresentation,
 ): boolean => key === "repositoryId" && options.pinnedRepositoryId !== undefined
 
-/** True when any predicate beyond review status is active. */
-export const hasAdvancedKnowledgeFilters = (
-  filters: KnowledgeFilters,
-  options: KnowledgeFilterPresentation = {},
-): boolean =>
-  ADVANCED_FILTER_KEYS.some(
-    (key) => !isPathPinnedRepository(key, options) && filters[key] !== undefined,
-  )
-
 /**
  * Drop one predicate and the cursor so a chip link restarts the scan under the
  * remaining filters.

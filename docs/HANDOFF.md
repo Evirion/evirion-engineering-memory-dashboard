@@ -4,13 +4,17 @@ Updated: 2026-09-16
 
 ## Current state
 
-- Active branch: `MEM-UX/04-knowledge-detail-decision-first`. MEM-UX/04
-  (decision-first Knowledge Object layout with collapsed secondary sections) is
-  implemented and locally verified on this branch, including Playwright
-  `memory-detail`, `memory-review`, `reauthentication`, `accessibility`,
-  `memory-boundary`, `xss-corpus`, and `reauthentication-boundary` (118 passed).
-  The next action is your review, then commit, push, and PR; **not merged or
-  deployed.**
+- Active branch: `fix/memory-expand-sections`, off `main`. The owner rejected
+  the collapsed memory surfaces that MEM-UX/03 and MEM-UX/04 introduced. This
+  branch removes every `<details>` from the memory filters and the Knowledge
+  Object page, and reorders that page so the machine extraction, its source,
+  and its evidence come before any control. `pnpm typecheck`, `pnpm lint`, and
+  `pnpm exec vitest run tests/component tests/unit/memory` (223 passed) are
+  green; **Playwright has not been re-run on this branch.** The next action is
+  your review and the Playwright suites, then commit, push, and PR; **not
+  merged or deployed.**
+- Prior: MEM-UX/04 (decision-first Knowledge Object layout) merged on `main`;
+  its collapsing is superseded by the branch above.
 - Prior: MEM-UX/03 and MEM-UX/06 merged on `main` as `3979c36`.
 - Prior: MEM-UX/05 and MEM-UX/07 merged on `main` as `2c0236d`.
 - Prior branch: `fix/replay-repository-policy`. Saving Live processing after a

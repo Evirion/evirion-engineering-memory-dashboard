@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest"
 
 import {
   activeKnowledgeFilterChips,
-  hasAdvancedKnowledgeFilters,
   knowledgeFiltersWithout,
   knowledgeQueryString,
   knowledgeQueuePath,
@@ -92,27 +91,6 @@ describe("writing the queue link", () => {
   it("returns an empty string when nothing is filtered", () => {
     expect(knowledgeQueryString({})).toBe("")
     expect(knowledgeQueuePath({})).toBe("/memory")
-  })
-
-  it("recognizes advanced predicates separately from review status", () => {
-    expect(hasAdvancedKnowledgeFilters({ reviewStatus: "APPROVED" })).toBe(false)
-    expect(hasAdvancedKnowledgeFilters({ lifecycleState: "ACTIVE" })).toBe(true)
-    expect(hasAdvancedKnowledgeFilters({ repositoryId: REPOSITORY })).toBe(true)
-  })
-
-  it("ignores a path-pinned repository when deciding whether filters are advanced", () => {
-    expect(
-      hasAdvancedKnowledgeFilters(
-        { repositoryId: REPOSITORY, reviewStatus: "APPROVED" },
-        { pinnedRepositoryId: REPOSITORY },
-      ),
-    ).toBe(false)
-    expect(
-      hasAdvancedKnowledgeFilters(
-        { repositoryId: REPOSITORY, lifecycleState: "ACTIVE" },
-        { pinnedRepositoryId: REPOSITORY },
-      ),
-    ).toBe(true)
   })
 
   it("drops one predicate and the cursor for chip links", () => {

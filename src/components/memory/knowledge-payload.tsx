@@ -1,6 +1,5 @@
 import type { KnowledgeDetail } from "@contracts/console"
 
-import { MemoryDisclosure } from "@/components/memory/disclosure"
 import { type EditedDerivative, editedDerivativeOf } from "@/lib/knowledge/presentation"
 import { formatInstant } from "@/lib/format/display"
 
@@ -12,10 +11,11 @@ import { formatInstant } from "@/lib/format/display"
  * this screen: the original is never overwritten, never hidden behind a
  * destructive action, and never presented as a previous version to discard.
  *
- * On this page they sit side by side inside a disclosure that opens when
- * `humanEdited` is true. Only a field the payload actually carries is rendered.
- * `KD-001` forbids invented empty sections, so an absent or empty value produces
- * no heading.
+ * On this page they sit side by side, directly beneath the claim, because a
+ * reader opening a Knowledge Object is here to read what was extracted before
+ * being asked to decide anything about it. Only a field the payload actually
+ * carries is rendered. `KD-001` forbids invented empty sections, so an absent
+ * or empty value produces no heading.
  */
 
 /** The thirteen editable keys, in the order `REV-002` lists them. */
@@ -143,16 +143,6 @@ const DerivativeUnavailable = () => (
       Refresh to check again.
     </p>
   </section>
-)
-
-export const KnowledgePayloadDisclosure = ({ detail }: { detail: KnowledgeDetail }) => (
-  <MemoryDisclosure
-    summary="Machine extraction and reviewer's derivative"
-    open={detail.humanEdited}
-    testId="knowledge-payload-disclosure"
-  >
-    <KnowledgePayloads detail={detail} />
-  </MemoryDisclosure>
 )
 
 export const KnowledgePayloads = ({ detail }: { detail: KnowledgeDetail }) => {

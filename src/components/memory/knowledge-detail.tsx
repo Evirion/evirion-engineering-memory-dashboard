@@ -1,9 +1,6 @@
-import type { ReactNode } from "react"
-
 import type { KnowledgeDetail } from "@contracts/console"
 
 import { ConsoleUnavailable } from "@/components/console/console-unavailable"
-import { MemoryDisclosure } from "@/components/memory/disclosure"
 import { formatInstant } from "@/lib/format/display"
 import { lifecycleStateLabel, reviewDecisionLabel } from "@/lib/knowledge/presentation"
 import type { KnowledgeEvidenceView } from "@/server/queries/knowledge"
@@ -60,35 +57,6 @@ export const KnowledgeStates = ({ detail }: { detail: KnowledgeDetail }) => (
       close its review.
     </p>
   </section>
-)
-
-export const KnowledgeSourceDisclosure = ({ detail }: { detail: KnowledgeDetail }) => (
-  <MemoryDisclosure summary="Source context" testId="knowledge-source-disclosure">
-    <KnowledgeSourceContext detail={detail} />
-  </MemoryDisclosure>
-)
-
-export const ReviewHistoryDisclosure = ({
-  children,
-}: {
-  readonly children: ReactNode
-}) => (
-  <MemoryDisclosure summary="Review history" testId="review-history-disclosure">
-    {children}
-  </MemoryDisclosure>
-)
-
-export const CorrectionRequestsDisclosure = ({
-  children,
-}: {
-  readonly children: ReactNode
-}) => (
-  <MemoryDisclosure
-    summary="Correction requests"
-    testId="correction-requests-disclosure"
-  >
-    {children}
-  </MemoryDisclosure>
 )
 
 export const KnowledgeSourceContext = ({ detail }: { detail: KnowledgeDetail }) => {

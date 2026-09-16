@@ -215,21 +215,18 @@ describe("the predicate form", () => {
     }
   })
 
-  it("keeps the advanced disclosure closed when only review status is filtered", () => {
-    const html = markup(
-      <MemoryFilters filters={{ reviewStatus: "APPROVED" }} repositoryChoices={[]} />,
-    )
+  it("shows every predicate without asking the reader to open anything", () => {
+    for (const filters of [
+      {},
+      { reviewStatus: "APPROVED" } as const,
+      { lifecycleState: "ACTIVE" } as const,
+    ]) {
+      const html = markup(<MemoryFilters filters={filters} repositoryChoices={[]} />)
 
-    expect(html).toContain('data-testid="memory-filter-disclosure"')
-    expect(html).not.toMatch(/<details[^>]*\sopen[=>]/)
-  })
-
-  it("opens the advanced disclosure when any non-review predicate is set", () => {
-    const html = markup(
-      <MemoryFilters filters={{ lifecycleState: "ACTIVE" }} repositoryChoices={[]} />,
-    )
-
-    expect(html).toMatch(/<details[^>]*\sopen[=>]/)
+      expect(html).not.toMatch(/<details/)
+      expect(html).not.toMatch(/<summary/)
+      expect(html).toContain('for="mergedFrom"')
+    }
   })
 
   it("drops one predicate and the cursor from each active-filter chip", () => {
@@ -298,16 +295,8 @@ describe("the predicate form", () => {
       />,
     )
 
-    expect(html).toMatch(/<details[^>]*\sopen[=>]/)
     expect(html).toContain(`name="pullRequestId"`)
     expect(html).toContain(`value="${pullRequestId}"`)
     expect(html).toContain('type="hidden"')
-  })
-
-  it("names the disclosure from its open state, not only from the URL", () => {
-    const html = markup(<MemoryFilters filters={{}} repositoryChoices={[]} />)
-
-    expect(html).toContain("Show filters")
-    expect(html).toContain("Hide filters")
   })
 })

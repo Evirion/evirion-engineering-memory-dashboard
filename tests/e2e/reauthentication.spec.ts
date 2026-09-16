@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test"
 
 import { KNOWLEDGE, REPOSITORIES } from "../../tools/console-stub/fixtures.mjs"
-import { clickMemorySubmit, openLifecycleForm } from "../support/memory-detail-fixture"
+import { clickMemorySubmit } from "../support/memory-detail-fixture"
 import { signIn } from "../support/session-fixture"
 
 /**
@@ -54,7 +54,6 @@ test.describe("precondition notice", () => {
     await expect(page.getByTestId("lifecycle-actions")).toContainText(
       "code from your authenticator app",
     )
-    await openLifecycleForm(page, "lifecycle-activate")
     await expect(page.getByTestId("lifecycle-reauth-notice")).toBeVisible()
   })
 })

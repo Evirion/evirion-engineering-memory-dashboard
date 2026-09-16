@@ -1,5 +1,41 @@
 # Dashboard changelog
 
+## 2026-09-16 — Memory surfaces expanded again, extraction shown first
+
+- **Why.** The two changes below put the filter grid and most of the Knowledge
+  Object page behind `<details>` handles. In use the owner rejected that: a
+  reader who opens a Knowledge Object is there to read it, and having to find
+  and open a control before the extraction appears is worse than the density
+  the collapsing was meant to relieve.
+- **What changed.** No memory surface collapses. The seven filter controls are
+  always visible on `/memory`. On the Knowledge Object page the machine
+  extraction and the reviewer's derivative now render directly beneath the
+  claim, followed by the source context and the evidence, and only then the
+  review and lifecycle regions, review history, and correction requests. Each
+  review and lifecycle form keeps its former summary text as a visible heading
+  inside the form panel, so every decision is named without being opened.
+  Gated lifecycle forms still state the authenticator requirement. Every
+  `data-testid`, section `aria-label`, form action, and `allowedActions` gate
+  is unchanged; `KD-002` still holds because all three read-only regions
+  precede every control.
+- **Files.** `src/app/(console)/memory/[knowledgeObjectId]/page.tsx`,
+  `src/components/memory/memory-filters.tsx`,
+  `src/components/memory/knowledge-detail.tsx`,
+  `src/components/memory/knowledge-payload.tsx`,
+  `src/components/memory/review-actions.tsx`,
+  `src/components/memory/lifecycle-actions.tsx`,
+  `src/components/memory/review-history.tsx`,
+  `src/components/memory/correction-status.tsx`,
+  `src/lib/knowledge/filters.ts`; `src/components/memory/disclosure.tsx` and the
+  disclosure-opening helpers in `tests/support/memory-detail-fixture.ts` are
+  deleted; component, unit, e2e and accessibility tests under `tests/`; and
+  `docs/architecture/console-ui-conventions.md`.
+- **Verification.** `pnpm typecheck`; `pnpm lint`;
+  `pnpm exec vitest run tests/component tests/unit/memory` (223 passed).
+  Playwright was not run in this window.
+- **Deployment state.** Implemented on branch `fix/memory-expand-sections`.
+  Not merged, not deployed, and the Playwright suites are not yet re-run.
+
 ## 2026-09-16 — Knowledge Object detail, decision-first layout
 
 - **Why.** The Knowledge Object page presented every panel at equal weight, buried

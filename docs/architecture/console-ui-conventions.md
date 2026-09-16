@@ -72,18 +72,19 @@ string. Sort is Console presentation: the published list is ordered by
 extraction-job identity, so a sort reads the tenant-scoped pages, then windows
 twenty rows. On `/memory`, the owner decision of 2026-09-16 keeps one claim-led
 card per row, review on a tinted chip, lifecycle as labelled prose in the
-metadata line, active predicates as removable chips, and the seven filter controls
-inside a native `details` element that opens only when a predicate beyond review
-status is set. There is no result total, sort control, or grouping. On the Knowledge Object
-detail page, the owner decision of 2026-09-16 puts the claim in the heading with
-a compact review-and-lifecycle strip beneath it, keeps evidence expanded and
-above every control, groups review actions under a **Decide** region with one
-native `details` element per action, treats lifecycle the same way, and collapses
-source context, the machine-versus-derivative comparison, review history, and
-correction requests. The derivative comparison opens when `humanEdited` is true.
-Gated lifecycle summaries restate that submitting may ask for an authenticator
-code, so a collapsed disclosure cannot hide that ceremony. Repository list
-surfaces remain open. The other list surfaces remain open.
+metadata line, active predicates as removable chips, and the seven filter
+controls always visible. There is no result total, sort control, or grouping.
+
+On the Knowledge Object detail page, the owner decision of 2026-09-16 puts the
+claim in the heading with a compact review-and-lifecycle strip beneath it, then
+shows what was extracted, where it came from, and the evidence behind it, in
+that order, before any control. Review actions follow as one **Decide** region,
+lifecycle as a second, then review history and correction requests. No section
+on this page or on `/memory` is collapsed: the owner decision of 2026-09-16
+reverted the disclosures added earlier the same day, because a reader who opens
+a Knowledge Object is there to read it and should not have to find and open a
+control before the data appears. Gated lifecycle forms state that submitting
+may ask for an authenticator code. All list surfaces remain open.
 
 ## Routes, ownership and applicable states
 
@@ -301,9 +302,9 @@ The semantics are fixed by the backend and are not a design choice:
 - Every action forwards its exact optimistic version set — review sequence,
   lifecycle version, relation version, request version — with no local synthesis.
 - **Original versus edited on the detail page** is a side-by-side comparison
-  inside a collapsed `details` element that opens when `humanEdited` is true.
-  Evidence stays expanded above every decision control. A diff or toggle remains
-  open for other surfaces if one is needed later.
+  directly beneath the claim, ahead of the source, the evidence and every
+  decision control. It is not collapsed. A diff or toggle remains open for
+  other surfaces if one is needed later.
 
 Four rules the implementation established. They are here because a later task
 touching this surface would otherwise have to rediscover each one.

@@ -1,7 +1,6 @@
 import {
   activeKnowledgeFilterChips,
   type KnowledgeFilters,
-  hasAdvancedKnowledgeFilters,
   knowledgeFiltersWithout,
   knowledgeQueuePath,
   LIFECYCLE_STATES,
@@ -40,7 +39,6 @@ export const MemoryFilters = ({
     pinnedRepositoryId === undefined ? {} : { repositoryId: pinnedRepositoryId }
   const presentation = pinnedRepositoryId === undefined ? {} : { pinnedRepositoryId }
   const chips = activeKnowledgeFilterChips(filters, repositoryChoices, presentation)
-  const disclosureOpen = hasAdvancedKnowledgeFilters(filters, presentation)
 
   return (
     <form
@@ -76,19 +74,8 @@ export const MemoryFilters = ({
         </ul>
       ) : null}
 
-      <details
-        open={disclosureOpen || undefined}
-        data-testid="memory-filter-disclosure"
-        className="group"
-      >
-        <summary className="text-foreground cursor-pointer text-sm font-medium marker:content-none [&::-webkit-details-marker]:hidden">
-          <span className="underline underline-offset-2 group-open:hidden">
-            Show filters
-          </span>
-          <span className="hidden group-open:inline">Hide filters</span>
-        </summary>
-
-        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Field>
             <Label htmlFor="reviewStatus">Review status</Label>
             <Select
@@ -194,7 +181,7 @@ export const MemoryFilters = ({
             Apply filters
           </SubmitButton>
         </div>
-      </details>
+      </div>
     </form>
   )
 }

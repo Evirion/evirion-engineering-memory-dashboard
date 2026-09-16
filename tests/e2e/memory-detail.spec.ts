@@ -5,11 +5,6 @@ import {
   KNOWLEDGE,
   KNOWLEDGE_OBJECTS,
 } from "../../tools/console-stub/fixtures.mjs"
-import {
-  openKnowledgePayload,
-  openKnowledgeSource,
-  openReviewForm,
-} from "../support/memory-detail-fixture"
 import { signIn } from "../support/session-fixture"
 
 /**
@@ -36,8 +31,7 @@ test.describe("original_and_edit", () => {
     const original = page.getByTestId("knowledge-original")
     const edited = page.getByTestId("knowledge-edited")
 
-    // The original stays on this screen as a derivative comparison. The
-    // comparison disclosure is open because this object is human-edited.
+    // The original stays on this screen as a derivative comparison.
     await expect(original).toBeVisible()
     await expect(edited).toBeVisible()
     await expect(original).toContainText("never overwritten")
@@ -63,7 +57,6 @@ test.describe("original_and_edit", () => {
     await signIn(context, { scenario: "memory" })
     await page.goto(detailOf(KNOWLEDGE.approved))
 
-    await openKnowledgePayload(page)
     // `humanEdited` is the backend's fact. This object's history carries no
     // edit, so no derivative panel exists to compare payloads into being.
     await expect(page.getByTestId("knowledge-original")).toBeVisible()
@@ -86,10 +79,6 @@ test.describe("original_and_edit", () => {
     await expect(page.getByTestId("knowledge-edited")).toHaveCount(0)
     await expect(page.getByTestId("knowledge-edited-unavailable")).toBeVisible()
     await expect(page.getByTestId("knowledge-original")).toBeVisible()
-    await expect(page.getByTestId("knowledge-payload-disclosure")).toHaveAttribute(
-      "open",
-      "",
-    )
   })
 
   test("warns before a second edit starts from the extraction instead", async ({
@@ -101,7 +90,6 @@ test.describe("original_and_edit", () => {
 
     // Prefilling from the machine extraction without saying so is the silent
     // discard the effective-payload prefill exists to prevent.
-    await openReviewForm(page, "review-edit")
     await expect(page.getByTestId("review-edit-derivative-unavailable")).toBeVisible()
     await expect(page.getByTestId("review-edit")).toContainText(
       "will not carry their words forward",
@@ -122,7 +110,6 @@ test.describe("original_and_edit", () => {
     await expect(page.getByTestId("review-actions-none")).toHaveCount(0)
     await expect(page.getByTestId("review-approve")).toHaveCount(0)
     // The rest of the page still works.
-    await openKnowledgePayload(page)
     await expect(page.getByTestId("knowledge-original")).toBeVisible()
     await expect(page.getByTestId("knowledge-evidence-item")).toHaveCount(2)
   })
@@ -134,7 +121,6 @@ test.describe("original_and_edit", () => {
     await signIn(context, { scenario: "memory" })
     await page.goto(detailOf(KNOWLEDGE.pending))
 
-    await openKnowledgePayload(page)
     // `KD-001` forbids invented empty sections, so a heading appears only
     // where a value does.
     const original = page.getByTestId("knowledge-original")
@@ -208,17 +194,33 @@ test.describe("evidence_before_action", () => {
     expect(evidenceBox?.y ?? 0).toBeLessThan(lifecycleBox?.y ?? 0)
   })
 
-  test("keeps the payload comparison collapsed when the object is not edited", async ({
+  test("shows what was extracted first, above the evidence and the controls", async ({
     context,
     page,
   }) => {
     await signIn(context, { scenario: "memory" })
     await page.goto(detailOf(KNOWLEDGE.approved))
 
-    await expect(page.getByTestId("knowledge-payload-disclosure")).not.toHaveAttribute(
-      "open",
-      "",
-    )
+    // A reader opens a Knowledge Object to read it. The extraction is on the
+    // page from the first paint, ahead of anything that asks them to decide.
+    const extractionBox = await page.getByTestId("knowledge-original").boundingBox()
+    const sourceBox = await page.getByTestId("knowledge-source").boundingBox()
+    const evidenceBox = await page.getByTestId("knowledge-evidence").boundingBox()
+    const reviewBox = await page.getByTestId("review-actions").boundingBox()
+
+    expect(extractionBox?.y ?? 0).toBeLessThan(sourceBox?.y ?? 0)
+    expect(sourceBox?.y ?? 0).toBeLessThan(evidenceBox?.y ?? 0)
+    expect(evidenceBox?.y ?? 0).toBeLessThan(reviewBox?.y ?? 0)
+  })
+
+  test("collapses no section behind a control the reader has to open", async ({
+    context,
+    page,
+  }) => {
+    await signIn(context, { scenario: "memory" })
+    await page.goto(detailOf(KNOWLEDGE.approved))
+
+    await expect(page.locator("main details")).toHaveCount(0)
   })
 
   test("publishes no source document, only the persisted quote", async ({
@@ -261,7 +263,6 @@ test.describe("evidence_before_action", () => {
     ).toBeVisible()
     await expect(page.getByTestId("knowledge-evidence-item")).toHaveCount(0)
     // The rest of the page stays usable.
-    await openKnowledgePayload(page)
     await expect(page.getByTestId("knowledge-original")).toBeVisible()
   })
 })
@@ -274,7 +275,6 @@ test.describe("source_context", () => {
     await signIn(context, { scenario: "memory" })
     await page.goto(detailOf(KNOWLEDGE.pending))
 
-    await openKnowledgeSource(page)
     const source = page.getByTestId("knowledge-source")
     await expect(source).toContainText("acme/payments-api")
     await expect(source).toContainText("#412")
