@@ -8,6 +8,7 @@ import {
   progressCounts,
 } from "@/lib/imports/presentation"
 import { panelVariants } from "@/components/ui/panel"
+import { SHOW_COST_FIGURES } from "@/lib/ui/cost-reporting"
 
 /**
  * Progress and cost, both read from the backend aggregate and never computed.
@@ -83,6 +84,10 @@ export const ImportProgress = ({ current }: { current: RepositoryImport }) => {
 
 export const ImportCost = ({ current }: { current: RepositoryImport }) => {
   const cost = costView(current.cost)
+
+  if (!SHOW_COST_FIGURES) {
+    return null
+  }
 
   return (
     <section

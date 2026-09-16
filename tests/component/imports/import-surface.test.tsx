@@ -137,39 +137,26 @@ describe("progress", () => {
 })
 
 describe("cost completeness", () => {
-  it("shows no amount at all when the cost is unresolved", () => {
-    const rendered = markup(<ImportCost current={IMPORT_RUNS.failed()} />)
-
-    expect(rendered).toContain('data-cost-completeness="UNRESOLVED"')
-    expect(rendered).toContain("No amount to show")
-    expect(rendered).toMatch(/Pending reconciliation/)
-  })
-
-  it("shows a settled amount only where the backend settled it", () => {
-    const rendered = markup(<ImportCost current={IMPORT_RUNS.completed()} />)
-
-    expect(rendered).toContain('data-cost-completeness="MEASURED"')
-    expect(rendered).toContain("USD 18.4")
-  })
-
-  it("names reserved and unresolved beside the measured amount", () => {
-    const rendered = markup(<ImportCost current={IMPORT_RUNS.processing()} />)
-
-    expect(rendered).toContain('data-cost-completeness="RESERVED"')
-    expect(rendered).toContain("USD 9.4")
-    expect(rendered).toContain("USD 2.1")
-    expect(rendered).toMatch(/not an invoice/)
-  })
-
-  it("puts no zero-dollar figure on screen when no paid work contributed", () => {
-    // The published projection carries `0.000000` for all three components in
-    // this state, so rendering the breakdown would show measurements nobody
-    // made. Zero is a measurement; not-applicable has none.
-    const rendered = markup(<ImportCost current={IMPORT_RUNS.planning()} />)
-
-    expect(rendered).toContain('data-cost-completeness="NOT_APPLICABLE"')
-    expect(rendered).not.toContain("USD 0")
-    expect(rendered).toMatch(/No paid work has contributed/)
+  /*
+   * These rows asserted completeness and amount rendering on the import Cost
+   * panel. Cost reporting there was suspended on 2026-09-08 together with the
+   * processing table and usage panel; MEM-UX/07 completes that suspension on
+   * this surface too.
+   *
+   * The completeness rules themselves stay proved over `costView` in
+   * `tests/unit/imports/presentation.test.ts`. Restoring the panel should
+   * bring the four rows back beside that unit suite, not instead of it.
+   */
+  it("renders no cost figure while cost reporting is suspended", () => {
+    for (const run of [
+      IMPORT_RUNS.failed(),
+      IMPORT_RUNS.completed(),
+      IMPORT_RUNS.processing(),
+      IMPORT_RUNS.planning(),
+    ]) {
+      const rendered = markup(<ImportCost current={run} />)
+      expect(rendered).toBe("")
+    }
   })
 })
 

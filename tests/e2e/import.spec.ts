@@ -382,45 +382,22 @@ test.describe("progress_outcomes_and_cost", () => {
     )
   })
 
-  test("never renders an unresolved cost as zero", async ({ context, page }) => {
-    await signIn(context, { scenario: "importFailed" })
-    await page.goto(surface)
-
-    const cost = page.getByTestId("import-cost")
-    await expect(cost).toHaveAttribute("data-cost-completeness", "UNRESOLVED")
-    await expect(page.getByTestId("cost-headline")).toHaveText("No amount to show")
-    await expect(cost).toContainText("Pending reconciliation")
-  })
-
-  test("shows a settled amount and names it as not an invoice", async ({
+  test("does not render the import cost panel while reporting is suspended", async ({
     context,
     page,
   }) => {
-    await signIn(context, { scenario: "importCompleted" })
-    await page.goto(surface)
-
-    await expect(page.getByTestId("cost-headline")).toHaveText("USD 18.4")
-    await expect(page.getByTestId("import-cost")).toContainText("not an invoice")
-  })
-
-  test("distinguishes all four cost states across the published runs", async ({
-    context,
-    page,
-  }) => {
-    const expected: readonly [StubScenarioName, string][] = [
-      ["importPlanning", "NOT_APPLICABLE"],
-      ["importProcessing", "RESERVED"],
-      ["importCompleted", "MEASURED"],
-      ["importFailed", "UNRESOLVED"],
+    const scenarios: readonly StubScenarioName[] = [
+      "importPlanning",
+      "importProcessing",
+      "importCompleted",
+      "importFailed",
     ]
 
-    for (const [scenario, completeness] of expected) {
+    for (const scenario of scenarios) {
       await signIn(context, { scenario })
       await page.goto(surface)
-      await expect(page.getByTestId("import-cost")).toHaveAttribute(
-        "data-cost-completeness",
-        completeness,
-      )
+      await expect(page.getByTestId("import-cost")).toHaveCount(0)
+      await expect(page.getByTestId("cost-headline")).toHaveCount(0)
     }
   })
 })
@@ -451,7 +428,7 @@ test.describe("journey_prepare_and_approve_historical_import", () => {
       "Waiting for Evirion authorization",
     )
     await expect(page.getByRole("button", { name: /approve/i })).toHaveCount(0)
-    await expect(page.getByTestId("import-cost")).toContainText("USD 25")
+    await expect(page.getByTestId("import-cost")).toHaveCount(0)
   })
 })
 

@@ -5,8 +5,15 @@ import {
   editedDerivativeOf,
 } from "@/lib/knowledge/presentation"
 import { buttonVariants } from "@/components/ui/button"
+import {
+  Field,
+  FieldHint,
+  Label,
+  RequiredFieldError,
+  Select,
+  Textarea,
+} from "@/components/ui/field"
 import { panelVariants } from "@/components/ui/panel"
-import { kickerClasses } from "@/components/ui/text"
 import { SubmitButton } from "@/components/ui/submit-button"
 
 /**
@@ -27,10 +34,6 @@ import { SubmitButton } from "@/components/ui/submit-button"
  */
 
 const card = panelVariants({ className: "flex flex-col gap-3" })
-const field = "flex flex-col gap-1.5"
-const labelClass = kickerClasses()
-const control =
-  "border-input bg-card text-foreground min-h-10 rounded-lg border px-3 py-2 text-sm outline-none hover:border-line-strong focus-visible:border-ring"
 const button = buttonVariants({ variant: "primary", className: "self-start" })
 
 const REJECT_REASONS = [
@@ -245,16 +248,16 @@ export const RejectForm = ({
           reviewed-active projection and stays in the history.
         </p>
       </div>
-      <div className={field}>
-        <label htmlFor="rejectReasonCode" className={labelClass}>
+      <Field>
+        <Label htmlFor="rejectReasonCode" required>
           Reason
-        </label>
-        <select
+        </Label>
+        <Select
           id="rejectReasonCode"
           name="rejectReasonCode"
           required
+          aria-describedby="rejectReasonCode-error"
           defaultValue=""
-          className={control}
         >
           <option value="" disabled>
             Choose a reason
@@ -264,43 +267,37 @@ export const RejectForm = ({
               {text}
             </option>
           ))}
-        </select>
-      </div>
-      <div className={field}>
-        <label htmlFor="rejectIssueSeverity" className={labelClass}>
+        </Select>
+        <RequiredFieldError id="rejectReasonCode-error" />
+      </Field>
+      <Field>
+        <Label htmlFor="rejectIssueSeverity" required>
           Issue severity
-        </label>
-        <select
+        </Label>
+        <Select
           id="rejectIssueSeverity"
           name="issueSeverity"
           required
+          aria-describedby="rejectIssueSeverity-error"
           defaultValue="MINOR"
-          className={control}
         >
           {SEVERITIES.map(([code, text]) => (
             <option key={code} value={code}>
               {text}
             </option>
           ))}
-        </select>
-      </div>
-      <div className={field}>
-        <label htmlFor="rejectNote" className={labelClass}>
-          Note
-        </label>
-        <textarea
-          id="rejectNote"
-          name="note"
-          rows={2}
-          maxLength={2000}
-          className={control}
-        />
-        <p className="text-xs text-ink-secondary">
+        </Select>
+        <RequiredFieldError id="rejectIssueSeverity-error" />
+      </Field>
+      <Field>
+        <Label htmlFor="rejectNote">Note</Label>
+        <Textarea id="rejectNote" name="note" rows={2} maxLength={2000} />
+        <FieldHint>
           {/* `OTHER` carries no meaning on its own, so the backend requires a
               note beside it. */}
           Required when the reason is &quot;Another reason&quot;.
-        </p>
-      </div>
+        </FieldHint>
+      </Field>
       <SubmitButton className={button}>Reject</SubmitButton>
     </form>
   ) : null
@@ -364,96 +361,90 @@ export const EditForm = ({
           </p>
         ) : null}
       </div>
-      <div className={field}>
-        <label htmlFor="edit-knowledgeType" className={labelClass}>
+      <Field>
+        <Label htmlFor="edit-knowledgeType" required>
           Knowledge type
-        </label>
-        <select
+        </Label>
+        <Select
           id="edit-knowledgeType"
           name="knowledgeType"
           required
+          aria-describedby="edit-knowledgeType-error"
           defaultValue={asText(payload["knowledgeType"]) || detail.knowledgeType}
-          className={control}
         >
           {KNOWLEDGE_TYPES.map((value) => (
             <option key={value} value={value}>
               {value}
             </option>
           ))}
-        </select>
-      </div>
-      <div className={field}>
-        <label htmlFor="edit-implementationStatus" className={labelClass}>
+        </Select>
+        <RequiredFieldError id="edit-knowledgeType-error" />
+      </Field>
+      <Field>
+        <Label htmlFor="edit-implementationStatus" required>
           Implementation status
-        </label>
-        <select
+        </Label>
+        <Select
           id="edit-implementationStatus"
           name="implementationStatus"
           required
+          aria-describedby="edit-implementationStatus-error"
           defaultValue={
             asText(payload["implementationStatus"]) || detail.implementationStatus
           }
-          className={control}
         >
           {IMPLEMENTATION_STATUSES.map((value) => (
             <option key={value} value={value}>
               {value}
             </option>
           ))}
-        </select>
-      </div>
+        </Select>
+        <RequiredFieldError id="edit-implementationStatus-error" />
+      </Field>
       {EDIT_FIELDS.map(([key, text, kind]) => (
-        <div key={key} className={field}>
-          <label htmlFor={`edit-${key}`} className={labelClass}>
+        <Field key={key}>
+          <Label htmlFor={`edit-${key}`} required={kind === "text"}>
             {text}
-          </label>
-          <textarea
+          </Label>
+          <Textarea
             id={`edit-${key}`}
             name={key}
             rows={kind === "list" ? 2 : 3}
             required={kind === "text"}
+            aria-describedby={kind === "text" ? `edit-${key}-error` : undefined}
             defaultValue={
               kind === "list" ? asLines(payload[key]) : asText(payload[key])
             }
-            className={control}
           />
+          {kind === "text" ? <RequiredFieldError id={`edit-${key}-error`} /> : null}
           {kind === "list" ? (
-            <p className="text-xs text-ink-secondary">
-              One entry per line. Leave empty if there are none.
-            </p>
+            <FieldHint>One entry per line. Leave empty if there are none.</FieldHint>
           ) : null}
-        </div>
+        </Field>
       ))}
-      <div className={field}>
-        <label htmlFor="editIssueSeverity" className={labelClass}>
+      <Field>
+        <Label htmlFor="editIssueSeverity" required>
           Issue severity
-        </label>
-        <select
+        </Label>
+        <Select
           id="editIssueSeverity"
           name="issueSeverity"
           required
+          aria-describedby="editIssueSeverity-error"
           defaultValue="MINOR"
-          className={control}
         >
           {SEVERITIES.map(([code, text]) => (
             <option key={code} value={code}>
               {text}
             </option>
           ))}
-        </select>
-      </div>
-      <div className={field}>
-        <label htmlFor="editNote" className={labelClass}>
-          Note
-        </label>
-        <textarea
-          id="editNote"
-          name="note"
-          rows={2}
-          maxLength={2000}
-          className={control}
-        />
-      </div>
+        </Select>
+        <RequiredFieldError id="editIssueSeverity-error" />
+      </Field>
+      <Field>
+        <Label htmlFor="editNote">Note</Label>
+        <Textarea id="editNote" name="note" rows={2} maxLength={2000} />
+      </Field>
       <SubmitButton className={button}>Record the edit</SubmitButton>
     </form>
   )

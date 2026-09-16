@@ -25,6 +25,9 @@ export const Field = ({ className, ...props }: ComponentProps<"div">) => (
   />
 )
 
+/** Shown after submit or once the reader leaves a required control empty. */
+export const REQUIRED_VALUE_MESSAGE = "Enter a value."
+
 /**
  * `htmlFor` is required rather than optional. Every control in this Console
  * is a native form element posted to a route handler, so each one already has
@@ -35,8 +38,9 @@ export const Label = ({
   className,
   children,
   htmlFor,
+  required = false,
   ...props
-}: ComponentProps<"label"> & { htmlFor: string }) => (
+}: ComponentProps<"label"> & { htmlFor: string; required?: boolean }) => (
   <label
     data-slot="label"
     htmlFor={htmlFor}
@@ -44,6 +48,15 @@ export const Label = ({
     {...props}
   >
     {children}
+    {required ? (
+      <>
+        <span aria-hidden className="text-destructive">
+          {" "}
+          *
+        </span>
+        <span className="sr-only"> (required)</span>
+      </>
+    ) : null}
   </label>
 )
 
@@ -63,8 +76,28 @@ export const FieldError = ({ className, ...props }: ComponentProps<"p">) => (
   />
 )
 
+export const RequiredFieldError = ({
+  className,
+  children = REQUIRED_VALUE_MESSAGE,
+  id,
+  ...props
+}: ComponentProps<typeof FieldError> & { id: string }) => (
+  <FieldError
+    id={id}
+    data-slot="field-required-error"
+    aria-live="polite"
+    className={cn(
+      "hidden [[data-slot=field]:has([data-slot=input]:user-invalid)_&]:block [[data-slot=field]:has([data-slot=select]:user-invalid)_&]:block [[data-slot=field]:has([data-slot=textarea]:user-invalid)_&]:block",
+      className,
+    )}
+    {...props}
+  >
+    {children}
+  </FieldError>
+)
+
 const controlSurface =
-  "border-input bg-card text-foreground placeholder:text-muted-foreground h-10 w-full rounded-lg border px-3 text-sm transition-colors outline-none hover:border-line-strong focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-55 aria-invalid:border-destructive"
+  "border-input bg-card text-foreground placeholder:text-muted-foreground h-10 w-full rounded-lg border px-3 text-sm transition-colors outline-none hover:border-line-strong focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-55 aria-invalid:border-destructive user-invalid:border-destructive"
 
 export const Input = ({ className, ...props }: ComponentProps<"input">) => (
   <input data-slot="input" className={cn(controlSurface, className)} {...props} />

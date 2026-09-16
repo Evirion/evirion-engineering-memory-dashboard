@@ -6,8 +6,15 @@ import { ConsoleUnavailable } from "@/components/console/console-unavailable"
 import type { KnowledgeControls } from "@/lib/knowledge/presentation"
 import type { SupersessionContext } from "@/server/queries/knowledge"
 import { buttonVariants } from "@/components/ui/button"
+import {
+  Field,
+  FieldHint,
+  Label,
+  RequiredFieldError,
+  Select,
+  Textarea,
+} from "@/components/ui/field"
 import { panelVariants } from "@/components/ui/panel"
-import { kickerClasses } from "@/components/ui/text"
 import { SubmitButton } from "@/components/ui/submit-button"
 
 /**
@@ -31,10 +38,6 @@ import { SubmitButton } from "@/components/ui/submit-button"
  */
 
 const card = panelVariants({ className: "flex flex-col gap-3" })
-const field = "flex flex-col gap-1.5"
-const labelClass = kickerClasses()
-const control =
-  "border-input bg-card text-foreground min-h-10 rounded-lg border px-3 py-2 text-sm outline-none hover:border-line-strong focus-visible:border-ring"
 const button = buttonVariants({ variant: "primary", className: "self-start" })
 
 const CORRECTION_TYPES = [
@@ -120,18 +123,10 @@ export const MarkActiveForm = ({
         </p>
         <ReauthenticationNotice testId="lifecycle-reauth-notice" />
       </div>
-      <div className={field}>
-        <label htmlFor="activateNote" className={labelClass}>
-          Note
-        </label>
-        <textarea
-          id="activateNote"
-          name="note"
-          rows={2}
-          maxLength={2000}
-          className={control}
-        />
-      </div>
+      <Field>
+        <Label htmlFor="activateNote">Note</Label>
+        <Textarea id="activateNote" name="note" rows={2} maxLength={2000} />
+      </Field>
       <SubmitButton className={button}>Mark active</SubmitButton>
     </GatedForm>
   ) : null
@@ -158,16 +153,16 @@ const SupersedePicker = ({ supersession }: { supersession: SupersessionContext }
       </p>
     ) : (
       <>
-        <div className={field}>
-          <label htmlFor="supersedeWith" className={labelClass}>
+        <Field>
+          <Label htmlFor="supersedeWith" required>
             Replacement
-          </label>
-          <select
+          </Label>
+          <Select
             id="supersedeWith"
             name="supersedeWith"
             required
+            aria-describedby="supersedeWith-error"
             defaultValue=""
-            className={control}
           >
             <option value="" disabled>
               Choose a Knowledge Object
@@ -180,8 +175,9 @@ const SupersedePicker = ({ supersession }: { supersession: SupersessionContext }
                 {candidate.shortClaim} ({candidate.reviewLabel})
               </option>
             ))}
-          </select>
-        </div>
+          </Select>
+          <RequiredFieldError id="supersedeWith-error" />
+        </Field>
         <SubmitButton className={button}>Review the direction</SubmitButton>
       </>
     )}
@@ -262,18 +258,10 @@ const SupersedeConfirm = ({
         </p>
         <ReauthenticationNotice testId="lifecycle-reauth-notice" />
       </div>
-      <div className={field}>
-        <label htmlFor="supersedeNote" className={labelClass}>
-          Note
-        </label>
-        <textarea
-          id="supersedeNote"
-          name="note"
-          rows={2}
-          maxLength={2000}
-          className={control}
-        />
-      </div>
+      <Field>
+        <Label htmlFor="supersedeNote">Note</Label>
+        <Textarea id="supersedeNote" name="note" rows={2} maxLength={2000} />
+      </Field>
       <SubmitButton className={button}>
         Record that the newer object supersedes this one
       </SubmitButton>
@@ -332,16 +320,16 @@ export const RequestCorrectionForm = ({
         </p>
         <ReauthenticationNotice testId="lifecycle-reauth-notice" />
       </div>
-      <div className={field}>
-        <label htmlFor="requestType" className={labelClass}>
+      <Field>
+        <Label htmlFor="requestType" required>
           What should change
-        </label>
-        <select
+        </Label>
+        <Select
           id="requestType"
           name="requestType"
           required
+          aria-describedby="requestType-error"
           defaultValue=""
-          className={control}
         >
           <option value="" disabled>
             Choose a correction
@@ -351,19 +339,13 @@ export const RequestCorrectionForm = ({
               {text}
             </option>
           ))}
-        </select>
-      </div>
+        </Select>
+        <RequiredFieldError id="requestType-error" />
+      </Field>
       {relations.length === 0 ? null : (
-        <div className={field}>
-          <label htmlFor="knowledgeRelationId" className={labelClass}>
-            Which supersession
-          </label>
-          <select
-            id="knowledgeRelationId"
-            name="knowledgeRelationId"
-            defaultValue=""
-            className={control}
-          >
+        <Field>
+          <Label htmlFor="knowledgeRelationId">Which supersession</Label>
+          <Select id="knowledgeRelationId" name="knowledgeRelationId" defaultValue="">
             <option value="">Not applicable</option>
             {relations.map((edge) => (
               <option
@@ -375,22 +357,20 @@ export const RequestCorrectionForm = ({
                 Superseded by {edge.knowledgeObjectId}
               </option>
             ))}
-          </select>
-          <p className="text-xs text-ink-secondary">
-            Required when undoing a supersession.
-          </p>
-        </div>
+          </Select>
+          <FieldHint>Required when undoing a supersession.</FieldHint>
+        </Field>
       )}
-      <div className={field}>
-        <label htmlFor="correctionReasonCode" className={labelClass}>
+      <Field>
+        <Label htmlFor="correctionReasonCode" required>
           Reason
-        </label>
-        <select
+        </Label>
+        <Select
           id="correctionReasonCode"
           name="reasonCode"
           required
+          aria-describedby="correctionReasonCode-error"
           defaultValue=""
-          className={control}
         >
           <option value="" disabled>
             Choose a reason
@@ -400,23 +380,14 @@ export const RequestCorrectionForm = ({
               {text}
             </option>
           ))}
-        </select>
-      </div>
-      <div className={field}>
-        <label htmlFor="correctionNote" className={labelClass}>
-          Note
-        </label>
-        <textarea
-          id="correctionNote"
-          name="note"
-          rows={2}
-          maxLength={2000}
-          className={control}
-        />
-        <p className="text-xs text-ink-secondary">
-          Required when the reason is &quot;Another reason&quot;.
-        </p>
-      </div>
+        </Select>
+        <RequiredFieldError id="correctionReasonCode-error" />
+      </Field>
+      <Field>
+        <Label htmlFor="correctionNote">Note</Label>
+        <Textarea id="correctionNote" name="note" rows={2} maxLength={2000} />
+        <FieldHint>Required when the reason is &quot;Another reason&quot;.</FieldHint>
+      </Field>
       <SubmitButton className={button}>Send the request to Evirion</SubmitButton>
     </GatedForm>
   )
