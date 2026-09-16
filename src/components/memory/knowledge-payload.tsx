@@ -1,5 +1,6 @@
 import type { KnowledgeDetail } from "@contracts/console"
 
+import { MemoryDisclosure } from "@/components/memory/disclosure"
 import { type EditedDerivative, editedDerivativeOf } from "@/lib/knowledge/presentation"
 import { formatInstant } from "@/lib/format/display"
 
@@ -11,13 +12,10 @@ import { formatInstant } from "@/lib/format/display"
  * this screen: the original is never overwritten, never hidden behind a
  * destructive action, and never presented as a previous version to discard.
  *
- * Whether this reads as two columns, a diff or a toggle is open decision 4 and
- * the design TODO in the conventions. The structure below is what the contract
- * fixes either way: two separately named regions, the original always present,
- * and the derivative labelled as the reviewer's.
- *
- * Only a field the payload actually carries is rendered. `KD-001` forbids
- * invented empty sections, so an absent or empty value produces no heading.
+ * On this page they sit side by side inside a disclosure that opens when
+ * `humanEdited` is true. Only a field the payload actually carries is rendered.
+ * `KD-001` forbids invented empty sections, so an absent or empty value produces
+ * no heading.
  */
 
 /** The thirteen editable keys, in the order `REV-002` lists them. */
@@ -147,6 +145,16 @@ const DerivativeUnavailable = () => (
   </section>
 )
 
+export const KnowledgePayloadDisclosure = ({ detail }: { detail: KnowledgeDetail }) => (
+  <MemoryDisclosure
+    summary="Machine extraction and reviewer's derivative"
+    open={detail.humanEdited}
+    testId="knowledge-payload-disclosure"
+  >
+    <KnowledgePayloads detail={detail} />
+  </MemoryDisclosure>
+)
+
 export const KnowledgePayloads = ({ detail }: { detail: KnowledgeDetail }) => {
   const derivative = editedDerivativeOf(detail)
 
@@ -155,7 +163,7 @@ export const KnowledgePayloads = ({ detail }: { detail: KnowledgeDetail }) => {
       <section
         aria-label="Machine extraction"
         data-testid="knowledge-original"
-        className="flex flex-1 flex-col gap-3 rounded-2xl border border-border bg-card px-5 py-4 shadow-panel"
+        className="flex flex-1 flex-col gap-3 rounded-xl border border-border bg-muted/40 px-4 py-3"
       >
         <div className="flex flex-col gap-1">
           <h2 className="text-sm font-semibold text-foreground">Machine extraction</h2>

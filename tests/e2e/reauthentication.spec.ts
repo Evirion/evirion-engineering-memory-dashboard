@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test"
 
 import { KNOWLEDGE, REPOSITORIES } from "../../tools/console-stub/fixtures.mjs"
+import { clickMemorySubmit, openLifecycleForm } from "../support/memory-detail-fixture"
 import { signIn } from "../support/session-fixture"
 
 /**
@@ -50,6 +51,10 @@ test.describe("precondition notice", () => {
     await signIn(context, { scenario: "memory" })
     await page.goto(detailOf(KNOWLEDGE.approved))
 
+    await expect(page.getByTestId("lifecycle-actions")).toContainText(
+      "code from your authenticator app",
+    )
+    await openLifecycleForm(page, "lifecycle-activate")
     await expect(page.getByTestId("lifecycle-reauth-notice")).toBeVisible()
   })
 })
@@ -148,7 +153,7 @@ test.describe("knowledge return path", () => {
     await signIn(context, { scenario: "memoryStaleFreshness" })
     await page.goto(detailOf(KNOWLEDGE.approved))
 
-    await page.getByRole("button", { name: "Mark active" }).click()
+    await clickMemorySubmit(page, "lifecycle-activate", "Mark active")
     await completeStepUp(page)
 
     await expect(

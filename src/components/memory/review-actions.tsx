@@ -4,6 +4,7 @@ import {
   type KnowledgeControls,
   editedDerivativeOf,
 } from "@/lib/knowledge/presentation"
+import { MemoryDisclosure } from "@/components/memory/disclosure"
 import { buttonVariants } from "@/components/ui/button"
 import {
   Field,
@@ -13,7 +14,6 @@ import {
   Select,
   Textarea,
 } from "@/components/ui/field"
-import { panelVariants } from "@/components/ui/panel"
 import { SubmitButton } from "@/components/ui/submit-button"
 
 /**
@@ -33,7 +33,7 @@ import { SubmitButton } from "@/components/ui/submit-button"
  * records the original hash and leaves the edit in the history.
  */
 
-const card = panelVariants({ className: "flex flex-col gap-3" })
+const formBody = "flex flex-col gap-3"
 const button = buttonVariants({ variant: "primary", className: "self-start" })
 
 const REJECT_REASONS = [
@@ -163,29 +163,26 @@ export const ApproveOriginalForm = ({
   idempotencyKeys,
 }: ReviewFormProps) =>
   controls.canApprove ? (
-    <form
-      action="/api/memory/reviews"
-      method="post"
-      data-testid="review-approve"
-      className={card}
-    >
-      <Hidden
-        detail={detail}
-        csrfToken={csrfToken}
-        idempotencyKey={idempotencyKeys["approve"] ?? ""}
-      />
-      <input type="hidden" name="action" value="APPROVE" />
-      <div className="flex flex-col gap-1">
-        <h3 className="text-sm font-semibold text-foreground">
-          Approve the machine extraction
-        </h3>
+    <MemoryDisclosure summary="Approve the machine extraction">
+      <form
+        action="/api/memory/reviews"
+        method="post"
+        data-testid="review-approve"
+        className={formBody}
+      >
+        <Hidden
+          detail={detail}
+          csrfToken={csrfToken}
+          idempotencyKey={idempotencyKeys["approve"] ?? ""}
+        />
+        <input type="hidden" name="action" value="APPROVE" />
         <p className="text-xs text-ink-secondary">
           Records that the original claim is correct as extracted. It does not activate
           the object.
         </p>
-      </div>
-      <SubmitButton className={button}>Approve the original</SubmitButton>
-    </form>
+        <SubmitButton className={button}>Approve the original</SubmitButton>
+      </form>
+    </MemoryDisclosure>
   ) : null
 
 export const RevertToOriginalForm = ({
@@ -195,31 +192,28 @@ export const RevertToOriginalForm = ({
   idempotencyKeys,
 }: ReviewFormProps) =>
   controls.canRevertToOriginal ? (
-    <form
-      action="/api/memory/reviews"
-      method="post"
-      data-testid="review-revert"
-      className={card}
-    >
-      <Hidden
-        detail={detail}
-        csrfToken={csrfToken}
-        idempotencyKey={idempotencyKeys["revert"] ?? ""}
-      />
-      <input type="hidden" name="action" value="REVERT_TO_ORIGINAL_AND_APPROVE" />
-      <div className="flex flex-col gap-1">
-        <h3 className="text-sm font-semibold text-foreground">
-          Revert to the original and approve
-        </h3>
+    <MemoryDisclosure summary="Revert to the original and approve">
+      <form
+        action="/api/memory/reviews"
+        method="post"
+        data-testid="review-revert"
+        className={formBody}
+      >
+        <Hidden
+          detail={detail}
+          csrfToken={csrfToken}
+          idempotencyKey={idempotencyKeys["revert"] ?? ""}
+        />
+        <input type="hidden" name="action" value="REVERT_TO_ORIGINAL_AND_APPROVE" />
         <p className="text-xs text-ink-secondary">
           {/* Explicit, and never a silent discard: the edit stays in the
               history and this appends a new decision beside it. */}
           Records a new decision approving the machine extraction. The earlier edit is
           kept in the history and is not deleted.
         </p>
-      </div>
-      <SubmitButton className={button}>Revert to the original and approve</SubmitButton>
-    </form>
+        <SubmitButton className={button}>Confirm revert and approve</SubmitButton>
+      </form>
+    </MemoryDisclosure>
   ) : null
 
 export const RejectForm = ({
@@ -229,77 +223,76 @@ export const RejectForm = ({
   idempotencyKeys,
 }: ReviewFormProps) =>
   controls.canReject ? (
-    <form
-      action="/api/memory/reviews"
-      method="post"
-      data-testid="review-reject"
-      className={card}
-    >
-      <Hidden
-        detail={detail}
-        csrfToken={csrfToken}
-        idempotencyKey={idempotencyKeys["reject"] ?? ""}
-      />
-      <input type="hidden" name="action" value="USER_REJECT" />
-      <div className="flex flex-col gap-1">
-        <h3 className="text-sm font-semibold text-foreground">Reject this claim</h3>
+    <MemoryDisclosure summary="Reject this claim">
+      <form
+        action="/api/memory/reviews"
+        method="post"
+        data-testid="review-reject"
+        className={formBody}
+      >
+        <Hidden
+          detail={detail}
+          csrfToken={csrfToken}
+          idempotencyKey={idempotencyKeys["reject"] ?? ""}
+        />
+        <input type="hidden" name="action" value="USER_REJECT" />
         <p className="text-xs text-ink-secondary">
           The original extraction and its evidence are kept. The object leaves the
           reviewed-active projection and stays in the history.
         </p>
-      </div>
-      <Field>
-        <Label htmlFor="rejectReasonCode" required>
-          Reason
-        </Label>
-        <Select
-          id="rejectReasonCode"
-          name="rejectReasonCode"
-          required
-          aria-describedby="rejectReasonCode-error"
-          defaultValue=""
-        >
-          <option value="" disabled>
-            Choose a reason
-          </option>
-          {REJECT_REASONS.map(([code, text]) => (
-            <option key={code} value={code}>
-              {text}
+        <Field>
+          <Label htmlFor="rejectReasonCode" required>
+            Reason
+          </Label>
+          <Select
+            id="rejectReasonCode"
+            name="rejectReasonCode"
+            required
+            aria-describedby="rejectReasonCode-error"
+            defaultValue=""
+          >
+            <option value="" disabled>
+              Choose a reason
             </option>
-          ))}
-        </Select>
-        <RequiredFieldError id="rejectReasonCode-error" />
-      </Field>
-      <Field>
-        <Label htmlFor="rejectIssueSeverity" required>
-          Issue severity
-        </Label>
-        <Select
-          id="rejectIssueSeverity"
-          name="issueSeverity"
-          required
-          aria-describedby="rejectIssueSeverity-error"
-          defaultValue="MINOR"
-        >
-          {SEVERITIES.map(([code, text]) => (
-            <option key={code} value={code}>
-              {text}
-            </option>
-          ))}
-        </Select>
-        <RequiredFieldError id="rejectIssueSeverity-error" />
-      </Field>
-      <Field>
-        <Label htmlFor="rejectNote">Note</Label>
-        <Textarea id="rejectNote" name="note" rows={2} maxLength={2000} />
-        <FieldHint>
-          {/* `OTHER` carries no meaning on its own, so the backend requires a
+            {REJECT_REASONS.map(([code, text]) => (
+              <option key={code} value={code}>
+                {text}
+              </option>
+            ))}
+          </Select>
+          <RequiredFieldError id="rejectReasonCode-error" />
+        </Field>
+        <Field>
+          <Label htmlFor="rejectIssueSeverity" required>
+            Issue severity
+          </Label>
+          <Select
+            id="rejectIssueSeverity"
+            name="issueSeverity"
+            required
+            aria-describedby="rejectIssueSeverity-error"
+            defaultValue="MINOR"
+          >
+            {SEVERITIES.map(([code, text]) => (
+              <option key={code} value={code}>
+                {text}
+              </option>
+            ))}
+          </Select>
+          <RequiredFieldError id="rejectIssueSeverity-error" />
+        </Field>
+        <Field>
+          <Label htmlFor="rejectNote">Note</Label>
+          <Textarea id="rejectNote" name="note" rows={2} maxLength={2000} />
+          <FieldHint>
+            {/* `OTHER` carries no meaning on its own, so the backend requires a
               note beside it. */}
-          Required when the reason is &quot;Another reason&quot;.
-        </FieldHint>
-      </Field>
-      <SubmitButton className={button}>Reject</SubmitButton>
-    </form>
+            Required when the reason is &quot;Another reason&quot;.
+          </FieldHint>
+        </Field>
+        <SubmitButton className={button}>Reject</SubmitButton>
+      </form>
+    </MemoryDisclosure>
   ) : null
 
 export const EditForm = ({
@@ -322,22 +315,19 @@ export const EditForm = ({
       : detail.originalPayload
 
   return (
-    <form
-      action="/api/memory/reviews"
-      method="post"
-      data-testid="review-edit"
-      className={card}
-    >
-      <Hidden
-        detail={detail}
-        csrfToken={csrfToken}
-        idempotencyKey={idempotencyKeys["edit"] ?? ""}
-      />
-      <input type="hidden" name="action" value="EDIT" />
-      <div className="flex flex-col gap-1">
-        <h3 className="text-sm font-semibold text-foreground">
-          Record an edited derivative
-        </h3>
+    <MemoryDisclosure summary="Record an edited derivative">
+      <form
+        action="/api/memory/reviews"
+        method="post"
+        data-testid="review-edit"
+        className={formBody}
+      >
+        <Hidden
+          detail={detail}
+          csrfToken={csrfToken}
+          idempotencyKey={idempotencyKeys["edit"] ?? ""}
+        />
+        <input type="hidden" name="action" value="EDIT" />
         <p className="text-xs text-ink-secondary">
           The machine extraction is kept and stays on this page. Your words are recorded
           beside it as a reviewer's derivative.
@@ -360,93 +350,93 @@ export const EditForm = ({
             editing if you need them.
           </p>
         ) : null}
-      </div>
-      <Field>
-        <Label htmlFor="edit-knowledgeType" required>
-          Knowledge type
-        </Label>
-        <Select
-          id="edit-knowledgeType"
-          name="knowledgeType"
-          required
-          aria-describedby="edit-knowledgeType-error"
-          defaultValue={asText(payload["knowledgeType"]) || detail.knowledgeType}
-        >
-          {KNOWLEDGE_TYPES.map((value) => (
-            <option key={value} value={value}>
-              {value}
-            </option>
-          ))}
-        </Select>
-        <RequiredFieldError id="edit-knowledgeType-error" />
-      </Field>
-      <Field>
-        <Label htmlFor="edit-implementationStatus" required>
-          Implementation status
-        </Label>
-        <Select
-          id="edit-implementationStatus"
-          name="implementationStatus"
-          required
-          aria-describedby="edit-implementationStatus-error"
-          defaultValue={
-            asText(payload["implementationStatus"]) || detail.implementationStatus
-          }
-        >
-          {IMPLEMENTATION_STATUSES.map((value) => (
-            <option key={value} value={value}>
-              {value}
-            </option>
-          ))}
-        </Select>
-        <RequiredFieldError id="edit-implementationStatus-error" />
-      </Field>
-      {EDIT_FIELDS.map(([key, text, kind]) => (
-        <Field key={key}>
-          <Label htmlFor={`edit-${key}`} required={kind === "text"}>
-            {text}
+        <Field>
+          <Label htmlFor="edit-knowledgeType" required>
+            Knowledge type
           </Label>
-          <Textarea
-            id={`edit-${key}`}
-            name={key}
-            rows={kind === "list" ? 2 : 3}
-            required={kind === "text"}
-            aria-describedby={kind === "text" ? `edit-${key}-error` : undefined}
-            defaultValue={
-              kind === "list" ? asLines(payload[key]) : asText(payload[key])
-            }
-          />
-          {kind === "text" ? <RequiredFieldError id={`edit-${key}-error`} /> : null}
-          {kind === "list" ? (
-            <FieldHint>One entry per line. Leave empty if there are none.</FieldHint>
-          ) : null}
+          <Select
+            id="edit-knowledgeType"
+            name="knowledgeType"
+            required
+            aria-describedby="edit-knowledgeType-error"
+            defaultValue={asText(payload["knowledgeType"]) || detail.knowledgeType}
+          >
+            {KNOWLEDGE_TYPES.map((value) => (
+              <option key={value} value={value}>
+                {value}
+              </option>
+            ))}
+          </Select>
+          <RequiredFieldError id="edit-knowledgeType-error" />
         </Field>
-      ))}
-      <Field>
-        <Label htmlFor="editIssueSeverity" required>
-          Issue severity
-        </Label>
-        <Select
-          id="editIssueSeverity"
-          name="issueSeverity"
-          required
-          aria-describedby="editIssueSeverity-error"
-          defaultValue="MINOR"
-        >
-          {SEVERITIES.map(([code, text]) => (
-            <option key={code} value={code}>
+        <Field>
+          <Label htmlFor="edit-implementationStatus" required>
+            Implementation status
+          </Label>
+          <Select
+            id="edit-implementationStatus"
+            name="implementationStatus"
+            required
+            aria-describedby="edit-implementationStatus-error"
+            defaultValue={
+              asText(payload["implementationStatus"]) || detail.implementationStatus
+            }
+          >
+            {IMPLEMENTATION_STATUSES.map((value) => (
+              <option key={value} value={value}>
+                {value}
+              </option>
+            ))}
+          </Select>
+          <RequiredFieldError id="edit-implementationStatus-error" />
+        </Field>
+        {EDIT_FIELDS.map(([key, text, kind]) => (
+          <Field key={key}>
+            <Label htmlFor={`edit-${key}`} required={kind === "text"}>
               {text}
-            </option>
-          ))}
-        </Select>
-        <RequiredFieldError id="editIssueSeverity-error" />
-      </Field>
-      <Field>
-        <Label htmlFor="editNote">Note</Label>
-        <Textarea id="editNote" name="note" rows={2} maxLength={2000} />
-      </Field>
-      <SubmitButton className={button}>Record the edit</SubmitButton>
-    </form>
+            </Label>
+            <Textarea
+              id={`edit-${key}`}
+              name={key}
+              rows={kind === "list" ? 2 : 3}
+              required={kind === "text"}
+              aria-describedby={kind === "text" ? `edit-${key}-error` : undefined}
+              defaultValue={
+                kind === "list" ? asLines(payload[key]) : asText(payload[key])
+              }
+            />
+            {kind === "text" ? <RequiredFieldError id={`edit-${key}-error`} /> : null}
+            {kind === "list" ? (
+              <FieldHint>One entry per line. Leave empty if there are none.</FieldHint>
+            ) : null}
+          </Field>
+        ))}
+        <Field>
+          <Label htmlFor="editIssueSeverity" required>
+            Issue severity
+          </Label>
+          <Select
+            id="editIssueSeverity"
+            name="issueSeverity"
+            required
+            aria-describedby="editIssueSeverity-error"
+            defaultValue="MINOR"
+          >
+            {SEVERITIES.map(([code, text]) => (
+              <option key={code} value={code}>
+                {text}
+              </option>
+            ))}
+          </Select>
+          <RequiredFieldError id="editIssueSeverity-error" />
+        </Field>
+        <Field>
+          <Label htmlFor="editNote">Note</Label>
+          <Textarea id="editNote" name="note" rows={2} maxLength={2000} />
+        </Field>
+        <SubmitButton className={button}>Record the edit</SubmitButton>
+      </form>
+    </MemoryDisclosure>
   )
 }
 
@@ -470,7 +460,7 @@ export const ReviewActions = (props: ReviewFormProps) => {
       data-testid="review-actions"
       className="flex flex-col gap-3"
     >
-      <h2 className="text-sm font-semibold text-foreground">Review decisions</h2>
+      <h2 className="text-sm font-semibold text-foreground">Decide</h2>
       {anything ? null : (
         <p
           data-testid={

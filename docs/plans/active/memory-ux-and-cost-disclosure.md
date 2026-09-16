@@ -435,8 +435,8 @@ hosted mutation.
 
 ## Status
 
-MEM-UX/05 and MEM-UX/07 are merged on `main` (`2c0236d`). MEM-UX/03 and
-MEM-UX/06 are implemented and locally verified on
-`MEM-UX/03-06-memory-queue-and-supersession-picker`. MEM-UX/01, MEM-UX/02, and
-MEM-UX/04 stay planned. Nothing from this plan is deployed or observed on
-staging except where earlier milestones already landed.
+MEM-UX/05, MEM-UX/07, MEM-UX/03, and MEM-UX/06 are merged on `main` (`3979c36`).
+MEM-UX/04 is implemented and locally verified on
+`MEM-UX/04-knowledge-detail-decision-first`. MEM-UX/01 and MEM-UX/02 stay
+planned. Nothing from this plan is deployed or observed on staging except where
+earlier milestones already landed.

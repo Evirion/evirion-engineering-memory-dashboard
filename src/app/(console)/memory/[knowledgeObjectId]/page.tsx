@@ -4,7 +4,7 @@ import { notFound } from "next/navigation"
 import { ConsoleUnavailable } from "@/components/console/console-unavailable"
 import {
   KnowledgeEvidenceList,
-  KnowledgeSourceContext,
+  KnowledgeSourceDisclosure,
   KnowledgeStates,
 } from "@/components/memory/knowledge-detail"
 import { CorrectionRequests } from "@/components/memory/correction-status"
@@ -13,7 +13,7 @@ import {
   INVALID_CHALLENGE,
   ReauthenticationOutcome,
 } from "@/components/auth/reauthentication-outcome"
-import { KnowledgePayloads } from "@/components/memory/knowledge-payload"
+import { KnowledgePayloadDisclosure } from "@/components/memory/knowledge-payload"
 import { LifecycleActions } from "@/components/memory/lifecycle-actions"
 import { ReviewActions } from "@/components/memory/review-actions"
 import { ReviewHistory } from "@/components/memory/review-history"
@@ -101,10 +101,11 @@ const KnowledgeDetailPage = async ({
 
   return (
     <section className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-3">
         <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
           {detail.knowledge}
         </h1>
+        <KnowledgeStates detail={detail} />
         <p className="text-sm text-ink-secondary">
           {detail.knowledgeType} extracted from {detail.author}'s work
         </p>
@@ -136,9 +137,6 @@ const KnowledgeDetailPage = async ({
         <KnowledgeOutcomeNotice result={outcome} />
       )}
 
-      <KnowledgeStates detail={detail} />
-      <KnowledgeSourceContext detail={detail} />
-      <KnowledgePayloads detail={detail} />
       {/* Evidence sits above every control. `KD-002` requires the attribution
           to be readable before a review decision is taken. */}
       <KnowledgeEvidenceList view={view.evidence} />
@@ -148,7 +146,6 @@ const KnowledgeDetailPage = async ({
         csrfToken={csrfToken}
         idempotencyKeys={idempotencyKeys}
       />
-      <ReviewHistory view={view.history} />
       {/* The second axis, kept visually and semantically apart from review. */}
       <LifecycleActions
         detail={detail}
@@ -159,6 +156,9 @@ const KnowledgeDetailPage = async ({
         reauthenticationFreshUntil={freshUntil}
         knowledgeReturnPath={knowledgeReturnPath}
       />
+      <KnowledgeSourceDisclosure detail={detail} />
+      <KnowledgePayloadDisclosure detail={detail} />
+      <ReviewHistory view={view.history} />
       <CorrectionRequests view={view.corrections} />
     </section>
   )

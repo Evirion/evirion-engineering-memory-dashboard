@@ -1,5 +1,39 @@
 # Dashboard changelog
 
+## 2026-09-16 — Knowledge Object detail, decision-first layout
+
+- **Why.** The Knowledge Object page presented every panel at equal weight, buried
+  evidence below payload fields, and expanded up to seven forms at once, which
+  worked against a single review decision.
+- **What changed.** The claim stays the page heading with a compact review and
+  lifecycle strip beneath it. Evidence is always expanded and precedes every
+  review and lifecycle control. Review actions sit under a **Decide** heading,
+  each behind a native `details` summary; lifecycle actions use the same pattern.
+  Source context, the machine-versus-derivative comparison, review history, and
+  correction requests collapse into disclosures; the payload comparison opens when
+  `humanEdited` is true. Gated lifecycle summaries restate the authenticator
+  requirement while closed. Revert's submit label is distinct from its summary.
+  Unavailable review history stays outside a disclosure. Every prior
+  `data-testid`, section `aria-label`, and form remains in the DOM.
+- **Files.** `src/app/(console)/memory/[knowledgeObjectId]/page.tsx`,
+  `src/components/memory/disclosure.tsx`,
+  `src/components/memory/knowledge-detail.tsx`,
+  `src/components/memory/knowledge-payload.tsx`,
+  `src/components/memory/review-actions.tsx`,
+  `src/components/memory/lifecycle-actions.tsx`,
+  `src/components/memory/correction-status.tsx`,
+  `src/components/memory/review-history.tsx`,
+  `tests/support/memory-detail-fixture.ts`, component and e2e tests under
+  `tests/`, and `docs/architecture/console-ui-conventions.md`.
+- **Verification.** `pnpm exec vitest run tests/component/memory/` (46 passed);
+  `pnpm lint`; `pnpm typecheck`; `pnpm exec playwright test` of
+  `tests/e2e/memory-detail.spec.ts` `tests/e2e/memory-review.spec.ts`
+  `tests/e2e/reauthentication.spec.ts` `tests/e2e/accessibility.spec.ts`
+  `tests/security/memory-boundary.spec.ts` `tests/security/xss-corpus.spec.ts`
+  `tests/security/reauthentication-boundary.spec.ts` (118 passed).
+- **Deployment state.** Implemented and locally verified on branch
+  `MEM-UX/04-knowledge-detail-decision-first`. Not merged or deployed.
+
 ## 2026-09-16 — Memory queue hierarchy, collapsible filters, and supersession radio cards
 
 - **Why.** The review queue overloaded reviewers with competing chips and a
