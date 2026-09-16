@@ -231,20 +231,21 @@ test.describe("keyboard_focus_name_status_and_contrast_gate", () => {
     await expect(live.first()).toBeAttached()
   })
 
-  test("knowledge detail disclosures open, receive focus, and release it from the keyboard", async ({
+  test("knowledge detail controls take keyboard focus and show it", async ({
     context,
     page,
   }) => {
     await signIn(context, { scenario: "memory" })
     await page.goto(`/memory/${KNOWLEDGE.pending}`)
 
+    // Every decision is on the page already, so a keyboard reader reaches the
+    // control itself rather than a handle that has to be opened first.
     const approve = page
       .getByTestId("review-approve")
-      .locator("xpath=ancestor::details[1]")
-    const summary = approve.locator("summary")
+      .getByRole("button", { name: "Approve the original", exact: true })
 
-    await summary.focus()
-    await expect(summary).toBeFocused()
+    await approve.focus()
+    await expect(approve).toBeFocused()
 
     const focus = await page.evaluate(() => {
       const active = document.activeElement
@@ -259,27 +260,6 @@ test.describe("keyboard_focus_name_status_and_contrast_gate", () => {
     const visibleFocus =
       (focus?.outlineStyle !== "none" && focus?.outlineWidth !== "0px") ||
       (focus?.boxShadow !== undefined && focus.boxShadow !== "none")
-    expect(visibleFocus, "disclosure summary has no visible focus").toBe(true)
-
-    await page.keyboard.press("Enter")
-    await expect(approve).toHaveAttribute("open", "")
-
-    await page.keyboard.press("Tab")
-    expect(
-      await page.evaluate(
-        () =>
-          document.activeElement?.closest('[data-testid="review-approve"]') !== null,
-      ),
-    ).toBe(true)
-
-    await page.keyboard.press("Shift+Tab")
-    await expect(summary).toBeFocused()
-
-    await page.keyboard.press("Enter")
-    await expect(approve).not.toHaveAttribute("open")
-
-    await page.keyboard.press("Tab")
-    expect(await page.evaluate(() => document.activeElement?.tagName)).toBe("SUMMARY")
-    await expect(summary).not.toBeFocused()
+    expect(visibleFocus, "the approve control has no visible focus").toBe(true)
   })
 })

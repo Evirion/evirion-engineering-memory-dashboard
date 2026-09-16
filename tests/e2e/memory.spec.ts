@@ -126,7 +126,6 @@ test.describe("filters_and_pagination", () => {
     await signIn(context, { scenario: "memory" })
     await page.goto("/memory")
 
-    await page.getByTestId("memory-filter-disclosure").locator("summary").click()
     await page.getByLabel("Review status").selectOption("APPROVED")
     await page.getByLabel("Lifecycle").selectOption("ACTIVE")
     await page.getByRole("button", { name: "Apply filters" }).click()

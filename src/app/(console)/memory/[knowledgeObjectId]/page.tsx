@@ -4,7 +4,7 @@ import { notFound } from "next/navigation"
 import { ConsoleUnavailable } from "@/components/console/console-unavailable"
 import {
   KnowledgeEvidenceList,
-  KnowledgeSourceDisclosure,
+  KnowledgeSourceContext,
   KnowledgeStates,
 } from "@/components/memory/knowledge-detail"
 import { CorrectionRequests } from "@/components/memory/correction-status"
@@ -13,7 +13,7 @@ import {
   INVALID_CHALLENGE,
   ReauthenticationOutcome,
 } from "@/components/auth/reauthentication-outcome"
-import { KnowledgePayloadDisclosure } from "@/components/memory/knowledge-payload"
+import { KnowledgePayloads } from "@/components/memory/knowledge-payload"
 import { LifecycleActions } from "@/components/memory/lifecycle-actions"
 import { ReviewActions } from "@/components/memory/review-actions"
 import { ReviewHistory } from "@/components/memory/review-history"
@@ -137,9 +137,16 @@ const KnowledgeDetailPage = async ({
         <KnowledgeOutcomeNotice result={outcome} />
       )}
 
-      {/* Evidence sits above every control. `KD-002` requires the attribution
-          to be readable before a review decision is taken. */}
+      {/*
+        What was extracted comes first, then where it came from, then the
+        quotes it rests on. A reader opening this page is here to read the
+        Knowledge Object, so nothing is asked of them before they have seen it,
+        and `KD-002` is satisfied by all three sitting above every control.
+      */}
+      <KnowledgePayloads detail={detail} />
+      <KnowledgeSourceContext detail={detail} />
       <KnowledgeEvidenceList view={view.evidence} />
+
       <ReviewActions
         detail={detail}
         controls={controls}
@@ -156,8 +163,6 @@ const KnowledgeDetailPage = async ({
         reauthenticationFreshUntil={freshUntil}
         knowledgeReturnPath={knowledgeReturnPath}
       />
-      <KnowledgeSourceDisclosure detail={detail} />
-      <KnowledgePayloadDisclosure detail={detail} />
       <ReviewHistory view={view.history} />
       <CorrectionRequests view={view.corrections} />
     </section>
