@@ -242,6 +242,31 @@
   to fail against the previous outline button.
 - **Deployment state.** Implemented and locally verified.
 
+## 2026-09-16 — required fields and complete cost suspension (MEM-UX/05, MEM-UX/07)
+
+- **Required fields.** Shared `Label` gained a `required` marker, controls
+  gained `user-invalid` styling, and associated inline errors render after
+  submit or blur. The memory review and lifecycle forms now use the shared
+  field primitives; conditionally required note fields stay unmarked.
+- **Cost suspension.** `SHOW_COST_FIGURES` now also gates the pull request detail
+  cost line and the whole import page `ImportCost` panel. The constant comment
+  names all four gated surfaces. Import approval `costBudgetUsd`, repository
+  consent `budgetCeilingUsd`, and the repository detail budget-ceiling readout
+  stay visible.
+- **Why.** Mandatory memory fields had no marker or inline error state, and the
+  2026-09-08 cost suspension missed two surfaces. The change finishes both
+  decisions without statically marking conditional fields or removing wired
+  cost view models.
+- **Verification.** Component tests on `PullRequestDetailPanel`, `ImportCost`,
+  budget authorization fields, and required-field mapping; Playwright covers
+  the absent import panel and the empty required-field error. The `costView`
+  unit tests remain unchanged. The complete free gate passed lint, formatting,
+  typecheck, and 1,045 unit/component/contract tests; its Playwright phase
+  passed 346 tests and failed eight out-of-scope repository/security checks.
+- **Deployment state.** Implemented and locally verified. Not merged or
+  deployed; the eight failing full-gate checks block push, and staging
+  observation remains a separate gate.
+
 ## 2026-09-08 — cost reporting suspended on the customer surfaces
 
 - **What changed.** The Cost column is gone from `/processing`, and four cost
@@ -260,10 +285,11 @@
   to sit unresolved and become the way things are.
 - **The figures are still wired, behind one switch.**
   [`src/lib/ui/cost-reporting.ts`](../src/lib/ui/cost-reporting.ts) holds a
-  single `SHOW_COST_FIGURES`, and both surfaces read it, so the two cannot
-  drift into showing a figure on one page and not the other. Restoring is that
-  one word, and the suspension rows in the component tests fail the moment it
-  flips, so the switch is exercised rather than assumed.
+  single `SHOW_COST_FIGURES`. The processing table and usage panel read it first;
+  MEM-UX/07 extended the same switch to pull request detail and the import Cost
+  panel so the four cannot drift. Restoring is that one word, and the suspension
+  rows in the component tests fail the moment it flips, so the switch is
+  exercised rather than assumed.
 - **Two false starts, recorded because they shaped the result.** Commenting the
   metrics out left their view models unused, which left their imports unused,
   so one suppression spread into three places that had to be uncommented in

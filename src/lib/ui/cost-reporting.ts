@@ -9,10 +9,11 @@
  * stays `false`. `docs/CHANGELOG.md` carries the record of that gap and who
  * owns closing it either way.
  *
- * One constant rather than one per surface, so the two places that report
- * cost — the processing table and the usage panel — cannot drift into a state
- * where a customer sees a figure on one page and not the other. Everything
- * behind it stays wired and typechecked, so restoring is this word.
+ * One constant rather than one per surface, so the four places that report
+ * cost — the processing table, the usage panel, the pull request detail
+ * summary, and the import progress Cost panel — cannot drift into a state where
+ * a customer sees a figure on one page and not the other. Everything behind it
+ * stays wired and typechecked, so restoring is this word.
  *
  * This governs *reporting* only. The budget fields on the import approval and
  * the repository consent are how a customer authorizes spend with a ceiling,

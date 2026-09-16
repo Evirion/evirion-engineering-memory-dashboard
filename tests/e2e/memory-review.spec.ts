@@ -147,7 +147,7 @@ test.describe("edit_with_evidence_warning", () => {
 
     const original = objects[KNOWLEDGE.pending]?.base.originalPayload["knowledge"]
     await page
-      .getByLabel("Knowledge", { exact: true })
+      .getByRole("textbox", { name: "Knowledge (required)", exact: true })
       .fill("A reviewer's restatement of the same claim.")
     await page.getByRole("button", { name: "Record the edit" }).click()
 
@@ -201,7 +201,9 @@ test.describe("edit_with_evidence_warning", () => {
     const derivative =
       objects[KNOWLEDGE.edited]?.reviews.at(-1)?.editedPayload?.["knowledge"]
     await expect(
-      page.getByTestId("review-edit").getByLabel("Knowledge", { exact: true }),
+      page
+        .getByTestId("review-edit")
+        .getByRole("textbox", { name: "Knowledge (required)", exact: true }),
     ).toHaveValue(String(derivative))
   })
 
@@ -266,6 +268,26 @@ test.describe("reject_reason", () => {
     await expect(page.getByText("Your review is recorded.")).toBeVisible()
     await expect(page.getByTestId("review-history-entry")).toContainText("TOO_VAGUE")
     await expect(page.getByTestId("review-history-entry")).toContainText("MAJOR")
+  })
+
+  test("blocks submit with an inline error when reason is empty", async ({
+    context,
+    page,
+  }) => {
+    await signIn(context, { scenario: "memory" })
+    await page.goto(detailOf(KNOWLEDGE.pending))
+    const url = page.url()
+
+    await page.getByRole("button", { name: "Reject", exact: true }).click()
+
+    await expect(page).toHaveURL(url)
+    await expect(
+      page
+        .getByTestId("review-reject")
+        .locator(
+          "[data-slot=field]:has(#rejectReasonCode) [data-slot=field-required-error]",
+        ),
+    ).toBeVisible()
   })
 
   test("keeps the original knowledge and its evidence after a rejection", async ({
@@ -971,7 +993,7 @@ test.describe("goal_human_validation_preserves_machine_provenance", () => {
 
     await page.goto(detailOf(KNOWLEDGE.pending))
     await page
-      .getByLabel("Knowledge", { exact: true })
+      .getByRole("textbox", { name: "Knowledge (required)", exact: true })
       .fill("A reviewer's own restatement.")
     await page.getByRole("button", { name: "Record the edit" }).click()
     await expect(page.getByText("Your review is recorded.")).toBeVisible()

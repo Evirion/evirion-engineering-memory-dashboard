@@ -2,6 +2,7 @@ import type { PullRequestDetail } from "@contracts/console"
 
 import { formatInstant } from "@/lib/format/display"
 import { costViewFromBlock } from "@/lib/settings/cost"
+import { SHOW_COST_FIGURES } from "@/lib/ui/cost-reporting"
 import type { ValidationIssuesEntry } from "@/server/queries/processing"
 
 export const PullRequestDetailPanel = ({
@@ -41,13 +42,17 @@ export const PullRequestDetailPanel = ({
             View on GitHub
           </a>
         ) : null}
-        {cost === null ? (
-          <p className="text-sm text-ink-secondary">Cost not included for your role</p>
-        ) : (
-          <p className="text-sm text-ink-secondary" data-testid="pull-request-cost">
-            {cost.headline.amount ?? "No amount yet"}
-          </p>
-        )}
+        {SHOW_COST_FIGURES ? (
+          cost === null ? (
+            <p className="text-sm text-ink-secondary">
+              Cost not included for your role
+            </p>
+          ) : (
+            <p className="text-sm text-ink-secondary" data-testid="pull-request-cost">
+              {cost.headline.amount ?? "No amount yet"}
+            </p>
+          )
+        ) : null}
       </section>
 
       <section aria-label="Admitted knowledge" className="flex flex-col gap-2">

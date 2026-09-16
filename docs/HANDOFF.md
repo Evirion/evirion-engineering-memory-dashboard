@@ -1,10 +1,15 @@
 # Dashboard handoff
 
-Updated: 2026-09-12
+Updated: 2026-09-16
 
 ## Current state
 
-- Active branch: `fix/replay-repository-policy`. Saving Live processing after a
+- Active branch: `MEM-UX/05-07-required-fields-cost-disclosure`. MEM-UX/05
+  (shared required markers on memory review/lifecycle forms) and MEM-UX/07
+  (finish `SHOW_COST_FIGURES` on pull request detail and import Cost panel)
+  are implemented and locally verified on this branch. The next action is
+  review and merge of this branch; **not merged or deployed.**
+- Prior branch: `fix/replay-repository-policy`. Saving Live processing after a
   valid authenticator code threw because replay had no handler for
   `/api/repositories/policy` (or activate, disable, request-change) and the
   page showed "The service is busy." Replay now loads those routes. Locally
@@ -240,13 +245,18 @@ Trace: [`eem-9-07-acceptance-trace.md`](plans/active/eem-9-07-acceptance-trace.m
 
 ## Verification and next action
 
-This branch: 1035 unit tests, `pnpm lint` and `pnpm typecheck` pass. The
-complete free gate and the repository/import e2e suites have not been re-run
-in this session.
+For MEM-UX/05 and MEM-UX/07, 124 focused unit/component tests pass, including
+the unchanged 52-test `costView` unit suite. The affected import, memory-review,
+and reauthentication journeys pass after the required-label locator update.
+The complete free gate passed lint, formatting, typecheck, and 1,045
+unit/component/contract tests. Its Playwright phase passed 346 and failed
+eight: three repository-command checks outside MEM-UX/05 and /07, plus the
+four `headers-cache-isolation` checks and one `release-surface` check already
+recorded as failing on `main`.
 
-Next: review this branch. The complete free gate and the repository/import
-e2e suites have not been re-run locally in this session; CI owns that pass.
-Do not start a paid extraction worker from this task.
+Next: do not push this branch while those high-risk full-gate failures remain.
+No adjacent repair is authorized by MEM-UX/05 and MEM-UX/07. Do not start a
+paid extraction worker from this task.
 
 Two things are recorded for whoever picks this up. `error.json` is shared with
 the operator contract, so the generated Console validator accepts two codes no

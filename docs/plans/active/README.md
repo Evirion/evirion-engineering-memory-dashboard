@@ -279,3 +279,73 @@ expansion is authorized.`
 
 The detailed scope, exclusions, aliases, acceptance rows, and merge ordering in
 the full EEM-9 plan remain controlling.
+
+## MEM-UX — Memory review surfaces, required fields, and cost disclosure
+
+Opened 2026-09-16 from an owner walkthrough of the deployed Console. Seven
+numbered subtasks, detailed in
+[`memory-ux-and-cost-disclosure.md`](memory-ux-and-cost-disclosure.md), which is
+controlling for scope, exclusions, and acceptance. These are defect and design
+subtasks against surfaces EEM-9/05 and EEM-9/06 already delivered; they are not
+EEM-9 subtasks and do not reorder the EEM-9 sequence.
+
+Deliver in the order recorded in that plan: MEM-UX/01 first, then MEM-UX/05 with
+MEM-UX/07, then MEM-UX/03 with MEM-UX/06, then MEM-UX/04. MEM-UX/02 is last and
+is blocked.
+
+### MEM-UX/01 — Knowledge claim projection
+
+`Start MEM-UX/01-knowledge-claim-projection in evirion-engineering-memory. Work
+only on that subtask. Read the MEM-UX plan in the Dashboard repository first.
+Write one forward-only migration that re-creates private.b09_knowledge_summary_row
+and api.get_pull_request_detail so shortClaim projects
+core.knowledge_objects.knowledge instead of knowledge_value. Change no schema,
+no Edge function, and no contract byte. Do not apply the migration to any hosted
+project.`
+
+### MEM-UX/02 — Console contract v1.0.6 claim projection
+
+Blocked. It needs explicit authorization for the exact tag, and GitHub Actions
+must be able to start jobs again. Do not begin it before both are true.
+
+`Plan MEM-UX/02-console-contract-claim-projection and verify prerequisites only.
+This message does not authorize tagging, signing, or publishing any contract
+release.`
+
+### MEM-UX/03 — Review queue and filters
+
+`Start MEM-UX/03-memory-queue-and-filters. Work only on that subtask. Rework the
+/memory card hierarchy and collapse the advanced filter grid behind a native
+disclosure as the MEM-UX plan specifies. Keep review and lifecycle as two
+separately labelled axes, add no result total, no sort control, and no grouping.`
+
+### MEM-UX/04 — Knowledge Object page, decision-first
+
+`Start MEM-UX/04-knowledge-detail-decision-first. Work only on that subtask.
+Restructure /memory/:knowledgeObjectId as the MEM-UX plan specifies: evidence
+above every control and never collapsible, the review and lifecycle forms behind
+native disclosures, every data-testid and aria-label preserved, and allowedActions
+still the only authority for which control renders. Update the affected Playwright
+suites rather than weakening them.`
+
+### MEM-UX/05 — Required-field marking
+
+`Start MEM-UX/05-required-field-marking. Work only on that subtask. Extend
+src/components/ui/field.tsx with a required marker and an invalid state, then
+migrate the two memory form files onto the shared primitives. Do not mark the
+conditionally required note fields.`
+
+### MEM-UX/06 — Supersession replacement picker
+
+`Start MEM-UX/06-supersession-replacement-picker. Work only on that subtask.
+Replace the replacement select with labelled radio cards inside the same GET
+form. Keep the two-step flow, the URL-carried selection, all four optimistic
+tokens on the confirm step, and the stated direction.`
+
+### MEM-UX/07 — Complete the cost-disclosure suspension
+
+`Start MEM-UX/07-cost-disclosure-suspension. Work only on that subtask. Route the
+pull request detail cost line and the whole ImportCost panel through
+SHOW_COST_FIGURES, keep the two budget inputs and the repository budget-ceiling
+readout, and keep the cost view models wired. Invert the affected import e2e
+assertions to absence.`
