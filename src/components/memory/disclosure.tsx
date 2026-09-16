@@ -8,10 +8,8 @@ import type { ReactNode } from "react"
  * that submitting may ask for an authenticator code. `open` is presentation
  * only: it never hides a refusal, a conflict, or an unsupported state.
  */
-const frame =
-  "group rounded-2xl border border-border bg-card px-5 py-3 shadow-panel"
-const summaryClass =
-  "text-foreground cursor-pointer text-sm font-semibold"
+const frame = "group rounded-2xl border border-border bg-card px-5 py-3 shadow-panel"
+const summaryClass = "text-foreground cursor-pointer text-sm font-semibold"
 
 export const MemoryDisclosure = ({
   summary,

@@ -240,57 +240,57 @@ export const RejectForm = ({
           The original extraction and its evidence are kept. The object leaves the
           reviewed-active projection and stays in the history.
         </p>
-      <Field>
-        <Label htmlFor="rejectReasonCode" required>
-          Reason
-        </Label>
-        <Select
-          id="rejectReasonCode"
-          name="rejectReasonCode"
-          required
-          aria-describedby="rejectReasonCode-error"
-          defaultValue=""
-        >
-          <option value="" disabled>
-            Choose a reason
-          </option>
-          {REJECT_REASONS.map(([code, text]) => (
-            <option key={code} value={code}>
-              {text}
+        <Field>
+          <Label htmlFor="rejectReasonCode" required>
+            Reason
+          </Label>
+          <Select
+            id="rejectReasonCode"
+            name="rejectReasonCode"
+            required
+            aria-describedby="rejectReasonCode-error"
+            defaultValue=""
+          >
+            <option value="" disabled>
+              Choose a reason
             </option>
-          ))}
-        </Select>
-        <RequiredFieldError id="rejectReasonCode-error" />
-      </Field>
-      <Field>
-        <Label htmlFor="rejectIssueSeverity" required>
-          Issue severity
-        </Label>
-        <Select
-          id="rejectIssueSeverity"
-          name="issueSeverity"
-          required
-          aria-describedby="rejectIssueSeverity-error"
-          defaultValue="MINOR"
-        >
-          {SEVERITIES.map(([code, text]) => (
-            <option key={code} value={code}>
-              {text}
-            </option>
-          ))}
-        </Select>
-        <RequiredFieldError id="rejectIssueSeverity-error" />
-      </Field>
-      <Field>
-        <Label htmlFor="rejectNote">Note</Label>
-        <Textarea id="rejectNote" name="note" rows={2} maxLength={2000} />
-        <FieldHint>
-          {/* `OTHER` carries no meaning on its own, so the backend requires a
+            {REJECT_REASONS.map(([code, text]) => (
+              <option key={code} value={code}>
+                {text}
+              </option>
+            ))}
+          </Select>
+          <RequiredFieldError id="rejectReasonCode-error" />
+        </Field>
+        <Field>
+          <Label htmlFor="rejectIssueSeverity" required>
+            Issue severity
+          </Label>
+          <Select
+            id="rejectIssueSeverity"
+            name="issueSeverity"
+            required
+            aria-describedby="rejectIssueSeverity-error"
+            defaultValue="MINOR"
+          >
+            {SEVERITIES.map(([code, text]) => (
+              <option key={code} value={code}>
+                {text}
+              </option>
+            ))}
+          </Select>
+          <RequiredFieldError id="rejectIssueSeverity-error" />
+        </Field>
+        <Field>
+          <Label htmlFor="rejectNote">Note</Label>
+          <Textarea id="rejectNote" name="note" rows={2} maxLength={2000} />
+          <FieldHint>
+            {/* `OTHER` carries no meaning on its own, so the backend requires a
               note beside it. */}
-          Required when the reason is &quot;Another reason&quot;.
-        </FieldHint>
-      </Field>
-      <SubmitButton className={button}>Reject</SubmitButton>
+            Required when the reason is &quot;Another reason&quot;.
+          </FieldHint>
+        </Field>
+        <SubmitButton className={button}>Reject</SubmitButton>
       </form>
     </MemoryDisclosure>
   ) : null
@@ -350,91 +350,91 @@ export const EditForm = ({
             editing if you need them.
           </p>
         ) : null}
-      <Field>
-        <Label htmlFor="edit-knowledgeType" required>
-          Knowledge type
-        </Label>
-        <Select
-          id="edit-knowledgeType"
-          name="knowledgeType"
-          required
-          aria-describedby="edit-knowledgeType-error"
-          defaultValue={asText(payload["knowledgeType"]) || detail.knowledgeType}
-        >
-          {KNOWLEDGE_TYPES.map((value) => (
-            <option key={value} value={value}>
-              {value}
-            </option>
-          ))}
-        </Select>
-        <RequiredFieldError id="edit-knowledgeType-error" />
-      </Field>
-      <Field>
-        <Label htmlFor="edit-implementationStatus" required>
-          Implementation status
-        </Label>
-        <Select
-          id="edit-implementationStatus"
-          name="implementationStatus"
-          required
-          aria-describedby="edit-implementationStatus-error"
-          defaultValue={
-            asText(payload["implementationStatus"]) || detail.implementationStatus
-          }
-        >
-          {IMPLEMENTATION_STATUSES.map((value) => (
-            <option key={value} value={value}>
-              {value}
-            </option>
-          ))}
-        </Select>
-        <RequiredFieldError id="edit-implementationStatus-error" />
-      </Field>
-      {EDIT_FIELDS.map(([key, text, kind]) => (
-        <Field key={key}>
-          <Label htmlFor={`edit-${key}`} required={kind === "text"}>
-            {text}
+        <Field>
+          <Label htmlFor="edit-knowledgeType" required>
+            Knowledge type
           </Label>
-          <Textarea
-            id={`edit-${key}`}
-            name={key}
-            rows={kind === "list" ? 2 : 3}
-            required={kind === "text"}
-            aria-describedby={kind === "text" ? `edit-${key}-error` : undefined}
-            defaultValue={
-              kind === "list" ? asLines(payload[key]) : asText(payload[key])
-            }
-          />
-          {kind === "text" ? <RequiredFieldError id={`edit-${key}-error`} /> : null}
-          {kind === "list" ? (
-            <FieldHint>One entry per line. Leave empty if there are none.</FieldHint>
-          ) : null}
+          <Select
+            id="edit-knowledgeType"
+            name="knowledgeType"
+            required
+            aria-describedby="edit-knowledgeType-error"
+            defaultValue={asText(payload["knowledgeType"]) || detail.knowledgeType}
+          >
+            {KNOWLEDGE_TYPES.map((value) => (
+              <option key={value} value={value}>
+                {value}
+              </option>
+            ))}
+          </Select>
+          <RequiredFieldError id="edit-knowledgeType-error" />
         </Field>
-      ))}
-      <Field>
-        <Label htmlFor="editIssueSeverity" required>
-          Issue severity
-        </Label>
-        <Select
-          id="editIssueSeverity"
-          name="issueSeverity"
-          required
-          aria-describedby="editIssueSeverity-error"
-          defaultValue="MINOR"
-        >
-          {SEVERITIES.map(([code, text]) => (
-            <option key={code} value={code}>
+        <Field>
+          <Label htmlFor="edit-implementationStatus" required>
+            Implementation status
+          </Label>
+          <Select
+            id="edit-implementationStatus"
+            name="implementationStatus"
+            required
+            aria-describedby="edit-implementationStatus-error"
+            defaultValue={
+              asText(payload["implementationStatus"]) || detail.implementationStatus
+            }
+          >
+            {IMPLEMENTATION_STATUSES.map((value) => (
+              <option key={value} value={value}>
+                {value}
+              </option>
+            ))}
+          </Select>
+          <RequiredFieldError id="edit-implementationStatus-error" />
+        </Field>
+        {EDIT_FIELDS.map(([key, text, kind]) => (
+          <Field key={key}>
+            <Label htmlFor={`edit-${key}`} required={kind === "text"}>
               {text}
-            </option>
-          ))}
-        </Select>
-        <RequiredFieldError id="editIssueSeverity-error" />
-      </Field>
-      <Field>
-        <Label htmlFor="editNote">Note</Label>
-        <Textarea id="editNote" name="note" rows={2} maxLength={2000} />
-      </Field>
-      <SubmitButton className={button}>Record the edit</SubmitButton>
+            </Label>
+            <Textarea
+              id={`edit-${key}`}
+              name={key}
+              rows={kind === "list" ? 2 : 3}
+              required={kind === "text"}
+              aria-describedby={kind === "text" ? `edit-${key}-error` : undefined}
+              defaultValue={
+                kind === "list" ? asLines(payload[key]) : asText(payload[key])
+              }
+            />
+            {kind === "text" ? <RequiredFieldError id={`edit-${key}-error`} /> : null}
+            {kind === "list" ? (
+              <FieldHint>One entry per line. Leave empty if there are none.</FieldHint>
+            ) : null}
+          </Field>
+        ))}
+        <Field>
+          <Label htmlFor="editIssueSeverity" required>
+            Issue severity
+          </Label>
+          <Select
+            id="editIssueSeverity"
+            name="issueSeverity"
+            required
+            aria-describedby="editIssueSeverity-error"
+            defaultValue="MINOR"
+          >
+            {SEVERITIES.map(([code, text]) => (
+              <option key={code} value={code}>
+                {text}
+              </option>
+            ))}
+          </Select>
+          <RequiredFieldError id="editIssueSeverity-error" />
+        </Field>
+        <Field>
+          <Label htmlFor="editNote">Note</Label>
+          <Textarea id="editNote" name="note" rows={2} maxLength={2000} />
+        </Field>
+        <SubmitButton className={button}>Record the edit</SubmitButton>
       </form>
     </MemoryDisclosure>
   )

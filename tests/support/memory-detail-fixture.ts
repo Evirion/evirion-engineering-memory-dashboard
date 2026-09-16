@@ -9,10 +9,7 @@ const openDisclosure = async (page: Page, testId: string): Promise<void> => {
 }
 
 /** Opens the ancestor disclosure of a memory form or panel when it is collapsed. */
-const openAncestorDetails = async (
-  page: Page,
-  testId: string,
-): Promise<void> => {
+const openAncestorDetails = async (page: Page, testId: string): Promise<void> => {
   const target = page.getByTestId(testId)
   const details = target.locator("xpath=ancestor::details[1]")
   if ((await details.count()) === 0) return
@@ -33,8 +30,10 @@ export const clickMemorySubmit = async (
 export const openReviewForm = async (page: Page, formTestId: string): Promise<void> =>
   openAncestorDetails(page, formTestId)
 
-export const openLifecycleForm = async (page: Page, formTestId: string): Promise<void> =>
-  openAncestorDetails(page, formTestId)
+export const openLifecycleForm = async (
+  page: Page,
+  formTestId: string,
+): Promise<void> => openAncestorDetails(page, formTestId)
 
 export const openKnowledgePayload = async (page: Page): Promise<void> =>
   openDisclosure(page, "knowledge-payload-disclosure")

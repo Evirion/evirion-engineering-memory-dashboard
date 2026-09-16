@@ -13,7 +13,10 @@ import { LifecycleActions } from "@/components/memory/lifecycle-actions"
 import { ReviewActions } from "@/components/memory/review-actions"
 import { ReviewHistory } from "@/components/memory/review-history"
 import { knowledgeControls } from "@/lib/knowledge/presentation"
-import type { KnowledgeHistoryView, SupersessionContext } from "@/server/queries/knowledge"
+import type {
+  KnowledgeHistoryView,
+  SupersessionContext,
+} from "@/server/queries/knowledge"
 
 import { KNOWLEDGE, KNOWLEDGE_OBJECTS } from "../../../tools/console-stub/fixtures.mjs"
 

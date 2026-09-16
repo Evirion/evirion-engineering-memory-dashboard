@@ -195,7 +195,10 @@ test.describe("evidence_before_action", () => {
     expect(evidenceBox?.y ?? 0).toBeLessThan(reviewBox?.y ?? 0)
   })
 
-  test("places the evidence above every lifecycle control", async ({ context, page }) => {
+  test("places the evidence above every lifecycle control", async ({
+    context,
+    page,
+  }) => {
     await signIn(context, { scenario: "memory" })
     await page.goto(detailOf(KNOWLEDGE.approved))
 

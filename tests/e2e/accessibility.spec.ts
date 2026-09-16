@@ -238,7 +238,9 @@ test.describe("keyboard_focus_name_status_and_contrast_gate", () => {
     await signIn(context, { scenario: "memory" })
     await page.goto(`/memory/${KNOWLEDGE.pending}`)
 
-    const approve = page.getByTestId("review-approve").locator("xpath=ancestor::details[1]")
+    const approve = page
+      .getByTestId("review-approve")
+      .locator("xpath=ancestor::details[1]")
     const summary = approve.locator("summary")
 
     await summary.focus()
@@ -265,7 +267,8 @@ test.describe("keyboard_focus_name_status_and_contrast_gate", () => {
     await page.keyboard.press("Tab")
     expect(
       await page.evaluate(
-        () => document.activeElement?.closest('[data-testid="review-approve"]') !== null,
+        () =>
+          document.activeElement?.closest('[data-testid="review-approve"]') !== null,
       ),
     ).toBe(true)
 
