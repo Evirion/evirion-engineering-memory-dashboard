@@ -91,9 +91,7 @@ export const MemoryQueueList = ({ page }: { page: KnowledgePage }) => {
               <span aria-hidden>·</span>
               <span>{formatMerged(row.mergedAt)}</span>
               <span aria-hidden>·</span>
-              <span>
-                Lifecycle: {row.lifecycleLabel}
-              </span>
+              <span>Lifecycle: {row.lifecycleLabel}</span>
               <span aria-hidden>·</span>
               <span>{queueConfidenceLabel(row.confidence)}</span>
             </p>

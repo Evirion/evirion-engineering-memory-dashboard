@@ -654,7 +654,9 @@ test.describe("supersede_direction", () => {
     const session = await signIn(context, { scenario: "memory" })
     await page.goto(detailOf(KNOWLEDGE.approved))
 
-    await page.getByRole("radio", { name: new RegExp(claimOf(KNOWLEDGE.active)) }).check()
+    await page
+      .getByRole("radio", { name: new RegExp(claimOf(KNOWLEDGE.active)) })
+      .check()
     await page.getByRole("button", { name: "Review the direction" }).click()
     await page
       .getByRole("button", {
@@ -889,7 +891,9 @@ test.describe("journey_supersede_old_knowledge", () => {
     await signIn(context, { scenario: "memory" })
     await page.goto(detailOf(KNOWLEDGE.approved))
 
-    await page.getByRole("radio", { name: new RegExp(claimOf(KNOWLEDGE.active)) }).check()
+    await page
+      .getByRole("radio", { name: new RegExp(claimOf(KNOWLEDGE.active)) })
+      .check()
     await page.getByRole("button", { name: "Review the direction" }).click()
     await expect(page.getByTestId("supersede-direction")).toContainText("supersedes")
 
